@@ -1,0 +1,3 @@
+spring:
+  application:
+    name: INTELLIGENT_CV_MATCHING_AI_AGENT
