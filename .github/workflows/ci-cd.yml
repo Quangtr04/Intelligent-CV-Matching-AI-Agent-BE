@@ -24,9 +24,6 @@ jobs:
   test-and-package:
     name: Test and package
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: INTELLIGENT_CV_MATCHING_AI_AGENT
     steps:
       - uses: actions/checkout@v4
       - name: Set up Java
@@ -41,7 +38,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: application-jar
-          path: INTELLIGENT_CV_MATCHING_AI_AGENT/target/*.jar
+          path: target/*.jar
           if-no-files-found: error
           retention-days: 1
 
@@ -50,9 +47,6 @@ jobs:
     needs: test-and-package
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: INTELLIGENT_CV_MATCHING_AI_AGENT
     outputs:
       image: ${{ steps.image.outputs.image }}
     steps:
@@ -61,7 +55,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: application-jar
-          path: INTELLIGENT_CV_MATCHING_AI_AGENT/target
+          path: target
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -79,7 +73,7 @@ jobs:
       - name: Build and push image
         uses: docker/build-push-action@v6
         with:
-          context: INTELLIGENT_CV_MATCHING_AI_AGENT
+          context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -101,9 +95,8 @@ jobs:
           host: ${{ vars.DEPLOY_HOST }}
           username: ${{ vars.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          source: INTELLIGENT_CV_MATCHING_AI_AGENT/compose.production.yaml
+          source: compose.production.yaml
           target: ${{ vars.DEPLOY_PATH }}
-          strip_components: 1
       - name: Pull and restart the application
         uses: appleboy/ssh-action@v1.0.3
         with:
