@@ -5,8 +5,6 @@ import org.springframework.boot.testcontainers.service.connection.ServiceConnect
 import org.springframework.context.annotation.Bean;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.postgresql.PostgreSQLContainer;
-import org.testcontainers.qdrant.QdrantContainer;
-import org.testcontainers.rabbitmq.RabbitMQContainer;
 import org.testcontainers.utility.DockerImageName;
 
 @TestConfiguration(proxyBeanMethods = false)
@@ -15,25 +13,9 @@ class TestcontainersConfiguration {
     @Bean
     @ServiceConnection
     PostgreSQLContainer postgresContainer() {
-        return new PostgreSQLContainer(DockerImageName.parse("postgres:latest"));
-    }
-
-    @Bean
-    @ServiceConnection
-    QdrantContainer qdrantContainer() {
-        return new QdrantContainer(DockerImageName.parse("qdrant/qdrant:latest"));
-    }
-
-    @Bean
-    @ServiceConnection
-    RabbitMQContainer rabbitContainer() {
-        return new RabbitMQContainer(DockerImageName.parse("rabbitmq:latest"));
-    }
-
-    @Bean
-    @ServiceConnection(name = "redis")
-    GenericContainer<?> redisContainer() {
-        return new GenericContainer<>(DockerImageName.parse("redis:latest")).withExposedPorts(6379);
+        return new PostgreSQLContainer(
+            DockerImageName.parse("pgvector/pgvector:0.8.7-pg17-bookworm").asCompatibleSubstituteFor("postgres")
+        );
     }
 
 }
