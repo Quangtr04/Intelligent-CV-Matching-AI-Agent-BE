@@ -33,6 +33,10 @@ mvn formatter:validate
 mvn verify
 ```
 
+Trước khi commit, chạy format và verify rồi commit cả các file Java đã được formatter sửa. Lỗi CI `has not been previously formatted` cho biết nội dung file vẫn khác profile của dự án. CI kiểm tra định dạng trước khi chạy test và đóng gói JAR.
+
+Để dùng cùng phiên bản Maven với CI, trên Windows chạy `./mvnw.cmd --batch-mode formatter:format verify`; trên Linux/macOS chạy `./mvnw --batch-mode formatter:format verify`. Quy tắc `*.java text eol=lf` trong `.gitattributes` giữ thống nhất xuống dòng Java khi Git checkout trên Windows và Linux.
+
 Formatter xử lý toàn bộ Java trong `src/main/java`, `src/test/java` và `scripts/dev`. Kiểm tra định dạng được gắn vào phase `validate`, nên `mvn verify` cũng kiểm tra trước khi biên dịch và chạy test. Sau khi sinh lại entity/JPA repository, chạy formatter trước khi build.
 
 Formatter hiện tự gộp annotation bên trong kiểu generic. Với nhiều annotation kiểm tra phần tử, dùng đoạn `@formatter:off` / `@formatter:on` hẹp như trong `CrawlRequest`, giữ từng annotation trên dòng riêng. Chỉ bảo vệ phần kiểu cần giữ bố cục; giữ nguyên vị trí annotation để phân biệt ràng buộc của collection và của từng phần tử.
