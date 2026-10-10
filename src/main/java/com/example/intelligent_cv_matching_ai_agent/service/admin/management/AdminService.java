@@ -149,8 +149,13 @@ public class AdminService {
 
         db.updateUsersById(body.fullName(), body.role(), body.status(), id);
 
-        if (!body.role().equals(before.get("role")) || "SUSPENDED".equals(body.status()))
+        boolean roleChanged = !body.role().equals(before.get("role"));
+
+        boolean accountInactive = !"ACTIVE".equals(body.status());
+
+        if (roleChanged || accountInactive) {
             tokens.revokeAll(id);
+        }
 
         Map<String, Object> after = account(id);
 
