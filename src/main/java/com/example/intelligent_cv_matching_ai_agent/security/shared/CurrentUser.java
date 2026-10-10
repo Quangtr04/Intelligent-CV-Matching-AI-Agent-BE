@@ -23,23 +23,19 @@ public class CurrentUser {
         }
     }
 
-    public boolean hasRole(
-        String role) {
+    public boolean hasRole(String role) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
         return auth != null && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_" + role));
     }
 
-    public void requireRole(
-        String role) {
+    public void requireRole(String role) {
         id();
         if (!hasRole(role))
             throw ApiException.forbidden("Role required: " + role);
     }
 
-    public void owns(
-        Map<String, Object> row,
-        String ownerField) {
+    public void owns(Map<String, Object> row, String ownerField) {
         if (!id().equals(row.get(ownerField)))
             throw ApiException.notFound("Resource not found");
     }

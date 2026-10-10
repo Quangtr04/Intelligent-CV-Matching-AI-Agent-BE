@@ -23,8 +23,7 @@ public class AdminController {
 
     private final AdminService service;
 
-    public AdminController(
-        AdminService service) {
+    public AdminController(AdminService service) {
         this.service = service;
     }
 

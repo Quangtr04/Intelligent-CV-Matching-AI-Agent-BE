@@ -56,6 +56,21 @@ jobs:
         with:
           name: application-jar
           path: target
+      - name: Verify application package
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          jars=(target/*.jar)
+          if (( ${#jars[@]} != 1 )); then
+            echo "::error::Expected exactly one application JAR in target/, found ${#jars[@]}."
+            exit 1
+          fi
+          if [[ ! -f "${jars[0]}" || ! -s "${jars[0]}" ]]; then
+            echo "::error::Application JAR must be a nonempty regular file: ${jars[0]}"
+            exit 1
+          fi
+          ls -lh "${jars[0]}"
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:

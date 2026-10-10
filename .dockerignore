@@ -1,7 +1,9 @@
 .git
 .idea
 .mvn
-target
+# Include the packaged JAR while excluding other Maven output.
+target/*
+!target/*.jar
 *.md
 compose*.yaml
 src

@@ -54,7 +54,6 @@ public class AdminService {
 
     public Map<String, Object> dashboard() {
         admin();
-
         return Map.of(
             "users",
             db.countUsersByStatus(),
@@ -82,16 +81,14 @@ public class AdminService {
         return db.searchAccounts(search, size, (long) page * size);
     }
 
-    public Map<String, Object> account(
-        UUID id) {
+    public Map<String, Object> account(UUID id) {
         admin();
 
         return db.getAccount(id);
     }
 
     @Transactional
-    public Map<String, Object> create(
-        AccountCreateRequest body) {
+    public Map<String, Object> create(AccountCreateRequest body) {
         admin();
         String email = body.email().trim().toLowerCase(java.util.Locale.ROOT);
         if (body.temporaryPassword().getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 72)
@@ -135,9 +132,7 @@ public class AdminService {
     }
 
     @Transactional
-    public Map<String, Object> edit(
-        UUID id,
-        AccountUpdateRequest body) {
+    public Map<String, Object> edit(UUID id, AccountUpdateRequest body) {
         admin();
         db.readDatabaseValue();
         Map<String, Object> before = account(id);
@@ -161,8 +156,7 @@ public class AdminService {
     }
 
     @Transactional
-    public Map<String, Object> delete(
-        UUID id) {
+    public Map<String, Object> delete(UUID id) {
         admin();
         db.readDatabaseValue();
         Map<String, Object> before = account(id);
