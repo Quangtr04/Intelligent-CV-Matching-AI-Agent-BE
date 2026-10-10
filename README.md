@@ -76,6 +76,7 @@ docker build -t edunexus-backend:local .
 
 CI chạy kiểm thử, upload JAR rồi tải artifact vào `target` trước khi build image. `.dockerignore` cho phép `target/*.jar` và loại các output Maven khác. Nếu gặp `COPY target/*.jar` báo không tìm thấy thư mục, kiểm tra JAR đã được tạo hoặc tải về và build context đang là thư mục dự án.
 
+- [Hướng dẫn kiểm thử API bằng Swagger](docs/swagger-testing.md)
 - [Hợp đồng API và ví dụ core-flow](docs/api.md)
 - [Cấu trúc controller / DTO / entity / repository / service / util](docs/architecture.md)
 - [Quy ước Java và lệnh định dạng/kiểm tra](docs/java-coding-style.md)

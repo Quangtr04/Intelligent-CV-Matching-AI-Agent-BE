@@ -127,6 +127,13 @@ public class AdminController {
         return service.configure(body);
     }
 
+    @PostMapping("/ai/configurations/{oldVersionId}/restore")
+    public Map<String, Object> restoreConfiguration(
+        @PathVariable
+        UUID oldVersionId) {
+        return service.restoreConfiguration(oldVersionId);
+    }
+
     @GetMapping("/ai/prompts")
     public List<Map<String, Object>> prompts() {
         return service.prompts();
@@ -138,6 +145,13 @@ public class AdminController {
         @RequestBody
         AiPromptRequest body) {
         return service.prompt(body);
+    }
+
+    @PostMapping("/ai/prompts/{oldVersionId}/restore")
+    public Map<String, Object> restorePrompt(
+        @PathVariable
+        UUID oldVersionId) {
+        return service.restorePrompt(oldVersionId);
     }
 
     @GetMapping("/monitoring/{category}")

@@ -729,4 +729,287 @@ class CoreFlowIntegrationTests {
         assertEquals(saved.getId(), linked.getSkillId());
         assertEquals(cv, linked.getResumeId());
     }
+
+    @Test
+    void configurationRestoreCreatesNewActiveVersionAndPreservesTypedHistory() throws Exception {
+        String configType =
+            "TEST_" + UUID.randomUUID().toString().replace("-", "").replaceAll("[0-9]", "X").toUpperCase(Locale.ROOT);
+        Map<String, Object> originalConfiguration = new LinkedHashMap<>();
+        originalConfiguration.put("temperature", 0.2);
+        originalConfiguration.put("stream", true);
+        originalConfiguration.put("limits", Map.of("max_output_tokens", 512));
+        originalConfiguration.put("labels", List.of("baseline", "Vietnamese\n\"prompt\""));
+        originalConfiguration.put("optional", null);
+
+        var first = postJson(
+            "/api/v1/admin/ai/configurations",
+            admin,
+            Map.of(
+                "configType",
+                configType,
+                "provider",
+                "first-provider",
+                "modelName",
+                "first-model",
+                "configuration",
+                originalConfiguration
+            )
+        );
+        var second = postJson(
+            "/api/v1/admin/ai/configurations",
+            admin,
+            Map.of(
+                "configType",
+                configType,
+                "provider",
+                "second-provider",
+                "modelName",
+                "second-model",
+                "configuration",
+                Map.of("temperature", 0.8, "stream", false)
+            )
+        );
+        var unrelated = postJson(
+            "/api/v1/admin/ai/configurations",
+            admin,
+            Map.of(
+                "configType",
+                configType + "_OTHER",
+                "provider",
+                "other-provider",
+                "modelName",
+                "other-model",
+                "configuration",
+                Map.of("dimensions", 1536)
+            )
+        );
+        UUID unrelatedId = UUID.fromString(unrelated.get("id").toString());
+        var unrelatedBefore = db.one("SELECT * FROM ai_configurations WHERE id=?", unrelatedId);
+
+        var restored = response(
+            mvc.perform(
+                post("/api/v1/admin/ai/configurations/" + first.get("id") + "/restore")
+                    .header("Authorization", "Bearer " + admin)
+            )
+        );
+
+        assertNotEquals(first.get("id"), restored.get("id"));
+        assertNotEquals(second.get("id"), restored.get("id"));
+        assertEquals(3, ((Number) restored.get("version")).intValue());
+        assertEquals(true, restored.get("is_active"));
+        assertEquals(configType, restored.get("config_type"));
+        assertEquals(first.get("provider"), restored.get("provider"));
+        assertEquals(first.get("model_name"), restored.get("model_name"));
+        assertInstanceOf(Map.class, restored.get("config_json"));
+        assertEquals(first.get("config_json"), restored.get("config_json"));
+
+        UUID restoredId = UUID.fromString(restored.get("id").toString());
+        var persisted = db.one("SELECT * FROM ai_configurations WHERE id=?", restoredId);
+        assertEquals(restored.get("config_json"), persisted.get("config_json"));
+        var restoredConfiguration = (Map<?, ?>) persisted.get("config_json");
+        assertEquals(true, restoredConfiguration.get("stream"));
+        assertInstanceOf(Number.class, restoredConfiguration.get("temperature"));
+        assertInstanceOf(Map.class, restoredConfiguration.get("limits"));
+        assertInstanceOf(List.class, restoredConfiguration.get("labels"));
+        assertTrue(restoredConfiguration.containsKey("optional"));
+        assertNull(restoredConfiguration.get("optional"));
+
+        for (var original : List.of(first, second)) {
+            var historical =
+                db.one("SELECT * FROM ai_configurations WHERE id=?", UUID.fromString(original.get("id").toString()));
+            assertEquals(false, historical.get("is_active"));
+            assertEquals(original.get("version"), historical.get("version"));
+            assertEquals(original.get("provider"), historical.get("provider"));
+            assertEquals(original.get("model_name"), historical.get("model_name"));
+            assertEquals(original.get("config_json"), historical.get("config_json"));
+        }
+
+        var history = db.list("SELECT * FROM ai_configurations WHERE config_type=? ORDER BY version", configType);
+        assertEquals(3, history.size());
+        assertEquals(1L, history.stream().filter(row -> Boolean.TRUE.equals(row.get("is_active"))).count());
+        assertEquals(restoredId, history.getLast().get("id"));
+        assertEquals(unrelatedBefore, db.one("SELECT * FROM ai_configurations WHERE id=?", unrelatedId));
+        assertRestoreAudit("RESTORE_AI_CONFIGURATION", "AI_CONFIGURATION", first.get("id").toString(), restoredId);
+    }
+
+    @Test
+    void promptRestoreCreatesNewActiveVersionAndKeepsOtherFeaturesUnchanged() throws Exception {
+        String featureCode = "RESTORE_TEST_" + UUID.randomUUID().toString().replace("-", "").toUpperCase(Locale.ROOT);
+        var first = postJson(
+            "/api/v1/admin/ai/prompts",
+            admin,
+            Map.of(
+                "featureCode",
+                featureCode,
+                "name",
+                "Original Vietnamese prompt",
+                "systemPrompt",
+                "Hướng dẫn nghề nghiệp.\nGiữ nguyên thông tin người dùng.",
+                "userPromptTemplate",
+                "Review {{profile}} and {{job}}.\nReturn structured JSON."
+            )
+        );
+        var second = postJson(
+            "/api/v1/admin/ai/prompts",
+            admin,
+            Map.of(
+                "featureCode",
+                featureCode,
+                "name",
+                "Revised prompt",
+                "systemPrompt",
+                "Use the revised instructions.",
+                "userPromptTemplate",
+                "Review the revised {{profile}}."
+            )
+        );
+        var unrelated = postJson(
+            "/api/v1/admin/ai/prompts",
+            admin,
+            Map.of(
+                "featureCode",
+                featureCode + "_OTHER",
+                "name",
+                "Other feature prompt",
+                "systemPrompt",
+                "Keep these other instructions active.",
+                "userPromptTemplate",
+                "Explain {{other_context}}."
+            )
+        );
+        UUID unrelatedId = UUID.fromString(unrelated.get("id").toString());
+        var unrelatedBefore = db.one("SELECT * FROM ai_prompt_templates WHERE id=?", unrelatedId);
+
+        var restored = response(
+            mvc.perform(
+                post("/api/v1/admin/ai/prompts/" + first.get("id") + "/restore")
+                    .header("Authorization", "Bearer " + admin)
+            )
+        );
+
+        assertNotEquals(first.get("id"), restored.get("id"));
+        assertNotEquals(second.get("id"), restored.get("id"));
+        assertEquals(3, ((Number) restored.get("version")).intValue());
+        assertEquals(true, restored.get("is_active"));
+        assertEquals(featureCode, restored.get("feature_code"));
+        assertEquals(first.get("name"), restored.get("name"));
+        assertEquals(first.get("system_prompt"), restored.get("system_prompt"));
+        assertEquals(first.get("user_prompt_template"), restored.get("user_prompt_template"));
+
+        for (var original : List.of(first, second)) {
+            var historical =
+                db.one("SELECT * FROM ai_prompt_templates WHERE id=?", UUID.fromString(original.get("id").toString()));
+            assertEquals(false, historical.get("is_active"));
+            assertEquals(original.get("version"), historical.get("version"));
+            assertEquals(original.get("name"), historical.get("name"));
+            assertEquals(original.get("system_prompt"), historical.get("system_prompt"));
+            assertEquals(original.get("user_prompt_template"), historical.get("user_prompt_template"));
+        }
+
+        UUID restoredId = UUID.fromString(restored.get("id").toString());
+        var persisted = db.one("SELECT * FROM ai_prompt_templates WHERE id=?", restoredId);
+        assertEquals(first.get("system_prompt"), persisted.get("system_prompt"));
+        assertEquals(first.get("user_prompt_template"), persisted.get("user_prompt_template"));
+        var history = db.list("SELECT * FROM ai_prompt_templates WHERE feature_code=? ORDER BY version", featureCode);
+        assertEquals(3, history.size());
+        assertEquals(1L, history.stream().filter(row -> Boolean.TRUE.equals(row.get("is_active"))).count());
+        assertEquals(restoredId, history.getLast().get("id"));
+        assertEquals(unrelatedBefore, db.one("SELECT * FROM ai_prompt_templates WHERE id=?", unrelatedId));
+        assertRestoreAudit("RESTORE_AI_PROMPT", "AI_PROMPT", first.get("id").toString(), restoredId);
+    }
+
+    @Test
+    void aiRestorePreservesLegacySqlNullFields() throws Exception {
+        String legacyKey =
+            "LEGACY_" + UUID.randomUUID().toString().replace("-", "").replaceAll("[0-9]", "X").toUpperCase(Locale.ROOT);
+        UUID configurationId =
+            db.insert("ai_configurations", Map.of("config_type", legacyKey, "version", 4, "is_active", false));
+        UUID promptId =
+            db.insert("ai_prompt_templates", Map.of("feature_code", legacyKey, "version", 7, "is_active", false));
+
+        var configuration = response(
+            mvc.perform(
+                post("/api/v1/admin/ai/configurations/" + configurationId + "/restore")
+                    .header("Authorization", "Bearer " + admin)
+            )
+        );
+        var prompt = response(
+            mvc.perform(
+                post("/api/v1/admin/ai/prompts/" + promptId + "/restore").header("Authorization", "Bearer " + admin)
+            )
+        );
+
+        assertEquals(5, ((Number) configuration.get("version")).intValue());
+        assertEquals(true, configuration.get("is_active"));
+        assertNull(configuration.get("provider"));
+        assertNull(configuration.get("model_name"));
+        assertNull(configuration.get("config_json"));
+        UUID restoredConfigurationId = UUID.fromString(configuration.get("id").toString());
+        assertEquals(
+            true,
+            db.scalar(
+                "SELECT provider IS NULL AND model_name IS NULL AND config_json IS NULL "
+                    + "FROM ai_configurations WHERE id=?",
+                restoredConfigurationId
+            )
+        );
+
+        assertEquals(8, ((Number) prompt.get("version")).intValue());
+        assertEquals(true, prompt.get("is_active"));
+        assertNull(prompt.get("name"));
+        assertNull(prompt.get("system_prompt"));
+        assertNull(prompt.get("user_prompt_template"));
+        UUID restoredPromptId = UUID.fromString(prompt.get("id").toString());
+        assertEquals(
+            true,
+            db.scalar(
+                "SELECT name IS NULL AND system_prompt IS NULL AND user_prompt_template IS NULL "
+                    + "FROM ai_prompt_templates WHERE id=?",
+                restoredPromptId
+            )
+        );
+        assertEquals(false, db.scalar("SELECT is_active FROM ai_configurations WHERE id=?", configurationId));
+        assertEquals(false, db.scalar("SELECT is_active FROM ai_prompt_templates WHERE id=?", promptId));
+        assertRestoreAudit(
+            "RESTORE_AI_CONFIGURATION",
+            "AI_CONFIGURATION",
+            configurationId.toString(),
+            restoredConfigurationId
+        );
+        assertRestoreAudit("RESTORE_AI_PROMPT", "AI_PROMPT", promptId.toString(), restoredPromptId);
+    }
+
+    @Test
+    void aiRestoreEndpointsRequireAdministratorAndValidateVersionIds() throws Exception {
+        for (String group : List.of("configurations", "prompts")) {
+            String prefix = "/api/v1/admin/ai/" + group + "/";
+            String missingVersionPath = prefix + UUID.randomUUID() + "/restore";
+
+            mvc.perform(post(missingVersionPath)).andExpect(status().isUnauthorized());
+            mvc.perform(post(missingVersionPath).header("Authorization", "Bearer " + candidate))
+                .andExpect(status().isForbidden());
+            mvc.perform(post(missingVersionPath).header("Authorization", "Bearer " + admin))
+                .andExpect(status().isNotFound());
+            mvc.perform(post(prefix + "not-a-uuid/restore").header("Authorization", "Bearer " + admin))
+                .andExpect(status().isBadRequest());
+        }
+    }
+
+    private void assertRestoreAudit(
+        String action,
+        String entityType,
+        String sourceVersionId,
+        UUID restoredVersionId) {
+        var audit = db.one("SELECT * FROM audit_logs WHERE action=? AND entity_id=?", action, restoredVersionId);
+        assertEquals(entityType, audit.get("entity_type"));
+        assertEquals(tokens.authenticate(admin).get("id"), audit.get("actor_user_id"));
+        assertEquals(sourceVersionId, ((Map<?, ?>) audit.get("old_value")).get("id"));
+        assertEquals(restoredVersionId.toString(), ((Map<?, ?>) audit.get("new_value")).get("id"));
+        assertEquals(true, ((Map<?, ?>) audit.get("new_value")).get("is_active"));
+
+        var adminAction =
+            db.one("SELECT * FROM admin_actions WHERE action_type=? AND target_id=?", action, restoredVersionId);
+        assertEquals(entityType, adminAction.get("target_type"));
+        assertEquals(audit.get("actor_user_id"), adminAction.get("admin_user_id"));
+    }
 }
