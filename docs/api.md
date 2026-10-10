@@ -127,6 +127,46 @@ Trợ lý AI: tạo `/assistant/conversations`, sau đó gửi `POST /assistant/
 
 Admin quản lý user tại `/admin/users`, gói/quota tại `/admin/subscription-tiers`, AI tại `/admin/ai/configurations` và `/admin/ai/prompts`; xem audit/usage/index jobs qua `/admin/monitoring/{category}`. Thông báo tạo tại `/admin/announcements`, publish/archive bằng endpoint tương ứng; người dùng xem `/announcements` và `/notifications`. Support ticket ở `/support/tickets`; chỉ chủ ticket hoặc admin truy cập.
 
+### Lưu và khôi phục phiên bản AI
+
+Các endpoint dưới đây yêu cầu token `ADMIN`; thao tác POST thành công trả `200`:
+
+| Method | Path | Body / kết quả |
+| --- | --- | --- |
+| GET | `/admin/ai/configurations` | Danh sách cấu hình, gồm `id`, `config_type`, `version`, `is_active` |
+| POST | `/admin/ai/configurations` | `configType`, `provider`, `modelName`, `configuration`; lưu phiên bản mới |
+| POST | `/admin/ai/configurations/{oldVersionId}/restore` | Không body; sao chép cấu hình được chọn thành phiên bản mới |
+| GET | `/admin/ai/prompts` | Danh sách prompt, gồm `id`, `feature_code`, `version`, `is_active` |
+| POST | `/admin/ai/prompts` | `featureCode`, `name`, `systemPrompt`, `userPromptTemplate`; lưu phiên bản mới |
+| POST | `/admin/ai/prompts/{oldVersionId}/restore` | Không body; sao chép prompt được chọn thành phiên bản mới |
+
+`oldVersionId` là **UUID `id` của bản ghi**, không phải số `version`. Backend tạo `id` mới,
+đặt `version = max(version) + 1` trong cùng `config_type` hoặc `feature_code`, kích hoạt bản
+mới và tắt các bản trước trong một transaction. Nội dung và số phiên bản cũ được giữ lại;
+restore không đổi bản v1 thành active hay ghi đè v2. Chọn v1 khi đã có v2 sẽ tạo v3 chứa
+nội dung v1. Gọi restore lần nữa tạo thêm phiên bản, không trả lại bản đã tạo trước đó.
+
+Ví dụ, lấy UUID v1 từ GET danh sách rồi gọi:
+
+```http
+POST /api/v1/admin/ai/configurations/<UUID_CAU_HINH_V1>/restore
+Authorization: Bearer <accessToken-admin>
+```
+
+Prompt dùng `/api/v1/admin/ai/prompts/<UUID_PROMPT_V1>/restore`. Response là bản ghi mới;
+GET lại danh sách để kiểm tra chỉ một bản active trong mỗi nhóm. Audit ghi
+`RESTORE_AI_CONFIGURATION` hoặc `RESTORE_AI_PROMPT`. UUID sai định dạng trả `400`, UUID
+không tồn tại trả `404`, tài khoản không phải admin trả `403`, thiếu token hợp lệ trả `401`.
+
+Lưu/restore không gọi model và không tự bật AI, thay API key, provider đã khởi tạo hay biến
+môi trường. Cấu hình `CHAT` có provider phù hợp với provider của tiến trình quyết định tên
+model cho các lần gọi chat tiếp theo; prompt active của feature đang dùng được áp dụng cho
+lần sinh nội dung tiếp theo. Cấu hình và prompt dùng mã thử riêng không ảnh hưởng feature
+thực tế. Ví dụ kiểm thử v1 → v2 → restore v1 có trong
+[hướng dẫn Swagger](swagger-testing.md#luu-va-khoi-phuc-ai).
+
+### RAG, thanh toán và dữ liệu việc làm
+
 RAG: `POST /admin/rag/documents` với `title`, `content`, `sourceType: "ADMIN"`, `metadata` tùy chọn. Nội dung được chia chunk; gọi `/admin/rag/documents/{id}/index` để sinh embedding và `/archive` để dừng sử dụng cho retrieval.
 
 Gói công khai: `GET /subscriptions/tiers`; quyền/quota hiện tại: `GET /subscriptions/me`. Tạo đơn: `POST /payments/orders` với `{ "tierId": "...", "durationMonths": 1 }`. Số tiền lấy từ tier trên server. Chi tiết chữ ký webhook, invoice, payment report và cấu hình gateway trong [identity/billing](identity-billing.md).

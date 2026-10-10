@@ -174,14 +174,17 @@ public class AdminRepository {
         return db.list("SELECT * FROM ai_configurations ORDER BY config_type,version DESC LIMIT 100", args);
     }
 
-    public Object readDatabaseValue2(
-        Object... args) {
-        return db.scalar("SELECT pg_advisory_xact_lock(hashtext('AI_CONFIG:' || ?))", args);
+    public void lockAiConfigurationType(
+        String configType) {
+        db.scalar("SELECT pg_advisory_xact_lock(hashtext('AI_CONFIG:' || ?))", configType);
     }
 
-    public Object readAiConfigurationsByConfigType(
-        Object... args) {
-        return db.scalar("SELECT COALESCE(max(version),0)+1 FROM ai_configurations WHERE config_type=?", args);
+    public int getNextAiConfigurationVersion(
+        String configType) {
+        Number nextVersion = (Number) db
+            .scalar("SELECT COALESCE(max(version),0)+1 FROM ai_configurations WHERE config_type=?", configType);
+
+        return nextVersion.intValue();
     }
 
     public int updateAiConfigurationsByConfigType(
@@ -204,14 +207,17 @@ public class AdminRepository {
         return db.list("SELECT * FROM ai_prompt_templates ORDER BY feature_code,version DESC LIMIT 100", args);
     }
 
-    public Object readDatabaseValue3(
-        Object... args) {
-        return db.scalar("SELECT pg_advisory_xact_lock(hashtext('AI_PROMPT:' || ?))", args);
+    public void lockAiPromptFeatureCode(
+        String featureCode) {
+        db.scalar("SELECT pg_advisory_xact_lock(hashtext('AI_PROMPT:' || ?))", featureCode);
     }
 
-    public Object readAiPromptTemplatesByFeatureCode(
-        Object... args) {
-        return db.scalar("SELECT COALESCE(max(version),0)+1 FROM ai_prompt_templates WHERE feature_code=?", args);
+    public int getNextAiPromptVersion(
+        String featureCode) {
+        Number nextVersion = (Number) db
+            .scalar("SELECT COALESCE(max(version),0)+1 FROM ai_prompt_templates WHERE feature_code=?", featureCode);
+
+        return nextVersion.intValue();
     }
 
     public int updateAiPromptTemplatesByFeatureCode(

@@ -18,6 +18,7 @@ import jakarta.validation.constraints.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.OffsetDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -291,8 +292,8 @@ public class AdminService {
         if (json.contains("api_key") || json.contains("apikey") || json.contains("secret") || json.contains("password"))
             throw ApiException.badRequest("Configure credentials through environment variables");
 
-        db.readDatabaseValue2(body.configType());
-        int version = ((Number) db.readAiConfigurationsByConfigType(body.configType())).intValue();
+        db.lockAiConfigurationType(body.configType());
+        int version = db.getNextAiConfigurationVersion(body.configType());
 
         db.updateAiConfigurationsByConfigType(body.configType());
 
@@ -328,6 +329,40 @@ public class AdminService {
         return after;
     }
 
+    @Transactional
+    public Map<String, Object> restoreConfiguration(
+        UUID oldVersionId) {
+        admin();
+
+        Map<String, Object> oldConfiguration = db.getAiConfigurationsById(oldVersionId);
+        String configType = (String) oldConfiguration.get("config_type");
+
+        db.lockAiConfigurationType(configType);
+        int newVersion = db.getNextAiConfigurationVersion(configType);
+        db.updateAiConfigurationsByConfigType(configType);
+
+        OffsetDateTime now = OffsetDateTime.now();
+        Object configuration = oldConfiguration.get("config_json");
+
+        Map<String, Object> fields = new LinkedHashMap<>();
+        fields.put("config_type", configType);
+        fields.put("provider", oldConfiguration.get("provider"));
+        fields.put("model_name", oldConfiguration.get("model_name"));
+        fields.put("config_json", configuration == null ? null : db.json(configuration));
+        fields.put("version", newVersion);
+        fields.put("is_active", true);
+        fields.put("updated_by_user_id", user.id());
+        fields.put("created_at", now);
+        fields.put("updated_at", now);
+
+        UUID newId = db.insertAiConfigurations(fields);
+        Map<String, Object> restoredConfiguration = db.getAiConfigurationsById(newId);
+
+        audit.record("RESTORE_AI_CONFIGURATION", "AI_CONFIGURATION", newId, oldConfiguration, restoredConfiguration);
+
+        return restoredConfiguration;
+    }
+
     public List<Map<String, Object>> prompts() {
         admin();
 
@@ -338,8 +373,8 @@ public class AdminService {
     public Map<String, Object> prompt(
         AiPromptRequest body) {
         admin();
-        db.readDatabaseValue3(body.featureCode());
-        int version = ((Number) db.readAiPromptTemplatesByFeatureCode(body.featureCode())).intValue();
+        db.lockAiPromptFeatureCode(body.featureCode());
+        int version = db.getNextAiPromptVersion(body.featureCode());
 
         db.updateAiPromptTemplatesByFeatureCode(body.featureCode());
 
@@ -373,6 +408,39 @@ public class AdminService {
         audit.record("UPDATE_PROMPT", "AI_PROMPT", id, null, after);
 
         return after;
+    }
+
+    @Transactional
+    public Map<String, Object> restorePrompt(
+        UUID oldVersionId) {
+        admin();
+
+        Map<String, Object> oldPrompt = db.getAiPromptTemplatesById(oldVersionId);
+        String featureCode = (String) oldPrompt.get("feature_code");
+
+        db.lockAiPromptFeatureCode(featureCode);
+        int newVersion = db.getNextAiPromptVersion(featureCode);
+        db.updateAiPromptTemplatesByFeatureCode(featureCode);
+
+        OffsetDateTime now = OffsetDateTime.now();
+
+        Map<String, Object> fields = new LinkedHashMap<>();
+        fields.put("feature_code", featureCode);
+        fields.put("name", oldPrompt.get("name"));
+        fields.put("system_prompt", oldPrompt.get("system_prompt"));
+        fields.put("user_prompt_template", oldPrompt.get("user_prompt_template"));
+        fields.put("version", newVersion);
+        fields.put("is_active", true);
+        fields.put("updated_by_user_id", user.id());
+        fields.put("created_at", now);
+        fields.put("updated_at", now);
+
+        UUID newId = db.insertAiPromptTemplates(fields);
+        Map<String, Object> restoredPrompt = db.getAiPromptTemplatesById(newId);
+
+        audit.record("RESTORE_AI_PROMPT", "AI_PROMPT", newId, oldPrompt, restoredPrompt);
+
+        return restoredPrompt;
     }
 
     public List<Map<String, Object>> monitor(
