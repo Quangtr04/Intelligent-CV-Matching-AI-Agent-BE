@@ -31,18 +31,25 @@ Có **23 controller**. Endpoint dành riêng cho từng vai trò được đặt
 
 ## Request và response DTO
 
-Có **47 request DTO và 2 response DTO**. Ví dụ:
+Có **48 request DTO và 3 response DTO**. Ví dụ:
 
 ```text
 dto/request/shared/identity/LoginRequest.java
 dto/request/admin/consultation/AssignConsultantRequest.java
 dto/request/candidate/learning/AssessmentAnswerRequest.java
 dto/request/candidate/resume/ResumeWriteRequest.java
+dto/request/consultant/consultation/ConsultationAnalysisRequest.java
 dto/response/shared/identity/PersonalProfileResponse.java
 dto/response/candidate/resume/ResumeDownloadResponse.java
+dto/response/consultant/consultation/ConsultationAnalysesResponse.java
 ```
 
 Request DTO chứa validation và giữ quy tắc xử lý trường bị thiếu hoặc có giá trị `null` của API. Response DTO chọn dữ liệu trả về, tách khỏi entity. Các kết quả workflow có cấu trúc linh hoạt vẫn trả JSON hoặc `Map<String, Object>`. Kết quả trích xuất tệp `ExtractedResume` là dữ liệu nội bộ, nằm trong `util/shared/resume` cùng `ResumeFileExtractor` và `ResumeData`.
+
+`ConsultationAnalysisService` và `ConsultationAnalysisRepository` nằm trong package `consultant/consultation`.
+API đọc các báo cáo đã lưu của ứng viên qua hội thoại tư vấn, dùng request DTO cho bộ lọc/phân trang
+và response DTO cho bảy nhóm kết quả. Repository khóa chia sẻ hội thoại và kiểm tra quyền trước khi đọc,
+để việc phân công lại consultant không xen giữa kiểm tra quyền và truy xuất báo cáo.
 
 `util/shared/jobs/JobSourceValidator` kiểm tra URL nguồn cho import, crawling và mở trang ứng tuyển. Các workflow dùng chung quy tắc URL mà không phụ thuộc vào service crawler của admin.
 

@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mxfile host="app.diagrams.net">
+  <diagram id="edunexus-system" name="System Diagram">
+    <mxGraphModel fold="1" pageWidth="1920" dx="1920" tooltips="1" guides="1" connect="1" grid="1" shadow="0" math="0" pageHeight="1400" dy="1400" gridSize="10" pageScale="1" page="1" arrows="1">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" vertex="1" value="&lt;div style=&quot;font-size:34px;font-weight:bold;&quot;&gt;EDUNEXUS | SYSTEM DIAGRAM&lt;/div&gt;" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontFamily=Segoe UI;spacing=0;strokeColor=none;fillColor=none;">
+          <mxGeometry x="40" y="35" width="1500" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" parent="1" vertex="1" value="&lt;div style=&quot;font-size:20px;&quot;&gt;Kiến tr&amp;#250;c tổng thể của nền tảng AI hỗ trợ CV, việc l&amp;#224;m v&amp;#224; ph&amp;#225;t triển nghề nghiệp&lt;/div&gt;" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontFamily=Segoe UI;spacing=0;strokeColor=none;fillColor=none;">
+          <mxGeometry x="40" y="94" width="1800" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="apply-label" parent="1" vertex="1" value="&lt;div style=&quot;font-size:16px;&quot;&gt;Mở URL ứng tuyển&lt;/div&gt;" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontFamily=Segoe UI;spacing=0;strokeColor=none;fillColor=none;">
+          <mxGeometry x="970" y="121" width="260" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="actors" parent="1" vertex="1" value="&lt;div style=&quot;font-size:19px;font-weight:bold;&quot;&gt;&lt;/div&gt;" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontFamily=Segoe UI;fontColor=#0F172A;spacingLeft=16;spacingRight=10;spacingTop=14;fillColor=#F8FAFC;strokeColor=#CBD5E1;strokeWidth=1.5;">
+          <mxGeometry x="40" y="170" width="235" height="730" as="geometry" />
+        </mxCell>
+        <mxCell id="actors-title" parent="1" vertex="1" value="&lt;div style=&quot;font-size:18px;font-weight:bold;&quot;&gt;NGƯỜI D&amp;#217;NG&lt;/div&gt;" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontFamily=Segoe UI;spacing=0;strokeColor=none;fillColor=none;">
+          <mxGeometry x="62" y="192" width="190" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="guest" parent="1" vertex="1" value="&lt;div style=&quot;font-size:19px;font-weight:bold;&quot;&gt;Guest&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;Xem việc l&amp;#224;m&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;D&amp;#249;ng thử AI&lt;/div&gt;" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontFamily=Segoe UI;fontColor=#0F172A;spacingLeft=16;spacingRight=10;spacingTop=14;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;">
+          <mxGeometry x="62" y="255" width="191" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="candidate" parent="1" vertex="1" value="&lt;div style=&quot;font-size:19px;font-weight:bold;&quot;&gt;Candidate&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;CV, matching, học tập&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;G&amp;#243;i dịch vụ v&amp;#224; tư vấn&lt;/div&gt;" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontFamily=Segoe UI;fontColor=#0F172A;spacingLeft=16;spacingRight=10;spacingTop=14;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;">
+          <mxGeometry x="62" y="405" width="191" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="consultant" parent="1" vertex="1" value="&lt;div style=&quot;font-size:17px;font-weight:bold;&quot;&gt;Career Consultant&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;Y&amp;#234;u cầu được giao&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;Hồ sơ / CV ứng vi&amp;#234;n&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;Ph&amp;#226;n t&amp;#237;ch li&amp;#234;n quan&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;Tư vấn CV / nghề&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;Lương / ứng tuyển&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;Phản hồi y&amp;#234;u cầu&lt;/div&gt;" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontFamily=Segoe UI;fontColor=#0F172A;spacingLeft=16;spacingRight=10;spacingTop=14;fillColor=#F0FDFA;strokeColor=#14B8A6;strokeWidth=1.5;">
+          <mxGeometry x="62" y="535" width="191" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="admin" parent="1" vertex="1" value="&lt;div style=&quot;font-size:19px;font-weight:bold;&quot;&gt;Admin&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;Quản trị v&amp;#224; cấu h&amp;#236;nh&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;Gi&amp;#225;m s&amp;#225;t hệ thống&lt;/div&gt;" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontFamily=Segoe UI;fontColor=#0F172A;spacingLeft=16;spacingRight=10;spacingTop=14;fillColor=#FFFFFF;strokeColor=#CBD5E1;strokeWidth=1.5;">
+          <mxGeometry x="62" y="775" width="191" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="consultant-note" parent="1" vertex="1" value="&lt;div style=&quot;font-size:17px;font-weight:bold;&quot;&gt;Quyền Career Consultant&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;Dữ liệu theo hội thoại được ph&amp;#226;n c&amp;#244;ng.&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;Kiểm tra quyền sở hữu v&amp;#224; trạng th&amp;#225;i CV.&lt;/div&gt;" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontFamily=Segoe UI;spacing=0;strokeColor=none;fillColor=none;">
+          <mxGeometry x="40" y="935" width="550" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="frontend" parent="1" vertex="1" value="&lt;div style=&quot;font-size:19px;font-weight:bold;&quot;&gt;Ứng dụng Web&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;Giao diện theo core-flow&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;REST client / SSE client&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;Frontend theo thiết kế&lt;/div&gt;" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontFamily=Segoe UI;fontColor=#0F172A;spacingLeft=16;spacingRight=10;spacingTop=14;fillColor=#F8FAFC;strokeColor=#CBD5E1;strokeWidth=1.5;dashed=1;dashPattern=8 5;">
+          <mxGeometry x="340" y="435" width="220" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="http-label" parent="1" vertex="1" value="&lt;div style=&quot;font-size:15px;&quot;&gt;REST&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;JSON&lt;/div&gt;" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontFamily=Segoe UI;spacing=0;strokeColor=none;fillColor=none;">
+          <mxGeometry x="564" y="464" width="72" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="sse-label" parent="1" vertex="1" value="&lt;div style=&quot;font-size:15px;&quot;&gt;SSE&lt;/div&gt;" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontFamily=Segoe UI;spacing=0;strokeColor=none;fillColor=none;">
+          <mxGeometry x="568" y="580" width="64" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="swagger" parent="1" vertex="1" value="&lt;div style=&quot;font-size:19px;font-weight:bold;&quot;&gt;Swagger UI&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;Kiểm thử REST API&lt;/div&gt;" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontFamily=Segoe UI;fontColor=#0F172A;spacingLeft=16;spacingRight=10;spacingTop=14;fillColor=#F0FDFA;strokeColor=#14B8A6;strokeWidth=1.5;">
+          <mxGeometry x="340" y="705" width="220" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="backend" parent="1" vertex="1" value="&lt;div style=&quot;font-size:19px;font-weight:bold;&quot;&gt;&lt;/div&gt;" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontFamily=Segoe UI;fontColor=#0F172A;spacingLeft=16;spacingRight=10;spacingTop=14;fillColor=#EFF6FF;strokeColor=#60A5FA;strokeWidth=1.5;">
+          <mxGeometry x="640" y="170" width="800" height="850" as="geometry" />
+        </mxCell>
+        <mxCell id="backend-title" parent="1" vertex="1" value="&lt;div style=&quot;font-size:22px;font-weight:bold;&quot;&gt;BACKEND | SPRING BOOT APPLICATION&lt;/div&gt;" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontFamily=Segoe UI;spacing=0;strokeColor=none;fillColor=none;">
+          <mxGeometry x="675" y="192" width="730" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="api" parent="1" vertex="1" value="&lt;div style=&quot;font-size:17px;font-weight:bold;&quot;&gt;REST /api/v1  •  DTO validation  •  Bearer token / RBAC  •  Guest session&lt;/div&gt;" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontFamily=Segoe UI;fontColor=#0F172A;spacingLeft=16;spacingRight=10;spacingTop=14;fillColor=#DBEAFE;strokeColor=#93C5FD;strokeWidth=1.5;">
+          <mxGeometry x="675" y="243" width="730" height="47" as="geometry" />
+        </mxCell>
+        <mxCell id="identity" parent="1" vertex="1" value="&lt;div style=&quot;font-size:19px;font-weight:bold;&quot;&gt;Identity &amp;amp; Guest Trial&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;Đăng k&amp;#253;, OTP, đăng nhập, profile&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;Vai tr&amp;#242;, session v&amp;#224; giới hạn d&amp;#249;ng thử&lt;/div&gt;" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontFamily=Segoe UI;fontColor=#0F172A;spacingLeft=16;spacingRight=10;spacingTop=14;fillColor=#FFFFFF;strokeColor=#BFDBFE;strokeWidth=1.5;">
+          <mxGeometry x="675" y="310" width="350" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="resume" parent="1" vertex="1" value="&lt;div style=&quot;font-size:19px;font-weight:bold;&quot;&gt;Career Profile &amp;amp; Resume&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;Upload / tr&amp;#237;ch xuất, sửa v&amp;#224; x&amp;#225;c nhận CV&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;AI builder, ph&amp;#226;n t&amp;#237;ch v&amp;#224; embedding&lt;/div&gt;" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontFamily=Segoe UI;fontColor=#0F172A;spacingLeft=16;spacingRight=10;spacingTop=14;fillColor=#FFFFFF;strokeColor=#BFDBFE;strokeWidth=1.5;">
+          <mxGeometry x="1055" y="310" width="350" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="matching" parent="1" vertex="1" value="&lt;div style=&quot;font-size:19px;font-weight:bold;&quot;&gt;Job Matching &amp;amp; ATS&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;Semantic matching, điểm v&amp;#224; giải th&amp;#237;ch&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;ATS CV–job, draft email / cover letter&lt;/div&gt;" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontFamily=Segoe UI;fontColor=#0F172A;spacingLeft=16;spacingRight=10;spacingTop=14;fillColor=#FFFFFF;strokeColor=#BFDBFE;strokeWidth=1.5;">
+          <mxGeometry x="675" y="435" width="350" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="learning" parent="1" vertex="1" value="&lt;div style=&quot;font-size:18px;font-weight:bold;&quot;&gt;Assessment &amp;amp; Learning Roadmap&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;Hướng 1: Job + CV / hồ sơ → lộ tr&amp;#236;nh&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;Hướng 2: B&amp;#224;i kiểm tra → lộ tr&amp;#236;nh&lt;/div&gt;" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontFamily=Segoe UI;fontColor=#0F172A;spacingLeft=16;spacingRight=10;spacingTop=14;fillColor=#ECFDF5;strokeColor=#34D399;strokeWidth=1.5;">
+          <mxGeometry x="1055" y="435" width="350" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="assistant" parent="1" vertex="1" value="&lt;div style=&quot;font-size:19px;font-weight:bold;&quot;&gt;AI Assistant &amp;amp; Support&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;Career assistant v&amp;#224; truy xuất RAG&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;Th&amp;#244;ng b&amp;#225;o trong app, support ticket&lt;/div&gt;" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontFamily=Segoe UI;fontColor=#0F172A;spacingLeft=16;spacingRight=10;spacingTop=14;fillColor=#FFFFFF;strokeColor=#BFDBFE;strokeWidth=1.5;">
+          <mxGeometry x="675" y="560" width="350" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="consultation" parent="1" vertex="1" value="&lt;div style=&quot;font-size:19px;font-weight:bold;&quot;&gt;Career Consultation&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;Hồ sơ, CV v&amp;#224; c&amp;#225;c kết quả ph&amp;#226;n t&amp;#237;ch&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;Tư vấn CV, nghề, lương v&amp;#224; ứng tuyển&lt;/div&gt;" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontFamily=Segoe UI;fontColor=#0F172A;spacingLeft=16;spacingRight=10;spacingTop=14;fillColor=#F0FDFA;strokeColor=#14B8A6;strokeWidth=1.5;">
+          <mxGeometry x="1055" y="560" width="350" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="billing" parent="1" vertex="1" value="&lt;div style=&quot;font-size:19px;font-weight:bold;&quot;&gt;Subscription &amp;amp; Payment&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;G&amp;#243;i, quota, đơn h&amp;#224;ng v&amp;#224; invoice&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;Webhook HMAC, k&amp;#237;ch hoạt v&amp;#224; gia hạn&lt;/div&gt;" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontFamily=Segoe UI;fontColor=#0F172A;spacingLeft=16;spacingRight=10;spacingTop=14;fillColor=#FFFFFF;strokeColor=#BFDBFE;strokeWidth=1.5;">
+          <mxGeometry x="675" y="685" width="350" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="administration" parent="1" vertex="1" value="&lt;div style=&quot;font-size:18px;font-weight:bold;&quot;&gt;Administration &amp;amp; Job Pipeline&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;User, AI config / prompt, audit, monitoring&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;Import / crawl job, chuẩn h&amp;#243;a v&amp;#224; index&lt;/div&gt;" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontFamily=Segoe UI;fontColor=#0F172A;spacingLeft=16;spacingRight=10;spacingTop=14;fillColor=#FFFFFF;strokeColor=#BFDBFE;strokeWidth=1.5;">
+          <mxGeometry x="1055" y="685" width="350" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="ai-orchestration" parent="1" vertex="1" value="&lt;div style=&quot;font-size:19px;font-weight:bold;&quot;&gt;AI Orchestration | AiService + Spring AI&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;Chat / embedding, prompt / model configuration, token quota v&amp;#224; usage log&lt;/div&gt;" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontFamily=Segoe UI;fontColor=#0F172A;spacingLeft=16;spacingRight=10;spacingTop=14;fillColor=#F5F3FF;strokeColor=#C4B5FD;strokeWidth=1.5;">
+          <mxGeometry x="675" y="820" width="730" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="repository" parent="1" vertex="1" value="&lt;div style=&quot;font-size:19px;font-weight:bold;&quot;&gt;Data Access | JDBC / JPA Repositories&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;Entity mapping, transaction, ownership checks v&amp;#224; Flyway migrations&lt;/div&gt;" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontFamily=Segoe UI;fontColor=#0F172A;spacingLeft=16;spacingRight=10;spacingTop=14;fillColor=#FFFFFF;strokeColor=#BFDBFE;strokeWidth=1.5;">
+          <mxGeometry x="675" y="912" width="730" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="external" parent="1" vertex="1" value="&lt;div style=&quot;font-size:19px;font-weight:bold;&quot;&gt;&lt;/div&gt;" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontFamily=Segoe UI;fontColor=#0F172A;spacingLeft=16;spacingRight=10;spacingTop=14;fillColor=#FFFBEB;strokeColor=#FCD34D;strokeWidth=1.5;">
+          <mxGeometry x="1500" y="170" width="380" height="850" as="geometry" />
+        </mxCell>
+        <mxCell id="external-title" parent="1" vertex="1" value="&lt;div style=&quot;font-size:20px;font-weight:bold;&quot;&gt;DỊCH VỤ B&amp;#202;N NGO&amp;#192;I&lt;/div&gt;" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontFamily=Segoe UI;spacing=0;strokeColor=none;fillColor=none;">
+          <mxGeometry x="1524" y="192" width="335" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="openai" parent="1" vertex="1" value="&lt;div style=&quot;font-size:18px;font-weight:bold;&quot;&gt;OpenAI / AI Provider&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;ChatModel / EmbeddingModel&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;HTTPS • cần bật v&amp;#224; cấu h&amp;#236;nh AI&lt;/div&gt;" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontFamily=Segoe UI;fontColor=#0F172A;spacingLeft=16;spacingRight=10;spacingTop=14;fillColor=#FFFFFF;strokeColor=#DDD6FE;strokeWidth=1.5;dashed=1;dashPattern=8 5;">
+          <mxGeometry x="1530" y="245" width="320" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="jobs" parent="1" vertex="1" value="&lt;div style=&quot;font-size:19px;font-weight:bold;&quot;&gt;ITviec / TopCV&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;HTTPS crawl HTML / JSON-LD&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;Ứng tuyển qua URL job gốc&lt;/div&gt;" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontFamily=Segoe UI;fontColor=#0F172A;spacingLeft=16;spacingRight=10;spacingTop=14;fillColor=#FFFFFF;strokeColor=#FDE68A;strokeWidth=1.5;">
+          <mxGeometry x="1530" y="385" width="320" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="smtp" parent="1" vertex="1" value="&lt;div style=&quot;font-size:19px;font-weight:bold;&quot;&gt;SMTP Mail Server&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;Gửi m&amp;#227; OTP x&amp;#225;c minh email&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;T&amp;#249;y cấu h&amp;#236;nh SMTP&lt;/div&gt;" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontFamily=Segoe UI;fontColor=#0F172A;spacingLeft=16;spacingRight=10;spacingTop=14;fillColor=#FFFFFF;strokeColor=#FDE68A;strokeWidth=1.5;dashed=1;dashPattern=8 5;">
+          <mxGeometry x="1530" y="525" width="320" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="google" parent="1" vertex="1" value="&lt;div style=&quot;font-size:19px;font-weight:bold;&quot;&gt;Google Identity&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;X&amp;#225;c minh ID token / lấy JWKS&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;HTTPS • t&amp;#249;y cấu h&amp;#236;nh Google login&lt;/div&gt;" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontFamily=Segoe UI;fontColor=#0F172A;spacingLeft=16;spacingRight=10;spacingTop=14;fillColor=#FFFFFF;strokeColor=#FDE68A;strokeWidth=1.5;dashed=1;dashPattern=8 5;">
+          <mxGeometry x="1530" y="665" width="320" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="gateway" parent="1" vertex="1" value="&lt;div style=&quot;font-size:18px;font-weight:bold;&quot;&gt;Payment Gateway / Adapter&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;Webhook HMAC → backend&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;Checkout cần adapter t&amp;#237;ch hợp&lt;/div&gt;" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontFamily=Segoe UI;fontColor=#0F172A;spacingLeft=16;spacingRight=10;spacingTop=14;fillColor=#FFFFFF;strokeColor=#FDE68A;strokeWidth=1.5;dashed=1;dashPattern=8 5;">
+          <mxGeometry x="1530" y="805" width="320" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="data-title" parent="1" vertex="1" value="&lt;div style=&quot;font-size:20px;font-weight:bold;&quot;&gt;DỮ LIỆU &amp;amp; LƯU TRỮ&lt;/div&gt;" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontFamily=Segoe UI;spacing=0;strokeColor=none;fillColor=none;">
+          <mxGeometry x="40" y="1100" width="490" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="postgres" parent="1" vertex="1" value="&lt;div style=&quot;font-size:19px;font-weight:bold;&quot;&gt;PostgreSQL + pgvector&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;User, CV, job, assessment, roadmap, billing...&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;Vector CV / profile / job / RAG: 1536 chiều&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;Matching cache v&amp;#224; kết quả ph&amp;#226;n t&amp;#237;ch ATS&lt;/div&gt;" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontFamily=Segoe UI;fontColor=#0F172A;spacingLeft=16;spacingRight=10;spacingTop=14;fillColor=#EFF6FF;strokeColor=#60A5FA;strokeWidth=1.5;">
+          <mxGeometry x="675" y="1140" width="440" height="142" as="geometry" />
+        </mxCell>
+        <mxCell id="redis" parent="1" vertex="1" value="&lt;div style=&quot;font-size:19px;font-weight:bold;&quot;&gt;Redis | Optional&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;Cache đ&amp;#225;nh gi&amp;#225; CV–job / ATS&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;Gi&amp;#225; trị: analysis ID • TTL 24 giờ&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;Đối chiếu / fallback database&lt;/div&gt;" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontFamily=Segoe UI;fontColor=#0F172A;spacingLeft=16;spacingRight=10;spacingTop=14;fillColor=#FFF1F2;strokeColor=#FDA4AF;strokeWidth=1.5;dashed=1;dashPattern=8 5;">
+          <mxGeometry x="1145" y="1140" width="315" height="142" as="geometry" />
+        </mxCell>
+        <mxCell id="files" parent="1" vertex="1" value="&lt;div style=&quot;font-size:19px;font-weight:bold;&quot;&gt;CV File Storage&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;Upload: UPLOAD_DIR / mounted volume&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;PDFBox / POI tr&amp;#237;ch xuất nội dung&lt;/div&gt;&lt;div style=&quot;font-size:16px;margin-top:5px;&quot;&gt;OCR local bằng Tesseract: t&amp;#249;y chọn&lt;/div&gt;" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontFamily=Segoe UI;fontColor=#0F172A;spacingLeft=16;spacingRight=10;spacingTop=14;fillColor=#F8FAFC;strokeColor=#94A3B8;strokeWidth=1.5;">
+          <mxGeometry x="1490" y="1140" width="350" height="142" as="geometry" />
+        </mxCell>
+        <mxCell id="postgres-protocol" parent="1" vertex="1" value="&lt;div style=&quot;font-size:16px;&quot;&gt;JDBC / JPA&lt;/div&gt;" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontFamily=Segoe UI;spacing=0;strokeColor=none;fillColor=none;">
+          <mxGeometry x="785" y="1074" width="106" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="redis-protocol" parent="1" vertex="1" value="&lt;div style=&quot;font-size:16px;&quot;&gt;GET / SET&lt;/div&gt;" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontFamily=Segoe UI;spacing=0;strokeColor=none;fillColor=none;">
+          <mxGeometry x="1318" y="1074" width="125" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="files-protocol" parent="1" vertex="1" value="&lt;div style=&quot;font-size:16px;&quot;&gt;File I/O&lt;/div&gt;" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontFamily=Segoe UI;spacing=0;strokeColor=none;fillColor=none;">
+          <mxGeometry x="1683" y="1074" width="140" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="legend" parent="1" vertex="1" value="&lt;div style=&quot;font-size:17px;&quot;&gt;N&amp;#233;t liền: kết nối trong kiến tr&amp;#250;c backend. N&amp;#233;t đứt: th&amp;#224;nh phần t&amp;#249;y chọn, giao diện thiết kế hoặc adapter cần t&amp;#237;ch hợp.&lt;/div&gt;" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontFamily=Segoe UI;spacing=0;strokeColor=none;fillColor=none;">
+          <mxGeometry x="40" y="1325" width="1800" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="guest-web" parent="1" edge="1" source="guest" target="frontend" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#64748B;startArrow=none;startFill=1;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="305" y="310" />
+              <mxPoint x="305" y="530" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="candidate-web" parent="1" edge="1" source="candidate" target="frontend" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#64748B;startArrow=none;startFill=1;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="305" y="460" />
+              <mxPoint x="305" y="530" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="consultant-web" parent="1" edge="1" source="consultant" target="frontend" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#64748B;startArrow=none;startFill=1;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="305" y="635" />
+              <mxPoint x="305" y="530" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="admin-web" parent="1" edge="1" source="admin" target="frontend" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#64748B;startArrow=none;startFill=1;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="305" y="830" />
+              <mxPoint x="305" y="530" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="web-api" parent="1" edge="1" source="frontend" target="backend" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#2563EB;startArrow=block;startFill=1;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.423529411764706;entryDx=0;entryDy=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="backend-sse" parent="1" edge="1" source="backend" target="frontend" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#0D9488;startArrow=none;startFill=1;endArrow=block;endFill=1;exitX=0;exitY=0.517647058823529;exitDx=0;exitDy=0;entryX=1;entryY=0.921052631578947;entryDx=0;entryDy=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="swagger-api" parent="1" edge="1" source="swagger" target="backend" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#0D9488;startArrow=none;startFill=1;endArrow=block;endFill=1;exitX=1;exitY=0.494736842105263;exitDx=0;exitDy=0;entryX=0;entryY=0.705882352941177;entryDx=0;entryDy=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="605" y="752" />
+              <mxPoint x="605" y="770" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="web-external-apply" parent="1" edge="1" source="frontend" target="jobs" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#64748B;startArrow=none;startFill=1;endArrow=block;endFill=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="450" y="150" />
+              <mxPoint x="1902" y="150" />
+              <mxPoint x="1902" y="435" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="backend-ai" parent="1" edge="1" source="backend" target="openai" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#7C3AED;startArrow=none;startFill=1;endArrow=block;endFill=1;exitX=1;exitY=0.141176470588235;exitDx=0;exitDy=0;entryX=0;entryY=0.45;entryDx=0;entryDy=0;dashed=1;dashPattern=7 5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="backend-jobs" parent="1" edge="1" source="backend" target="jobs" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#B45309;startArrow=none;startFill=1;endArrow=block;endFill=1;exitX=1;exitY=0.305882352941176;exitDx=0;exitDy=0;entryX=0;entryY=0.45;entryDx=0;entryDy=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="backend-smtp" parent="1" edge="1" source="backend" target="smtp" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#B45309;startArrow=none;startFill=1;endArrow=block;endFill=1;exitX=1;exitY=0.470588235294118;exitDx=0;exitDy=0;entryX=0;entryY=0.45;entryDx=0;entryDy=0;dashed=1;dashPattern=7 5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="backend-google" parent="1" edge="1" source="backend" target="google" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#B45309;startArrow=none;startFill=1;endArrow=block;endFill=1;exitX=1;exitY=0.635294117647059;exitDx=0;exitDy=0;entryX=0;entryY=0.45;entryDx=0;entryDy=0;dashed=1;dashPattern=7 5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="gateway-webhook" parent="1" edge="1" source="gateway" target="backend" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#B45309;startArrow=none;startFill=1;endArrow=block;endFill=1;exitX=0;exitY=0.45;exitDx=0;exitDy=0;entryX=1;entryY=0.8;entryDx=0;entryDy=0;dashed=1;dashPattern=7 5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="backend-postgres" parent="1" edge="1" source="backend" target="postgres" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#2563EB;startArrow=block;startFill=1;endArrow=block;endFill=1;exitX=0.31875;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="backend-redis" parent="1" edge="1" source="backend" target="redis" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#E11D48;startArrow=block;startFill=1;endArrow=block;endFill=1;exitX=0.8275;exitY=1;exitDx=0;exitDy=0;entryX=0.498412698412698;entryY=0;entryDx=0;entryDy=0;dashed=1;dashPattern=7 5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="backend-files" parent="1" edge="1" source="backend" target="files" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#64748B;startArrow=block;startFill=1;endArrow=block;endFill=1;exitX=0.9375;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1390" y="1050" />
+              <mxPoint x="1665" y="1050" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

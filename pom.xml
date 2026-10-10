@@ -29,6 +29,7 @@
     <properties>
         <java.version>25</java.version>
         <spring-ai.version>2.0.1</spring-ai.version>
+        <swagger-api.version>2.2.52</swagger-api.version>
         <formatter-maven-plugin.version>2.29.0</formatter-maven-plugin.version>
     </properties>
     <dependencies>
@@ -304,6 +305,17 @@
     </dependencies>
     <dependencyManagement>
         <dependencies>
+            <!-- Align annotations from AI clients with Springdoc's Swagger core. -->
+            <dependency>
+                <groupId>io.swagger.core.v3</groupId>
+                <artifactId>swagger-annotations</artifactId>
+                <version>${swagger-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.swagger.core.v3</groupId>
+                <artifactId>swagger-annotations-jakarta</artifactId>
+                <version>${swagger-api.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.springframework.ai</groupId>
                 <artifactId>spring-ai-bom</artifactId>
