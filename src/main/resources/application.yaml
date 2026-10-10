@@ -1,3 +1,120 @@
 spring:
   application:
     name: INTELLIGENT_CV_MATCHING_AI_AGENT
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/edunexus}
+    username: ${POSTGRES_USER:edunexus}
+    password: ${POSTGRES_PASSWORD:}
+  jpa:
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+  docker:
+    compose:
+      enabled: false
+  batch:
+    job:
+      enabled: false
+    jdbc:
+      initialize-schema: never
+  session:
+    store-type: none
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 500ms
+      connect-timeout: 500ms
+      repositories:
+        enabled: false
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 11MB
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: ${MAIL_SMTP_AUTH:false}
+      mail.smtp.starttls.enable: ${MAIL_STARTTLS:false}
+      mail.smtp.connectiontimeout: 5000
+      mail.smtp.timeout: 5000
+  ai:
+    model:
+      chat: ${AI_CHAT_PROVIDER:none}
+      embedding: ${AI_EMBEDDING_PROVIDER:none}
+      audio:
+        speech: none
+        transcription: none
+      image: none
+      moderation: none
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+      chat:
+        options:
+          model: ${AI_CHAT_MODEL:gpt-4.1-mini}
+          temperature: 0.2
+          max-tokens: ${AI_MAX_OUTPUT_TOKENS:2000}
+      embedding:
+        options:
+          model: ${AI_EMBEDDING_MODEL:text-embedding-3-small}
+          dimensions: 1536
+    vectorstore:
+      qdrant:
+        enabled: false
+  autoconfigure:
+    exclude:
+      - org.springframework.ai.vectorstore.qdrant.autoconfigure.QdrantVectorStoreAutoConfiguration
+      - org.springframework.boot.session.data.redis.autoconfigure.SessionDataRedisAutoConfiguration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+  health:
+    redis:
+      enabled: false
+    rabbit:
+      enabled: false
+    mail:
+      enabled: false
+server:
+  error:
+    include-message: never
+    include-stacktrace: never
+logging:
+  level:
+    web: INFO
+    sql: INFO
+    org.springframework.web: INFO
+    org.springframework.jdbc: INFO
+app:
+  ai:
+    enabled: ${AI_ENABLED:false}
+    max-output-tokens: ${AI_MAX_OUTPUT_TOKENS:2000}
+  storage:
+    path: ${UPLOAD_DIR:./uploads}
+  mail:
+    enabled: ${MAIL_ENABLED:false}
+    from: ${MAIL_FROM:noreply@example.invalid}
+  auth:
+    expose-development-code: ${AUTH_EXPOSE_DEV_OTP:false}
+    mail-from: ${MAIL_FROM:noreply@example.invalid}
+    google-client-id: ${GOOGLE_CLIENT_ID:}
+  guest:
+    token-limit: ${GUEST_TOKEN_LIMIT:5000}
+  payment:
+    webhook-secret: ${PAYMENT_WEBHOOK_SECRET:}
+    provider: ${PAYMENT_PROVIDER:MANUAL_GATEWAY}
+  security:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}
+  billing:
+    maintenance-enabled: ${BILLING_MAINTENANCE_ENABLED:true}
+    maintenance-zone: Asia/Ho_Chi_Minh

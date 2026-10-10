@@ -8,3 +8,8 @@ services:
       SPRING_PROFILES_ACTIVE: prod
     env_file:
       - .env
+    volumes:
+      - resume_uploads:/app/uploads
+
+volumes:
+  resume_uploads:
