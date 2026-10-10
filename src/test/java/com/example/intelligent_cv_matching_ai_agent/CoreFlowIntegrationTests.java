@@ -32,6 +32,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static com.example.intelligent_cv_matching_ai_agent.util.shared.Values.fields;
 
 /**
  * Runs only against an explicitly supplied disposable PostgreSQL test database.
@@ -701,6 +702,29 @@ class CoreFlowIntegrationTests {
         var paths = (Map<?, ?>) api.get("paths");
         assertTrue(paths.containsKey("/api/v1/resumes/{id}/confirm"));
         assertTrue(paths.containsKey("/api/v1/payments/webhook"));
+
+        String analysesPath = "/api/v1/consultations/{id}/candidate-analyses";
+        assertTrue(paths.containsKey(analysesPath));
+        var analysesOperation = (Map<?, ?>) ((Map<?, ?>) paths.get(analysesPath)).get("get");
+        var parameters = (List<?>) analysesOperation.get("parameters");
+        Map<String, Map<?, ?>> querySchemas = new LinkedHashMap<>();
+        for (Object parameter : parameters) {
+            var details = (Map<?, ?>) parameter;
+            if ("query".equals(details.get("in"))) {
+                querySchemas.put(details.get("name").toString(), (Map<?, ?>) details.get("schema"));
+            }
+        }
+
+        assertEquals(Set.of("resumeId", "jobId", "limit", "offset"), querySchemas.keySet());
+        assertEquals("uuid", querySchemas.get("resumeId").get("format"));
+        assertEquals("uuid", querySchemas.get("jobId").get("format"));
+        var limitSchema = querySchemas.get("limit");
+        assertEquals(20, ((Number) limitSchema.get("default")).intValue());
+        assertEquals(1, ((Number) limitSchema.get("minimum")).intValue());
+        assertEquals(100, ((Number) limitSchema.get("maximum")).intValue());
+        var offsetSchema = querySchemas.get("offset");
+        assertEquals(0, ((Number) offsetSchema.get("default")).intValue());
+        assertEquals(0, ((Number) offsetSchema.get("minimum")).intValue());
     }
 
     @Test
@@ -993,6 +1017,556 @@ class CoreFlowIntegrationTests {
             mvc.perform(post(prefix + "not-a-uuid/restore").header("Authorization", "Bearer " + admin))
                 .andExpect(status().isBadRequest());
         }
+    }
+
+    @Test
+    void consultationAnalysesExposeCompletedReportsAndHideOtherCandidatesAndInternals() throws Exception {
+        UUID resumeId = confirmedCv();
+        UUID jobId = importedJob();
+        UUID threadId = assignedConsultation();
+        var reports = seedCandidateReports(candidateId, resumeId, jobId, Instant.now(), "visible");
+        db.update(
+            "UPDATE resumes SET raw_content=?,file_url=? WHERE id=?",
+            "PRIVATE_RAW_CV",
+            "PRIVATE_UPLOAD_URL",
+            resumeId
+        );
+        db.update("UPDATE assessment_sessions SET is_current=false WHERE id=?", reports.get("assessments"));
+        db.update("UPDATE gap_analyses SET is_latest=false WHERE id=?", reports.get("gap_analyses"));
+        db.update("UPDATE roadmaps SET status='completed',is_outdated=true WHERE id=?", reports.get("roadmaps"));
+        UUID otherCandidateId = (UUID) tokens.authenticate(other).get("id");
+        UUID otherResume = seedAnalysisResume(otherCandidateId, "READY");
+        var hiddenReports = seedCandidateReports(otherCandidateId, otherResume, jobId, Instant.now(), "hidden");
+        UUID draftResume = seedAnalysisResume(candidateId, "DRAFT");
+        db.insert(
+            "resume_analyses",
+            Map.of("resume_id", draftResume, "analysis_type", "QUALITY", "summary", "PRIVATE_DRAFT_QUALITY")
+        );
+        db.insert(
+            "job_resume_analyses",
+            Map.of("user_id", candidateId, "resume_id", draftResume, "market_job_id", jobId)
+        );
+        db.insert(
+            "assessment_sessions",
+            Map.of("user_id", candidateId, "market_job_id", jobId, "status", "in_progress")
+        );
+        db.insert(
+            "gap_analyses",
+            Map.of("user_id", candidateId, "input_source", "CV", "status", "FAILED", "error", "PRIVATE_GAP_ERROR")
+        );
+        db.insert("roadmaps", Map.of("user_id", candidateId, "title", "Not generated yet", "status", "generating"));
+
+        var result = candidateAnalyses(threadId, consultant, Map.of());
+
+        assertEquals(candidateId.toString(), result.get("candidate_id"));
+        assertEquals(20, result.get("limit"));
+        assertEquals(0, result.get("offset"));
+        assertTrue(result.containsKey("resume_id"));
+        assertTrue(result.containsKey("job_id"));
+        assertNull(result.get("resume_id"));
+        assertNull(result.get("job_id"));
+        for (String group : analysisGroups()) {
+            assertEquals(List.of(reports.get(group).toString()), analysisIds(result, group), group);
+        }
+
+        var quality = analysisRows(result, "resume_analyses").getFirst();
+        assertEquals("Quality visible", quality.get("summary"));
+        assertEquals(1, ((List<?>) quality.get("suggestions")).size());
+        assertTrue(json(quality.get("suggestions")).contains("Add measurable outcomes visible"));
+        var ats = analysisRows(result, "ats_analyses").getFirst();
+        assertEquals(List.of("Docker"), ats.get("missing_skills_json"));
+        assertEquals(List.of("Improve projects visible"), ats.get("improvement_suggestions_json"));
+        var match = analysisRows(result, "matching_results").getFirst();
+        assertEquals("Candidate fits visible", ((Map<?, ?>) match.get("match_reason_json")).get("reason"));
+        assertEquals(0.8, ((Number) match.get("final_score")).doubleValue());
+        assertEquals(Map.of("Java", 80), analysisRows(result, "assessments").getFirst().get("skill_scores"));
+        assertEquals(false, analysisRows(result, "assessments").getFirst().get("is_current"));
+        assertTrue(
+            json(analysisRows(result, "gap_analyses").getFirst().get("skills")).contains("Learn Docker visible")
+        );
+        assertEquals(false, analysisRows(result, "gap_analyses").getFirst().get("is_latest"));
+        var roadmap = analysisRows(result, "roadmaps").getFirst();
+        assertEquals("completed", roadmap.get("status"));
+        assertEquals(true, roadmap.get("is_outdated"));
+        var nodes = (List<?>) roadmap.get("nodes");
+        assertEquals(2, nodes.size());
+        var dependentNode = (Map<?, ?>) nodes.get(1);
+        assertEquals(List.of(reports.get("prerequisite_node").toString()), dependentNode.get("prerequisite_ids"));
+        assertTrue(json(dependentNode.get("resources")).contains("Java documentation visible"));
+
+        String serialized = json(result);
+        for (UUID hiddenId : hiddenReports.values()) {
+            assertFalse(serialized.contains(hiddenId.toString()));
+        }
+        for (String forbidden : List.of(
+            "password_hash",
+            "accessToken",
+            "refreshToken",
+            "token_hash",
+            "embedding",
+            "raw_content",
+            "profile_snapshot",
+            "correct_option",
+            "question_text",
+            "input_hash",
+            "PRIVATE_"
+        )) {
+            assertFalse(serialized.contains(forbidden), forbidden);
+        }
+        verify(ai, never()).generate(anyString(), anyMap());
+        verify(ai, never()).embed(anyString());
+    }
+
+    @Test
+    void consultationAnalysesApplyResourceFiltersAndPaginateEachGroupDeterministically() throws Exception {
+        UUID firstResume = confirmedCv();
+        UUID secondResume = confirmedCv();
+        UUID firstJob = importedJob();
+        UUID secondJob = importedJob();
+        UUID threadId = assignedConsultation();
+        Instant startedAt = Instant.now().minusSeconds(300);
+        var first = seedCandidateReports(candidateId, firstResume, firstJob, startedAt, "first");
+        var second = seedCandidateReports(candidateId, secondResume, secondJob, startedAt.plusSeconds(60), "second");
+        var third = seedCandidateReports(candidateId, firstResume, secondJob, startedAt.plusSeconds(120), "third");
+        var fourth = seedCandidateReports(candidateId, secondResume, firstJob, startedAt.plusSeconds(120), "fourth");
+
+        var filtered = candidateAnalyses(
+            threadId,
+            consultant,
+            Map.of("resumeId", firstResume.toString(), "jobId", secondJob.toString())
+        );
+
+        assertEquals(firstResume.toString(), filtered.get("resume_id"));
+        assertEquals(secondJob.toString(), filtered.get("job_id"));
+        assertEquals(
+            List.of(third.get("resume_analyses").toString(), first.get("resume_analyses").toString()),
+            analysisIds(filtered, "resume_analyses")
+        );
+        for (String group : List.of("ats_analyses", "matching_results", "gap_analyses", "roadmaps")) {
+            assertEquals(List.of(third.get(group).toString()), analysisIds(filtered, group), group);
+        }
+        for (String group : List.of("salary_estimations", "assessments")) {
+            assertEquals(
+                List.of(third.get(group).toString(), second.get(group).toString()),
+                analysisIds(filtered, group),
+                group
+            );
+        }
+
+        var page = candidateAnalyses(threadId, admin, Map.of("limit", "1", "offset", "1"));
+        assertEquals(1, page.get("limit"));
+        assertEquals(1, page.get("offset"));
+        for (String group : analysisGroups()) {
+            String firstTiedId = third.get(group).toString();
+            String secondTiedId = fourth.get(group).toString();
+            String expected = firstTiedId.compareTo(secondTiedId) < 0 ? firstTiedId : secondTiedId;
+            assertEquals(List.of(expected), analysisIds(page, group), group);
+        }
+
+        var exhausted = candidateAnalyses(threadId, candidate, Map.of("limit", "1", "offset", "4"));
+        for (String group : analysisGroups()) {
+            assertEquals(List.of(), analysisIds(exhausted, group), group);
+        }
+    }
+
+    @Test
+    void consultationAnalysesFollowAssignmentPermissionsAndKeepProfileContractUnchanged() throws Exception {
+        UUID resumeId = confirmedCv();
+        var reports = seedCandidateReports(candidateId, resumeId, importedJob(), Instant.now(), "permissions");
+        UUID threadId = db.insert("consultation_threads", Map.of("candidate_user_id", candidateId));
+        String path = "/api/v1/consultations/" + threadId + "/candidate-analyses";
+
+        mvc.perform(get(path)).andExpect(status().isUnauthorized());
+        mvc.perform(get(path).header("Authorization", "Bearer " + other)).andExpect(status().isNotFound());
+        mvc.perform(get(path).header("Authorization", "Bearer " + consultant)).andExpect(status().isNotFound());
+        candidateAnalyses(threadId, candidate, Map.of());
+        candidateAnalyses(threadId, admin, Map.of());
+        response(
+            mvc.perform(
+                put("/api/v1/consultations/" + threadId + "/consultant").header("Authorization", "Bearer " + admin)
+                    .contentType(MediaType.APPLICATION_JSON).content(json(Map.of("consultantId", consultantId)))
+            )
+        );
+        var profileBefore = response(
+            mvc.perform(
+                get("/api/v1/consultations/" + threadId + "/candidate-profile")
+                    .header("Authorization", "Bearer " + consultant)
+            )
+        );
+        assertEquals(Set.of("candidate", "career_profile", "resume"), profileBefore.keySet());
+        candidateAnalyses(threadId, consultant, Map.of());
+        var profileAfter = response(
+            mvc.perform(
+                get("/api/v1/consultations/" + threadId + "/candidate-profile")
+                    .header("Authorization", "Bearer " + consultant)
+            )
+        );
+        assertEquals(profileBefore, profileAfter);
+
+        UUID replacementConsultantId = createUser("CAREER_CONSULTANT");
+        String replacement = access(replacementConsultantId);
+        response(
+            mvc.perform(
+                put("/api/v1/consultations/" + threadId + "/consultant").header("Authorization", "Bearer " + admin)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(json(Map.of("consultantId", replacementConsultantId)))
+            )
+        );
+        mvc.perform(get(path).header("Authorization", "Bearer " + consultant)).andExpect(status().isNotFound());
+        var assignedReports = candidateAnalyses(threadId, replacement, Map.of());
+        for (String group : analysisGroups()) {
+            assertEquals(List.of(reports.get(group).toString()), analysisIds(assignedReports, group), group);
+        }
+        candidateAnalyses(threadId, candidate, Map.of());
+        candidateAnalyses(threadId, admin, Map.of());
+
+        response(mvc.perform(delete("/api/v1/me").header("Authorization", "Bearer " + candidate)));
+        assertEquals("DELETED", db.one("SELECT status FROM users WHERE id=?::uuid", candidateId).get("status"));
+        assertEquals(
+            reports.get("resume_analyses"),
+            db.one("SELECT id FROM resume_analyses WHERE id=?::uuid", reports.get("resume_analyses")).get("id")
+        );
+        for (String viewer : List.of(replacement, admin)) {
+            mvc.perform(get(path).header("Authorization", "Bearer " + viewer)).andExpect(status().isNotFound());
+            mvc.perform(
+                get("/api/v1/consultations/" + threadId + "/candidate-profile")
+                    .header("Authorization", "Bearer " + viewer)
+            ).andExpect(status().isNotFound());
+        }
+    }
+
+    @Test
+    void consultationAnalysesRejectInvalidPaginationAndUnownedOrUnreadyResumeFilters() throws Exception {
+        UUID threadId = assignedConsultation();
+        String path = "/api/v1/consultations/" + threadId + "/candidate-analyses";
+        for (String badLimit : List.of("0", "101")) {
+            mvc.perform(get(path).header("Authorization", "Bearer " + consultant).param("limit", badLimit))
+                .andExpect(status().isBadRequest());
+        }
+        mvc.perform(get(path).header("Authorization", "Bearer " + consultant).param("offset", "-1"))
+            .andExpect(status().isBadRequest());
+        for (String uuidParameter : List.of("resumeId", "jobId")) {
+            mvc.perform(get(path).header("Authorization", "Bearer " + consultant).param(uuidParameter, "not-a-uuid"))
+                .andExpect(status().isBadRequest());
+        }
+        mvc.perform(
+            get("/api/v1/consultations/not-a-uuid/candidate-analyses").header("Authorization", "Bearer " + consultant)
+        ).andExpect(status().isBadRequest());
+        mvc.perform(
+            get("/api/v1/consultations/" + UUID.randomUUID() + "/candidate-analyses")
+                .header("Authorization", "Bearer " + admin)
+        ).andExpect(status().isNotFound());
+
+        UUID otherCandidateId = (UUID) tokens.authenticate(other).get("id");
+        UUID otherResumeId = seedAnalysisResume(otherCandidateId, "READY");
+        UUID draftResumeId = seedAnalysisResume(candidateId, "DRAFT");
+        for (UUID invalidResumeId : List.of(otherResumeId, draftResumeId, UUID.randomUUID())) {
+            mvc.perform(
+                get(path).header("Authorization", "Bearer " + consultant).param("resumeId", invalidResumeId.toString())
+            ).andExpect(status().isNotFound());
+        }
+    }
+
+    private UUID assignedConsultation() {
+        return db.insert(
+            "consultation_threads",
+            Map.of("candidate_user_id", candidateId, "consultant_user_id", consultantId)
+        );
+    }
+
+    private UUID seedAnalysisResume(
+        UUID ownerId,
+        String status) {
+        return db.insert(
+            "resumes",
+            Map.of(
+                "user_id",
+                ownerId,
+                "title",
+                "Report fixture CV",
+                "source",
+                "MANUAL",
+                "status",
+                status,
+                "raw_content",
+                "PRIVATE_RAW_CV",
+                "structured_data",
+                db.json(Map.of("summary", "Candidate facts"))
+            )
+        );
+    }
+
+    private Map<String, Object> candidateAnalyses(
+        UUID threadId,
+        String token,
+        Map<String, String> parameters)
+        throws Exception {
+        var request =
+            get("/api/v1/consultations/" + threadId + "/candidate-analyses").header("Authorization", "Bearer " + token);
+        parameters.forEach(
+            (
+                name,
+                value) -> request.param(name, value)
+        );
+        return response(mvc.perform(request));
+    }
+
+    private static List<String> analysisGroups() {
+        return List.of(
+            "resume_analyses",
+            "ats_analyses",
+            "matching_results",
+            "salary_estimations",
+            "assessments",
+            "gap_analyses",
+            "roadmaps"
+        );
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<Map<String, Object>> analysisRows(
+        Map<String, Object> response,
+        String group) {
+        return (List<Map<String, Object>>) response.get(group);
+    }
+
+    private static List<String> analysisIds(
+        Map<String, Object> response,
+        String group) {
+        return analysisRows(response, group).stream().map(row -> row.get("id").toString()).toList();
+    }
+
+    private Map<String, UUID> seedCandidateReports(
+        UUID ownerId,
+        UUID resumeId,
+        UUID jobId,
+        Instant createdAt,
+        String marker) {
+        UUID quality = db.insert(
+            "resume_analyses",
+            fields(
+                "resume_id",
+                resumeId,
+                "analysis_type",
+                "QUALITY",
+                "overall_score",
+                85,
+                "summary",
+                "Quality " + marker,
+                "strengths_json",
+                db.json(List.of("Java")),
+                "issues_json",
+                db.json(List.of("Missing project outcomes")),
+                "created_at",
+                createdAt
+            )
+        );
+        db.insert(
+            "resume_analysis_suggestions",
+            Map.of("analysis_id", quality, "suggested_content", "Add measurable outcomes " + marker)
+        );
+        UUID ats = db.insert(
+            "job_resume_analyses",
+            fields(
+                "user_id",
+                ownerId,
+                "resume_id",
+                resumeId,
+                "market_job_id",
+                jobId,
+                "ats_score",
+                80,
+                "strengths_json",
+                db.json(List.of("Java")),
+                "missing_skills_json",
+                db.json(List.of("Docker")),
+                "improvement_suggestions_json",
+                db.json(Map.of("input_hash", "PRIVATE_ATS_CACHE_KEY", "items", List.of("Improve projects " + marker))),
+                "created_at",
+                createdAt
+            )
+        );
+        UUID run = db.insert(
+            "job_matching_runs",
+            Map.of(
+                "user_id",
+                ownerId,
+                "basis",
+                "SELECTED_CV",
+                "status",
+                "COMPLETED",
+                "profile_snapshot",
+                db.json(Map.of("private_prompt", "PRIVATE_PROFILE_SNAPSHOT"))
+            )
+        );
+        db.update("INSERT INTO matching_run_resumes(matching_run_id,resume_id) VALUES(?,?)", run, resumeId);
+        UUID match = db.insert(
+            "job_match_results",
+            fields(
+                "matching_run_id",
+                run,
+                "market_job_id",
+                jobId,
+                "final_score",
+                0.8,
+                "match_reason_json",
+                db.json(Map.of("reason", "Candidate fits " + marker)),
+                "strengths_json",
+                db.json(List.of("Java")),
+                "skill_gaps_json",
+                db.json(List.of("Docker")),
+                "created_at",
+                createdAt
+            )
+        );
+        UUID salary = db.insert(
+            "salary_estimations",
+            fields(
+                "user_id",
+                ownerId,
+                "market_job_id",
+                jobId,
+                "estimated_min",
+                10000000,
+                "estimated_max",
+                15000000,
+                "currency",
+                "VND",
+                "reasoning",
+                db.json(List.of("Market estimate " + marker)),
+                "created_at",
+                createdAt
+            )
+        );
+        UUID assessment = db.insert(
+            "assessment_sessions",
+            Map.of(
+                "user_id",
+                ownerId,
+                "market_job_id",
+                jobId,
+                "status",
+                "completed",
+                "skill_scores",
+                db.json(Map.of("Java", 80)),
+                "created_at",
+                createdAt
+            )
+        );
+        db.insert(
+            "assessment_questions",
+            fields(
+                "session_id",
+                assessment,
+                "sequence_order",
+                0,
+                "part",
+                1,
+                "question_text",
+                "PRIVATE_QUESTION_TEXT",
+                "options",
+                db.json(Map.of("A", "Java", "B", "SQL")),
+                "correct_option",
+                "A",
+                "explanation",
+                "PRIVATE_ANSWER_EXPLANATION"
+            )
+        );
+        UUID gap = db.insert(
+            "gap_analyses",
+            fields(
+                "user_id",
+                ownerId,
+                "market_job_id",
+                jobId,
+                "resume_id",
+                resumeId,
+                "assessment_session_id",
+                assessment,
+                "input_source",
+                "CV",
+                "status",
+                "COMPLETED",
+                "summary",
+                db.json(Map.of("reason", "Learning gaps " + marker)),
+                "error",
+                "PRIVATE_GENERATION_ERROR",
+                "created_at",
+                createdAt
+            )
+        );
+        db.insert(
+            "gap_analysis_skills",
+            Map.of(
+                "gap_analysis_id",
+                gap,
+                "skill_name",
+                "Docker",
+                "gap_status",
+                "MISSING",
+                "reasoning",
+                "Learn Docker " + marker
+            )
+        );
+        UUID roadmap = db.insert(
+            "roadmaps",
+            fields(
+                "user_id",
+                ownerId,
+                "market_job_id",
+                jobId,
+                "gap_analysis_id",
+                gap,
+                "title",
+                "Learning roadmap " + marker,
+                "status",
+                "ready",
+                "created_at",
+                createdAt
+            )
+        );
+        UUID prerequisite =
+            db.insert("roadmap_nodes", Map.of("roadmap_id", roadmap, "skill_name", "Java", "sequence_order", 1));
+        UUID dependent =
+            db.insert("roadmap_nodes", Map.of("roadmap_id", roadmap, "skill_name", "Spring Boot", "sequence_order", 2));
+        db.update(
+            "INSERT INTO roadmap_node_prerequisites(node_id,prerequisite_node_id) VALUES(?,?)",
+            dependent,
+            prerequisite
+        );
+        UUID resource = db.insert(
+            "learning_resources",
+            Map.of(
+                "title",
+                "Java documentation " + marker,
+                "resource_type",
+                "DOCUMENTATION",
+                "url",
+                "https://example.invalid/docs/" + UUID.randomUUID()
+            )
+        );
+        db.update("INSERT INTO roadmap_node_resources(roadmap_node_id,resource_id) VALUES(?,?)", dependent, resource);
+
+        return Map.of(
+            "resume_analyses",
+            quality,
+            "ats_analyses",
+            ats,
+            "matching_results",
+            match,
+            "salary_estimations",
+            salary,
+            "assessments",
+            assessment,
+            "gap_analyses",
+            gap,
+            "roadmaps",
+            roadmap,
+            "prerequisite_node",
+            prerequisite,
+            "dependent_node",
+            dependent
+        );
     }
 
     private void assertRestoreAudit(

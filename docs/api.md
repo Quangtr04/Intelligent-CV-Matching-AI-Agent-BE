@@ -119,6 +119,55 @@ Trạng thái node nhận `not_started`, `in_progress`, `completed`. Phải hoà
 
 Candidate tạo `POST /consultations` với `subject`, `requestType` tùy chọn và `description`. Admin phân công qua `PUT /consultations/{id}/consultant` với `consultantId`. Candidate và consultant được phân công đọc/gửi tin nhắn tại `/consultations/{id}/messages`. `/consultations/{id}/candidate-profile` cung cấp career profile, kỹ năng và CV chính đã xác nhận để tư vấn; có thể chọn `?resumeId=...` của candidate trong thread. `POST /consultations/{id}/close` đóng thread.
 
+### Xem kết quả phân tích đã lưu của ứng viên
+
+`GET /consultations/{id}/candidate-analyses` cung cấp dữ liệu phân tích của ứng viên trong
+hội thoại. Chỉ candidate chủ hội thoại, admin và consultant đang được phân công được đọc;
+người dùng khác hoặc consultant chưa được phân công nhận `404`. Sau khi phân công lại,
+consultant cũ cũng nhận `404`. Khi tài khoản ứng viên đã bị soft-delete (`status = DELETED`),
+endpoint trả `404` và không cung cấp các báo cáo của ứng viên đó, kể cả cho admin hoặc
+consultant từng được phân công.
+
+| Query parameter | Quy tắc |
+| --- | --- |
+| `resumeId` | UUID tùy chọn; CV phải thuộc ứng viên trong hội thoại và ở trạng thái READY, nếu không trả `404` |
+| `jobId` | UUID tùy chọn; lọc các nhóm kết quả có liên kết với job |
+| `limit` | 1–100, mặc định 20; áp dụng riêng cho từng nhóm kết quả |
+| `offset` | Không âm, mặc định 0; áp dụng riêng cho từng nhóm kết quả |
+
+Response trả `candidate_id`, `resume_id`, `job_id`, `limit`, `offset` và bảy mảng dưới đây.
+Các mảng không có dữ liệu là `[]`, không làm toàn bộ request thất bại:
+
+| Nhóm kết quả | Nội dung và phạm vi bộ lọc |
+| --- | --- |
+| `resume_analyses` | Báo cáo chất lượng CV kèm `suggestions`; lọc theo `resumeId`, không theo `jobId` |
+| `ats_analyses` | Kết quả ATS CV–job đã lưu; lọc theo CV/job |
+| `matching_results` | Kết quả matching đã lưu; lọc theo job và CV liên kết khi truyền bộ lọc |
+| `salary_estimations` | Kết quả ước lượng lương; lọc theo job, không theo `resumeId` |
+| `assessments` | Assessment completed và metadata/điểm; không trả câu hỏi hoặc câu trả lời; lọc theo job, không theo `resumeId` |
+| `gap_analyses` | Phân tích khoảng cách kỹ năng kèm `skills`; lọc theo CV/job liên kết |
+| `roadmaps` | Roadmap ready/completed, kèm nodes, `prerequisite_ids` và resources; lọc theo CV/job liên kết |
+
+Ví dụ đọc trang đầu cho một CV và job:
+
+```http
+GET /api/v1/consultations/<THREAD_ID>/candidate-analyses?resumeId=<RESUME_ID>&jobId=<JOB_ID>&limit=20&offset=0
+Authorization: Bearer <accessToken-consultant>
+```
+
+Các placeholder phải thay bằng UUID thực; bỏ query parameter tùy chọn khi không muốn lọc.
+`limit`/`offset` phân trang **từng mảng độc lập**, không phải một trang chung cho cả bảy nhóm.
+Mỗi nhóm sắp xếp theo `created_at DESC, id DESC` để thứ tự phân trang ổn định.
+`resumeId` không giới hạn dữ liệu lương hoặc assessment vì các nhóm đó không gắn với CV;
+`jobId` không giới hạn báo cáo chất lượng CV. Endpoint chỉ đọc kết quả đã lưu, không gọi AI,
+không tạo lại phân tích và không tiêu thụ quota AI. `/candidate-profile` giữ hành vi hiện tại;
+API này không bổ sung danh sách hoặc tải file CV của ứng viên.
+
+Thiếu token hợp lệ trả `401`; UUID/query sai định dạng, `limit` ngoài 1–100 hoặc `offset < 0`
+trả `400`; hội thoại không tồn tại/không có quyền hoặc CV không hợp lệ cho hội thoại trả `404`.
+
+### Hội thoại thời gian thực và trợ lý AI
+
 `GET /consultations/{id}/events` phát SSE `connected` và `message`. Dùng fetch streaming có bearer header; khi reconnect, tải lại lịch sử từ `/messages`. SSE có thời hạn 5 phút, hoạt động trong cùng process; triển khai nhiều instance cần một adapter phát sự kiện chung.
 
 Trợ lý AI: tạo `/assistant/conversations`, sau đó gửi `POST /assistant/conversations/{id}/messages` với `{ "message": "...", "retrieve": true }`. Context có thể liên kết `related_job_id`, `related_resume_id`, `related_gap_analysis_id`, `related_roadmap_id`; quyền sở hữu được kiểm tra. `retrieve=true` dùng pgvector RAG và trả các nguồn đã thực sự truy xuất. Guest có endpoint tương ứng dưới `/guest/assistant/conversations`, dùng session header và chịu quota trial.

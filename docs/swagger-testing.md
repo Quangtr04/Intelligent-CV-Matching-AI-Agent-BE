@@ -10,7 +10,7 @@ bên dưới là **kỳ vọng để kiểm thử**, không phải báo cáo đ�
 - [Tài khoản](#tai-khoan) · [Admin/Consultant](#roles) · [Job mẫu](#job-mau).
 - [CV và matching](#career-cv-matching) · [Guest](#guest-trial) · [Tư vấn](#tu-van).
 - [Thanh toán](#thanh-toan) · [Thông báo](#thong-bao) · [Hỗ trợ](#ho-tro) · [Quản trị](#quan-tri).
-- [Cấu hình AI](#cau-hinh-ai) · [ATS/Assessment/Roadmap/Assistant](#ai-tools) · [RAG/Crawl](#rag-crawl).
+- [Cấu hình AI](#cau-hinh-ai) · [Redis/ATS cache](#redis-ats) · [ATS/Assessment/Roadmap/Assistant](#ai-tools) · [RAG/Crawl](#rag-crawl).
 - [Lỗi Auth/Guest](#loi-auth) · [Lỗi Candidate](#loi-candidate) · [Ghi kết quả](#ket-qua) · [Gỡ lỗi](#go-loi).
 
 <a id="chuan-bi"></a>
@@ -531,6 +531,80 @@ Kỳ vọng **200**, `status = OPEN`; lưu `id` thành `<THREAD_ID>`. `requestTy
 
 Thay placeholder bằng UUID thực. Kỳ vọng **200**, `consultant_user_id` bằng UUID đã chọn. Tư vấn viên phải có role `CAREER_CONSULTANT` và trạng thái ACTIVE; UUID không đáp ứng điều kiện này trả **404**. CANDIDATE gọi thao tác phân công trả **403**.
 
+### Xem các kết quả phân tích đã lưu
+
+Đổi token sang consultant vừa được phân công và mở **GET
+`/api/v1/consultations/<THREAD_ID>/candidate-analyses`**. Lần đầu để trống các bộ lọc tùy
+chọn, dùng `limit = 20`, `offset = 0`; endpoint không có request body.
+
+Kỳ vọng **200**, `candidate_id = <CANDIDATE_ID>`, `limit = 20`, `offset = 0`, cùng các khóa:
+
+```json
+{
+  "candidate_id": "<CANDIDATE_ID>",
+  "resume_id": null,
+  "job_id": null,
+  "limit": 20,
+  "offset": 0,
+  "resume_analyses": [],
+  "ats_analyses": [],
+  "matching_results": [],
+  "salary_estimations": [],
+  "assessments": [],
+  "gap_analyses": [],
+  "roadmaps": []
+}
+```
+
+JSON trên minh họa hình dạng response khi chưa có phân tích; trên dữ liệu đã chạy các luồng
+CV/matching/AI, mảng tương ứng phải chứa bản ghi đã lưu của ứng viên này. Endpoint vẫn đọc
+được khi AI tắt, không gọi model, không sinh báo cáo mới hoặc trừ quota AI.
+
+| Nhóm | Kiểm tra dữ liệu khi có kết quả đã lưu |
+| --- | --- |
+| `resume_analyses` | Báo cáo chất lượng CV, có `suggestions` |
+| `ats_analyses` | Báo cáo ATS của CV/job tương ứng |
+| `matching_results` | Kết quả matching liên quan của đúng ứng viên |
+| `salary_estimations` | Khoảng lương và metadata kết quả ước lượng đã lưu |
+| `assessments` | Chỉ assessment completed với metadata/điểm; không có questions/answers |
+| `gap_analyses` | Phân tích khoảng cách kỹ năng, có `skills` |
+| `roadmaps` | Chỉ roadmap ready/completed; có nodes, `prerequisite_ids`, resources |
+
+Thử thêm `resumeId = <RESUME_ID>`, `jobId = <JOB_ID>`, `limit = 1`, `offset = 0`, rồi tăng
+offset lên 1. Các nhóm được phân trang **độc lập**: mỗi mảng có tối đa limit bản ghi, không
+phải toàn response chỉ có limit bản ghi. CV dùng để lọc phải READY và thuộc ứng viên trong
+hội thoại. `resumeId` chỉ lọc nhóm gắn với CV, **không lọc salary_estimations/assessments**;
+`jobId` chỉ lọc nhóm gắn với job, **không lọc resume_analyses**. Nhóm chưa có dữ liệu trả `[]`.
+
+| Ca đọc/phân quyền | Kỳ vọng |
+| --- | --- |
+| Consultant đang được phân công đọc endpoint | 200; đúng candidate_id và các nhóm dữ liệu của ứng viên |
+| Candidate chủ hội thoại hoặc ADMIN đọc endpoint | 200 |
+| Bỏ bearer hoặc dùng token hết hạn | 401 |
+| Thread ID, resumeId hoặc jobId không đúng định dạng UUID | 400 |
+| `limit = 0`/`101` hoặc `offset = -1` | 400 |
+| UUID hội thoại không tồn tại | 404 |
+| Candidate B hoặc consultant chưa được phân công đọc hội thoại của A | 404 |
+| resumeId thuộc Candidate B, không tồn tại, DRAFT/REVIEW_REQUIRED hoặc ARCHIVED | 404 |
+| Tài khoản ứng viên của hội thoại đã soft-delete (`status = DELETED`), ADMIN/consultant đọc phân tích | 404; không trả các báo cáo của tài khoản đã xóa |
+| Không có phân tích cho các nhóm đang đọc | 200; mảng tương ứng rỗng |
+
+Ca phân công lại cần hội thoại **OPEN**, nên thực hiện trước bước close trong bảng tiếp
+theo. Admin tạo một consultant ACTIVE thứ hai rồi PUT
+`/api/v1/consultations/<THREAD_ID>/consultant` với UUID người thứ hai. Dùng lại token
+consultant cũ đọc `/candidate-analyses`: **404**; consultant mới đọc: **200**. Có thể gán
+lại consultant ban đầu để tiếp tục luồng chat bằng token đã chuẩn bị trước đó.
+
+Ca tài khoản đã xóa chỉ thử bằng **ứng viên test riêng** sau khi hoàn thành các ca khác:
+tạo/phân công hội thoại cho người đó, xác nhận consultant đọc phân tích được `200`, rồi
+admin soft-delete tài khoản qua `DELETE /api/v1/admin/users/{id}`. Consultant được phân
+công hoặc ADMIN gọi lại `/candidate-analyses`: **404**. Không xóa Candidate A đang dùng
+cho các luồng tiếp theo để thực hiện ca này.
+
+Đối chiếu bản ghi bằng các ID đã lưu từ luồng Candidate; không giả định cả bảy mảng đều
+có dữ liệu khi chưa chạy các chức năng tạo phân tích. Những ca trên vẫn là **NOT_RUN** cho
+đến khi Execute thủ công và ghi HTTP/body thực tế vào bảng kết quả.
+
 | Token | Thao tác | Kỳ vọng |
 | --- | --- | --- |
 | CANDIDATE chủ hội thoại | GET `/api/v1/consultations` | 200; có hội thoại vừa tạo |
@@ -850,6 +924,89 @@ Dùng dữ liệu test ít và kiểm tra quota/tính năng của gói trước 
 gọi provider thực; HTTP `200` cần kèm nội dung, ID, trạng thái và usage đúng để ghi PASS.
 Nếu chưa có provider, ghi rõ phần chưa kiểm tra trong bảng kết quả cuối tài liệu.
 
+<a id="redis-ats"></a>
+
+## Cấu hình Redis và kiểm tra cache ATS
+
+Redis là cache tùy chọn cho **ATS CV–job**. Kết nối được khai báo trong
+[`spring.data.redis`](../src/main/resources/application.yaml), lấy các biến `REDIS_*`
+trong [`.env.example`](../.env.example). Backend và Swagger vẫn chạy khi Redis không kết
+nối được vì ATS còn tìm cache trong PostgreSQL. Tạo một phân tích ATS mới vẫn cần chat AI.
+
+### Khởi động Redis local
+
+Thêm vào `.env` nếu chưa có các dòng sau, phù hợp với backend chạy trực tiếp trên Windows:
+
+```dotenv
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_USERNAME=
+REDIS_PASSWORD=
+REDIS_DATABASE=0
+REDIS_TIMEOUT=500ms
+REDIS_CONNECT_TIMEOUT=500ms
+REDIS_SSL_ENABLED=false
+```
+
+Từ thư mục dự án, khởi động dịch vụ Redis rồi kiểm tra:
+
+```powershell
+docker compose up -d --wait redis
+docker compose exec redis redis-cli PING
+```
+
+Kỳ vọng `PONG`. Redis nằm trong profile `optional`, nhưng lệnh chỉ định trực tiếp service
+`redis` khởi động được dịch vụ này. `scripts/run-local.ps1 -WithInfrastructure` chỉ khởi
+động PostgreSQL; không tự khởi động Redis. Sau khi sửa `.env`, khởi động lại backend bằng
+script để nạp các biến môi trường mới.
+
+Redis Compose local không bật AUTH/TLS, nên để `REDIS_USERNAME`/`REDIS_PASSWORD` trống,
+`REDIS_SSL_ENABLED=false`. Nếu port trên máy bị chiếm, đổi `REDIS_PORT`, ví dụ `6380`;
+Compose ánh xạ port trên máy vào port Redis 6379 trong container. Với Redis bên ngoài,
+điền host, port, database, tài khoản/mật khẩu và SSL theo cấu hình của server đó. Khi backend
+chạy trong container, `REDIS_HOST` phải truy cập được từ container; có thể dùng `redis`
+và port 6379 nếu cùng mạng Compose, không dùng localhost để trỏ sang container khác.
+
+### Xác nhận Redis đã lưu analysis
+
+1. Chuẩn bị token CANDIDATE, CV READY và job ACTIVE; bật chat AI và có quota. Chọn cặp
+   CV/job chưa có analysis cùng đầu vào/model trong database, chẳng hạn tạo và confirm
+   một CV test mới. Bản ghi đã có DB cache không được tự ghi lại sang Redis khi đọc cache.
+2. Gọi `POST /api/v1/jobs/<JOB_ID>/ats` với `{"resumeId":"<RESUME_ID>"}`. Kỳ vọng `200`,
+   `cached=false`, có `ats_score`; lưu UUID analysis `id` thành `<ATS_ANALYSIS_ID>`.
+3. Tìm key trong Redis bằng terminal; các lệnh dưới dùng database 0 đúng với cấu hình mẫu:
+
+```powershell
+docker compose exec redis redis-cli -n 0 --scan --pattern 'edunexus:ats:*'
+```
+
+Key có dạng `edunexus:ats:<userId>:<resumeId>:<jobId>:<inputHash>`. Chọn key chứa đúng
+UUID người dùng/CV/job đang thử, copy nguyên key để thay `<CACHE_KEY>` trong hai lệnh:
+
+```powershell
+docker compose exec redis redis-cli -n 0 GET '<CACHE_KEY>'
+docker compose exec redis redis-cli -n 0 TTL '<CACHE_KEY>'
+```
+
+Kỳ vọng GET trả đúng `<ATS_ANALYSIS_ID>`; TTL là số giây dương không quá `86400` (24 giờ).
+`TTL = -2` nghĩa là không tìm thấy key hoặc key đã hết hạn; `-1` là key không có thời hạn,
+khác với cách ghi cache ATS hiện tại. Nếu đổi `REDIS_DATABASE`, dùng cùng số database
+trong các lệnh `-n`. Những lệnh này kiểm tra Redis Compose local; với Redis ngoài, kết nối
+CLI đến đúng server và dùng cơ chế AUTH/TLS của server đó.
+
+4. Gửi lại ATS với cùng token, CV, job và model: `200`, `cached=true`, cùng analysis `id`.
+   Redis chỉ giữ UUID analysis; backend vẫn đối chiếu bản ghi PostgreSQL theo owner,
+   CV, job và input hash trước khi tái sử dụng, không trả toàn bộ báo cáo chỉ từ Redis.
+5. Ghi ID và key/TTL vào bảng kết quả. **`cached=true` một mình không chứng minh Redis hit**
+   vì database fallback cũng trả cùng cờ. `/actuator/health` UP cũng không chứng minh
+   Redis sẵn sàng: `management.health.redis.enabled=false` trong cấu hình mặc định.
+
+Cache ATS Redis TTL 24 giờ độc lập với **cache matching database một giờ** của
+`POST /api/v1/matching`. Thay nội dung CV/job hoặc provider/model làm thay input hash ATS;
+key cũ không được dùng cho dữ liệu mới. TTL chỉ áp dụng cho key Redis; analysis đã lưu trong
+database vẫn có thể được tái sử dụng khi hash khớp. Không cần xóa cache toàn bộ để thử một
+đầu vào mới.
+
 <a id="ai-tools"></a>
 
 ## Candidate: các chức năng cần AI được cấu hình
@@ -1052,6 +1209,7 @@ Sau khi hoàn tất, chỉ archive CV thử nghiệm bằng `DELETE /api/v1/resu
 - [ ] Matching trả job và điểm hợp lệ; cache và feedback đúng run/result.
 - [ ] Guest trial ghi usage; hạn chế session/quota trả đúng mã lỗi.
 - [ ] Tư vấn phân công đúng; hai bên thấy tin nhắn; người ngoài nhận 404.
+- [ ] Consultant đọc được phân tích đã lưu của đúng ứng viên; bộ lọc/phân trang đúng và mất quyền sau phân công lại.
 - [ ] Webhook local có chữ ký hợp lệ kích hoạt gói và tạo invoice đúng một lần.
 - [ ] Announcement đến đúng audience; notification đánh dấu đọc; support trao đổi được.
 - [ ] Khôi phục cấu hình/prompt cũ tạo phiên bản mới, giữ lịch sử và chỉ một bản active mỗi nhóm.
@@ -1070,6 +1228,8 @@ AI và role; tránh dùng kết quả của bản code khác để xác nhận b
 | MATCH-01 | Candidate A | POST matching | 200; results; score 0..1 | Chưa chạy | NOT_RUN | |
 | GUEST-01 | Guest | Recommendation | 200; trial; usage tăng | Chưa chạy | NOT_RUN | |
 | CHAT-01 | Candidate/Consultant | Gửi và đọc tin nhắn | 200; đúng sender/thread | Chưa chạy | NOT_RUN | |
+| CONSULT-ANALYSES-01 | Consultant | GET consultations/{id}/candidate-analyses | 200; đúng candidate_id; bảy nhóm phân tích đã lưu | Chưa chạy | NOT_RUN | |
+| CONSULT-ANALYSES-02 | Consultant cũ/Candidate B | Đọc phân tích sau phân công lại hoặc không có quyền | 404 | Chưa chạy | NOT_RUN | |
 | PAY-01 | Candidate A | Order → signed webhook → invoice | 200; COMPLETED; PAID | Chưa chạy | NOT_RUN | |
 | AI-RESTORE-01 | Admin | Tạo config/prompt v1 → v2 → restore v1 | 200; v3 chứa nội dung v1; chỉ v3 active | Chưa chạy | NOT_RUN | |
 | OWN-01 | Candidate B | GET CV của A | 404 | Chưa chạy | NOT_RUN | |

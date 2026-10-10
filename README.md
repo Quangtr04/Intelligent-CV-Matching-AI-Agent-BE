@@ -59,7 +59,49 @@ AI_EMBEDDING_MODEL=text-embedding-3-small
 
 Model embedding phải trả đúng 1536 chiều. Import job, gọi `POST /api/v1/admin/jobs/{id}/index`, rồi mới chạy semantic matching. Provider/model được lưu cùng embedding; thay model cần index lại dữ liệu. AI đặt trước ngân sách token, đối soát usage sau phản hồi và ghi log. Prompt và cấu hình CHAT cùng provider có thể cập nhật qua admin; thay provider hoặc cấu hình embedding cần khởi động lại với cấu hình môi trường tương ứng.
 
-Redis cung cấp cache ATS khi có dịch vụ; database vẫn cung cấp cache khi Redis không khả dụng. Chạy Redis bằng `docker compose up -d redis`. Qdrant và RabbitMQ được giữ trong profile `optional` để mở rộng; luồng hiện tại lưu vector trong PostgreSQL và dùng SSE cho tư vấn.
+### Redis cho cache ATS
+
+Cấu hình kết nối Redis nằm ở [`spring.data.redis` trong application.yaml](src/main/resources/application.yaml),
+nhận biến môi trường từ [`.env.example`](.env.example). Với backend chạy trực tiếp trên Windows và
+Redis local trong Compose, thêm các dòng sau vào `.env` rồi khởi động lại backend bằng `scripts/run-local.ps1`:
+
+```dotenv
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_USERNAME=
+REDIS_PASSWORD=
+REDIS_DATABASE=0
+REDIS_TIMEOUT=500ms
+REDIS_CONNECT_TIMEOUT=500ms
+REDIS_SSL_ENABLED=false
+```
+
+Khởi động Redis và kiểm tra kết nối từ container:
+
+```powershell
+docker compose up -d --wait redis
+docker compose exec redis redis-cli PING
+```
+
+Kỳ vọng `PONG`. `run-local.ps1 -WithInfrastructure` chỉ khởi động PostgreSQL; Redis phải được
+khởi động riêng. Nếu port 6379 trên máy đã được sử dụng, đổi `REDIS_PORT`, ví dụ `6380`;
+Compose ánh xạ port đó trên máy vào port 6379 trong container. Redis local này không bật AUTH/TLS,
+nên để username/password trống và SSL false. Redis ngoài cần thông tin kết nối và AUTH/TLS đúng
+theo server. Khi backend chạy trong container, dùng host Redis mà container truy cập được
+(chẳng hạn `redis` trong cùng mạng Compose), cùng port nội bộ; `localhost` khi đó chỉ là container backend.
+
+Cache ATS dùng key `edunexus:ats:<userId>:<resumeId>:<jobId>:<inputHash>`, giá trị là UUID
+`job_resume_analyses`, TTL 24 giờ. Backend vẫn kiểm tra bản ghi database theo người dùng, CV,
+job và hash trước khi trả kết quả; database cung cấp cache khi Redis không kết nối được.
+`cached=true` có thể đến từ Redis hoặc database, nên cần kiểm tra key/TTL để xác minh Redis
+đã lưu cache. `/actuator/health` UP không xác nhận Redis vì Redis health indicator đang tắt.
+`POST /api/v1/matching` dùng cache database một giờ, riêng với cache ATS.
+Xem [các bước kiểm thử Redis/ATS trên Swagger](docs/swagger-testing.md#redis-ats).
+
+Qdrant, RabbitMQ và Redis nằm trong profile `optional`; luồng hiện tại lưu vector trong
+PostgreSQL và dùng SSE cho tư vấn. Redis là dịch vụ tùy chọn để tăng tốc ATS.
+
+### Thanh toán và tích hợp khác
 
 Thanh toán hiện có đơn hàng và webhook bridge HMAC, chưa kết nối SDK cụ thể của VNPay/PayOS/Stripe. Gateway của bạn phải cung cấp checkout và gửi webhook đúng hợp đồng trong [hướng dẫn identity/billing](docs/identity-billing.md). Backend chỉ kích hoạt subscription sau khi xác minh chữ ký, timestamp, số tiền và currency; callback từ trình duyệt không kích hoạt gói.
 
