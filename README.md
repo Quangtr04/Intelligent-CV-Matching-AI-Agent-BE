@@ -67,6 +67,15 @@ Thanh toán hiện có đơn hàng và webhook bridge HMAC, chưa kết nối SD
 
 ## Tài liệu và kiểm thử
 
+Dockerfile đóng gói JAR đã được Maven tạo. Khi build image cục bộ, chạy từ thư mục chứa `pom.xml`:
+
+```powershell
+mvn verify
+docker build -t edunexus-backend:local .
+```
+
+CI chạy kiểm thử, upload JAR rồi tải artifact vào `target` trước khi build image. `.dockerignore` cho phép `target/*.jar` và loại các output Maven khác. Nếu gặp `COPY target/*.jar` báo không tìm thấy thư mục, kiểm tra JAR đã được tạo hoặc tải về và build context đang là thư mục dự án.
+
 - [Hợp đồng API và ví dụ core-flow](docs/api.md)
 - [Cấu trúc controller / DTO / entity / repository / service / util](docs/architecture.md)
 - [Quy ước Java và lệnh định dạng/kiểm tra](docs/java-coding-style.md)
