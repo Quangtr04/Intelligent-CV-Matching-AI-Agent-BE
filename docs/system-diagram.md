@@ -20,11 +20,11 @@ Frontend trong sơ đồ là giao diện theo core-flow; repository này triển
 | --- | --- |
 | Guest, Candidate, Career Consultant, Admin | Bốn nhóm người dùng truy cập các chức năng theo quyền. |
 | Web application | Gọi REST API và nhận sự kiện tư vấn qua SSE. |
-| API và bảo mật | `/api/v1`, request DTO validation, opaque bearer token, RBAC và guest session. |
+| API và bảo mật | `/api/v1`, request DTO validation, JWT bearer access token, RBAC và guest session. |
 | Các module nghiệp vụ | Identity/guest, CV/profile, matching/ATS, learning, AI assistant/support, consultation, billing và administration. |
 | AI orchestration | `AiService` bên trong backend gọi Spring AI ChatModel/EmbeddingModel, quản lý prompt và hạch toán quota/usage. |
 | PostgreSQL + pgvector | Lưu dữ liệu nghiệp vụ, JSONB, vector 1536 chiều, matching cache và kết quả phân tích. |
-| Redis tùy chọn | Cache ATS CV–job bằng analysis ID, TTL 24 giờ; kết quả được đối chiếu với database. |
+| Redis tùy chọn | Cache ATS CV–job bằng analysis ID TTL 24 giờ và matching run ID TTL 1 giờ; kết quả được đối chiếu với database. |
 | CV file storage | Lưu file upload ở `UPLOAD_DIR` hoặc volume; trích xuất bằng PDFBox/POI, OCR local bằng Tesseract khi được cấu hình. |
 | OpenAI | Cung cấp chat/embedding qua adapter Spring AI hiện có, khi đã bật và cấu hình AI. |
 | ITviec / TopCV | Nguồn crawl job qua HTTPS; ứng viên mở URL gốc để ứng tuyển. |

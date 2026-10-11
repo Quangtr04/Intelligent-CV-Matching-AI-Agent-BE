@@ -5,6 +5,7 @@ import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.jobs.C
 import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.jobs.DraftRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.jobs.MatchRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.jobs.MatchingFeedbackRequest;
+import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.jobs.SalaryEstimateRequest;
 
 import com.example.intelligent_cv_matching_ai_agent.service.candidate.jobs.CareerToolsService;
 
@@ -43,6 +44,15 @@ public class CareerToolsController {
         @RequestParam(defaultValue = "20")
         int limit) {
         return service.history(limit);
+    }
+
+    @GetMapping("/ai/usage")
+    public List<Map<String, Object>> aiUsage(
+        @RequestParam(defaultValue = "20")
+        int limit,
+        @RequestParam(defaultValue = "0")
+        int offset) {
+        return service.aiUsage(limit, offset);
     }
 
     @PutMapping("/matching/results/{id}/feedback")
@@ -115,5 +125,13 @@ public class CareerToolsController {
         @PathVariable
         UUID id) {
         return service.salary(id);
+    }
+
+    @PostMapping("/salary-estimations")
+    public Map<String, Object> salaryForCareer(
+        @Valid
+        @RequestBody
+        SalaryEstimateRequest input) {
+        return service.salaryForCareer(input);
     }
 }

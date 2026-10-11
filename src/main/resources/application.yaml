@@ -120,6 +120,7 @@ app:
     provider: ${PAYMENT_PROVIDER:MANUAL_GATEWAY}
   security:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}
+    jwt-secret: ${APP_JWT_SECRET:development-only-change-me-to-a-long-random-secret}
   billing:
     maintenance-enabled: ${BILLING_MAINTENANCE_ENABLED:true}
     maintenance-zone: Asia/Ho_Chi_Minh

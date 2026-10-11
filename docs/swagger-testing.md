@@ -995,13 +995,13 @@ trong các lệnh `-n`. Những lệnh này kiểm tra Redis Compose local; vớ
 CLI đến đúng server và dùng cơ chế AUTH/TLS của server đó.
 
 4. Gửi lại ATS với cùng token, CV, job và model: `200`, `cached=true`, cùng analysis `id`.
-   Redis chỉ giữ UUID analysis; backend vẫn đối chiếu bản ghi PostgreSQL theo owner,
+   Redis chỉ giữ UUID analysis/run; backend vẫn đối chiếu bản ghi PostgreSQL theo owner,
    CV, job và input hash trước khi tái sử dụng, không trả toàn bộ báo cáo chỉ từ Redis.
 5. Ghi ID và key/TTL vào bảng kết quả. **`cached=true` một mình không chứng minh Redis hit**
    vì database fallback cũng trả cùng cờ. `/actuator/health` UP cũng không chứng minh
    Redis sẵn sàng: `management.health.redis.enabled=false` trong cấu hình mặc định.
 
-Cache ATS Redis TTL 24 giờ độc lập với **cache matching database một giờ** của
+Cache ATS Redis TTL 24 giờ độc lập với **cache matching Redis/database một giờ** của
 `POST /api/v1/matching`. Thay nội dung CV/job hoặc provider/model làm thay input hash ATS;
 key cũ không được dùng cho dữ liệu mới. TTL chỉ áp dụng cho key Redis; analysis đã lưu trong
 database vẫn có thể được tái sử dụng khi hash khớp. Không cần xóa cache toàn bộ để thử một

@@ -23,7 +23,7 @@ Seed có 3 gói FREE/BASIC/PRO, 30 hạn mức token theo tháng gồm `AI_TOTAL
 
 Sao chép `.env.example` thành `.env`, thay mật khẩu mẫu, chạy `docker compose up -d postgres`, rồi khởi động ứng dụng. Flyway áp dụng migration theo thứ tự. PostgreSQL trong Compose dùng `pgvector/pgvector:0.8.7-pg17-bookworm`, được liệt kê trong [các tag chính thức của pgvector](https://github.com/pgvector/pgvector#docker). Các dịch vụ Qdrant, RabbitMQ và Redis được giữ dưới profile `optional`; bật tất cả bằng `docker compose --profile optional up -d`.
 
-Redis được dùng riêng cho cache ATS và không thay thế bảng `job_resume_analyses`. Để chỉ
+Redis được dùng cho cache ATS và matching, nhưng không thay thế các bảng nghiệp vụ. Để chỉ
 khởi động Redis, dùng `docker compose up -d --wait redis`, sau đó
 `docker compose exec redis redis-cli PING` phải trả `PONG`. Cấu hình `REDIS_*` nằm trong
 `.env.example` và `spring.data.redis` trong `application.yaml`; script `run-local.ps1`
@@ -32,7 +32,8 @@ nạp `.env` cho backend nhưng `-WithInfrastructure` chỉ khởi động Postg
 Key ATS có dạng `edunexus:ats:<userId>:<resumeId>:<jobId>:<inputHash>`, lưu UUID analysis
 với TTL 24 giờ. Nội dung phân tích và kiểm tra quyền/hash vẫn lấy từ PostgreSQL; khi Redis
 không kết nối được, backend tìm cache database. Matching `/api/v1/matching` dùng cache
-database một giờ, không dùng các key Redis ATS này. Xem [cấu hình Redis local](../README.md#redis-cho-cache-ats)
+database một giờ, và có thêm key Redis `edunexus:matching:<userId>:<requestHash>` TTL 1 giờ.
+Xem [cấu hình Redis local](../README.md#redis-cho-cache-ats-va-matching)
 và [cách kiểm tra key/TTL](swagger-testing.md#redis-ats).
 
 ## Kiểm chứng cục bộ

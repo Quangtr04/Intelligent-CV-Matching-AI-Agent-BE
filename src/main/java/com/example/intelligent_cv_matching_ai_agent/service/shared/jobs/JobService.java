@@ -75,7 +75,7 @@ public class JobService {
         if (normalized.length() < 30)
             throw ApiException.badRequest("Job description must contain at least 30 characters");
 
-        String hash = FlowSupport.hash(sourceSite + "\n" + sourceUrl + "\n" + input.jobTitle() + "\n" + normalized);
+        String hash = contentHash(sourceSite, sourceUrl, input, normalized);
         var same = db.findMarketJobPostsByRawContentHash(hash);
 
         if (same.isPresent()) {
@@ -228,5 +228,24 @@ public class JobService {
         );
 
         return db.getMarketJobPostsById3(id);
+    }
+
+    static String contentHash(
+        String sourceSite,
+        String sourceUrl,
+        ImportJobRequest input,
+        String normalizedContent) {
+        String skills = (input.skills() == null ? List.<JobSkillRequest>of() : input.skills()).stream()
+            .map(
+                skill -> text(skill.skillId()) + ":" + text(skill.name()).strip().toLowerCase(Locale.ROOT) + ":"
+                    + skill.required()
+            ).sorted().toList().toString();
+
+        return FlowSupport.hash(
+            sourceSite + "\n" + sourceUrl + "\n" + text(input.jobTitle()).strip() + "\n"
+                + text(input.companyName()).strip() + "\n" + text(input.location()).strip() + "\n"
+                + text(input.salaryText()).strip() + "\n" + text(input.roleCategory()).strip() + "\n" + skills + "\n"
+                + normalizedContent
+        );
     }
 }

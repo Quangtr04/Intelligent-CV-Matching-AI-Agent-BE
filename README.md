@@ -59,7 +59,7 @@ AI_EMBEDDING_MODEL=text-embedding-3-small
 
 Model embedding phải trả đúng 1536 chiều. Import job, gọi `POST /api/v1/admin/jobs/{id}/index`, rồi mới chạy semantic matching. Provider/model được lưu cùng embedding; thay model cần index lại dữ liệu. AI đặt trước ngân sách token, đối soát usage sau phản hồi và ghi log. Prompt và cấu hình CHAT cùng provider có thể cập nhật qua admin; thay provider hoặc cấu hình embedding cần khởi động lại với cấu hình môi trường tương ứng.
 
-### Redis cho cache ATS
+### Redis cho cache ATS và matching
 
 Cấu hình kết nối Redis nằm ở [`spring.data.redis` trong application.yaml](src/main/resources/application.yaml),
 nhận biến môi trường từ [`.env.example`](.env.example). Với backend chạy trực tiếp trên Windows và
@@ -95,11 +95,12 @@ Cache ATS dùng key `edunexus:ats:<userId>:<resumeId>:<jobId>:<inputHash>`, giá
 job và hash trước khi trả kết quả; database cung cấp cache khi Redis không kết nối được.
 `cached=true` có thể đến từ Redis hoặc database, nên cần kiểm tra key/TTL để xác minh Redis
 đã lưu cache. `/actuator/health` UP không xác nhận Redis vì Redis health indicator đang tắt.
-`POST /api/v1/matching` dùng cache database một giờ, riêng với cache ATS.
+`POST /api/v1/matching` dùng thêm key Redis `edunexus:matching:<userId>:<requestHash>` với TTL 1 giờ,
+và vẫn fallback về cache database một giờ khi Redis không khả dụng.
 Xem [các bước kiểm thử Redis/ATS trên Swagger](docs/swagger-testing.md#redis-ats).
 
 Qdrant, RabbitMQ và Redis nằm trong profile `optional`; luồng hiện tại lưu vector trong
-PostgreSQL và dùng SSE cho tư vấn. Redis là dịch vụ tùy chọn để tăng tốc ATS.
+PostgreSQL và dùng SSE cho tư vấn. Redis là dịch vụ tùy chọn để tăng tốc ATS và matching.
 
 ### Thanh toán và tích hợp khác
 

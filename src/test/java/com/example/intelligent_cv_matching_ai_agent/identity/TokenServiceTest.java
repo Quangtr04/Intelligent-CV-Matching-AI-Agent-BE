@@ -35,6 +35,7 @@ class TokenServiceTest {
         UUID user = UUID.randomUUID();
         when(db.optional(contains("FROM users"), eq(user))).thenReturn(Optional.of(Map.of("id", user)));
         var result = new TokenService(new TokenRepository(db)).issue(user);
+        assertTrue(result.get("accessToken").toString().contains("."));
         verify(db, times(2)).insert(
             eq("refresh_tokens"),
             argThat(
@@ -81,14 +82,15 @@ class TokenServiceTest {
     @Test
     void expiredOrSuspendedSessionCannotAuthenticate() {
         SqlStore db = mock(SqlStore.class);
-        when(db.optional(anyString(), any())).thenReturn(Optional.empty());
+        UUID user = UUID.randomUUID();
+        when(db.optional(contains("FROM users"), eq(user))).thenReturn(Optional.of(Map.of("id", user)));
+        String access = new TokenService(new TokenRepository(db)).issue(user).get("accessToken").toString();
+        when(db.optional(contains("status='ACTIVE'"), eq(user))).thenReturn(Optional.empty());
         assertEquals(
             401,
-            assertThrows(
-                ApiException.class,
-                () -> new TokenService(new TokenRepository(db)).authenticate(TokenService.random("a_"))
-            ).status()
+            assertThrows(ApiException.class, () -> new TokenService(new TokenRepository(db)).authenticate(access))
+                .status()
         );
-        verify(db).optional(contains("u.status='ACTIVE'"), any());
+        verify(db).optional(contains("status='ACTIVE'"), eq(user));
     }
 }
