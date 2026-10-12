@@ -84,6 +84,8 @@ Content-Type: application/json
 | PATCH | `/application-drafts/{id}` | `content` đã sửa |
 | POST | `/jobs/{id}/external-apply` | `resumeId` tùy chọn; trả `target_url` và lưu event |
 | POST | `/jobs/{id}/salary-estimation` | Ước lượng AI dựa trên profile/job và lưu reasoning |
+| POST | `/salary-estimations` | `targetJobTitle`, `location`, `currency`, `language`; ước lượng theo vị trí nghề nghiệp không cần job |
+| GET | `/ai/usage?limit=20&offset=0` | Lịch sử lần gọi AI của candidate, token, latency, success/error |
 
 Frontend mở `target_url` để người dùng ứng tuyển tại trang gốc. Draft không được gửi tự động.
 

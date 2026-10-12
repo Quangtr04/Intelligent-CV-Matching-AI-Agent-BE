@@ -11,6 +11,8 @@ import com.example.intelligent_cv_matching_ai_agent.service.candidate.resume.Res
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -84,7 +86,9 @@ class MatchingServiceCacheTests {
         when(db.one(contains("FROM job_matching_runs"), any(UUID.class), eq(owner)))
             .thenAnswer(invocation -> new LinkedHashMap<>(runs.get(invocation.getArgument(1, UUID.class))));
 
-        MatchingService service = new MatchingService(new MatchingRepository(db), user, ai, resumes);
+        @SuppressWarnings("unchecked")
+        ObjectProvider<StringRedisTemplate> redis = mock(ObjectProvider.class);
+        MatchingService service = new MatchingService(new MatchingRepository(db), user, ai, resumes, redis);
         List<UUID> firstSelection = basis.equals("SELECTED_CV") ? List.of(firstCv) : null;
         List<UUID> secondSelection = basis.equals("SELECTED_CV") ? List.of(secondCv) : null;
         Map<String, Object> firstRun = service.match(basis, firstSelection, 1);

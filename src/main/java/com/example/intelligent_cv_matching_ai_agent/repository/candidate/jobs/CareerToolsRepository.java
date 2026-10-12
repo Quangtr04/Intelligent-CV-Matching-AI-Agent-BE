@@ -137,6 +137,16 @@ public class CareerToolsRepository {
         return db.one("SELECT * FROM candidate_profiles WHERE user_id=?", args);
     }
 
+    public List<Map<String, Object>> listAiUsageLogsByUserId(
+        Object... args) {
+        return db.list(
+            ("SELECT id,feature_code,provider,model_name,input_tokens,output_tokens,"
+                + "total_tokens,latency_ms,success,error_message,created_at FROM ai_usage_logs "
+                + "WHERE user_id=? ORDER BY created_at DESC,id DESC LIMIT ? OFFSET ?"),
+            args
+        );
+    }
+
     public UUID insertSalaryEstimations(
         Map<String, Object> fields) {
         return db.insert("salary_estimations", fields);

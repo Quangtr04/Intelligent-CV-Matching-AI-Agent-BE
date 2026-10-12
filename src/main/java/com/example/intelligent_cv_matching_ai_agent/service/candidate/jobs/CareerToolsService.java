@@ -5,6 +5,7 @@ import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.jobs.C
 import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.jobs.DraftRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.jobs.MatchRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.jobs.MatchingFeedbackRequest;
+import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.jobs.SalaryEstimateRequest;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobSourceValidator;
 
 import com.example.intelligent_cv_matching_ai_agent.util.shared.FlowSupport;
@@ -70,6 +71,14 @@ public class CareerToolsService {
         return db.listJobMatchingRunsByUserId(user.id(), pageSize(limit));
     }
 
+    public List<Map<String, Object>> aiUsage(
+        int limit,
+        int offset) {
+        user.requireRole("CANDIDATE");
+
+        return db.listAiUsageLogsByUserId(user.id(), pageSize(limit), offset(offset));
+    }
+
     @Transactional
     public Map<String, Object> feedback(
         UUID id,
@@ -118,7 +127,16 @@ public class CareerToolsService {
 
         Map<String, Object> generated = ai.generate(
             "JOB_ATS",
-            fields("resume", cv.get("structured_data"), "resume_text", resumes.canonicalText(cv), "job", job)
+            fields(
+                "resume",
+                cv.get("structured_data"),
+                "resume_text",
+                resumes.canonicalText(cv),
+                "job",
+                job,
+                "language",
+                languageOf(cv.get("language"))
+            )
         );
         double score = FlowSupport.score(generated.get("ats_score"), 100, "ATS score");
 
@@ -174,6 +192,7 @@ public class CareerToolsService {
         request.putIfAbsent("title", "CV - " + text(job.get("job_title")));
         request.put("target_job", job);
         request.put("job_requirements", db.listMarketJobSkillsByMarketJobId(jobId));
+        request.putIfAbsent("language", languageOf(input.get("language")));
         request.put(
             "accuracy_requirement",
             ("Tailor wording to this job using only supplied candidate facts; leave "
@@ -298,7 +317,8 @@ public class CareerToolsService {
 
         var profile = db.getCandidateProfilesByUserId(user.id());
         var job = activeJob(id);
-        var generated = ai.generate("SALARY_ESTIMATE", fields("profile", profile, "job", job));
+        var generated =
+            ai.generate("SALARY_ESTIMATE", fields("profile", profile, "job", job, "language", languageOf(null)));
         double min = FlowSupport.score(generated.get("estimated_min"), 999999999999d, "minimum salary"),
             max = FlowSupport.score(generated.get("estimated_max"), 999999999999d, "maximum salary");
         if (max < min)
@@ -316,6 +336,54 @@ public class CareerToolsService {
                 id,
                 "target_job_title",
                 job.get("job_title"),
+                "estimated_min",
+                min,
+                "estimated_max",
+                max,
+                "currency",
+                currency,
+                "reasoning",
+                db.json(generated.get("reasoning")),
+                "model_name",
+                ai.model()
+            )
+        );
+
+        return db.getSalaryEstimationsById(estimate);
+    }
+
+    public Map<String, Object> salaryForCareer(
+        SalaryEstimateRequest request) {
+        user.requireRole("CANDIDATE");
+
+        var profile = db.getCandidateProfilesByUserId(user.id());
+        Map<String, Object> target = fields(
+            "target_job_title",
+            request.targetJobTitle(),
+            "location",
+            request.location(),
+            "currency",
+            request.currency()
+        );
+        var generated = ai.generate(
+            "SALARY_ESTIMATE",
+            fields("profile", profile, "career_position", target, "language", languageOf(request.language()))
+        );
+        double min = FlowSupport.score(generated.get("estimated_min"), 999999999999d, "minimum salary"),
+            max = FlowSupport.score(generated.get("estimated_max"), 999999999999d, "maximum salary");
+        if (max < min)
+            throw new ApiException(502, "Invalid salary interval");
+
+        String currency = text(generated.get("currency"));
+        if (!Set.of("VND", "USD", "EUR").contains(currency))
+            throw new ApiException(502, "Unsupported salary currency");
+
+        UUID estimate = db.insertSalaryEstimations(
+            fields(
+                "user_id",
+                user.id(),
+                "target_job_title",
+                request.targetJobTitle(),
                 "estimated_min",
                 min,
                 "estimated_max",
@@ -354,5 +422,12 @@ public class CareerToolsService {
             throw new ApiException(502, "AI returned invalid " + key);
 
         return value;
+    }
+
+    private static String languageOf(
+        Object value) {
+        String language = value == null ? "" : text(value).toLowerCase(Locale.ROOT);
+
+        return Set.of("vi", "en").contains(language) ? language : "vi";
     }
 }

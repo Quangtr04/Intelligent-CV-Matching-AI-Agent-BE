@@ -66,7 +66,19 @@ class JobCrawlServiceTests {
             ("<div>Build reliable Java and SQL backend services.</div><p>Work with " + "Spring and Docker.</p>"),
             List.of()
         );
-        assertEquals(JobCrawlService.contentHash(parsed.job()), JobCrawlService.contentHash(sameText));
+        assertNotEquals(JobCrawlService.contentHash(parsed.job()), JobCrawlService.contentHash(sameText));
+        var sameMetadata = new ImportJobRequest(
+            "ITVIEC",
+            URL,
+            parsed.job().jobTitle(),
+            parsed.job().companyName(),
+            parsed.job().location(),
+            parsed.job().salaryText(),
+            "Backend",
+            ("<div>Build reliable Java and SQL backend services.</div><p>Work with " + "Spring and Docker.</p>"),
+            List.of()
+        );
+        assertEquals(JobCrawlService.contentHash(parsed.job()), JobCrawlService.contentHash(sameMetadata));
     }
 
     @Test

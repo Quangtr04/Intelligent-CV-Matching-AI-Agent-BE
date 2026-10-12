@@ -586,9 +586,20 @@ public class JobCrawlService {
 
     static String contentHash(
         ImportJobRequest job) {
+        String skills = (job.skills() == null
+            ? List.<com.example.intelligent_cv_matching_ai_agent.dto.request.admin.jobs.JobSkillRequest>of()
+            : job.skills())
+            .stream()
+            .map(
+                skill -> text(skill.skillId()) + ":" + text(skill.name()).strip().toLowerCase(Locale.ROOT) + ":"
+                    + skill.required()
+            ).sorted().toList().toString();
+
         return FlowSupport.hash(
-            job.sourceSite() + "\n" + job.sourceUrl() + "\n" + job.jobTitle() + "\n"
-                + Jsoup.parse(job.content()).text().strip()
+            text(job.sourceSite()).strip().toUpperCase(Locale.ROOT) + "\n" + text(job.sourceUrl()).strip() + "\n"
+                + text(job.jobTitle()).strip() + "\n" + text(job.companyName()).strip() + "\n"
+                + text(job.location()).strip() + "\n" + text(job.salaryText()).strip() + "\n"
+                + text(job.roleCategory()).strip() + "\n" + skills + "\n" + Jsoup.parse(job.content()).text().strip()
         );
     }
 

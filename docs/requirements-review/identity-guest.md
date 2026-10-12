@@ -150,11 +150,11 @@ Quy ước đường dẫn bằng chứng:
 
 ## 5. Bảo mật P0154: các phần đã có và các khoảng trống
 
-### JWT + Refresh Token: refresh có, JWT nền tảng chưa có
+### JWT + Refresh Token: đã có JWT access token và refresh token
 
 - Access token là chuỗi ngẫu nhiên `a_`, refresh là `r_`, dài 45 ký tự.
   Access hết hạn sau 15 phút, refresh sau 30 ngày; DB chỉ lưu SHA-256 hash.
-  Bearer filter tra DB theo hash, trạng thái/expiry/revocation; đây là opaque token, không phải JWT.
+  Bearer filter xác minh JWT access token, sau đó tra trạng thái tài khoản hiện hành; refresh token là chuỗi ngẫu nhiên lưu hash trong DB.
   Bằng chứng: `J/service/shared/identity/TokenService.java:45`, `:56`, `:59`, `:85`;
   `J/repository/shared/identity/TokenRepository.java:39`.
 - Refresh có lock và rotation một lần, revoke refresh cũ trước khi cấp cặp mới.
@@ -256,7 +256,7 @@ Quy ước đường dẫn bằng chứng:
 
 ## 6. Các điểm cần ưu tiên xác nhận hoặc hoàn thiện
 
-1. Chọn tuân thủ JWT theo P0154 hoặc sửa tài liệu để chấp thuận opaque access token + refresh rotation.
+1. Nếu cần revoke access token tức thì trước khi hết hạn 15 phút, bổ sung denylist hoặc session-version claim cho JWT.
 2. Cung cấp/triển khai bằng chứng AES-256 at rest và TLS 1.3 từ storage/database/reverse proxy deployment.
 3. Bổ sung audit cho mutation còn thiếu và quy định rõ “mọi hành động” có bao gồm đọc, lỗi và hành động thất bại không.
 4. Làm rõ Guest là phiên không tài khoản hay một role phải quản trị được trong P0095.

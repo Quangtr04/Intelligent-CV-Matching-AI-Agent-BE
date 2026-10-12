@@ -13,6 +13,8 @@ import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiService;
 import com.example.intelligent_cv_matching_ai_agent.service.candidate.resume.ResumeService;
 import java.time.OffsetDateTime;
 import java.util.*;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import static com.example.intelligent_cv_matching_ai_agent.util.shared.Values.*;
@@ -28,15 +30,19 @@ public class MatchingService {
 
     private final ResumeService resumes;
 
+    private final ObjectProvider<StringRedisTemplate> redis;
+
     public MatchingService(
         MatchingRepository db,
         CurrentUser user,
         AiService ai,
-        ResumeService resumes) {
+        ResumeService resumes,
+        ObjectProvider<StringRedisTemplate> redis) {
         this.db = db;
         this.user = user;
         this.ai = ai;
         this.resumes = resumes;
+        this.redis = redis;
     }
 
     public Map<String, Object> result(
@@ -104,11 +110,23 @@ public class MatchingService {
             basis + "\n" + resumeIds + "\n" + candidate + "\n" + catalogFingerprint + "\n" + vectorFingerprint + "\n"
                 + mode + "\n" + ai.provider() + "\n" + ai.model() + "\n" + ai.embeddingModel() + "\n" + limit
         );
+        String cacheKey = "edunexus:matching:" + user.id() + ":" + cacheHash;
+        Optional<UUID> redisRun = cachedRun(cacheKey);
+        if (redisRun.isPresent()) {
+            var result = result(redisRun.get());
+            result.put("cached", true);
+            result.put("cache_source", "REDIS");
+
+            return result;
+        }
+
         var cached = db.findJobMatchingRunsByUserId(user.id(), cacheHash);
 
         if (cached.isPresent()) {
             var result = result((UUID) cached.get().get("id"));
             result.put("cached", true);
+            result.put("cache_source", "DATABASE");
+            remember(cacheKey, (UUID) cached.get().get("id"));
 
             return result;
         }
@@ -217,8 +235,34 @@ public class MatchingService {
 
         var result = result(runId);
         result.put("cached", false);
+        remember(cacheKey, runId);
 
         return result;
+    }
+
+    private Optional<UUID> cachedRun(
+        String cacheKey) {
+        try {
+            var client = redis.getIfAvailable();
+            String cached = client == null ? null : client.opsForValue().get(cacheKey);
+            if (cached == null)
+                return Optional.empty();
+
+            return Optional.of(UUID.fromString(cached));
+        } catch (org.springframework.data.redis.RedisConnectionFailureException | IllegalArgumentException ex) {
+            return Optional.empty();
+        }
+    }
+
+    private void remember(
+        String cacheKey,
+        UUID runId) {
+        try {
+            var client = redis.getIfAvailable();
+            if (client != null)
+                client.opsForValue().set(cacheKey, runId.toString(), java.time.Duration.ofHours(1));
+        } catch (org.springframework.data.redis.RedisConnectionFailureException ex) {
+        }
     }
 
     public static Map<String, Object> overlap(
