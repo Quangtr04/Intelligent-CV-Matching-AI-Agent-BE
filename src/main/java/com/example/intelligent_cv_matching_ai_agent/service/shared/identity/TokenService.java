@@ -2,6 +2,7 @@ package com.example.intelligent_cv_matching_ai_agent.service.shared.identity;
 
 import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException;
 import com.example.intelligent_cv_matching_ai_agent.repository.shared.identity.TokenRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +38,7 @@ public class TokenService {
 
     private final String jwtSecret;
 
+    @Autowired
     public TokenService(
         TokenRepository db,
         @Value("${app.security.jwt-secret:development-only-change-me-to-a-long-random-secret}")
