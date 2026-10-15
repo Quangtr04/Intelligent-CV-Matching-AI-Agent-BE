@@ -62,8 +62,14 @@ public class TokenRepository {
     }
 
     public int updateRefreshTokensById(
-        Object... args) {
-        return db.update("UPDATE refresh_tokens SET revoked_at=now() WHERE id=?", args);
+        UUID tokenId,
+        UUID userId) {
+        return db.update(
+            "UPDATE refresh_tokens SET revoked_at=now() WHERE id=? AND user_id=? "
+                + "AND revoked_at IS NULL AND expires_at>clock_timestamp()",
+            tokenId,
+            userId
+        );
     }
 
     public Map<String, Object> getUsersByIdForUpdate(

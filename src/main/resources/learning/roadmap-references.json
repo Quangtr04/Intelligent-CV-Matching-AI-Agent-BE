@@ -1,0 +1,952 @@
+{
+    "source_catalog_url":  "https://roadmap.sh/roadmaps",
+    "source_index_url":  "https://github.com/nilbuild/developer-roadmap",
+    "verified_on":  "2026-10-14",
+    "roadmaps":  [
+                     {
+                         "slug":  "frontend",
+                         "title":  "Frontend",
+                         "url":  "https://roadmap.sh/frontend",
+                         "aliases":  [
+                                         "Frontend",
+                                         "frontend",
+                                         "front end",
+                                         "front-end",
+                                         "giao dien"
+                                     ]
+                     },
+                     {
+                         "slug":  "frontend-beginner",
+                         "title":  "Frontend Beginner",
+                         "url":  "https://roadmap.sh/frontend?r=frontend-beginner",
+                         "aliases":  [
+                                         "Frontend Beginner",
+                                         "frontend beginner"
+                                     ]
+                     },
+                     {
+                         "slug":  "backend",
+                         "title":  "Backend",
+                         "url":  "https://roadmap.sh/backend",
+                         "aliases":  [
+                                         "Backend",
+                                         "backend",
+                                         "back end",
+                                         "back-end",
+                                         "server side",
+                                         "server-side"
+                                     ]
+                     },
+                     {
+                         "slug":  "backend-beginner",
+                         "title":  "Backend Beginner",
+                         "url":  "https://roadmap.sh/backend?r=backend-beginner",
+                         "aliases":  [
+                                         "Backend Beginner",
+                                         "backend beginner"
+                                     ]
+                     },
+                     {
+                         "slug":  "devops",
+                         "title":  "DevOps",
+                         "url":  "https://roadmap.sh/devops",
+                         "aliases":  [
+                                         "DevOps",
+                                         "devops"
+                                     ]
+                     },
+                     {
+                         "slug":  "devops-beginner",
+                         "title":  "DevOps Beginner",
+                         "url":  "https://roadmap.sh/devops?r=devops-beginner",
+                         "aliases":  [
+                                         "DevOps Beginner",
+                                         "devops beginner"
+                                     ]
+                     },
+                     {
+                         "slug":  "devsecops",
+                         "title":  "DevSecOps",
+                         "url":  "https://roadmap.sh/devsecops",
+                         "aliases":  [
+                                         "DevSecOps",
+                                         "devsecops"
+                                     ]
+                     },
+                     {
+                         "slug":  "full-stack",
+                         "title":  "Full Stack",
+                         "url":  "https://roadmap.sh/full-stack",
+                         "aliases":  [
+                                         "Full Stack",
+                                         "full stack",
+                                         "fullstack",
+                                         "full-stack"
+                                     ]
+                     },
+                     {
+                         "slug":  "claude-code",
+                         "title":  "Claude Code",
+                         "url":  "https://roadmap.sh/claude-code",
+                         "aliases":  [
+                                         "Claude Code",
+                                         "claude code"
+                                     ]
+                     },
+                     {
+                         "slug":  "openclaw",
+                         "title":  "OpenClaw",
+                         "url":  "https://roadmap.sh/openclaw",
+                         "aliases":  [
+                                         "OpenClaw",
+                                         "openclaw"
+                                     ]
+                     },
+                     {
+                         "slug":  "vibe-coding",
+                         "title":  "Vibe Coding",
+                         "url":  "https://roadmap.sh/vibe-coding",
+                         "aliases":  [
+                                         "Vibe Coding",
+                                         "vibe coding"
+                                     ]
+                     },
+                     {
+                         "slug":  "forward-deployed-engineer",
+                         "title":  "Forward Deployed Engineer",
+                         "url":  "https://roadmap.sh/forward-deployed-engineer",
+                         "aliases":  [
+                                         "Forward Deployed Engineer",
+                                         "forward deployed engineer"
+                                     ]
+                     },
+                     {
+                         "slug":  "html",
+                         "title":  "HTML",
+                         "url":  "https://roadmap.sh/html",
+                         "aliases":  [
+                                         "HTML",
+                                         "html"
+                                     ]
+                     },
+                     {
+                         "slug":  "css",
+                         "title":  "CSS",
+                         "url":  "https://roadmap.sh/css",
+                         "aliases":  [
+                                         "CSS",
+                                         "css"
+                                     ]
+                     },
+                     {
+                         "slug":  "javascript",
+                         "title":  "JavaScript",
+                         "url":  "https://roadmap.sh/javascript",
+                         "aliases":  [
+                                         "JavaScript",
+                                         "javascript",
+                                         "java script",
+                                         "js",
+                                         "ecmascript"
+                                     ]
+                     },
+                     {
+                         "slug":  "typescript",
+                         "title":  "TypeScript",
+                         "url":  "https://roadmap.sh/typescript",
+                         "aliases":  [
+                                         "TypeScript",
+                                         "typescript",
+                                         "type script",
+                                         "ts"
+                                     ]
+                     },
+                     {
+                         "slug":  "git-github",
+                         "title":  "Git and GitHub",
+                         "url":  "https://roadmap.sh/git-github",
+                         "aliases":  [
+                                         "Git and GitHub",
+                                         "git github",
+                                         "git",
+                                         "github",
+                                         "git and github"
+                                     ]
+                     },
+                     {
+                         "slug":  "git-github-beginner",
+                         "title":  "Git and GitHub Beginner",
+                         "url":  "https://roadmap.sh/git-github?r=git-github-beginner",
+                         "aliases":  [
+                                         "Git and GitHub Beginner",
+                                         "git github beginner"
+                                     ]
+                     },
+                     {
+                         "slug":  "api-design",
+                         "title":  "API Design",
+                         "url":  "https://roadmap.sh/api-design",
+                         "aliases":  [
+                                         "API Design",
+                                         "api design",
+                                         "api",
+                                         "rest api",
+                                         "rest apis",
+                                         "restful"
+                                     ]
+                     },
+                     {
+                         "slug":  "computer-science",
+                         "title":  "Computer Science",
+                         "url":  "https://roadmap.sh/computer-science",
+                         "aliases":  [
+                                         "Computer Science",
+                                         "computer science"
+                                     ]
+                     },
+                     {
+                         "slug":  "datastructures-and-algorithms",
+                         "title":  "Data Structures and Algorithms",
+                         "url":  "https://roadmap.sh/datastructures-and-algorithms",
+                         "aliases":  [
+                                         "Data Structures and Algorithms",
+                                         "datastructures and algorithms"
+                                     ]
+                     },
+                     {
+                         "slug":  "ai-data-scientist",
+                         "title":  "AI and Data Scientist",
+                         "url":  "https://roadmap.sh/ai-data-scientist",
+                         "aliases":  [
+                                         "AI and Data Scientist",
+                                         "ai data scientist",
+                                         "data science",
+                                         "data scientist",
+                                         "khoa hoc du lieu"
+                                     ]
+                     },
+                     {
+                         "slug":  "ai-engineer",
+                         "title":  "AI Engineer",
+                         "url":  "https://roadmap.sh/ai-engineer",
+                         "aliases":  [
+                                         "AI Engineer",
+                                         "ai engineer",
+                                         "artificial intelligence",
+                                         "ky su ai"
+                                     ]
+                     },
+                     {
+                         "slug":  "inference-engineering",
+                         "title":  "Inference Engineering",
+                         "url":  "https://roadmap.sh/inference-engineering",
+                         "aliases":  [
+                                         "Inference Engineering",
+                                         "inference engineering"
+                                     ]
+                     },
+                     {
+                         "slug":  "ai-product-builder",
+                         "title":  "AI Product Builder",
+                         "url":  "https://roadmap.sh/ai-product-builder",
+                         "aliases":  [
+                                         "AI Product Builder",
+                                         "ai product builder"
+                                     ]
+                     },
+                     {
+                         "slug":  "network-engineer",
+                         "title":  "Network Engineer",
+                         "url":  "https://roadmap.sh/network-engineer",
+                         "aliases":  [
+                                         "Network Engineer",
+                                         "network engineer"
+                                     ]
+                     },
+                     {
+                         "slug":  "aws",
+                         "title":  "AWS",
+                         "url":  "https://roadmap.sh/aws",
+                         "aliases":  [
+                                         "AWS",
+                                         "aws",
+                                         "amazon web services"
+                                     ]
+                     },
+                     {
+                         "slug":  "cloudflare",
+                         "title":  "Cloudflare",
+                         "url":  "https://roadmap.sh/cloudflare",
+                         "aliases":  [
+                                         "Cloudflare",
+                                         "cloudflare"
+                                     ]
+                     },
+                     {
+                         "slug":  "linux",
+                         "title":  "Linux",
+                         "url":  "https://roadmap.sh/linux",
+                         "aliases":  [
+                                         "Linux",
+                                         "linux"
+                                     ]
+                     },
+                     {
+                         "slug":  "leetcode",
+                         "title":  "Leetcode",
+                         "url":  "https://roadmap.sh/leetcode",
+                         "aliases":  [
+                                         "Leetcode",
+                                         "leetcode"
+                                     ]
+                     },
+                     {
+                         "slug":  "terraform",
+                         "title":  "Terraform",
+                         "url":  "https://roadmap.sh/terraform",
+                         "aliases":  [
+                                         "Terraform",
+                                         "terraform"
+                                     ]
+                     },
+                     {
+                         "slug":  "data-analyst",
+                         "title":  "Data Analyst",
+                         "url":  "https://roadmap.sh/data-analyst",
+                         "aliases":  [
+                                         "Data Analyst",
+                                         "data analyst",
+                                         "phan tich du lieu"
+                                     ]
+                     },
+                     {
+                         "slug":  "bi-analyst",
+                         "title":  "BI Analyst",
+                         "url":  "https://roadmap.sh/bi-analyst",
+                         "aliases":  [
+                                         "BI Analyst",
+                                         "bi analyst"
+                                     ]
+                     },
+                     {
+                         "slug":  "data-engineer",
+                         "title":  "Data Engineer",
+                         "url":  "https://roadmap.sh/data-engineer",
+                         "aliases":  [
+                                         "Data Engineer",
+                                         "data engineer",
+                                         "ky su du lieu"
+                                     ]
+                     },
+                     {
+                         "slug":  "machine-learning",
+                         "title":  "Machine Learning",
+                         "url":  "https://roadmap.sh/machine-learning",
+                         "aliases":  [
+                                         "Machine Learning",
+                                         "machine learning",
+                                         "ml",
+                                         "hoc may"
+                                     ]
+                     },
+                     {
+                         "slug":  "mlops",
+                         "title":  "MLOps",
+                         "url":  "https://roadmap.sh/mlops",
+                         "aliases":  [
+                                         "MLOps",
+                                         "mlops"
+                                     ]
+                     },
+                     {
+                         "slug":  "product-manager",
+                         "title":  "Product Manager",
+                         "url":  "https://roadmap.sh/product-manager",
+                         "aliases":  [
+                                         "Product Manager",
+                                         "product manager",
+                                         "quan ly san pham"
+                                     ]
+                     },
+                     {
+                         "slug":  "engineering-manager",
+                         "title":  "Engineering Manager",
+                         "url":  "https://roadmap.sh/engineering-manager",
+                         "aliases":  [
+                                         "Engineering Manager",
+                                         "engineering manager",
+                                         "quan ly ky thuat"
+                                     ]
+                     },
+                     {
+                         "slug":  "qa",
+                         "title":  "QA",
+                         "url":  "https://roadmap.sh/qa",
+                         "aliases":  [
+                                         "QA",
+                                         "qa",
+                                         "quality assurance",
+                                         "tester",
+                                         "testing",
+                                         "kiem thu"
+                                     ]
+                     },
+                     {
+                         "slug":  "python",
+                         "title":  "Python",
+                         "url":  "https://roadmap.sh/python",
+                         "aliases":  [
+                                         "Python",
+                                         "python"
+                                     ]
+                     },
+                     {
+                         "slug":  "python-data-analysis",
+                         "title":  "Python for Data Analysis",
+                         "url":  "https://roadmap.sh/python-data-analysis",
+                         "aliases":  [
+                                         "Python for Data Analysis",
+                                         "python data analysis"
+                                     ]
+                     },
+                     {
+                         "slug":  "django",
+                         "title":  "Django",
+                         "url":  "https://roadmap.sh/django",
+                         "aliases":  [
+                                         "Django",
+                                         "django"
+                                     ]
+                     },
+                     {
+                         "slug":  "power-bi",
+                         "title":  "Power BI",
+                         "url":  "https://roadmap.sh/power-bi",
+                         "aliases":  [
+                                         "Power BI",
+                                         "power bi"
+                                     ]
+                     },
+                     {
+                         "slug":  "r-programming",
+                         "title":  "R Programming",
+                         "url":  "https://roadmap.sh/r-programming",
+                         "aliases":  [
+                                         "R Programming",
+                                         "r programming"
+                                     ]
+                     },
+                     {
+                         "slug":  "software-architect",
+                         "title":  "Software Architect",
+                         "url":  "https://roadmap.sh/software-architect",
+                         "aliases":  [
+                                         "Software Architect",
+                                         "software architect",
+                                         "kien truc su phan mem"
+                                     ]
+                     },
+                     {
+                         "slug":  "game-developer",
+                         "title":  "Game Developer",
+                         "url":  "https://roadmap.sh/game-developer",
+                         "aliases":  [
+                                         "Game Developer",
+                                         "game developer"
+                                     ]
+                     },
+                     {
+                         "slug":  "server-side-game-developer",
+                         "title":  "Server Side Game Developer",
+                         "url":  "https://roadmap.sh/server-side-game-developer",
+                         "aliases":  [
+                                         "Server Side Game Developer",
+                                         "server side game developer"
+                                     ]
+                     },
+                     {
+                         "slug":  "software-design-architecture",
+                         "title":  "Software Design and Architecture",
+                         "url":  "https://roadmap.sh/software-design-architecture",
+                         "aliases":  [
+                                         "Software Design and Architecture",
+                                         "software design architecture"
+                                     ]
+                     },
+                     {
+                         "slug":  "c",
+                         "title":  "C",
+                         "url":  "https://roadmap.sh/c",
+                         "aliases":  [
+                                         "C",
+                                         "c",
+                                         "c programming"
+                                     ]
+                     },
+                     {
+                         "slug":  "cpp",
+                         "title":  "C++",
+                         "url":  "https://roadmap.sh/cpp",
+                         "aliases":  [
+                                         "C++",
+                                         "cpp",
+                                         "c++"
+                                     ]
+                     },
+                     {
+                         "slug":  "react",
+                         "title":  "React",
+                         "url":  "https://roadmap.sh/react",
+                         "aliases":  [
+                                         "React",
+                                         "react",
+                                         "reactjs",
+                                         "react.js"
+                                     ]
+                     },
+                     {
+                         "slug":  "nextjs",
+                         "title":  "Next.js",
+                         "url":  "https://roadmap.sh/nextjs",
+                         "aliases":  [
+                                         "Next.js",
+                                         "nextjs",
+                                         "next.js",
+                                         "next js"
+                                     ]
+                     },
+                     {
+                         "slug":  "react-native",
+                         "title":  "React Native",
+                         "url":  "https://roadmap.sh/react-native",
+                         "aliases":  [
+                                         "React Native",
+                                         "react native"
+                                     ]
+                     },
+                     {
+                         "slug":  "vue",
+                         "title":  "Vue",
+                         "url":  "https://roadmap.sh/vue",
+                         "aliases":  [
+                                         "Vue",
+                                         "vue",
+                                         "vuejs",
+                                         "vue.js"
+                                     ]
+                     },
+                     {
+                         "slug":  "angular",
+                         "title":  "Angular",
+                         "url":  "https://roadmap.sh/angular",
+                         "aliases":  [
+                                         "Angular",
+                                         "angular",
+                                         "angularjs"
+                                     ]
+                     },
+                     {
+                         "slug":  "nodejs",
+                         "title":  "Node.js",
+                         "url":  "https://roadmap.sh/nodejs",
+                         "aliases":  [
+                                         "Node.js",
+                                         "nodejs",
+                                         "node.js",
+                                         "node js"
+                                     ]
+                     },
+                     {
+                         "slug":  "php",
+                         "title":  "PHP",
+                         "url":  "https://roadmap.sh/php",
+                         "aliases":  [
+                                         "PHP",
+                                         "php"
+                                     ]
+                     },
+                     {
+                         "slug":  "seo",
+                         "title":  "SEO",
+                         "url":  "https://roadmap.sh/seo",
+                         "aliases":  [
+                                         "SEO",
+                                         "seo"
+                                     ]
+                     },
+                     {
+                         "slug":  "wordpress",
+                         "title":  "WordPress",
+                         "url":  "https://roadmap.sh/wordpress",
+                         "aliases":  [
+                                         "WordPress",
+                                         "wordpress"
+                                     ]
+                     },
+                     {
+                         "slug":  "laravel",
+                         "title":  "Laravel",
+                         "url":  "https://roadmap.sh/laravel",
+                         "aliases":  [
+                                         "Laravel",
+                                         "laravel"
+                                     ]
+                     },
+                     {
+                         "slug":  "graphql",
+                         "title":  "GraphQL",
+                         "url":  "https://roadmap.sh/graphql",
+                         "aliases":  [
+                                         "GraphQL",
+                                         "graphql"
+                                     ]
+                     },
+                     {
+                         "slug":  "android",
+                         "title":  "Android",
+                         "url":  "https://roadmap.sh/android",
+                         "aliases":  [
+                                         "Android",
+                                         "android"
+                                     ]
+                     },
+                     {
+                         "slug":  "ios",
+                         "title":  "iOS",
+                         "url":  "https://roadmap.sh/ios",
+                         "aliases":  [
+                                         "iOS",
+                                         "ios"
+                                     ]
+                     },
+                     {
+                         "slug":  "swift-ui",
+                         "title":  "Swift/Swift UI",
+                         "url":  "https://roadmap.sh/swift-ui",
+                         "aliases":  [
+                                         "Swift/Swift UI",
+                                         "swift ui"
+                                     ]
+                     },
+                     {
+                         "slug":  "flutter",
+                         "title":  "Flutter",
+                         "url":  "https://roadmap.sh/flutter",
+                         "aliases":  [
+                                         "Flutter",
+                                         "flutter"
+                                     ]
+                     },
+                     {
+                         "slug":  "golang",
+                         "title":  "Go",
+                         "url":  "https://roadmap.sh/golang",
+                         "aliases":  [
+                                         "Go",
+                                         "golang"
+                                     ]
+                     },
+                     {
+                         "slug":  "rust",
+                         "title":  "Rust",
+                         "url":  "https://roadmap.sh/rust",
+                         "aliases":  [
+                                         "Rust",
+                                         "rust"
+                                     ]
+                     },
+                     {
+                         "slug":  "java",
+                         "title":  "Java",
+                         "url":  "https://roadmap.sh/java",
+                         "aliases":  [
+                                         "Java",
+                                         "java"
+                                     ]
+                     },
+                     {
+                         "slug":  "kotlin",
+                         "title":  "Kotlin",
+                         "url":  "https://roadmap.sh/kotlin",
+                         "aliases":  [
+                                         "Kotlin",
+                                         "kotlin"
+                                     ]
+                     },
+                     {
+                         "slug":  "spring-boot",
+                         "title":  "Spring Boot",
+                         "url":  "https://roadmap.sh/spring-boot",
+                         "aliases":  [
+                                         "Spring Boot",
+                                         "spring boot",
+                                         "spring",
+                                         "springboot"
+                                     ]
+                     },
+                     {
+                         "slug":  "design-system",
+                         "title":  "Design System",
+                         "url":  "https://roadmap.sh/design-system",
+                         "aliases":  [
+                                         "Design System",
+                                         "design system"
+                                     ]
+                     },
+                     {
+                         "slug":  "postgresql-dba",
+                         "title":  "PostgreSQL",
+                         "url":  "https://roadmap.sh/postgresql-dba",
+                         "aliases":  [
+                                         "PostgreSQL",
+                                         "postgresql dba"
+                                     ]
+                     },
+                     {
+                         "slug":  "elasticsearch",
+                         "title":  "Elasticsearch",
+                         "url":  "https://roadmap.sh/elasticsearch",
+                         "aliases":  [
+                                         "Elasticsearch",
+                                         "elasticsearch"
+                                     ]
+                     },
+                     {
+                         "slug":  "sql",
+                         "title":  "SQL",
+                         "url":  "https://roadmap.sh/sql",
+                         "aliases":  [
+                                         "SQL",
+                                         "sql"
+                                     ]
+                     },
+                     {
+                         "slug":  "redis",
+                         "title":  "Redis",
+                         "url":  "https://roadmap.sh/redis",
+                         "aliases":  [
+                                         "Redis",
+                                         "redis"
+                                     ]
+                     },
+                     {
+                         "slug":  "blockchain",
+                         "title":  "Blockchain",
+                         "url":  "https://roadmap.sh/blockchain",
+                         "aliases":  [
+                                         "Blockchain",
+                                         "blockchain"
+                                     ]
+                     },
+                     {
+                         "slug":  "aspnet-core",
+                         "title":  "ASP.NET Core",
+                         "url":  "https://roadmap.sh/aspnet-core",
+                         "aliases":  [
+                                         "ASP.NET Core",
+                                         "aspnet core",
+                                         "asp.net core",
+                                         ".net core",
+                                         ".net",
+                                         "c#",
+                                         "csharp"
+                                     ]
+                     },
+                     {
+                         "slug":  "system-design",
+                         "title":  "System Design",
+                         "url":  "https://roadmap.sh/system-design",
+                         "aliases":  [
+                                         "System Design",
+                                         "system design"
+                                     ]
+                     },
+                     {
+                         "slug":  "kubernetes",
+                         "title":  "Kubernetes",
+                         "url":  "https://roadmap.sh/kubernetes",
+                         "aliases":  [
+                                         "Kubernetes",
+                                         "kubernetes",
+                                         "k8s"
+                                     ]
+                     },
+                     {
+                         "slug":  "cyber-security",
+                         "title":  "Cyber Security",
+                         "url":  "https://roadmap.sh/cyber-security",
+                         "aliases":  [
+                                         "Cyber Security",
+                                         "cyber security",
+                                         "cybersecurity",
+                                         "an ninh mang"
+                                     ]
+                     },
+                     {
+                         "slug":  "mongodb",
+                         "title":  "MongoDB",
+                         "url":  "https://roadmap.sh/mongodb",
+                         "aliases":  [
+                                         "MongoDB",
+                                         "mongodb"
+                                     ]
+                     },
+                     {
+                         "slug":  "product-design",
+                         "title":  "Product Design",
+                         "url":  "https://roadmap.sh/product-design",
+                         "aliases":  [
+                                         "Product Design",
+                                         "product design"
+                                     ]
+                     },
+                     {
+                         "slug":  "ux-design",
+                         "title":  "UX Design",
+                         "url":  "https://roadmap.sh/ux-design",
+                         "aliases":  [
+                                         "UX Design",
+                                         "ux design",
+                                         "ux",
+                                         "ui ux",
+                                         "user experience",
+                                         "thiet ke ux"
+                                     ]
+                     },
+                     {
+                         "slug":  "docker",
+                         "title":  "Docker",
+                         "url":  "https://roadmap.sh/docker",
+                         "aliases":  [
+                                         "Docker",
+                                         "docker"
+                                     ]
+                     },
+                     {
+                         "slug":  "prompt-engineering",
+                         "title":  "Prompt Engineering",
+                         "url":  "https://roadmap.sh/prompt-engineering",
+                         "aliases":  [
+                                         "Prompt Engineering",
+                                         "prompt engineering"
+                                     ]
+                     },
+                     {
+                         "slug":  "technical-writer",
+                         "title":  "Technical Writer",
+                         "url":  "https://roadmap.sh/technical-writer",
+                         "aliases":  [
+                                         "Technical Writer",
+                                         "technical writer"
+                                     ]
+                     },
+                     {
+                         "slug":  "devrel",
+                         "title":  "DevRel Engineer",
+                         "url":  "https://roadmap.sh/devrel",
+                         "aliases":  [
+                                         "DevRel Engineer",
+                                         "devrel"
+                                     ]
+                     },
+                     {
+                         "slug":  "ai-red-teaming",
+                         "title":  "AI Red Teaming",
+                         "url":  "https://roadmap.sh/ai-red-teaming",
+                         "aliases":  [
+                                         "AI Red Teaming",
+                                         "ai red teaming"
+                                     ]
+                     },
+                     {
+                         "slug":  "ai-agents",
+                         "title":  "AI Agents",
+                         "url":  "https://roadmap.sh/ai-agents",
+                         "aliases":  [
+                                         "AI Agents",
+                                         "ai agents"
+                                     ]
+                     },
+                     {
+                         "slug":  "shell-bash",
+                         "title":  "Bash/Shell",
+                         "url":  "https://roadmap.sh/shell-bash",
+                         "aliases":  [
+                                         "Bash/Shell",
+                                         "shell bash"
+                                     ]
+                     },
+                     {
+                         "slug":  "ruby",
+                         "title":  "Ruby",
+                         "url":  "https://roadmap.sh/ruby",
+                         "aliases":  [
+                                         "Ruby",
+                                         "ruby"
+                                     ]
+                     },
+                     {
+                         "slug":  "ruby-on-rails",
+                         "title":  "Ruby on Rails",
+                         "url":  "https://roadmap.sh/ruby-on-rails",
+                         "aliases":  [
+                                         "Ruby on Rails",
+                                         "ruby on rails"
+                                     ]
+                     },
+                     {
+                         "slug":  "scala",
+                         "title":  "Scala",
+                         "url":  "https://roadmap.sh/scala",
+                         "aliases":  [
+                                         "Scala",
+                                         "scala"
+                                     ]
+                     },
+                     {
+                         "slug":  "best-practices/backend-performance",
+                         "title":  "Backend Performance Best Practices",
+                         "url":  "https://roadmap.sh/best-practices/backend-performance",
+                         "aliases":  [
+                                         "Backend Performance Best Practices",
+                                         "backend performance"
+                                     ]
+                     },
+                     {
+                         "slug":  "best-practices/frontend-performance",
+                         "title":  "Frontend Performance Best Practices",
+                         "url":  "https://roadmap.sh/best-practices/frontend-performance",
+                         "aliases":  [
+                                         "Frontend Performance Best Practices",
+                                         "frontend performance"
+                                     ]
+                     },
+                     {
+                         "slug":  "best-practices/code-review",
+                         "title":  "Code Review Best Practices",
+                         "url":  "https://roadmap.sh/best-practices/code-review",
+                         "aliases":  [
+                                         "Code Review Best Practices",
+                                         "code review"
+                                     ]
+                     },
+                     {
+                         "slug":  "best-practices/api-security",
+                         "title":  "API Security Best Practices",
+                         "url":  "https://roadmap.sh/best-practices/api-security",
+                         "aliases":  [
+                                         "API Security Best Practices",
+                                         "api security"
+                                     ]
+                     },
+                     {
+                         "slug":  "best-practices/aws",
+                         "title":  "AWS Best Practices",
+                         "url":  "https://roadmap.sh/best-practices/aws",
+                         "aliases":  [
+                                         "AWS Best Practices",
+                                         "aws"
+                                     ]
+                     }
+                 ]
+}

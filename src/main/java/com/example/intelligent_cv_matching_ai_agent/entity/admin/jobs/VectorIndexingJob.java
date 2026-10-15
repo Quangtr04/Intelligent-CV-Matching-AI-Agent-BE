@@ -81,4 +81,24 @@ public class VectorIndexingJob {
     @Column(name = "created_at", nullable = false, columnDefinition = "timestamptz")
     private OffsetDateTime createdAt;
 
+    @JsonProperty("content_hash")
+    @Column(name = "content_hash", length = 64)
+    private String contentHash;
+
+    @JsonProperty("requested_by")
+    @Column(name = "requested_by")
+    private UUID requestedBy;
+
+    @JsonProperty("next_attempt_at")
+    @Column(name = "next_attempt_at", nullable = false, columnDefinition = "timestamptz")
+    private OffsetDateTime nextAttemptAt;
+
+    @JsonProperty("lease_token")
+    @Column(name = "lease_token")
+    private UUID leaseToken;
+
+    @JsonProperty("lease_until")
+    @Column(name = "lease_until", columnDefinition = "timestamptz")
+    private OffsetDateTime leaseUntil;
+
 }

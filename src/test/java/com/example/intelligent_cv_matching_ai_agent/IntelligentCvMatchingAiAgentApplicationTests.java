@@ -11,7 +11,21 @@ import java.util.Arrays;
 import static org.junit.jupiter.api.Assertions.*;
 
 @Import(TestcontainersConfiguration.class)
-@SpringBootTest
+@SpringBootTest(
+    properties = {
+        "APP_ENV_FILE=src/test/resources/test.env",
+        "app.security.jwt-secret=${random.uuid}${random.uuid}",
+        "spring.docker.compose.enabled=false",
+        "spring.ai.model.chat=none",
+        "spring.ai.model.embedding=none",
+        "app.ai.enabled=false",
+        "app.jobs.collection.enabled=false",
+        "app.jobs.expiration.enabled=false",
+        "app.jobs.embedding.enabled=false",
+        "app.billing.maintenance-enabled=false",
+        "app.mail.enabled=false",
+        "app.ocr.enabled=false"}
+)
 @Testcontainers(disabledWithoutDocker = true)
 class IntelligentCvMatchingAiAgentApplicationTests {
 
@@ -21,7 +35,7 @@ class IntelligentCvMatchingAiAgentApplicationTests {
     @Test
     void contextLoads() {
         assertEquals(
-            76,
+            80,
             ((Number) db.scalar(
                 ("SELECT count(*) FROM information_schema.tables WHERE "
                     + "table_schema='public' AND table_type='BASE TABLE' AND " + "table_name<>'flyway_schema_history'")

@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="2600" height="2170" viewBox="0 0 2600 2170" role="img" aria-labelledby="title description">
+<title id="title">EDUNEXUS · USE CASE CHUNG VÀ TÍCH HỢP</title>
+<desc id="description">Xác thực · dùng thử · tài khoản · hỗ trợ · webhook thanh toán</desc>
+<rect x="0" y="0" width="2600" height="2170" rx="0" fill="#ffffff" stroke="none" stroke-width="0"/>
+<text x="1300" y="54.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="28" font-weight="600" fill="#17324e">EDUNEXUS · USE CASE CHUNG VÀ TÍCH HỢP</text>
+<text x="1300" y="96.95" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="17" font-weight="400" fill="#586a7f">Xác thực · dùng thử · tài khoản · hỗ trợ · webhook thanh toán</text>
+<rect x="330" y="180" width="1940" height="1830" rx="0" fill="#ffffff" stroke="#263b52" stroke-width="2"/>
+<text x="350" y="220.05" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="600" fill="#17324e">Hệ thống EduNexus</text>
+<rect x="445" y="250" width="860" height="1670" rx="8" fill="#EFF6FF" stroke="#d5dfeb" stroke-width="1"/>
+<text x="461" y="282.3" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="600" fill="#455e7a">Xác thực, dùng thử và chức năng chung</text>
+<polyline points="160,659 530,336" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="160,659 530,466" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="160,659 530,596" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="160,659 530,726" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="160,659 530,856" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="160,659 530,986" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="160,659 530,1116" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="160,1424 530,1246" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="160,1424 530,1376" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="160,1424 530,1506" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="160,1424 530,1636" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1220,336 1470,336" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="7 5"/><polyline points="1458,330.5 1470,336 1458,341.5" fill="none" stroke="#52647b" stroke-width="1.6"/>
+<polyline points="1220,596 1360,596 1360,336 1470,336" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="7 5"/><polyline points="1458,330.5 1470,336 1458,341.5" fill="none" stroke="#52647b" stroke-width="1.6"/>
+<polyline points="1745,470 1745,382" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="7 5"/><polyline points="1739.5,394 1745,382 1750.5,394" fill="none" stroke="#52647b" stroke-width="1.6"/>
+<polyline points="2440,484 2020,516" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1220,856 1470,856" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="7 5"/><polyline points="1458,850.5 1470,856 1458,861.5" fill="none" stroke="#52647b" stroke-width="1.6"/>
+<polyline points="2440,824 2020,856" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1220,1116 1470,1116" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="7 5"/><polyline points="1458,1110.5 1470,1116 1458,1121.5" fill="none" stroke="#52647b" stroke-width="1.6"/>
+<polyline points="2440,1084 2020,1116" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2440,1474 2020,1506" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1745,1552 1745,1610" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="7 5"/><polyline points="1750.5,1598 1745,1610 1739.5,1598" fill="none" stroke="#52647b" stroke-width="1.6"/>
+<polyline points="2020,1846 2180,1846 2180,1506 2020,1506" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="7 5"/><polyline points="2032,1511.5 2020,1506 2032,1500.5" fill="none" stroke="#52647b" stroke-width="1.6"/>
+<ellipse cx="875" cy="336" rx="345" ry="46" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="875" y="342.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Đăng ký tài khoản</text>
+<ellipse cx="875" cy="466" rx="345" ry="46" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="875" y="472.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Xác minh email bằng OTP</text>
+<ellipse cx="875" cy="596" rx="345" ry="46" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="875" y="602.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Gửi lại mã xác minh</text>
+<ellipse cx="875" cy="726" rx="345" ry="46" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="875" y="732.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Đăng nhập bằng email</text>
+<ellipse cx="875" cy="856" rx="345" ry="46" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="875" y="862.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Đăng nhập bằng Google</text>
+<ellipse cx="875" cy="986" rx="345" ry="46" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="875" y="992.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Dùng thử CV và gợi ý việc làm</text>
+<ellipse cx="875" cy="1116" rx="345" ry="46" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="875" y="1122.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Chat nghề nghiệp dùng thử</text>
+<ellipse cx="875" cy="1246" rx="345" ry="46" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="875" y="1252.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Quản lý tài khoản / mật khẩu / phiên</text>
+<ellipse cx="875" cy="1376" rx="345" ry="46" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="875" y="1382.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Xem gói, tạo đơn, xem hóa đơn</text>
+<ellipse cx="875" cy="1506" rx="345" ry="46" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="875" y="1512.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Xem / đánh dấu thông báo</text>
+<ellipse cx="875" cy="1636" rx="345" ry="46" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="875" y="1642.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Tạo ticket và trao đổi hỗ trợ</text>
+<ellipse cx="1745" cy="336" rx="275" ry="46" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="1745" y="342.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Phát hành mã xác minh</text>
+<ellipse cx="1745" cy="516" rx="275" ry="46" fill="#FFF7ED" stroke="#3d5875" stroke-width="1.7"/>
+<text x="1745" y="522.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Gửi mã qua SMTP</text>
+<ellipse cx="1745" cy="856" rx="275" ry="46" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="1745" y="862.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Xác minh Google ID token</text>
+<ellipse cx="1745" cy="1116" rx="275" ry="46" fill="#F5F3FF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="1745" y="1110.6" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Sinh câu trả lời AI</text>
+<text x="1745" y="1134" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">cho hội thoại dùng thử</text>
+<ellipse cx="1745" cy="1506" rx="275" ry="46" fill="#F0FDFA" stroke="#3d5875" stroke-width="1.7"/>
+<text x="1745" y="1512.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Tiếp nhận webhook thanh toán</text>
+<ellipse cx="1745" cy="1656" rx="275" ry="46" fill="#F0FDFA" stroke="#3d5875" stroke-width="1.7"/>
+<text x="1745" y="1650.6" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Kiểm tra chữ ký / timestamp</text>
+<text x="1745" y="1674" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">và đối chiếu đơn</text>
+<ellipse cx="1745" cy="1846" rx="275" ry="46" fill="#F0FDFA" stroke="#3d5875" stroke-width="1.7"/>
+<text x="1745" y="1840.6" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Kích hoạt gói, tạo hóa đơn</text>
+<text x="1745" y="1864" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">và thông báo thanh toán</text>
+<ellipse cx="135" cy="636" rx="11" ry="11" fill="#ffffff" stroke="#29465f" stroke-width="1.9"/>
+<polyline points="135,647 135,678" fill="none" stroke="#29465f" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="110,659 160,659" fill="none" stroke="#29465f" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="111,703 135,678 159,703" fill="none" stroke="#29465f" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="135" y="728" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#29465f">Khách</text>
+<ellipse cx="135" cy="1401" rx="11" ry="11" fill="#ffffff" stroke="#29465f" stroke-width="1.9"/>
+<polyline points="135,1412 135,1443" fill="none" stroke="#29465f" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="110,1424 160,1424" fill="none" stroke="#29465f" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="111,1468 135,1443 159,1468" fill="none" stroke="#29465f" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="135" y="1493" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#29465f">Người dùng</text>
+<text x="135" y="1517.7" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#29465f">đã đăng nhập</text>
+<ellipse cx="2465" cy="461" rx="11" ry="11" fill="#ffffff" stroke="#29465f" stroke-width="1.9"/>
+<polyline points="2465,472 2465,503" fill="none" stroke="#29465f" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2440,484 2490,484" fill="none" stroke="#29465f" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2441,528 2465,503 2489,528" fill="none" stroke="#29465f" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="2465" y="553" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#29465f">SMTP / Mailtrap</text>
+<text x="2465" y="577.7" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#29465f">«hệ thống ngoài»</text>
+<ellipse cx="2465" cy="801" rx="11" ry="11" fill="#ffffff" stroke="#29465f" stroke-width="1.9"/>
+<polyline points="2465,812 2465,843" fill="none" stroke="#29465f" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2440,824 2490,824" fill="none" stroke="#29465f" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2441,868 2465,843 2489,868" fill="none" stroke="#29465f" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="2465" y="893" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#29465f">Google Identity</text>
+<text x="2465" y="917.7" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#29465f">«hệ thống ngoài»</text>
+<ellipse cx="2465" cy="1061" rx="11" ry="11" fill="#ffffff" stroke="#29465f" stroke-width="1.9"/>
+<polyline points="2465,1072 2465,1103" fill="none" stroke="#29465f" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2440,1084 2490,1084" fill="none" stroke="#29465f" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2441,1128 2465,1103 2489,1128" fill="none" stroke="#29465f" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="2465" y="1153" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#29465f">AI provider</text>
+<text x="2465" y="1177.7" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#29465f">«hệ thống ngoài»</text>
+<ellipse cx="2465" cy="1451" rx="11" ry="11" fill="#ffffff" stroke="#29465f" stroke-width="1.9"/>
+<polyline points="2465,1462 2465,1493" fill="none" stroke="#29465f" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2440,1474 2490,1474" fill="none" stroke="#29465f" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2441,1518 2465,1493 2489,1518" fill="none" stroke="#29465f" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="2465" y="1543" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#29465f">Nguồn webhook</text>
+<text x="2465" y="1567.7" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#29465f">thanh toán</text>
+<rect x="1305.387" y="291.6" width="79.227" height="28.8" rx="0" fill="#ffffff" stroke="none" stroke-width="0"/>
+<text x="1345" y="311.6" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#40526b">«include»</text>
+<rect x="1310.387" y="520.6" width="79.227" height="28.8" rx="0" fill="#ffffff" stroke="none" stroke-width="0"/>
+<text x="1350" y="540.6" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#40526b">«include»</text>
+<rect x="1896.918" y="410.6" width="76.164" height="28.8" rx="0" fill="#ffffff" stroke="none" stroke-width="0"/>
+<text x="1935" y="430.6" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#40526b">«extend»</text>
+<rect x="1305.387" y="811.6" width="79.227" height="28.8" rx="0" fill="#ffffff" stroke="none" stroke-width="0"/>
+<text x="1345" y="831.6" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#40526b">«include»</text>
+<rect x="1305.387" y="1071.6" width="79.227" height="28.8" rx="0" fill="#ffffff" stroke="none" stroke-width="0"/>
+<text x="1345" y="1091.6" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#40526b">«include»</text>
+<rect x="1905.387" y="1565.6" width="79.227" height="28.8" rx="0" fill="#ffffff" stroke="none" stroke-width="0"/>
+<text x="1945" y="1585.6" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#40526b">«include»</text>
+<rect x="2025.211" y="1700.2" width="249.578" height="49.6" rx="0" fill="#ffffff" stroke="none" stroke-width="0"/>
+<text x="2150" y="1720.2" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#40526b">«extend»</text>
+<text x="2150" y="1741" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#40526b">[COMPLETED mới, đơn PENDING]</text>
+<rect x="1450" y="605" width="620" height="115" rx="6" fill="#F8FAFC" stroke="#d5dfeb" stroke-width="1"/>
+<text x="1466" y="647.3" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b">SMTP khi dev OTP=false và mail enabled=true.</text>
+<text x="1466" y="668.1" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b">Dev OTP=true trả code, bỏ qua gửi thư.</text>
+<text x="1466" y="688.9" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b">Resend: tài khoản tồn tại và còn PENDING.</text>
+<rect x="1450" y="1230" width="620" height="140" rx="6" fill="#F8FAFC" stroke="#d5dfeb" stroke-width="1"/>
+<text x="1466" y="1284.8" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b">Trial builder cần AI; recommendations dùng rule.</text>
+<text x="1466" y="1305.6" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b">Tạo đơn chỉ tạo PENDING, chưa checkout.</text>
+<text x="1466" y="1326.4" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b">Webhook là hợp đồng adapter generic.</text>
+<rect x="350" y="2050" width="1900" height="80" rx="6" fill="#F8FAFC" stroke="#d5dfeb" stroke-width="1"/>
+<text x="366" y="2074.8" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b">Google dùng email bên thứ ba có thể cần OTP hệ thống. Webhook FAILED/CANCELLED không kích hoạt gói.</text>
+<text x="366" y="2095.6" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b">Đường liên kết actor không có mũi tên; «include» trỏ tới hành vi bắt buộc, «extend» trỏ tới use case được mở rộng.</text>
+<text x="366" y="2116.4" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b">Webhook lặp không tạo lại gói / hóa đơn.</text>
+</svg>

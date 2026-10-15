@@ -2,21 +2,33 @@ package com.example.intelligent_cv_matching_ai_agent.service.shared.identity;
 
 import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException;
 import com.example.intelligent_cv_matching_ai_agent.repository.shared.identity.TokenRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+import org.springframework.security.oauth2.jwt.JwtException;
+import org.springframework.security.oauth2.jwt.JwtTimestampValidator;
+import org.springframework.security.oauth2.jwt.JwtValidators;
+import org.springframework.security.oauth2.jwt.JwsHeader;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
+import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.HexFormat;
-import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
@@ -30,26 +42,35 @@ public class TokenService {
 
     private static final SecureRandom RANDOM = new SecureRandom();
 
-    private static final Base64.Encoder URL_ENCODER = Base64.getUrlEncoder().withoutPadding();
-
-    private static final Base64.Decoder URL_DECODER = Base64.getUrlDecoder();
-
     private final TokenRepository db;
 
-    private final String jwtSecret;
+    private final JwtEncoder encoder;
 
-    @Autowired
+    private final JwtDecoder decoder;
+
     public TokenService(
         TokenRepository db,
-        @Value("${app.security.jwt-secret:development-only-change-me-to-a-long-random-secret}")
+        @Value("${app.security.jwt-secret}")
         String jwtSecret) {
         this.db = db;
-        this.jwtSecret = jwtSecret;
+        SecretKeySpec key = signingKey(jwtSecret);
+        this.encoder = NimbusJwtEncoder.withSecretKey(key).algorithm(MacAlgorithm.HS256).build();
+        NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder.withSecretKey(key).macAlgorithm(MacAlgorithm.HS256).build();
+        jwtDecoder.setJwtValidator(JwtValidators.createDefaultWithValidators(new JwtTimestampValidator(Duration.ZERO)));
+        this.decoder = jwtDecoder;
     }
 
-    public TokenService(
-        TokenRepository db) {
-        this(db, "development-only-change-me-to-a-long-random-secret");
+    private static SecretKeySpec signingKey(
+        String secret) {
+        if (secret == null || secret.isBlank() || secret.getBytes(StandardCharsets.UTF_8).length < 32) {
+            throw new IllegalArgumentException("APP_JWT_SECRET must contain at least 32 random UTF-8 bytes");
+        }
+        String normalized = secret.strip().toLowerCase(Locale.ROOT);
+        if (normalized.contains("change-me") || normalized.contains("changeme") || normalized.startsWith("replace-")
+            || secret.contains("${")) {
+            throw new IllegalArgumentException("APP_JWT_SECRET must be a generated secret, not a placeholder");
+        }
+        return new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
     }
 
     public static String random(
@@ -75,10 +96,12 @@ public class TokenService {
         UUID userId) {
         requireActive(userId);
 
-        String access = jwt(userId, OffsetDateTime.now().plusMinutes(15));
+        Instant issuedAt = Instant.now().truncatedTo(ChronoUnit.SECONDS);
+        Instant expiresAt = issuedAt.plusSeconds(900);
+        String access = encodeAccessToken(userId, issuedAt, expiresAt);
         String refresh = random("r_");
 
-        save(userId, access, OffsetDateTime.now().plusMinutes(15));
+        save(userId, access, expiresAt.atOffset(java.time.ZoneOffset.UTC));
         save(userId, refresh, OffsetDateTime.now().plusDays(30));
 
         return Map.of("accessToken", access, "refreshToken", refresh, "tokenType", "Bearer", "expiresIn", 900);
@@ -107,7 +130,7 @@ public class TokenService {
         if (access == null || access.startsWith("r_"))
             throw new ApiException(401, "Invalid access token");
 
-        UUID tokenUser = verifyJwt(access);
+        UUID tokenUser = decodeAccessToken(access);
         Map<String, Object> session = db.findRefreshTokensByTokenHash(hash(access))
             .orElseThrow(() -> new ApiException(401, "Session expired or account unavailable"));
         if (!tokenUser.equals(session.get("id")))
@@ -131,9 +154,12 @@ public class TokenService {
         Map<String, Object> token = db.findRefreshTokensByTokenHashForUpdate(hash(refresh))
             .orElseThrow(() -> new ApiException(401, "Refresh token expired or already used"));
 
-        db.updateRefreshTokensById(token.get("id"));
+        if (!owner.equals(token.get("user_id")))
+            throw new ApiException(401, "Invalid refresh token");
+        if (db.updateRefreshTokensById((UUID) token.get("id"), owner) != 1)
+            throw new ApiException(401, "Refresh token expired or already used");
 
-        return issue((UUID) token.get("user_id"));
+        return issue(owner);
     }
 
     @Transactional
@@ -144,83 +170,29 @@ public class TokenService {
         db.updateRefreshTokensByUserId(user);
     }
 
-    private String jwt(
+    private String encodeAccessToken(
         UUID userId,
-        OffsetDateTime expires) {
-        String header = "{\"alg\":\"HS256\",\"typ\":\"JWT\"}";
-        String payload = "{\"sub\":\"" + userId + "\",\"iat\":" + Instant.now().getEpochSecond() + ",\"exp\":"
-            + expires.toEpochSecond() + "}";
-        String body = encode(header) + "." + encode(payload);
-
-        return body + "." + sign(body);
+        Instant issuedAt,
+        Instant expiresAt) {
+        JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).type("JWT").build();
+        JwtClaimsSet claims = JwtClaimsSet.builder().subject(userId.toString()).id(UUID.randomUUID().toString())
+            .issuedAt(issuedAt).expiresAt(expiresAt).build();
+        return encoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue();
     }
 
-    private UUID verifyJwt(
+    private UUID decodeAccessToken(
         String token) {
-        String[] parts = token.split("\\.", -1);
-        if (parts.length != 3 || parts[0].isBlank() || parts[1].isBlank() || parts[2].isBlank())
-            throw new ApiException(401, "Invalid access token");
-
-        String body = parts[0] + "." + parts[1];
-        if (!constantTime(sign(body), parts[2]))
-            throw new ApiException(401, "Invalid access token");
-
-        Map<String, String> claims = claims(parts[1]);
-        long expiresAt;
         try {
-            expiresAt = Long.parseLong(claims.getOrDefault("exp", ""));
-        } catch (NumberFormatException ex) {
+            Jwt jwt = decoder.decode(token);
+            Instant now = Instant.now();
+            if (jwt.getSubject() == null || jwt.getId() == null || jwt.getId().isBlank() || jwt.getIssuedAt() == null
+                || jwt.getExpiresAt() == null || !jwt.getExpiresAt().isAfter(now) || jwt.getIssuedAt().isAfter(now)
+                || !jwt.getIssuedAt().isBefore(jwt.getExpiresAt())) {
+                throw new ApiException(401, "Invalid access token");
+            }
+            return UUID.fromString(jwt.getSubject());
+        } catch (JwtException | IllegalArgumentException ex) {
             throw new ApiException(401, "Invalid access token");
         }
-
-        if (expiresAt <= Instant.now().getEpochSecond())
-            throw new ApiException(401, "Invalid access token");
-
-        try {
-            return UUID.fromString(claims.get("sub"));
-        } catch (RuntimeException ex) {
-            throw new ApiException(401, "Invalid access token");
-        }
-    }
-
-    private String sign(
-        String body) {
-        try {
-            Mac mac = Mac.getInstance("HmacSHA256");
-            mac.init(new SecretKeySpec(jwtSecret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
-
-            return URL_ENCODER.encodeToString(mac.doFinal(body.getBytes(StandardCharsets.UTF_8)));
-        } catch (Exception ex) {
-            throw new IllegalStateException(ex);
-        }
-    }
-
-    private static String encode(
-        String value) {
-        return URL_ENCODER.encodeToString(value.getBytes(StandardCharsets.UTF_8));
-    }
-
-    private static boolean constantTime(
-        String left,
-        String right) {
-        return MessageDigest.isEqual(left.getBytes(StandardCharsets.UTF_8), right.getBytes(StandardCharsets.UTF_8));
-    }
-
-    private static Map<String, String> claims(
-        String payload) {
-        String json;
-        try {
-            json = new String(URL_DECODER.decode(payload), StandardCharsets.UTF_8);
-        } catch (IllegalArgumentException ex) {
-            throw new ApiException(401, "Invalid access token");
-        }
-
-        Map<String, String> values = new LinkedHashMap<>();
-        java.util.regex.Matcher matcher =
-            java.util.regex.Pattern.compile("\"([^\"]+)\"\\s*:\\s*(\"([^\"]*)\"|[0-9]+)").matcher(json);
-        while (matcher.find())
-            values.put(matcher.group(1), matcher.group(3) == null ? matcher.group(2) : matcher.group(3));
-
-        return values;
     }
 }

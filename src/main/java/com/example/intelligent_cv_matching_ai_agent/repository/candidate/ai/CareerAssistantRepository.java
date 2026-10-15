@@ -68,11 +68,15 @@ public class CareerAssistantRepository {
         Object... args) {
         return db.list(
             ("SELECT c.id AS chunk_id,d.id AS document_id,d.title,c.content,"
+                + "course.url AS source_url,course.provider AS source_provider,"
                 + "1-(e.embedding <=> ?::vector) AS similarity FROM rag_chunks c JOIN "
                 + "rag_documents d ON d.id=c.document_id JOIN rag_chunk_embeddings e ON "
                 + "e.chunk_id=c.id LEFT JOIN users uploader ON uploader.id=d.uploaded_by "
+                + "LEFT JOIN rag_course_links course ON course.rag_document_id=d.id "
+                + "LEFT JOIN learning_resources resource ON resource.id=course.learning_resource_id "
                 + "WHERE e.provider=? AND e.model=? AND d.embedding_status='COMPLETED' "
                 + "AND COALESCE(d.metadata->>'disabled','false')<>'true' AND "
+                + "(course.id IS NULL OR (course.status='APPROVED' AND resource.is_active=true)) AND "
                 + "(d.uploaded_by=? OR uploader.role='ADMIN') AND 1-(e.embedding <=> "
                 + "?::vector)>=0.55 ORDER BY e.embedding <=> ?::vector LIMIT 5"),
             args

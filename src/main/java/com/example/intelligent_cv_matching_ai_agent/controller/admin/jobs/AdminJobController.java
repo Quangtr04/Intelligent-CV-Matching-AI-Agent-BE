@@ -41,4 +41,11 @@ public class AdminJobController {
         Map<String, Object> input) {
         return service.status(id, input);
     }
+
+    @GetMapping("/{id}/index")
+    public Map<String, Object> indexStatus(
+        @PathVariable
+        UUID id) {
+        return service.indexStatus(id);
+    }
 }

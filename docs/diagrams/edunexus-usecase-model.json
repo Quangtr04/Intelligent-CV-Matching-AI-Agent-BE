@@ -1,0 +1,2805 @@
+{
+  "version": 1,
+  "system": "EduNexus",
+  "scope": "Backend hiện có, đối chiếu code ngày 13/10/2026",
+  "pages": [
+    {
+      "id": "overview",
+      "fileStem": "edunexus-usecase-overview",
+      "title": "EDUNEXUS · USE CASE TỔNG QUAN",
+      "subtitle": "Phạm vi: backend hiện có · Nhóm chức năng theo mục tiêu người dùng",
+      "width": 2600,
+      "height": 2680,
+      "boundary": {
+        "x": 330,
+        "y": 180,
+        "width": 1940,
+        "height": 2190,
+        "label": "Hệ thống EduNexus"
+      },
+      "groups": [
+        {
+          "id": "g-guest",
+          "label": "Khách · trước khi đăng nhập",
+          "x": 440,
+          "y": 290,
+          "width": 750,
+          "height": 465,
+          "color": "#EFF6FF"
+        },
+        {
+          "id": "g-candidate",
+          "label": "Ứng viên · phát triển nghề nghiệp",
+          "x": 440,
+          "y": 800,
+          "width": 750,
+          "height": 1040,
+          "color": "#F0FDFA"
+        },
+        {
+          "id": "g-consultant",
+          "label": "Consultant · thread được phân công",
+          "x": 1410,
+          "y": 290,
+          "width": 750,
+          "height": 465,
+          "color": "#F5F3FF"
+        },
+        {
+          "id": "g-admin",
+          "label": "Admin · quản trị và vận hành",
+          "x": 1410,
+          "y": 800,
+          "width": 750,
+          "height": 1040,
+          "color": "#FFF7ED"
+        },
+        {
+          "id": "g-shared",
+          "label": "Chức năng chung của người dùng đã đăng nhập",
+          "x": 440,
+          "y": 1910,
+          "width": 1720,
+          "height": 360,
+          "color": "#F8FAFC"
+        }
+      ],
+      "actors": [
+        {
+          "id": "guest",
+          "label": "Khách\n(Guest)",
+          "x": 65,
+          "y": 455,
+          "width": 160,
+          "height": 150,
+          "kind": "actor"
+        },
+        {
+          "id": "candidate",
+          "label": "Ứng viên\n(Candidate)",
+          "x": 65,
+          "y": 1280,
+          "width": 160,
+          "height": 150,
+          "kind": "actor"
+        },
+        {
+          "id": "consultant",
+          "label": "Chuyên viên tư vấn\n(Consultant)",
+          "x": 2375,
+          "y": 455,
+          "width": 180,
+          "height": 150,
+          "kind": "actor"
+        },
+        {
+          "id": "admin",
+          "label": "Quản trị viên\n(Admin)",
+          "x": 2375,
+          "y": 1280,
+          "width": 180,
+          "height": 150,
+          "kind": "actor"
+        },
+        {
+          "id": "member",
+          "label": "Người dùng\nđã đăng nhập",
+          "x": 1210,
+          "y": 2440,
+          "width": 180,
+          "height": 160,
+          "kind": "actor"
+        }
+      ],
+      "useCases": [
+        {
+          "id": "guest-browse",
+          "label": "Tra cứu việc làm,\nkỹ năng, mẫu CV và gói",
+          "x": 540,
+          "y": 365,
+          "width": 550,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "guest-identity",
+          "label": "Đăng ký / xác minh email\nvà đăng nhập",
+          "x": 540,
+          "y": 480,
+          "width": 550,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "guest-trial",
+          "label": "Dùng thử CV, gợi ý việc làm\nvà assistant",
+          "x": 540,
+          "y": 595,
+          "width": 550,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "candidate-profile",
+          "label": "Quản lý hồ sơ nghề nghiệp",
+          "x": 540,
+          "y": 875,
+          "width": 550,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "candidate-cv",
+          "label": "Quản lý và xác nhận CV",
+          "x": 540,
+          "y": 990,
+          "width": 550,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "candidate-analysis",
+          "label": "Phân tích CV / ATS theo job",
+          "x": 540,
+          "y": 1105,
+          "width": 550,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "candidate-matching",
+          "label": "Tìm việc phù hợp\nvà phản hồi kết quả",
+          "x": 540,
+          "y": 1220,
+          "width": 550,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "candidate-draft",
+          "label": "Tạo CV theo job,\nsoạn email / cover letter",
+          "x": 540,
+          "y": 1335,
+          "width": 550,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "candidate-learning",
+          "label": "Đánh giá kỹ năng\nvà theo dõi lộ trình học",
+          "x": 540,
+          "y": 1450,
+          "width": 550,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "candidate-chat",
+          "label": "Chat tư vấn nghề nghiệp\nvà ước lượng lương",
+          "x": 540,
+          "y": 1565,
+          "width": 550,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "candidate-consult",
+          "label": "Yêu cầu và trao đổi\ntư vấn với consultant",
+          "x": 540,
+          "y": 1680,
+          "width": 550,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "consultant-requests",
+          "label": "Xem yêu cầu tư vấn\nđược phân công",
+          "x": 1510,
+          "y": 365,
+          "width": 550,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "consultant-reports",
+          "label": "Xem hồ sơ / báo cáo ứng viên\ntrong thread có quyền",
+          "x": 1510,
+          "y": 480,
+          "width": 550,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "consultant-discussion",
+          "label": "Trao đổi và đóng\nhội thoại tư vấn",
+          "x": 1510,
+          "y": 595,
+          "width": 550,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "admin-users",
+          "label": "Quản lý tài khoản người dùng",
+          "x": 1510,
+          "y": 875,
+          "width": 550,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "admin-tiers",
+          "label": "Quản lý gói và quota",
+          "x": 1510,
+          "y": 990,
+          "width": 550,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "admin-jobs",
+          "label": "Import / crawl / index\nvà quản lý việc làm",
+          "x": 1510,
+          "y": 1105,
+          "width": 550,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "admin-ai",
+          "label": "Cấu hình AI / prompt\nvà tài liệu RAG",
+          "x": 1510,
+          "y": 1220,
+          "width": 550,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "admin-assign",
+          "label": "Phân công tư vấn",
+          "x": 1510,
+          "y": 1335,
+          "width": 550,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "admin-support",
+          "label": "Quản lý thông báo\nvà ticket hỗ trợ",
+          "x": 1510,
+          "y": 1450,
+          "width": 550,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "admin-billing",
+          "label": "Xử lý phản ánh thanh toán",
+          "x": 1510,
+          "y": 1565,
+          "width": 550,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "admin-monitoring",
+          "label": "Xem dashboard, usage\nvà audit / monitoring",
+          "x": 1510,
+          "y": 1680,
+          "width": 550,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "shared-account",
+          "label": "Quản lý tài khoản,\nmật khẩu và phiên",
+          "x": 490,
+          "y": 2040,
+          "width": 370,
+          "height": 96,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "shared-payments",
+          "label": "Xem / quản lý gói,\nđơn và hóa đơn",
+          "x": 905,
+          "y": 2040,
+          "width": 370,
+          "height": 96,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "shared-notifications",
+          "label": "Xem thông báo\nvà đánh dấu đã đọc",
+          "x": 1320,
+          "y": 2040,
+          "width": 370,
+          "height": 96,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "shared-tickets",
+          "label": "Tạo và trao đổi\nticket hỗ trợ",
+          "x": 1735,
+          "y": 2040,
+          "width": 370,
+          "height": 96,
+          "color": "#FFFFFF"
+        }
+      ],
+      "edges": [
+        {
+          "id": "edge-1",
+          "source": "guest",
+          "target": "guest-browse",
+          "type": "association",
+          "points": [
+            {
+              "x": 225,
+              "y": 515
+            },
+            {
+              "x": 540,
+              "y": 410
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-2",
+          "source": "guest",
+          "target": "guest-identity",
+          "type": "association",
+          "points": [
+            {
+              "x": 225,
+              "y": 515
+            },
+            {
+              "x": 540,
+              "y": 525
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-3",
+          "source": "guest",
+          "target": "guest-trial",
+          "type": "association",
+          "points": [
+            {
+              "x": 225,
+              "y": 515
+            },
+            {
+              "x": 540,
+              "y": 640
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-4",
+          "source": "candidate",
+          "target": "candidate-profile",
+          "type": "association",
+          "points": [
+            {
+              "x": 225,
+              "y": 1340
+            },
+            {
+              "x": 540,
+              "y": 920
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-5",
+          "source": "candidate",
+          "target": "candidate-cv",
+          "type": "association",
+          "points": [
+            {
+              "x": 225,
+              "y": 1340
+            },
+            {
+              "x": 540,
+              "y": 1035
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-6",
+          "source": "candidate",
+          "target": "candidate-analysis",
+          "type": "association",
+          "points": [
+            {
+              "x": 225,
+              "y": 1340
+            },
+            {
+              "x": 540,
+              "y": 1150
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-7",
+          "source": "candidate",
+          "target": "candidate-matching",
+          "type": "association",
+          "points": [
+            {
+              "x": 225,
+              "y": 1340
+            },
+            {
+              "x": 540,
+              "y": 1265
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-8",
+          "source": "candidate",
+          "target": "candidate-draft",
+          "type": "association",
+          "points": [
+            {
+              "x": 225,
+              "y": 1340
+            },
+            {
+              "x": 540,
+              "y": 1380
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-9",
+          "source": "candidate",
+          "target": "candidate-learning",
+          "type": "association",
+          "points": [
+            {
+              "x": 225,
+              "y": 1340
+            },
+            {
+              "x": 540,
+              "y": 1495
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-10",
+          "source": "candidate",
+          "target": "candidate-chat",
+          "type": "association",
+          "points": [
+            {
+              "x": 225,
+              "y": 1340
+            },
+            {
+              "x": 540,
+              "y": 1610
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-11",
+          "source": "candidate",
+          "target": "candidate-consult",
+          "type": "association",
+          "points": [
+            {
+              "x": 225,
+              "y": 1340
+            },
+            {
+              "x": 540,
+              "y": 1725
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-12",
+          "source": "consultant",
+          "target": "consultant-requests",
+          "type": "association",
+          "points": [
+            {
+              "x": 2375,
+              "y": 515
+            },
+            {
+              "x": 2060,
+              "y": 410
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-13",
+          "source": "consultant",
+          "target": "consultant-reports",
+          "type": "association",
+          "points": [
+            {
+              "x": 2375,
+              "y": 515
+            },
+            {
+              "x": 2060,
+              "y": 525
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-14",
+          "source": "consultant",
+          "target": "consultant-discussion",
+          "type": "association",
+          "points": [
+            {
+              "x": 2375,
+              "y": 515
+            },
+            {
+              "x": 2060,
+              "y": 640
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-15",
+          "source": "admin",
+          "target": "admin-users",
+          "type": "association",
+          "points": [
+            {
+              "x": 2375,
+              "y": 1340
+            },
+            {
+              "x": 2060,
+              "y": 920
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-16",
+          "source": "admin",
+          "target": "admin-tiers",
+          "type": "association",
+          "points": [
+            {
+              "x": 2375,
+              "y": 1340
+            },
+            {
+              "x": 2060,
+              "y": 1035
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-17",
+          "source": "admin",
+          "target": "admin-jobs",
+          "type": "association",
+          "points": [
+            {
+              "x": 2375,
+              "y": 1340
+            },
+            {
+              "x": 2060,
+              "y": 1150
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-18",
+          "source": "admin",
+          "target": "admin-ai",
+          "type": "association",
+          "points": [
+            {
+              "x": 2375,
+              "y": 1340
+            },
+            {
+              "x": 2060,
+              "y": 1265
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-19",
+          "source": "admin",
+          "target": "admin-assign",
+          "type": "association",
+          "points": [
+            {
+              "x": 2375,
+              "y": 1340
+            },
+            {
+              "x": 2060,
+              "y": 1380
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-20",
+          "source": "admin",
+          "target": "admin-support",
+          "type": "association",
+          "points": [
+            {
+              "x": 2375,
+              "y": 1340
+            },
+            {
+              "x": 2060,
+              "y": 1495
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-21",
+          "source": "admin",
+          "target": "admin-billing",
+          "type": "association",
+          "points": [
+            {
+              "x": 2375,
+              "y": 1340
+            },
+            {
+              "x": 2060,
+              "y": 1610
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-22",
+          "source": "admin",
+          "target": "admin-monitoring",
+          "type": "association",
+          "points": [
+            {
+              "x": 2375,
+              "y": 1340
+            },
+            {
+              "x": 2060,
+              "y": 1725
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-23",
+          "source": "member",
+          "target": "shared-account",
+          "type": "association",
+          "points": [
+            {
+              "x": 1300,
+              "y": 2440
+            },
+            {
+              "x": 675,
+              "y": 2136
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-24",
+          "source": "member",
+          "target": "shared-payments",
+          "type": "association",
+          "points": [
+            {
+              "x": 1300,
+              "y": 2440
+            },
+            {
+              "x": 1090,
+              "y": 2136
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-25",
+          "source": "member",
+          "target": "shared-notifications",
+          "type": "association",
+          "points": [
+            {
+              "x": 1300,
+              "y": 2440
+            },
+            {
+              "x": 1505,
+              "y": 2136
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-26",
+          "source": "member",
+          "target": "shared-tickets",
+          "type": "association",
+          "points": [
+            {
+              "x": 1300,
+              "y": 2440
+            },
+            {
+              "x": 1920,
+              "y": 2136
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-27",
+          "source": "candidate",
+          "target": "member",
+          "type": "generalization",
+          "points": [
+            {
+              "x": 145,
+              "y": 1430
+            },
+            {
+              "x": 145,
+              "y": 2500
+            },
+            {
+              "x": 1210,
+              "y": 2500
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-28",
+          "source": "admin",
+          "target": "member",
+          "type": "generalization",
+          "points": [
+            {
+              "x": 2465,
+              "y": 1430
+            },
+            {
+              "x": 2465,
+              "y": 2500
+            },
+            {
+              "x": 1390,
+              "y": 2500
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-29",
+          "source": "consultant",
+          "target": "member",
+          "type": "generalization",
+          "points": [
+            {
+              "x": 2555,
+              "y": 515
+            },
+            {
+              "x": 2580,
+              "y": 515
+            },
+            {
+              "x": 2580,
+              "y": 2550
+            },
+            {
+              "x": 1450,
+              "y": 2550
+            },
+            {
+              "x": 1450,
+              "y": 2500
+            },
+            {
+              "x": 1390,
+              "y": 2500
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        }
+      ],
+      "notes": [
+        {
+          "x": 350,
+          "y": 2400,
+          "width": 650,
+          "height": 100,
+          "text": "Phân nhóm theo vai trò nghiệp vụ.\nCV, profile và assistant còn kiểm tra ownership;\nkhông phải ma trận quyền API đầy đủ.",
+          "color": "#F8FAFC"
+        },
+        {
+          "x": 1590,
+          "y": 2400,
+          "width": 650,
+          "height": 100,
+          "text": "Email ứng tuyển: bản nháp.\nChuyển sang trang tuyển dụng không đồng nghĩa\nbackend đã nộp hồ sơ.",
+          "color": "#F8FAFC"
+        }
+      ]
+    },
+    {
+      "id": "candidate-detail",
+      "fileStem": "edunexus-usecase-candidate",
+      "title": "EDUNEXUS · USE CASE ỨNG VIÊN",
+      "subtitle": "CV · matching · assessment · roadmap · assistant · tư vấn",
+      "width": 2300,
+      "height": 2310,
+      "boundary": {
+        "x": 310,
+        "y": 180,
+        "width": 1730,
+        "height": 1940,
+        "label": "Hệ thống EduNexus · chức năng ứng viên"
+      },
+      "groups": [
+        {
+          "id": "candidate-main",
+          "label": "Mục tiêu của ứng viên",
+          "x": 425,
+          "y": 250,
+          "width": 840,
+          "height": 1770,
+          "color": "#F0FDFA"
+        }
+      ],
+      "actors": [
+        {
+          "id": "candidate",
+          "label": "Ứng viên",
+          "x": 55,
+          "y": 1050,
+          "width": 160,
+          "height": 150,
+          "kind": "actor"
+        }
+      ],
+      "useCases": [
+        {
+          "id": "profile",
+          "label": "Quản lý hồ sơ nghề nghiệp",
+          "x": 500,
+          "y": 300,
+          "width": 690,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "cv",
+          "label": "Tạo / upload / chỉnh sửa CV",
+          "x": 500,
+          "y": 415,
+          "width": 690,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "confirm",
+          "label": "Xác nhận CV và chọn CV chính",
+          "x": 500,
+          "y": 530,
+          "width": 690,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "analysis",
+          "label": "Phân tích độ đầy đủ / chất lượng CV",
+          "x": 500,
+          "y": 645,
+          "width": 690,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "matching",
+          "label": "Tìm việc phù hợp và phản hồi",
+          "x": 500,
+          "y": 760,
+          "width": 690,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "ats",
+          "label": "Phân tích ATS theo việc làm",
+          "x": 500,
+          "y": 875,
+          "width": 690,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "job-cv",
+          "label": "Tạo CV hướng tới việc làm",
+          "x": 500,
+          "y": 990,
+          "width": 690,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "draft",
+          "label": "Soạn / sửa email và cover letter",
+          "x": 500,
+          "y": 1105,
+          "width": 690,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "salary",
+          "label": "Ước lượng lương",
+          "x": 500,
+          "y": 1220,
+          "width": 690,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "assessment",
+          "label": "Tạo và trả lời bài đánh giá kỹ năng",
+          "x": 500,
+          "y": 1335,
+          "width": 690,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "submit",
+          "label": "Nộp bài đánh giá kỹ năng",
+          "x": 500,
+          "y": 1450,
+          "width": 690,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "roadmap",
+          "label": "Tạo lộ trình học và cập nhật tiến độ",
+          "x": 500,
+          "y": 1565,
+          "width": 690,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "assistant",
+          "label": "Trao đổi với trợ lý AI",
+          "x": 500,
+          "y": 1680,
+          "width": 690,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "consultation",
+          "label": "Yêu cầu / trao đổi tư vấn với consultant",
+          "x": 500,
+          "y": 1795,
+          "width": 690,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "apply",
+          "label": "Mở trang ứng tuyển gốc",
+          "x": 500,
+          "y": 1910,
+          "width": 690,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "grade",
+          "label": "Chấm điểm và tổng hợp\nkết quả kỹ năng",
+          "x": 1430,
+          "y": 1450,
+          "width": 520,
+          "height": 90,
+          "color": "#F5F3FF"
+        },
+        {
+          "id": "rag",
+          "label": "Truy xuất tài liệu RAG",
+          "x": 1430,
+          "y": 1680,
+          "width": 520,
+          "height": 90,
+          "color": "#EFF6FF"
+        }
+      ],
+      "edges": [
+        {
+          "id": "edge-1",
+          "source": "candidate",
+          "target": "profile",
+          "type": "association",
+          "points": [
+            {
+              "x": 215,
+              "y": 1110
+            },
+            {
+              "x": 500,
+              "y": 345
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-2",
+          "source": "candidate",
+          "target": "cv",
+          "type": "association",
+          "points": [
+            {
+              "x": 215,
+              "y": 1110
+            },
+            {
+              "x": 500,
+              "y": 460
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-3",
+          "source": "candidate",
+          "target": "confirm",
+          "type": "association",
+          "points": [
+            {
+              "x": 215,
+              "y": 1110
+            },
+            {
+              "x": 500,
+              "y": 575
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-4",
+          "source": "candidate",
+          "target": "analysis",
+          "type": "association",
+          "points": [
+            {
+              "x": 215,
+              "y": 1110
+            },
+            {
+              "x": 500,
+              "y": 690
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-5",
+          "source": "candidate",
+          "target": "matching",
+          "type": "association",
+          "points": [
+            {
+              "x": 215,
+              "y": 1110
+            },
+            {
+              "x": 500,
+              "y": 805
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-6",
+          "source": "candidate",
+          "target": "ats",
+          "type": "association",
+          "points": [
+            {
+              "x": 215,
+              "y": 1110
+            },
+            {
+              "x": 500,
+              "y": 920
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-7",
+          "source": "candidate",
+          "target": "job-cv",
+          "type": "association",
+          "points": [
+            {
+              "x": 215,
+              "y": 1110
+            },
+            {
+              "x": 500,
+              "y": 1035
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-8",
+          "source": "candidate",
+          "target": "draft",
+          "type": "association",
+          "points": [
+            {
+              "x": 215,
+              "y": 1110
+            },
+            {
+              "x": 500,
+              "y": 1150
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-9",
+          "source": "candidate",
+          "target": "salary",
+          "type": "association",
+          "points": [
+            {
+              "x": 215,
+              "y": 1110
+            },
+            {
+              "x": 500,
+              "y": 1265
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-10",
+          "source": "candidate",
+          "target": "assessment",
+          "type": "association",
+          "points": [
+            {
+              "x": 215,
+              "y": 1110
+            },
+            {
+              "x": 500,
+              "y": 1380
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-11",
+          "source": "candidate",
+          "target": "submit",
+          "type": "association",
+          "points": [
+            {
+              "x": 215,
+              "y": 1110
+            },
+            {
+              "x": 500,
+              "y": 1495
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-12",
+          "source": "candidate",
+          "target": "roadmap",
+          "type": "association",
+          "points": [
+            {
+              "x": 215,
+              "y": 1110
+            },
+            {
+              "x": 500,
+              "y": 1610
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-13",
+          "source": "candidate",
+          "target": "assistant",
+          "type": "association",
+          "points": [
+            {
+              "x": 215,
+              "y": 1110
+            },
+            {
+              "x": 500,
+              "y": 1725
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-14",
+          "source": "candidate",
+          "target": "consultation",
+          "type": "association",
+          "points": [
+            {
+              "x": 215,
+              "y": 1110
+            },
+            {
+              "x": 500,
+              "y": 1840
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-15",
+          "source": "candidate",
+          "target": "apply",
+          "type": "association",
+          "points": [
+            {
+              "x": 215,
+              "y": 1110
+            },
+            {
+              "x": 500,
+              "y": 1955
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-16",
+          "source": "submit",
+          "target": "grade",
+          "type": "include",
+          "points": [
+            {
+              "x": 1190,
+              "y": 1495
+            },
+            {
+              "x": 1430,
+              "y": 1495
+            }
+          ],
+          "label": "<<include>>",
+          "labelX": 1310,
+          "labelY": 1465
+        },
+        {
+          "id": "edge-17",
+          "source": "rag",
+          "target": "assistant",
+          "type": "extend",
+          "points": [
+            {
+              "x": 1430,
+              "y": 1725
+            },
+            {
+              "x": 1190,
+              "y": 1725
+            }
+          ],
+          "label": "<<extend>>",
+          "labelX": 1310,
+          "labelY": 1695
+        }
+      ],
+      "notes": [
+        {
+          "x": 1390,
+          "y": 310,
+          "width": 600,
+          "height": 300,
+          "text": "Điều kiện sử dụng:\n• Phân tích CV / ATS: CV của người dùng, READY.\n• Matching: career profile hoặc CV READY.\n• ATS / draft theo job: việc làm ACTIVE.\n• Assessment chọn cho roadmap: đã completed.\n• Tài nguyên học lấy từ catalog.\nCác điều kiện này không phải «include».",
+          "color": "#F8FAFC"
+        },
+        {
+          "x": 1390,
+          "y": 800,
+          "width": 600,
+          "height": 240,
+          "text": "Tạo bài, nộp bài và sinh roadmap\nlà các thao tác API độc lập.\nNộp lần đầu chấm điểm; nộp lại trả kết quả đã lưu.\n\nEmail / cover letter chỉ là draft.\nỨng tuyển trả URL, không tự gửi đơn.",
+          "color": "#F8FAFC"
+        },
+        {
+          "x": 1390,
+          "y": 1800,
+          "width": 600,
+          "height": 175,
+          "text": "RAG mở rộng chat khi retrieve=true\nvà người dùng đã đăng nhập.\nGuest không truy xuất tài liệu RAG.\nCần chat + embedding được cấu hình.",
+          "color": "#F8FAFC"
+        },
+        {
+          "x": 340,
+          "y": 2160,
+          "width": 1670,
+          "height": 90,
+          "text": "Use case theo mục tiêu nghiệp vụ; API CV/profile/assistant còn dựa vào đăng nhập và ownership.\n«include»: hành vi bắt buộc của use case. «extend»: nhánh mở rộng có điều kiện.",
+          "color": "#F8FAFC"
+        }
+      ]
+    },
+    {
+      "id": "admin-detail",
+      "fileStem": "edunexus-usecase-admin",
+      "title": "EDUNEXUS · USE CASE QUẢN TRỊ",
+      "subtitle": "Tài khoản · việc làm · AI / RAG · tư vấn · hỗ trợ · giám sát",
+      "width": 2300,
+      "height": 2150,
+      "boundary": {
+        "x": 310,
+        "y": 180,
+        "width": 1730,
+        "height": 1780,
+        "label": "Hệ thống EduNexus · chức năng quản trị"
+      },
+      "groups": [
+        {
+          "id": "admin-main",
+          "label": "Quản trị và vận hành",
+          "x": 425,
+          "y": 250,
+          "width": 840,
+          "height": 1670,
+          "color": "#FFF7ED"
+        }
+      ],
+      "actors": [
+        {
+          "id": "admin",
+          "label": "Quản trị viên",
+          "x": 55,
+          "y": 990,
+          "width": 160,
+          "height": 150,
+          "kind": "actor"
+        },
+        {
+          "id": "job-source",
+          "label": "ITviec / TopCV\n«hệ thống ngoài»",
+          "x": 2100,
+          "y": 620,
+          "width": 165,
+          "height": 155,
+          "kind": "external"
+        },
+        {
+          "id": "ai",
+          "label": "AI provider\n«hệ thống ngoài»",
+          "x": 2100,
+          "y": 830,
+          "width": 165,
+          "height": 155,
+          "kind": "external"
+        }
+      ],
+      "useCases": [
+        {
+          "id": "users",
+          "label": "Quản lý người dùng và trạng thái tài khoản",
+          "x": 500,
+          "y": 300,
+          "width": 690,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "tiers",
+          "label": "Quản lý gói dịch vụ và quota",
+          "x": 500,
+          "y": 415,
+          "width": 690,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "import",
+          "label": "Import việc làm thủ công",
+          "x": 500,
+          "y": 530,
+          "width": 690,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "crawl",
+          "label": "Crawl URL việc làm được cung cấp",
+          "x": 500,
+          "y": 645,
+          "width": 690,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "index",
+          "label": "Index embedding cho việc làm",
+          "x": 500,
+          "y": 760,
+          "width": 690,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "config",
+          "label": "Lưu cấu hình AI và prompt",
+          "x": 500,
+          "y": 875,
+          "width": 690,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "restore",
+          "label": "Khôi phục cấu hình / prompt cũ",
+          "x": 500,
+          "y": 990,
+          "width": 690,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "rag-manage",
+          "label": "Tạo / xem / vô hiệu hóa tài liệu RAG",
+          "x": 500,
+          "y": 1105,
+          "width": 690,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "rag-index",
+          "label": "Index tài liệu RAG",
+          "x": 500,
+          "y": 1220,
+          "width": 690,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "assign",
+          "label": "Phân công consultant",
+          "x": 500,
+          "y": 1335,
+          "width": 690,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "announcements",
+          "label": "Tạo / xuất bản / lưu trữ thông báo",
+          "x": 500,
+          "y": 1450,
+          "width": 690,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "tickets",
+          "label": "Xử lý và phản hồi ticket hỗ trợ",
+          "x": 500,
+          "y": 1565,
+          "width": 690,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "payment-reports",
+          "label": "Xử lý phản ánh thanh toán",
+          "x": 500,
+          "y": 1680,
+          "width": 690,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "monitoring",
+          "label": "Xem dashboard, usage và audit",
+          "x": 500,
+          "y": 1795,
+          "width": 690,
+          "height": 90,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "fetch",
+          "label": "Thu thập và đọc\ntrang chi tiết JobPosting",
+          "x": 1430,
+          "y": 645,
+          "width": 520,
+          "height": 90,
+          "color": "#EFF6FF"
+        },
+        {
+          "id": "embed",
+          "label": "Sinh embedding cho việc làm",
+          "x": 1430,
+          "y": 760,
+          "width": 520,
+          "height": 90,
+          "color": "#F5F3FF"
+        },
+        {
+          "id": "version",
+          "label": "Tạo phiên bản mới\nvà kích hoạt nội dung đã chọn",
+          "x": 1430,
+          "y": 990,
+          "width": 520,
+          "height": 90,
+          "color": "#FFF7ED"
+        }
+      ],
+      "edges": [
+        {
+          "id": "edge-1",
+          "source": "admin",
+          "target": "users",
+          "type": "association",
+          "points": [
+            {
+              "x": 215,
+              "y": 1050
+            },
+            {
+              "x": 500,
+              "y": 345
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-2",
+          "source": "admin",
+          "target": "tiers",
+          "type": "association",
+          "points": [
+            {
+              "x": 215,
+              "y": 1050
+            },
+            {
+              "x": 500,
+              "y": 460
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-3",
+          "source": "admin",
+          "target": "import",
+          "type": "association",
+          "points": [
+            {
+              "x": 215,
+              "y": 1050
+            },
+            {
+              "x": 500,
+              "y": 575
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-4",
+          "source": "admin",
+          "target": "crawl",
+          "type": "association",
+          "points": [
+            {
+              "x": 215,
+              "y": 1050
+            },
+            {
+              "x": 500,
+              "y": 690
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-5",
+          "source": "admin",
+          "target": "index",
+          "type": "association",
+          "points": [
+            {
+              "x": 215,
+              "y": 1050
+            },
+            {
+              "x": 500,
+              "y": 805
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-6",
+          "source": "admin",
+          "target": "config",
+          "type": "association",
+          "points": [
+            {
+              "x": 215,
+              "y": 1050
+            },
+            {
+              "x": 500,
+              "y": 920
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-7",
+          "source": "admin",
+          "target": "restore",
+          "type": "association",
+          "points": [
+            {
+              "x": 215,
+              "y": 1050
+            },
+            {
+              "x": 500,
+              "y": 1035
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-8",
+          "source": "admin",
+          "target": "rag-manage",
+          "type": "association",
+          "points": [
+            {
+              "x": 215,
+              "y": 1050
+            },
+            {
+              "x": 500,
+              "y": 1150
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-9",
+          "source": "admin",
+          "target": "rag-index",
+          "type": "association",
+          "points": [
+            {
+              "x": 215,
+              "y": 1050
+            },
+            {
+              "x": 500,
+              "y": 1265
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-10",
+          "source": "admin",
+          "target": "assign",
+          "type": "association",
+          "points": [
+            {
+              "x": 215,
+              "y": 1050
+            },
+            {
+              "x": 500,
+              "y": 1380
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-11",
+          "source": "admin",
+          "target": "announcements",
+          "type": "association",
+          "points": [
+            {
+              "x": 215,
+              "y": 1050
+            },
+            {
+              "x": 500,
+              "y": 1495
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-12",
+          "source": "admin",
+          "target": "tickets",
+          "type": "association",
+          "points": [
+            {
+              "x": 215,
+              "y": 1050
+            },
+            {
+              "x": 500,
+              "y": 1610
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-13",
+          "source": "admin",
+          "target": "payment-reports",
+          "type": "association",
+          "points": [
+            {
+              "x": 215,
+              "y": 1050
+            },
+            {
+              "x": 500,
+              "y": 1725
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-14",
+          "source": "admin",
+          "target": "monitoring",
+          "type": "association",
+          "points": [
+            {
+              "x": 215,
+              "y": 1050
+            },
+            {
+              "x": 500,
+              "y": 1840
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-15",
+          "source": "crawl",
+          "target": "fetch",
+          "type": "include",
+          "points": [
+            {
+              "x": 1190,
+              "y": 690
+            },
+            {
+              "x": 1430,
+              "y": 690
+            }
+          ],
+          "label": "<<include>>",
+          "labelX": 1310,
+          "labelY": 660
+        },
+        {
+          "id": "edge-16",
+          "source": "index",
+          "target": "embed",
+          "type": "include",
+          "points": [
+            {
+              "x": 1190,
+              "y": 805
+            },
+            {
+              "x": 1430,
+              "y": 805
+            }
+          ],
+          "label": "<<include>>",
+          "labelX": 1310,
+          "labelY": 775
+        },
+        {
+          "id": "edge-17",
+          "source": "restore",
+          "target": "version",
+          "type": "include",
+          "points": [
+            {
+              "x": 1190,
+              "y": 1035
+            },
+            {
+              "x": 1430,
+              "y": 1035
+            }
+          ],
+          "label": "<<include>>",
+          "labelX": 1310,
+          "labelY": 1005
+        },
+        {
+          "id": "edge-18",
+          "source": "job-source",
+          "target": "fetch",
+          "type": "association",
+          "points": [
+            {
+              "x": 2100,
+              "y": 680
+            },
+            {
+              "x": 1950,
+              "y": 690
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-19",
+          "source": "ai",
+          "target": "embed",
+          "type": "association",
+          "points": [
+            {
+              "x": 2100,
+              "y": 890
+            },
+            {
+              "x": 1950,
+              "y": 805
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        }
+      ],
+      "notes": [
+        {
+          "x": 1390,
+          "y": 300,
+          "width": 600,
+          "height": 230,
+          "text": "Crawl chỉ đọc URL chi tiết do admin đưa vào;\nkeyword là nhãn, không tự tìm kiếm URL.\nImport / crawl không tự index.\n\nIndex job / RAG cần provider embedding.\nRAG index có thể tái dùng chunk đã indexed.",
+          "color": "#F8FAFC"
+        },
+        {
+          "x": 1390,
+          "y": 1220,
+          "width": 600,
+          "height": 330,
+          "text": "Khôi phục v1 khi đã có v2 sẽ tạo v3\nchứa nội dung v1; giữ nguyên lịch sử.\n\nThông báo nằm trong ứng dụng.\nGiải quyết payment report chưa tự refund.\nĐổi role / đình chỉ / xóa user thu hồi token.\nPhân công thread quyết định quyền consultant.",
+          "color": "#F8FAFC"
+        },
+        {
+          "x": 340,
+          "y": 2000,
+          "width": 1670,
+          "height": 90,
+          "text": "Sơ đồ mô tả chức năng đã có trong backend; chưa thêm chức năng checkout, tự thu tiền hay refund.\nNguồn tuyển dụng và AI provider là actor hỗ trợ, nằm ngoài biên hệ thống.",
+          "color": "#F8FAFC"
+        }
+      ]
+    },
+    {
+      "id": "shared-integrations",
+      "fileStem": "edunexus-usecase-shared",
+      "title": "EDUNEXUS · USE CASE CHUNG VÀ TÍCH HỢP",
+      "subtitle": "Xác thực · dùng thử · tài khoản · hỗ trợ · webhook thanh toán",
+      "width": 2600,
+      "height": 2170,
+      "boundary": {
+        "x": 330,
+        "y": 180,
+        "width": 1940,
+        "height": 1830,
+        "label": "Hệ thống EduNexus"
+      },
+      "groups": [
+        {
+          "id": "shared-main",
+          "label": "Xác thực, dùng thử và chức năng chung",
+          "x": 445,
+          "y": 250,
+          "width": 860,
+          "height": 1670,
+          "color": "#EFF6FF"
+        }
+      ],
+      "actors": [
+        {
+          "id": "guest",
+          "label": "Khách",
+          "x": 55,
+          "y": 625,
+          "width": 160,
+          "height": 150,
+          "kind": "actor"
+        },
+        {
+          "id": "member",
+          "label": "Người dùng\nđã đăng nhập",
+          "x": 45,
+          "y": 1390,
+          "width": 180,
+          "height": 160,
+          "kind": "actor"
+        },
+        {
+          "id": "smtp",
+          "label": "SMTP / Mailtrap\n«hệ thống ngoài»",
+          "x": 2375,
+          "y": 450,
+          "width": 180,
+          "height": 155,
+          "kind": "external"
+        },
+        {
+          "id": "google",
+          "label": "Google Identity\n«hệ thống ngoài»",
+          "x": 2375,
+          "y": 790,
+          "width": 180,
+          "height": 155,
+          "kind": "external"
+        },
+        {
+          "id": "ai",
+          "label": "AI provider\n«hệ thống ngoài»",
+          "x": 2375,
+          "y": 1050,
+          "width": 180,
+          "height": 155,
+          "kind": "external"
+        },
+        {
+          "id": "payment",
+          "label": "Nguồn webhook\nthanh toán",
+          "x": 2375,
+          "y": 1440,
+          "width": 180,
+          "height": 155,
+          "kind": "external"
+        }
+      ],
+      "useCases": [
+        {
+          "id": "register",
+          "label": "Đăng ký tài khoản",
+          "x": 530,
+          "y": 290,
+          "width": 690,
+          "height": 92,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "verify",
+          "label": "Xác minh email bằng OTP",
+          "x": 530,
+          "y": 420,
+          "width": 690,
+          "height": 92,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "resend",
+          "label": "Gửi lại mã xác minh",
+          "x": 530,
+          "y": 550,
+          "width": 690,
+          "height": 92,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "email-login",
+          "label": "Đăng nhập bằng email",
+          "x": 530,
+          "y": 680,
+          "width": 690,
+          "height": 92,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "google-login",
+          "label": "Đăng nhập bằng Google",
+          "x": 530,
+          "y": 810,
+          "width": 690,
+          "height": 92,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "trial",
+          "label": "Dùng thử CV và gợi ý việc làm",
+          "x": 530,
+          "y": 940,
+          "width": 690,
+          "height": 92,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "trial-chat",
+          "label": "Chat nghề nghiệp dùng thử",
+          "x": 530,
+          "y": 1070,
+          "width": 690,
+          "height": 92,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "account",
+          "label": "Quản lý tài khoản / mật khẩu / phiên",
+          "x": 530,
+          "y": 1200,
+          "width": 690,
+          "height": 92,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "billing",
+          "label": "Xem gói, tạo đơn, xem hóa đơn",
+          "x": 530,
+          "y": 1330,
+          "width": 690,
+          "height": 92,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "notifications",
+          "label": "Xem / đánh dấu thông báo",
+          "x": 530,
+          "y": 1460,
+          "width": 690,
+          "height": 92,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "support",
+          "label": "Tạo ticket và trao đổi hỗ trợ",
+          "x": 530,
+          "y": 1590,
+          "width": 690,
+          "height": 92,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "issue-code",
+          "label": "Phát hành mã xác minh",
+          "x": 1470,
+          "y": 290,
+          "width": 550,
+          "height": 92,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "send-mail",
+          "label": "Gửi mã qua SMTP",
+          "x": 1470,
+          "y": 470,
+          "width": 550,
+          "height": 92,
+          "color": "#FFF7ED"
+        },
+        {
+          "id": "google-check",
+          "label": "Xác minh Google ID token",
+          "x": 1470,
+          "y": 810,
+          "width": 550,
+          "height": 92,
+          "color": "#FFFFFF"
+        },
+        {
+          "id": "trial-ai",
+          "label": "Sinh câu trả lời AI\ncho hội thoại dùng thử",
+          "x": 1470,
+          "y": 1070,
+          "width": 550,
+          "height": 92,
+          "color": "#F5F3FF"
+        },
+        {
+          "id": "webhook",
+          "label": "Tiếp nhận webhook thanh toán",
+          "x": 1470,
+          "y": 1460,
+          "width": 550,
+          "height": 92,
+          "color": "#F0FDFA"
+        },
+        {
+          "id": "signature",
+          "label": "Kiểm tra chữ ký / timestamp\nvà đối chiếu đơn",
+          "x": 1470,
+          "y": 1610,
+          "width": 550,
+          "height": 92,
+          "color": "#F0FDFA"
+        },
+        {
+          "id": "activate",
+          "label": "Kích hoạt gói, tạo hóa đơn\nvà thông báo thanh toán",
+          "x": 1470,
+          "y": 1800,
+          "width": 550,
+          "height": 92,
+          "color": "#F0FDFA"
+        }
+      ],
+      "edges": [
+        {
+          "id": "edge-1",
+          "source": "guest",
+          "target": "register",
+          "type": "association",
+          "points": [
+            {
+              "x": 215,
+              "y": 685
+            },
+            {
+              "x": 530,
+              "y": 336
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-2",
+          "source": "guest",
+          "target": "verify",
+          "type": "association",
+          "points": [
+            {
+              "x": 215,
+              "y": 685
+            },
+            {
+              "x": 530,
+              "y": 466
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-3",
+          "source": "guest",
+          "target": "resend",
+          "type": "association",
+          "points": [
+            {
+              "x": 215,
+              "y": 685
+            },
+            {
+              "x": 530,
+              "y": 596
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-4",
+          "source": "guest",
+          "target": "email-login",
+          "type": "association",
+          "points": [
+            {
+              "x": 215,
+              "y": 685
+            },
+            {
+              "x": 530,
+              "y": 726
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-5",
+          "source": "guest",
+          "target": "google-login",
+          "type": "association",
+          "points": [
+            {
+              "x": 215,
+              "y": 685
+            },
+            {
+              "x": 530,
+              "y": 856
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-6",
+          "source": "guest",
+          "target": "trial",
+          "type": "association",
+          "points": [
+            {
+              "x": 215,
+              "y": 685
+            },
+            {
+              "x": 530,
+              "y": 986
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-7",
+          "source": "guest",
+          "target": "trial-chat",
+          "type": "association",
+          "points": [
+            {
+              "x": 215,
+              "y": 685
+            },
+            {
+              "x": 530,
+              "y": 1116
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-8",
+          "source": "member",
+          "target": "account",
+          "type": "association",
+          "points": [
+            {
+              "x": 225,
+              "y": 1450
+            },
+            {
+              "x": 530,
+              "y": 1246
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-9",
+          "source": "member",
+          "target": "billing",
+          "type": "association",
+          "points": [
+            {
+              "x": 225,
+              "y": 1450
+            },
+            {
+              "x": 530,
+              "y": 1376
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-10",
+          "source": "member",
+          "target": "notifications",
+          "type": "association",
+          "points": [
+            {
+              "x": 225,
+              "y": 1450
+            },
+            {
+              "x": 530,
+              "y": 1506
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-11",
+          "source": "member",
+          "target": "support",
+          "type": "association",
+          "points": [
+            {
+              "x": 225,
+              "y": 1450
+            },
+            {
+              "x": 530,
+              "y": 1636
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-12",
+          "source": "register",
+          "target": "issue-code",
+          "type": "include",
+          "points": [
+            {
+              "x": 1220,
+              "y": 336
+            },
+            {
+              "x": 1470,
+              "y": 336
+            }
+          ],
+          "label": "<<include>>",
+          "labelX": 1345,
+          "labelY": 306
+        },
+        {
+          "id": "edge-13",
+          "source": "resend",
+          "target": "issue-code",
+          "type": "include",
+          "points": [
+            {
+              "x": 1220,
+              "y": 596
+            },
+            {
+              "x": 1360,
+              "y": 596
+            },
+            {
+              "x": 1360,
+              "y": 336
+            },
+            {
+              "x": 1470,
+              "y": 336
+            }
+          ],
+          "label": "<<include>>",
+          "labelX": 1350,
+          "labelY": 535
+        },
+        {
+          "id": "edge-14",
+          "source": "send-mail",
+          "target": "issue-code",
+          "type": "extend",
+          "points": [
+            {
+              "x": 1745,
+              "y": 470
+            },
+            {
+              "x": 1745,
+              "y": 382
+            }
+          ],
+          "label": "<<extend>>",
+          "labelX": 1935,
+          "labelY": 425
+        },
+        {
+          "id": "edge-15",
+          "source": "smtp",
+          "target": "send-mail",
+          "type": "association",
+          "points": [
+            {
+              "x": 2375,
+              "y": 510
+            },
+            {
+              "x": 2020,
+              "y": 516
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-16",
+          "source": "google-login",
+          "target": "google-check",
+          "type": "include",
+          "points": [
+            {
+              "x": 1220,
+              "y": 856
+            },
+            {
+              "x": 1470,
+              "y": 856
+            }
+          ],
+          "label": "<<include>>",
+          "labelX": 1345,
+          "labelY": 826
+        },
+        {
+          "id": "edge-17",
+          "source": "google",
+          "target": "google-check",
+          "type": "association",
+          "points": [
+            {
+              "x": 2375,
+              "y": 850
+            },
+            {
+              "x": 2020,
+              "y": 856
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-18",
+          "source": "trial-chat",
+          "target": "trial-ai",
+          "type": "include",
+          "points": [
+            {
+              "x": 1220,
+              "y": 1116
+            },
+            {
+              "x": 1470,
+              "y": 1116
+            }
+          ],
+          "label": "<<include>>",
+          "labelX": 1345,
+          "labelY": 1086
+        },
+        {
+          "id": "edge-19",
+          "source": "ai",
+          "target": "trial-ai",
+          "type": "association",
+          "points": [
+            {
+              "x": 2375,
+              "y": 1110
+            },
+            {
+              "x": 2020,
+              "y": 1116
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-20",
+          "source": "payment",
+          "target": "webhook",
+          "type": "association",
+          "points": [
+            {
+              "x": 2375,
+              "y": 1500
+            },
+            {
+              "x": 2020,
+              "y": 1506
+            }
+          ],
+          "label": "",
+          "labelX": 0,
+          "labelY": 0
+        },
+        {
+          "id": "edge-21",
+          "source": "webhook",
+          "target": "signature",
+          "type": "include",
+          "points": [
+            {
+              "x": 1745,
+              "y": 1552
+            },
+            {
+              "x": 1745,
+              "y": 1610
+            }
+          ],
+          "label": "<<include>>",
+          "labelX": 1945,
+          "labelY": 1580
+        },
+        {
+          "id": "edge-22",
+          "source": "activate",
+          "target": "webhook",
+          "type": "extend",
+          "points": [
+            {
+              "x": 2020,
+              "y": 1846
+            },
+            {
+              "x": 2180,
+              "y": 1846
+            },
+            {
+              "x": 2180,
+              "y": 1506
+            },
+            {
+              "x": 2020,
+              "y": 1506
+            }
+          ],
+          "label": "<<extend>>\n[COMPLETED mới, đơn PENDING]",
+          "labelX": 2150,
+          "labelY": 1725
+        }
+      ],
+      "notes": [
+        {
+          "x": 1450,
+          "y": 605,
+          "width": 620,
+          "height": 115,
+          "text": "SMTP khi dev OTP=false và mail enabled=true.\nDev OTP=true trả code, bỏ qua gửi thư.\nResend: tài khoản tồn tại và còn PENDING.",
+          "color": "#F8FAFC"
+        },
+        {
+          "x": 1450,
+          "y": 1230,
+          "width": 620,
+          "height": 140,
+          "text": "Trial builder cần AI; recommendations dùng rule.\nTạo đơn chỉ tạo PENDING, chưa checkout.\nWebhook là hợp đồng adapter generic.",
+          "color": "#F8FAFC"
+        },
+        {
+          "x": 350,
+          "y": 2050,
+          "width": 1900,
+          "height": 80,
+          "text": "Google dùng email bên thứ ba có thể cần OTP hệ thống. Webhook FAILED/CANCELLED không kích hoạt gói.\nĐường liên kết actor không có mũi tên; «include» trỏ tới hành vi bắt buộc, «extend» trỏ tới use case được mở rộng.\nWebhook lặp không tạo lại gói / hóa đơn.",
+          "color": "#F8FAFC"
+        }
+      ]
+    }
+  ]
+}

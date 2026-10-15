@@ -99,6 +99,10 @@ Các phản hồi trial gợi ý đăng ký để dùng thông tin cá nhân và
 
 ## Import và index RAG
 
+Khóa học YouTube/Coursera có luồng riêng tại `/api/v1/admin/rag/courses`: nhập link, mô tả và kỹ năng,
+Admin duyệt rồi mới đưa vào gợi ý. Sau khi index, AI chat nhận được URL/provider của khóa được truy xuất;
+roadmap giữ bản chụp link đã đề xuất. Xem [quy trình và API khóa học đã duyệt](curated-course-links.md).
+
 Các route dưới `/admin/rag/documents` yêu cầu role `ADMIN`:
 
 | Method và path | Chức năng |

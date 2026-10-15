@@ -1,21 +1,54 @@
 # Intelligent-CV-Matching-AI-Agent-BE
 
-Backend EduNexus triển khai bằng Java 25, Spring Boot 4.1.1, JPA/JDBC, PostgreSQL/pgvector và Flyway, dựa trên DBML và các core-flow được cung cấp. API dùng tiền tố `/api/v1`; tài liệu tương tác ở `http://localhost:8080/swagger-ui/index.html`.
+Backend EduNexus triển khai bằng Java 25, Spring Boot 4.1.1, JPA/JDBC, PostgreSQL/pgvector và Flyway, dựa trên DBML và các core-flow được cung cấp. API dùng tiền tố chính `/api/v1`; tài liệu tương tác ở `http://localhost:8080/swagger-ui/index.html`.
 
-Mã nguồn chia thành `controller`, `dto`, `entity`, `repository`, `service` và `util`. Trong mỗi lớp, mã được nhóm theo `guest`, `candidate`, `consultant`, `admin` và `shared`, rồi theo chức năng. DTO tách rõ `dto/request/<role>/<chức năng>` và `dto/response/<role>/<chức năng>`; tên lớp có hậu tố `Request` hoặc `Response`. Controller nhận HTTP và gọi service; SQL nằm trong repository. Có 76 entity và 76 JPA repository tương ứng toàn bộ bảng. Xem [cấu trúc thư mục và ví dụ luồng xử lý](docs/architecture.md).
+Mã nguồn chia thành `controller`, `dto`, `entity`, `repository`, `service` và `util`. Trong mỗi lớp, mã được nhóm theo `guest`, `candidate`, `consultant`, `admin` và `shared`, rồi theo chức năng. DTO tách rõ `dto/request/<role>/<chức năng>` và `dto/response/<role>/<chức năng>`; tên lớp có hậu tố `Request` hoặc `Response`. Controller nhận HTTP và gọi service; SQL nằm trong repository. Bộ entity/JPA repository sinh tự động bao phủ 76 bảng từ V1/V3; các bảng vận hành bổ sung ở V5/V7 dùng workflow repository SQL. Xem [cấu trúc thư mục và ví dụ luồng xử lý](docs/architecture.md).
 
 ## Chạy trên Windows
 
 Yêu cầu Java 25, Maven và PostgreSQL có extension pgvector. Compose cung cấp PostgreSQL đã có pgvector khi Docker Desktop đang chạy.
 
 ```powershell
-Copy-Item .env.example .env
-# Sửa POSTGRES_PASSWORD trong .env.
+if (!(Test-Path -LiteralPath '.env')) {
+    Copy-Item -LiteralPath '.env.example' -Destination '.env'
+}
+# Sửa POSTGRES_PASSWORD và đặt APP_JWT_SECRET trong .env trước khi chạy.
 # Để đăng ký thử khi chưa có SMTP, đặt AUTH_EXPOSE_DEV_OTP=true.
+```
+
+`APP_JWT_SECRET` bắt buộc, không có giá trị mặc định. Tạo secret một lần bằng bộ sinh số ngẫu nhiên
+mật mã, rồi lưu kết quả vào `APP_JWT_SECRET` trong `.env`:
+
+```powershell
+$jwtBytes = New-Object byte[] 32
+$jwtRng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+try { $jwtRng.GetBytes($jwtBytes) } finally { $jwtRng.Dispose() }
+[Convert]::ToBase64String($jwtBytes)
+```
+
+Ứng dụng dùng nguyên chuỗi secret dưới dạng UTF-8 để ký HS256, không giải mã Base64. Khi thiếu biến,
+secret trống, dưới 32 byte UTF-8 hoặc là placeholder đã biết, ứng dụng từ chối khởi động. Kiểm tra này
+không chứng minh độ ngẫu nhiên; hãy dùng giá trị được sinh như trên, giữ bí mật và dùng cùng secret
+giữa các instance. Chạy backend sau khi đã lưu cấu hình:
+
+```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-local.ps1 -WithInfrastructure
 ```
 
 Script đọc `.env` vào môi trường của tiến trình, khởi động PostgreSQL rồi chạy ứng dụng. Flyway tự tạo schema và danh mục ban đầu. `.env` và file upload được loại khỏi Git. Với PostgreSQL riêng, đặt `DATABASE_URL`, `POSTGRES_USER`, `POSTGRES_PASSWORD` và chạy script không có `-WithInfrastructure`.
+
+Ứng dụng cũng tự nạp `.env` bằng `spring.config.import` của Spring Boot khi chạy từ IDE,
+`mvn spring-boot:run` hoặc `java -jar`. Đặt working directory là thư mục chứa `pom.xml` và `.env`.
+Muốn dùng file khác, đặt biến môi trường `APP_ENV_FILE` trước khi chạy hoặc truyền `-EnvFile` cho script local.
+`application.yaml` ánh xạ các thiết lập runtime qua `${VAR}`; giá trị cấu hình nằm trong `.env`,
+và [`.env.example`](.env.example) liệt kê đầy đủ các key để bổ sung khi cập nhật dự án. Giữ giá trị
+đang có trong `.env` khi bổ sung key mới.
+
+File dùng UTF-8, mỗi dòng `KEY=value` không bọc giá trị bằng dấu nháy, không có `export` hoặc
+comment sau giá trị; comment đặt trên dòng riêng. Dùng dấu `/` cho đường dẫn Windows, ví dụ
+`UPLOAD_DIR=C:/edunexus/uploads`. Biến môi trường hệ điều hành/container được ưu tiên hơn file.
+Import là optional để Docker vẫn chạy khi chỉ được cấp biến môi trường; các biến bắt buộc vẫn phải đủ.
+Sửa cấu hình rồi khởi động lại backend.
 
 Trong môi trường phát triển, `AUTH_EXPOSE_DEV_OTP=true` trả `developmentCode` khi đăng ký để thử bước xác minh email. Khi dùng SMTP, đặt `AUTH_EXPOSE_DEV_OTP=false`, `MAIL_ENABLED=true` và các biến `MAIL_*`. Google login nhận ID token từ frontend khi đã cấu hình `GOOGLE_CLIENT_ID`.
 
@@ -57,12 +90,12 @@ AI_CHAT_MODEL=gpt-4.1-mini
 AI_EMBEDDING_MODEL=text-embedding-3-small
 ```
 
-Model embedding phải trả đúng 1536 chiều. Import job, gọi `POST /api/v1/admin/jobs/{id}/index`, rồi mới chạy semantic matching. Provider/model được lưu cùng embedding; thay model cần index lại dữ liệu. AI đặt trước ngân sách token, đối soát usage sau phản hồi và ghi log. Prompt và cấu hình CHAT cùng provider có thể cập nhật qua admin; thay provider hoặc cấu hình embedding cần khởi động lại với cấu hình môi trường tương ứng.
+Model embedding phải trả đúng 1536 chiều. Import/crawl job tự enqueue embedding; worker xử lý khi provider bật. Theo dõi bằng `GET /api/v1/admin/jobs/{id}/index`, dùng POST cùng path để index/retry thủ công, rồi chạy semantic matching khi vector đã sẵn sàng. Provider/model được lưu cùng embedding; thay model cần index lại dữ liệu. AI đặt trước ngân sách token, đối soát usage sau phản hồi và ghi log. Prompt và cấu hình CHAT cùng provider có thể cập nhật qua admin; thay provider hoặc cấu hình embedding cần khởi động lại với cấu hình môi trường tương ứng.
 
 ### Redis cho cache ATS và matching
 
-Cấu hình kết nối Redis nằm ở [`spring.data.redis` trong application.yaml](src/main/resources/application.yaml),
-nhận biến môi trường từ [`.env.example`](.env.example). Với backend chạy trực tiếp trên Windows và
+Cấu hình kết nối Redis được [`spring.data.redis` trong application.yaml](src/main/resources/application.yaml)
+ánh xạ từ các key trong [`.env.example`](.env.example). Với backend chạy trực tiếp trên Windows và
 Redis local trong Compose, thêm các dòng sau vào `.env` rồi khởi động lại backend bằng `scripts/run-local.ps1`:
 
 ```dotenv
@@ -106,7 +139,7 @@ PostgreSQL và dùng SSE cho tư vấn. Redis là dịch vụ tùy chọn để 
 
 Thanh toán hiện có đơn hàng và webhook bridge HMAC, chưa kết nối SDK cụ thể của VNPay/PayOS/Stripe. Gateway của bạn phải cung cấp checkout và gửi webhook đúng hợp đồng trong [hướng dẫn identity/billing](docs/identity-billing.md). Backend chỉ kích hoạt subscription sau khi xác minh chữ ký, timestamp, số tiền và currency; callback từ trình duyệt không kích hoạt gói.
 
-Ứng tuyển trả URL gốc của ITviec/TopCV và lưu sự kiện. Email/cover letter được sinh thành draft để người dùng sửa/copy; API hiện chưa gửi email ứng tuyển. OCR cần bật cấu hình và có Tesseract tương thích trên máy; file scan không có text được yêu cầu nhập/sửa thủ công nếu OCR chưa sẵn sàng. Crawling nhận URL do admin cung cấp và phân tích JSON-LD thực tế; trang chặn truy cập hoặc thiếu dữ liệu được ghi nhận thất bại, chi tiết ở [crawling](docs/crawling.md).
+Ứng tuyển trả URL gốc của ITviec/TopCV và lưu sự kiện. Email/cover letter được sinh thành draft để người dùng sửa/copy; API hiện chưa gửi email ứng tuyển. OCR cần bật cấu hình và có Tesseract tương thích trên máy; file scan không có text được yêu cầu nhập/sửa thủ công nếu OCR chưa sẵn sàng. Crawling tìm URL theo keyword hoặc nhận URL admin cung cấp, parse JSON-LD/HTML, chuẩn hóa dữ liệu và enqueue embedding. Collection định kỳ cần cấu hình admin thật; trang bị chặn/không tương thích có item lỗi, không cam kết HTML nguồn thật qua fixture tests. Xem [crawling](docs/crawling.md) và [cấu hình collection](docs/job-collection-setup.md).
 
 ## Tài liệu và kiểm thử
 
@@ -124,8 +157,13 @@ CI chạy kiểm thử, upload JAR rồi tải artifact vào `target` trước k
 - [Cấu trúc controller / DTO / entity / repository / service / util](docs/architecture.md)
 - [Quy ước Java và lệnh định dạng/kiểm tra](docs/java-coding-style.md)
 - [Schema, migration và ràng buộc](docs/schema.md)
+- [Conceptual Diagram EduNexus: sơ đồ tổng thể một trang](docs/conceptual-diagram.md)
 - [Identity, billing và quản trị](docs/identity-billing.md)
 - [CV, AI, assistant, trial và RAG](docs/resume-ai.md)
+- [Khóa học YouTube/Coursera do Admin duyệt và gợi ý trong lộ trình](docs/curated-course-links.md)
+- [Nguồn tham khảo roadmap học tập và gợi ý sau assessment](docs/learning-roadmap-sources.md)
+- [Discovery, parsing, deduplicate và embedding việc làm](docs/crawling.md)
+- [Cấu hình collection qua API admin, lịch sử và expiration](docs/job-collection-setup.md)
 - [Kết quả kiểm chứng và phạm vi đã kiểm tra](docs/verification.md)
 
 ```powershell
@@ -162,7 +200,9 @@ Create the GitHub **production** environment, then configure the following repos
 | Environment variable `DEPLOY_PATH` | Absolute application directory on that server, e.g. `/opt/intelligent-cv` |
 | Environment secret `DEPLOY_SSH_KEY` | Private SSH key for `DEPLOY_USER` |
 
-On the server, create `DEPLOY_PATH/.env`. It must contain all runtime Spring secrets and configuration. Do not commit this file. For a private GHCR image, authenticate the server once with a GitHub token that has `read:packages`:
+On the server, create `DEPLOY_PATH/.env`. It must contain all runtime Spring secrets and configuration,
+including a randomly generated `APP_JWT_SECRET`; there is no JWT secret fallback. Do not commit this file.
+For a private GHCR image, authenticate the server once with a GitHub token that has `read:packages`:
 
 ```sh
 echo "$GHCR_TOKEN" | docker login ghcr.io -u GITHUB_USERNAME --password-stdin

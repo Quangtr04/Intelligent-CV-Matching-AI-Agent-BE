@@ -208,4 +208,47 @@ class AiServiceTests {
         assertEquals(1536, service(true).embed("Java").length);
         verify(entitlement).complete(reservation, 132);
     }
+
+    @Test
+    void backgroundEmbeddingAttributesQuotaAndTelemetryWithoutARequestSecurityContext() {
+        UUID actor = UUID.randomUUID(), reservation = UUID.randomUUID();
+        EmbeddingModel embedding = mock(EmbeddingModel.class);
+        when(embeddings.getIfAvailable()).thenReturn(embedding);
+        when(embeddings.getObject()).thenReturn(embedding);
+        when(entitlement.reserve(eq(actor), eq("EMBEDDING"), anyInt())).thenReturn(reservation);
+        when(embedding.embedForResponse(List.of("Java"))).thenReturn(
+            new EmbeddingResponse(
+                List.of(new Embedding(new float[1536], 0)),
+                new EmbeddingResponseMetadata("test-embedding", new DefaultUsage(4, 0))
+            )
+        );
+
+        assertEquals(1536, service(true).embedForUser(actor, "Java").length);
+
+        verify(entitlement).complete(reservation, 4);
+        verify(recorder).record(
+            argThat(
+                row -> actor.equals(row.get("user_id")) && "EMBEDDING".equals(row.get("feature_code"))
+                    && Boolean.TRUE.equals(row.get("success"))
+            )
+        );
+        verifyNoInteractions(user);
+    }
+
+    @Test
+    void backgroundEmbeddingFailureStillBelongsToTheExplicitActor() {
+        UUID actor = UUID.randomUUID(), reservation = UUID.randomUUID();
+        EmbeddingModel embedding = mock(EmbeddingModel.class);
+        when(embeddings.getIfAvailable()).thenReturn(embedding);
+        when(embeddings.getObject()).thenReturn(embedding);
+        when(entitlement.reserve(eq(actor), eq("EMBEDDING"), anyInt())).thenReturn(reservation);
+        when(embedding.embedForResponse(List.of("Java"))).thenThrow(new IllegalStateException("Unavailable"));
+
+        assertThrows(ApiException.class, () -> service(true).embedForUser(actor, "Java"));
+
+        verify(entitlement).cancel(reservation);
+        verify(recorder)
+            .record(argThat(row -> actor.equals(row.get("user_id")) && Boolean.FALSE.equals(row.get("success"))));
+        verifyNoInteractions(user);
+    }
 }

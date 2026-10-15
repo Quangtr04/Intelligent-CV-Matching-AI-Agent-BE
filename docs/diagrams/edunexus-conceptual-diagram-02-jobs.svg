@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1410" viewBox="0 0 1600 1410" role="img" aria-labelledby="title description">
+<title id="title">EDUNEXUS · 02 VIỆC LÀM &amp; SO KHỚP</title>
+<desc id="description">Conceptual Diagram · Ký hiệu Crow’s Foot · Quan hệ nghiệp vụ và bội số</desc>
+<rect x="0" y="0" width="1600" height="1410" rx="0" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<text x="70" y="70.6" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="36" font-weight="600" fill="#0F172A">EDUNEXUS · 02 VIỆC LÀM &amp; SO KHỚP</text>
+<text x="72" y="117" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748B">Conceptual Diagram · Ký hiệu Crow’s Foot · Quan hệ nghiệp vụ và bội số</text>
+<rect x="40" y="145" width="1520" height="1110" rx="18" fill="#FFF7ED" stroke="#DCE5EF" stroke-width="1.5"/>
+<text x="60" y="190.4" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="24" font-weight="600" fill="#D97706">VIỆC LÀM &amp; SO KHỚP</text>
+<text x="60" y="220.95" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="17" font-weight="400" fill="#64748B">Matching dùng CV hoặc Career Profile · Mỗi phiên thuộc User hoặc Guest, đúng một trong hai</text>
+<polyline points="380,305 650,305" fill="none" stroke="#64748B" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1220,305 950,305" fill="none" stroke="#64748B" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="230,510 230,430 720,430 720,360" fill="none" stroke="#64748B" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="380,825 585,825 585,340 650,340" fill="none" stroke="#64748B" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="7 5"/>
+<polyline points="800,360 800,510" fill="none" stroke="#64748B" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1220,565 950,565" fill="none" stroke="#64748B" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1370,620 1370,770" fill="none" stroke="#64748B" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="80,305 50,305 50,1085 650,1085" fill="none" stroke="#64748B" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1520,565 1550,565 1550,1190 800,1190 800,1140" fill="none" stroke="#64748B" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="380,590 560,590 560,930 710,930 710,1030" fill="none" stroke="#64748B" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="80" y="250" width="300" height="110" rx="12" fill="#FFFFFF" stroke="#64748B" stroke-width="1.8"/>
+<text x="230" y="284.7" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#0F172A">User</text>
+<text x="230" y="314.1" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">Tài khoản ứng viên</text>
+<rect x="650" y="250" width="300" height="110" rx="12" fill="#FFFFFF" stroke="#D97706" stroke-width="1.8"/>
+<text x="800" y="284.7" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#0F172A">Matching Session</text>
+<text x="800" y="314.1" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">CV / Career Profile</text>
+<text x="800" y="337.1" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">So khớp và xếp hạng</text>
+<rect x="1220" y="250" width="300" height="110" rx="12" fill="#FFFFFF" stroke="#D97706" stroke-width="1.8"/>
+<text x="1370" y="284.7" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#0F172A">Guest Session</text>
+<text x="1370" y="314.1" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">Khách dùng thử</text>
+<text x="1370" y="337.1" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">Ngân sách riêng</text>
+<rect x="80" y="510" width="300" height="110" rx="12" fill="#FFFFFF" stroke="#64748B" stroke-width="1.8"/>
+<text x="230" y="544.7" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#0F172A">CV / Resume</text>
+<text x="230" y="574.1" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">CV cá nhân / CV demo</text>
+<rect x="650" y="510" width="300" height="110" rx="12" fill="#FFFFFF" stroke="#D97706" stroke-width="1.8"/>
+<text x="800" y="544.7" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#0F172A">Job Match Result</text>
+<text x="800" y="574.1" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">Điểm phù hợp, thứ hạng</text>
+<text x="800" y="597.1" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">Ưu điểm / kỹ năng thiếu</text>
+<rect x="1220" y="510" width="300" height="110" rx="12" fill="#FFFFFF" stroke="#D97706" stroke-width="1.8"/>
+<text x="1370" y="544.7" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#0F172A">Job Post</text>
+<text x="1370" y="574.1" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">Tin tuyển dụng thị trường</text>
+<text x="1370" y="597.1" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">Nguồn, địa điểm, hạn tin</text>
+<rect x="80" y="770" width="300" height="110" rx="12" fill="#FFFFFF" stroke="#64748B" stroke-width="1.8"/>
+<text x="230" y="804.7" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#0F172A">Career Profile</text>
+<text x="230" y="834.1" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">Đầu vào thay cho CV</text>
+<rect x="1220" y="770" width="300" height="110" rx="12" fill="#FFFFFF" stroke="#64748B" stroke-width="1.8"/>
+<text x="1370" y="804.7" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#0F172A">Skill</text>
+<text x="1370" y="834.1" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">Kỹ năng job yêu cầu</text>
+<rect x="650" y="1030" width="300" height="110" rx="12" fill="#FFFFFF" stroke="#D97706" stroke-width="1.8"/>
+<text x="800" y="1064.7" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#0F172A">External Apply Event</text>
+<text x="800" y="1094.1" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">Lưu lần mở trang ứng tuyển</text>
+<text x="800" y="1117.1" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">URL từ nguồn tuyển dụng</text>
+<rect x="415" y="282" width="195" height="48" rx="6" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<text x="512.5" y="301.2" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">khởi tạo</text>
+<text x="512.5" y="322" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">0..1 : 0..n</text>
+<rect x="985" y="282" width="200" height="48" rx="6" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<text x="1085" y="301.2" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">dùng thử</text>
+<text x="1085" y="322" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">0..1 : 0..n</text>
+<rect x="375" y="408" width="230" height="48" rx="6" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<text x="490" y="427.2" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">CV được chọn</text>
+<text x="490" y="448" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">0..n : 0..n</text>
+<rect x="395" y="705" width="180" height="42" rx="6" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<text x="485" y="731.6" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">ngữ cảnh hồ sơ</text>
+<rect x="820" y="410" width="195" height="48" rx="6" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<text x="917.5" y="429.2" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">trả kết quả</text>
+<text x="917.5" y="450" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">1 : 0..n</text>
+<rect x="970" y="542" width="230" height="48" rx="6" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<text x="1085" y="561.2" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">được xếp hạng</text>
+<text x="1085" y="582" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">1 : 0..n</text>
+<rect x="1385" y="665" width="155" height="48" rx="6" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<text x="1462.5" y="684.2" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">yêu cầu kỹ năng</text>
+<text x="1462.5" y="705" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">0..n : 0..n</text>
+<rect x="280" y="1063" width="250" height="48" rx="6" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<text x="405" y="1082.2" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">mở link ứng tuyển</text>
+<text x="405" y="1103" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">1 : 0..n</text>
+<rect x="1050" y="1168" width="240" height="48" rx="6" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<text x="1170" y="1187.2" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">job được mở</text>
+<text x="1170" y="1208" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">1 : 0..n</text>
+<rect x="565" y="908" width="140" height="48" rx="6" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<text x="635" y="927.2" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">CV tham chiếu</text>
+<text x="635" y="948" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">0..1 : 0..n</text>
+<polyline points="387,298 387,312" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="402" cy="305" rx="5" ry="5" fill="#FFFFFF" stroke="#64748B" stroke-width="1.8"/>
+<polyline points="648,312 636,305" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="648,305 636,305" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="648,298 636,305" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="628" cy="305" rx="5" ry="5" fill="#FFFFFF" stroke="#64748B" stroke-width="1.8"/>
+<polyline points="1213,312 1213,298" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="1198" cy="305" rx="5" ry="5" fill="#FFFFFF" stroke="#64748B" stroke-width="1.8"/>
+<polyline points="952,298 964,305" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="952,305 964,305" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="952,312 964,305" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="972" cy="305" rx="5" ry="5" fill="#FFFFFF" stroke="#64748B" stroke-width="1.8"/>
+<polyline points="223,508 230,496" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="230,508 230,496" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="237,508 230,496" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="230" cy="488" rx="5" ry="5" fill="#FFFFFF" stroke="#64748B" stroke-width="1.8"/>
+<polyline points="727,362 720,374" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="720,362 720,374" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="713,362 720,374" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="720" cy="382" rx="5" ry="5" fill="#FFFFFF" stroke="#64748B" stroke-width="1.8"/>
+<polyline points="807,367 793,367" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="807,377 793,377" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="793,508 800,496" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="800,508 800,496" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="807,508 800,496" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="800" cy="488" rx="5" ry="5" fill="#FFFFFF" stroke="#64748B" stroke-width="1.8"/>
+<polyline points="1213,572 1213,558" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1203,572 1203,558" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="952,558 964,565" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="952,565 964,565" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="952,572 964,565" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="972" cy="565" rx="5" ry="5" fill="#FFFFFF" stroke="#64748B" stroke-width="1.8"/>
+<polyline points="1377,622 1370,634" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1370,622 1370,634" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1363,622 1370,634" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="1370" cy="642" rx="5" ry="5" fill="#FFFFFF" stroke="#64748B" stroke-width="1.8"/>
+<polyline points="1363,768 1370,756" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1370,768 1370,756" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1377,768 1370,756" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="1370" cy="748" rx="5" ry="5" fill="#FFFFFF" stroke="#64748B" stroke-width="1.8"/>
+<polyline points="73,312 73,298" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="63,312 63,298" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="648,1092 636,1085" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="648,1085 636,1085" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="648,1078 636,1085" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="628" cy="1085" rx="5" ry="5" fill="#FFFFFF" stroke="#64748B" stroke-width="1.8"/>
+<polyline points="1527,558 1527,572" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1537,558 1537,572" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="807,1142 800,1154" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="800,1142 800,1154" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="793,1142 800,1154" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="800" cy="1162" rx="5" ry="5" fill="#FFFFFF" stroke="#64748B" stroke-width="1.8"/>
+<polyline points="387,583 387,597" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="402" cy="590" rx="5" ry="5" fill="#FFFFFF" stroke="#64748B" stroke-width="1.8"/>
+<polyline points="703,1028 710,1016" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="710,1028 710,1016" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="717,1028 710,1016" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="710" cy="1008" rx="5" ry="5" fill="#FFFFFF" stroke="#64748B" stroke-width="1.8"/>
+<rect x="60" y="1275" width="1480" height="114" rx="14" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1"/>
+<text x="80" y="1307.3" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#475569">User / Guest là hai chủ thể thay thế nhau: mỗi Matching Session có đúng 1 chủ (XOR).</text>
+<text x="80" y="1339.3" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#475569">Guest matching chỉ dùng CV demo; Career Profile là ngữ cảnh tùy chọn, không phải FK của phiên matching.</text>
+<text x="80" y="1371.3" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#475569">External Apply Event ghi nhận mở trang ứng tuyển; không xác nhận đã nộp hồ sơ hay được tuyển.</text>
+</svg>

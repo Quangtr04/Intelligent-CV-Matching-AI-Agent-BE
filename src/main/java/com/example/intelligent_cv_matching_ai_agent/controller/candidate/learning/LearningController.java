@@ -67,6 +67,15 @@ public class LearningController {
         return service.createRoadmap(input);
     }
 
+    @GetMapping("/roadmaps/recommendations")
+    public Map<String, Object> recommendations(
+        @RequestParam
+        String targetJobTitle,
+        @RequestParam(required = false)
+        List<String> skills) {
+        return service.recommendations(targetJobTitle, skills);
+    }
+
     @GetMapping("/roadmaps")
     public List<Map<String, Object>> roadmaps() {
         return service.roadmaps();

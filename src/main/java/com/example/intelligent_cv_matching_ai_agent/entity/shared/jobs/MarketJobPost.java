@@ -125,6 +125,18 @@ public class MarketJobPost {
     @Column(name = "posted_at", nullable = true, columnDefinition = "timestamptz")
     private OffsetDateTime postedAt;
 
+    @JsonProperty("valid_through")
+    @Column(name = "valid_through", columnDefinition = "timestamptz")
+    private OffsetDateTime validThrough;
+
+    @JsonProperty("employment_type")
+    @Column(name = "employment_type", length = 100)
+    private String employmentType;
+
+    @JsonProperty("content_fingerprint")
+    @Column(name = "content_fingerprint", length = 64)
+    private String contentFingerprint;
+
     @JsonProperty("collected_at")
     @Column(name = "collected_at", nullable = false, columnDefinition = "timestamptz")
     private OffsetDateTime collectedAt;

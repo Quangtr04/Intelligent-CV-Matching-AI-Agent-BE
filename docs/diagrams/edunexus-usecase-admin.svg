@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="2300" height="2150" viewBox="0 0 2300 2150" role="img" aria-labelledby="title description">
+<title id="title">EDUNEXUS · USE CASE QUẢN TRỊ</title>
+<desc id="description">Tài khoản · việc làm · AI / RAG · tư vấn · hỗ trợ · giám sát</desc>
+<rect x="0" y="0" width="2300" height="2150" rx="0" fill="#ffffff" stroke="none" stroke-width="0"/>
+<text x="1150" y="54.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="28" font-weight="600" fill="#17324e">EDUNEXUS · USE CASE QUẢN TRỊ</text>
+<text x="1150" y="96.95" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="17" font-weight="400" fill="#586a7f">Tài khoản · việc làm · AI / RAG · tư vấn · hỗ trợ · giám sát</text>
+<rect x="310" y="180" width="1730" height="1780" rx="0" fill="#ffffff" stroke="#263b52" stroke-width="2"/>
+<text x="330" y="220.05" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="600" fill="#17324e">Hệ thống EduNexus · chức năng quản trị</text>
+<rect x="425" y="250" width="840" height="1670" rx="8" fill="#FFF7ED" stroke="#d5dfeb" stroke-width="1"/>
+<text x="441" y="282.3" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="600" fill="#455e7a">Quản trị và vận hành</text>
+<polyline points="160,1024 500,345" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="160,1024 500,460" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="160,1024 500,575" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="160,1024 500,690" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="160,1024 500,805" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="160,1024 500,920" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="160,1024 500,1035" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="160,1024 500,1150" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="160,1024 500,1265" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="160,1024 500,1380" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="160,1024 500,1495" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="160,1024 500,1610" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="160,1024 500,1725" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="160,1024 500,1840" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1190,690 1430,690" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="7 5"/><polyline points="1418,684.5 1430,690 1418,695.5" fill="none" stroke="#52647b" stroke-width="1.6"/>
+<polyline points="1190,805 1430,805" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="7 5"/><polyline points="1418,799.5 1430,805 1418,810.5" fill="none" stroke="#52647b" stroke-width="1.6"/>
+<polyline points="1190,1035 1430,1035" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="7 5"/><polyline points="1418,1029.5 1430,1035 1418,1040.5" fill="none" stroke="#52647b" stroke-width="1.6"/>
+<polyline points="2157.5,654 1950,690" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2157.5,864 1950,805" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="845" cy="345" rx="345" ry="45" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="845" y="351.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Quản lý người dùng và trạng thái tài khoản</text>
+<ellipse cx="845" cy="460" rx="345" ry="45" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="845" y="466.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Quản lý gói dịch vụ và quota</text>
+<ellipse cx="845" cy="575" rx="345" ry="45" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="845" y="581.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Import việc làm thủ công</text>
+<ellipse cx="845" cy="690" rx="345" ry="45" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="845" y="696.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Crawl URL việc làm được cung cấp</text>
+<ellipse cx="845" cy="805" rx="345" ry="45" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="845" y="811.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Index embedding cho việc làm</text>
+<ellipse cx="845" cy="920" rx="345" ry="45" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="845" y="926.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Lưu cấu hình AI và prompt</text>
+<ellipse cx="845" cy="1035" rx="345" ry="45" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="845" y="1041.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Khôi phục cấu hình / prompt cũ</text>
+<ellipse cx="845" cy="1150" rx="345" ry="45" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="845" y="1156.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Tạo / xem / vô hiệu hóa tài liệu RAG</text>
+<ellipse cx="845" cy="1265" rx="345" ry="45" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="845" y="1271.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Index tài liệu RAG</text>
+<ellipse cx="845" cy="1380" rx="345" ry="45" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="845" y="1386.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Phân công consultant</text>
+<ellipse cx="845" cy="1495" rx="345" ry="45" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="845" y="1501.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Tạo / xuất bản / lưu trữ thông báo</text>
+<ellipse cx="845" cy="1610" rx="345" ry="45" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="845" y="1616.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Xử lý và phản hồi ticket hỗ trợ</text>
+<ellipse cx="845" cy="1725" rx="345" ry="45" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="845" y="1731.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Xử lý phản ánh thanh toán</text>
+<ellipse cx="845" cy="1840" rx="345" ry="45" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="845" y="1846.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Xem dashboard, usage và audit</text>
+<ellipse cx="1690" cy="690" rx="260" ry="45" fill="#EFF6FF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="1690" y="684.6" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Thu thập và đọc</text>
+<text x="1690" y="708" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">trang chi tiết JobPosting</text>
+<ellipse cx="1690" cy="805" rx="260" ry="45" fill="#F5F3FF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="1690" y="811.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Sinh embedding cho việc làm</text>
+<ellipse cx="1690" cy="1035" rx="260" ry="45" fill="#FFF7ED" stroke="#3d5875" stroke-width="1.7"/>
+<text x="1690" y="1029.6" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Tạo phiên bản mới</text>
+<text x="1690" y="1053" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">và kích hoạt nội dung đã chọn</text>
+<ellipse cx="135" cy="1001" rx="11" ry="11" fill="#ffffff" stroke="#29465f" stroke-width="1.9"/>
+<polyline points="135,1012 135,1043" fill="none" stroke="#29465f" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="110,1024 160,1024" fill="none" stroke="#29465f" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="111,1068 135,1043 159,1068" fill="none" stroke="#29465f" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="135" y="1093" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#29465f">Quản trị viên</text>
+<ellipse cx="2182.5" cy="631" rx="11" ry="11" fill="#ffffff" stroke="#29465f" stroke-width="1.9"/>
+<polyline points="2182.5,642 2182.5,673" fill="none" stroke="#29465f" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2157.5,654 2207.5,654" fill="none" stroke="#29465f" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2158.5,698 2182.5,673 2206.5,698" fill="none" stroke="#29465f" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="2182.5" y="723" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#29465f">ITviec / TopCV</text>
+<text x="2182.5" y="747.7" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#29465f">«hệ thống ngoài»</text>
+<ellipse cx="2182.5" cy="841" rx="11" ry="11" fill="#ffffff" stroke="#29465f" stroke-width="1.9"/>
+<polyline points="2182.5,852 2182.5,883" fill="none" stroke="#29465f" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2157.5,864 2207.5,864" fill="none" stroke="#29465f" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2158.5,908 2182.5,883 2206.5,908" fill="none" stroke="#29465f" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="2182.5" y="933" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#29465f">AI provider</text>
+<text x="2182.5" y="957.7" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#29465f">«hệ thống ngoài»</text>
+<rect x="1270.387" y="645.6" width="79.227" height="28.8" rx="0" fill="#ffffff" stroke="none" stroke-width="0"/>
+<text x="1310" y="665.6" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#40526b">«include»</text>
+<rect x="1270.387" y="760.6" width="79.227" height="28.8" rx="0" fill="#ffffff" stroke="none" stroke-width="0"/>
+<text x="1310" y="780.6" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#40526b">«include»</text>
+<rect x="1270.387" y="990.6" width="79.227" height="28.8" rx="0" fill="#ffffff" stroke="none" stroke-width="0"/>
+<text x="1310" y="1010.6" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#40526b">«include»</text>
+<rect x="1390" y="300" width="600" height="230" rx="6" fill="#F8FAFC" stroke="#d5dfeb" stroke-width="1"/>
+<text x="1406" y="368.6" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b">Crawl chỉ đọc URL chi tiết do admin đưa vào;</text>
+<text x="1406" y="389.4" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b">keyword là nhãn, không tự tìm kiếm URL.</text>
+<text x="1406" y="410.2" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b">Import / crawl không tự index.</text>
+<text x="1406" y="431" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b"></text>
+<text x="1406" y="451.8" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b">Index job / RAG cần provider embedding.</text>
+<text x="1406" y="472.6" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b">RAG index có thể tái dùng chunk đã indexed.</text>
+<rect x="1390" y="1220" width="600" height="330" rx="6" fill="#F8FAFC" stroke="#d5dfeb" stroke-width="1"/>
+<text x="1406" y="1328.2" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b">Khôi phục v1 khi đã có v2 sẽ tạo v3</text>
+<text x="1406" y="1349" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b">chứa nội dung v1; giữ nguyên lịch sử.</text>
+<text x="1406" y="1369.8" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b"></text>
+<text x="1406" y="1390.6" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b">Thông báo nằm trong ứng dụng.</text>
+<text x="1406" y="1411.4" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b">Giải quyết payment report chưa tự refund.</text>
+<text x="1406" y="1432.2" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b">Đổi role / đình chỉ / xóa user thu hồi token.</text>
+<text x="1406" y="1453" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b">Phân công thread quyết định quyền consultant.</text>
+<rect x="340" y="2000" width="1670" height="90" rx="6" fill="#F8FAFC" stroke="#d5dfeb" stroke-width="1"/>
+<text x="356" y="2040.2" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b">Sơ đồ mô tả chức năng đã có trong backend; chưa thêm chức năng checkout, tự thu tiền hay refund.</text>
+<text x="356" y="2061" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b">Nguồn tuyển dụng và AI provider là actor hỗ trợ, nằm ngoài biên hệ thống.</text>
+</svg>

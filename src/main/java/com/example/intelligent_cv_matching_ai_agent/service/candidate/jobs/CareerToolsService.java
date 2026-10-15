@@ -286,6 +286,8 @@ public class CareerToolsService {
 
         var job = activeJob(id);
         String url = text(job.get("source_url"));
+        if (url.isBlank())
+            throw ApiException.conflict("No active, unexpired source is available for this job");
         JobSourceValidator.validateExternalUrl(url);
 
         if (request != null && request.resumeId() != null)

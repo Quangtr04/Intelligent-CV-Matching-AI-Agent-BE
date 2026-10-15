@@ -1,126 +1,166 @@
 spring:
+  config:
+    import: "optional:file:${APP_ENV_FILE:.env}[extension=.properties][encoding=utf-8]"
+  task:
+    scheduling:
+      pool:
+        size: ${SCHEDULING_POOL_SIZE}
   application:
-    name: INTELLIGENT_CV_MATCHING_AI_AGENT
+    name: ${SPRING_APPLICATION_NAME}
   datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/edunexus}
-    username: ${POSTGRES_USER:edunexus}
-    password: ${POSTGRES_PASSWORD:}
+    url: ${DATABASE_URL}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: none
-    open-in-view: false
+      ddl-auto: ${JPA_DDL_AUTO}
+    open-in-view: ${JPA_OPEN_IN_VIEW}
   docker:
     compose:
-      enabled: false
+      enabled: ${DOCKER_COMPOSE_ENABLED}
   batch:
     job:
-      enabled: false
+      enabled: ${BATCH_JOB_ENABLED}
     jdbc:
-      initialize-schema: never
+      initialize-schema: ${BATCH_SCHEMA_INITIALIZATION}
   session:
-    store-type: none
+    store-type: ${SESSION_STORE_TYPE}
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-      username: ${REDIS_USERNAME:}
-      password: ${REDIS_PASSWORD:}
-      database: ${REDIS_DATABASE:0}
-      timeout: ${REDIS_TIMEOUT:500ms}
-      connect-timeout: ${REDIS_CONNECT_TIMEOUT:500ms}
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      username: ${REDIS_USERNAME}
+      password: ${REDIS_PASSWORD}
+      database: ${REDIS_DATABASE}
+      timeout: ${REDIS_TIMEOUT}
+      connect-timeout: ${REDIS_CONNECT_TIMEOUT}
       ssl:
-        enabled: ${REDIS_SSL_ENABLED:false}
+        enabled: ${REDIS_SSL_ENABLED}
       repositories:
-        enabled: false
+        enabled: ${REDIS_REPOSITORIES_ENABLED}
   servlet:
     multipart:
-      max-file-size: 10MB
-      max-request-size: 11MB
+      max-file-size: ${MULTIPART_MAX_FILE_SIZE}
+      max-request-size: ${MULTIPART_MAX_REQUEST_SIZE}
   mail:
-    host: ${MAIL_HOST:localhost}
-    port: ${MAIL_PORT:1025}
-    username: ${MAIL_USERNAME:}
-    password: ${MAIL_PASSWORD:}
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
     properties:
-      mail.smtp.auth: ${MAIL_SMTP_AUTH:false}
-      mail.smtp.starttls.enable: ${MAIL_STARTTLS:false}
-      mail.smtp.connectiontimeout: 5000
-      mail.smtp.timeout: 5000
+      mail.smtp.auth: ${MAIL_SMTP_AUTH}
+      mail.smtp.starttls.enable: ${MAIL_STARTTLS}
+      mail.smtp.connectiontimeout: ${MAIL_CONNECTION_TIMEOUT}
+      mail.smtp.timeout: ${MAIL_TIMEOUT}
   ai:
     model:
-      chat: ${AI_CHAT_PROVIDER:none}
-      embedding: ${AI_EMBEDDING_PROVIDER:none}
+      chat: ${AI_CHAT_PROVIDER}
+      embedding: ${AI_EMBEDDING_PROVIDER}
       audio:
-        speech: none
-        transcription: none
-      image: none
-      moderation: none
+        speech: ${AI_SPEECH_PROVIDER}
+        transcription: ${AI_TRANSCRIPTION_PROVIDER}
+      image: ${AI_IMAGE_PROVIDER}
+      moderation: ${AI_MODERATION_PROVIDER}
     openai:
-      api-key: ${OPENAI_API_KEY:}
+      api-key: ${OPENAI_API_KEY}
       chat:
         options:
-          model: ${AI_CHAT_MODEL:gpt-4.1-mini}
-          temperature: 0.2
-          max-tokens: ${AI_MAX_OUTPUT_TOKENS:2000}
+          model: ${AI_CHAT_MODEL}
+          temperature: ${AI_CHAT_TEMPERATURE}
+          max-tokens: ${AI_MAX_OUTPUT_TOKENS}
       embedding:
         options:
-          model: ${AI_EMBEDDING_MODEL:text-embedding-3-small}
-          dimensions: 1536
+          model: ${AI_EMBEDDING_MODEL}
+          dimensions: ${AI_EMBEDDING_DIMENSIONS}
     vectorstore:
       qdrant:
-        enabled: false
+        enabled: ${QDRANT_VECTORSTORE_ENABLED}
   autoconfigure:
-    exclude:
-      - org.springframework.ai.vectorstore.qdrant.autoconfigure.QdrantVectorStoreAutoConfiguration
-      - org.springframework.boot.session.data.redis.autoconfigure.SessionDataRedisAutoConfiguration
+    exclude: ${SPRING_AUTOCONFIGURE_EXCLUDE}
 management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: ${MANAGEMENT_ENDPOINTS_EXPOSURE}
   endpoint:
     health:
-      show-details: never
+      show-details: ${HEALTH_SHOW_DETAILS}
       probes:
-        enabled: true
+        enabled: ${HEALTH_PROBES_ENABLED}
   health:
     redis:
-      enabled: false
+      enabled: ${HEALTH_REDIS_ENABLED}
     rabbit:
-      enabled: false
+      enabled: ${HEALTH_RABBIT_ENABLED}
     mail:
-      enabled: false
+      enabled: ${HEALTH_MAIL_ENABLED}
 server:
+  port: ${SERVER_PORT}
   error:
-    include-message: never
-    include-stacktrace: never
+    include-message: ${SERVER_ERROR_INCLUDE_MESSAGE}
+    include-stacktrace: ${SERVER_ERROR_INCLUDE_STACKTRACE}
 logging:
   level:
-    web: INFO
-    sql: INFO
-    org.springframework.web: INFO
-    org.springframework.jdbc: INFO
+    web: ${LOG_WEB_LEVEL}
+    sql: ${LOG_SQL_LEVEL}
+    org.springframework.web: ${LOG_SPRING_WEB_LEVEL}
+    org.springframework.jdbc: ${LOG_SPRING_JDBC_LEVEL}
 app:
+  jobs:
+    collection:
+      enabled: ${JOB_COLLECTION_ENABLED}
+      actor-id: ${JOB_COLLECTION_ACTOR_ID}
+      fixed-delay: ${JOB_COLLECTION_FIXED_DELAY}
+      sources:
+        - source-site: ${JOB_COLLECTION_ITVIEC_SOURCE_SITE}
+          keyword: ${JOB_COLLECTION_ITVIEC_KEYWORD}
+          role-category: ${JOB_COLLECTION_ITVIEC_ROLE}
+          location: ${JOB_COLLECTION_ITVIEC_LOCATION}
+          limit: ${JOB_COLLECTION_LIMIT}
+          max-pages: ${JOB_COLLECTION_MAX_PAGES}
+        - source-site: ${JOB_COLLECTION_TOPCV_SOURCE_SITE}
+          keyword: ${JOB_COLLECTION_TOPCV_KEYWORD}
+          role-category: ${JOB_COLLECTION_TOPCV_ROLE}
+          location: ${JOB_COLLECTION_TOPCV_LOCATION}
+          limit: ${JOB_COLLECTION_LIMIT}
+          max-pages: ${JOB_COLLECTION_MAX_PAGES}
+    expiration:
+      enabled: ${JOB_EXPIRATION_ENABLED}
+      fixed-delay: ${JOB_EXPIRATION_FIXED_DELAY}
+      batch-size: ${JOB_EXPIRATION_BATCH_SIZE}
+    embedding:
+      enabled: ${JOB_EMBEDDING_ENABLED}
+      batch-size: ${JOB_EMBEDDING_BATCH_SIZE}
+      fixed-delay-ms: ${JOB_EMBEDDING_FIXED_DELAY_MS}
+      initial-delay-ms: ${JOB_EMBEDDING_INITIAL_DELAY_MS}
+      lease-seconds: ${JOB_EMBEDDING_LEASE_SECONDS}
+      retry-seconds: ${JOB_EMBEDDING_RETRY_SECONDS}
   ai:
-    enabled: ${AI_ENABLED:false}
-    max-output-tokens: ${AI_MAX_OUTPUT_TOKENS:2000}
+    enabled: ${AI_ENABLED}
+    provider: ${AI_PROVIDER}
+    max-output-tokens: ${AI_MAX_OUTPUT_TOKENS}
+  ocr:
+    enabled: ${APP_OCR_ENABLED}
+    tessdata: ${APP_OCR_TESSDATA}
+    language: ${APP_OCR_LANGUAGE}
   storage:
-    path: ${UPLOAD_DIR:./uploads}
+    path: ${UPLOAD_DIR}
   mail:
-    enabled: ${MAIL_ENABLED:false}
-    from: ${MAIL_FROM:noreply@example.invalid}
+    enabled: ${MAIL_ENABLED}
+    from: ${MAIL_FROM}
   auth:
-    expose-development-code: ${AUTH_EXPOSE_DEV_OTP:false}
-    mail-from: ${MAIL_FROM:noreply@example.invalid}
-    google-client-id: ${GOOGLE_CLIENT_ID:}
+    expose-development-code: ${AUTH_EXPOSE_DEV_OTP}
+    mail-from: ${MAIL_FROM}
+    google-client-id: ${GOOGLE_CLIENT_ID}
   guest:
-    token-limit: ${GUEST_TOKEN_LIMIT:5000}
+    token-limit: ${GUEST_TOKEN_LIMIT}
   payment:
-    webhook-secret: ${PAYMENT_WEBHOOK_SECRET:}
-    provider: ${PAYMENT_PROVIDER:MANUAL_GATEWAY}
+    webhook-secret: ${PAYMENT_WEBHOOK_SECRET}
+    provider: ${PAYMENT_PROVIDER}
   security:
-    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}
-    jwt-secret: ${APP_JWT_SECRET:development-only-change-me-to-a-long-random-secret}
+    allowed-origins: ${CORS_ALLOWED_ORIGINS}
+    jwt-secret: ${APP_JWT_SECRET}
   billing:
-    maintenance-enabled: ${BILLING_MAINTENANCE_ENABLED:true}
-    maintenance-zone: Asia/Ho_Chi_Minh
+    maintenance-enabled: ${BILLING_MAINTENANCE_ENABLED}
+    maintenance-batch-size: ${BILLING_MAINTENANCE_BATCH_SIZE}
+    maintenance-zone: ${BILLING_MAINTENANCE_ZONE}

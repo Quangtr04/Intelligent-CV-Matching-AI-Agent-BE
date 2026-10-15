@@ -3,10 +3,21 @@ package com.example.intelligent_cv_matching_ai_agent.repository.candidate.learni
 import com.example.intelligent_cv_matching_ai_agent.repository.shared.SqlStore;
 import java.util.*;
 import org.springframework.stereotype.Repository;
+import static com.example.intelligent_cv_matching_ai_agent.util.shared.Values.*;
 
 /** SQL persistence operations used by LearningService. */
 @Repository
 public class LearningRepository {
+
+    private static final String RECOMMENDABLE_RESOURCE =
+        "r.is_active AND ((r.source_type<>'ADMIN_CURATED' AND NOT EXISTS ("
+            + "SELECT 1 FROM rag_course_links linked WHERE linked.learning_resource_id=r.id)) OR EXISTS ("
+            + "SELECT 1 FROM rag_course_links c JOIN rag_documents d ON d.id=c.rag_document_id "
+            + "WHERE c.learning_resource_id=r.id AND c.status='APPROVED' "
+            + "AND COALESCE(d.metadata->>'disabled','false')<>'true'))";
+
+    private static final String RESOURCE_FIELDS =
+        "r.id,r.title,r.resource_type,r.provider,r.url,r.is_free,r.metadata_json";
 
     private final SqlStore db;
 
@@ -110,18 +121,70 @@ public class LearningRepository {
     public List<Map<String, Object>> listLearningResourcesByIsActive(
         Object... args) {
         return db.list(
-            ("SELECT id FROM learning_resources WHERE is_active AND title ILIKE ? "
-                + "ORDER BY is_free DESC,title LIMIT 3"),
+            "SELECT r.id FROM learning_resources r WHERE " + RECOMMENDABLE_RESOURCE
+                + " AND r.title ILIKE ? ORDER BY (r.source_type='ADMIN_CURATED') DESC,r.is_free DESC,r.title LIMIT 3",
             args
         );
     }
 
+    public List<Map<String, Object>> listLearningResourcesForSkill(
+        String skillSlug,
+        String titlePattern) {
+        return db.list(
+            "SELECT " + RESOURCE_FIELDS + " FROM learning_resources r WHERE " + RECOMMENDABLE_RESOURCE
+                + " AND (jsonb_exists(r.metadata_json->'skill_slugs', ?) "
+                + "OR (r.metadata_json->'skill_slugs' IS NULL AND r.title ILIKE ?)) "
+                + "ORDER BY (r.source_type='ADMIN_CURATED') DESC,r.is_free DESC,r.title LIMIT 5",
+            skillSlug,
+            titlePattern
+        );
+    }
+
+    public List<Map<String, Object>> listApprovedCourseResources(
+        Collection<String> skillSlugs,
+        String targetSlug) {
+        List<Object> args = new ArrayList<>(skillSlugs);
+        args.add(targetSlug);
+        return db.list(
+            "SELECT " + RESOURCE_FIELDS + " FROM learning_resources r WHERE " + RECOMMENDABLE_RESOURCE
+                + " AND r.source_type='ADMIN_CURATED' AND (" + "jsonb_exists_any(r.metadata_json->'skill_slugs', ARRAY["
+                + String.join(",", Collections.nCopies(skillSlugs.size(), "?")) + "]::text[]) "
+                + "OR EXISTS (SELECT 1 FROM jsonb_array_elements_text(r.metadata_json->'skill_slugs') skill(slug) "
+                + "WHERE skill.slug<>'' AND position('-'||skill.slug||'-' IN '-'||?||'-')>0)) "
+                + "ORDER BY r.is_free DESC,r.title LIMIT 15",
+            args.toArray()
+        );
+    }
+
+    public List<Map<String, Object>> listLearningResourcesByUrls(
+        Collection<String> urls) {
+        if (urls.isEmpty()) {
+            return List.of();
+        }
+        return db.list(
+            "SELECT " + RESOURCE_FIELDS + " FROM learning_resources r WHERE " + RECOMMENDABLE_RESOURCE
+                + " AND r.url IN (" + String.join(",", Collections.nCopies(urls.size(), "?"))
+                + ") ORDER BY (r.source_type='ADMIN_CURATED') DESC,r.is_free DESC,r.title",
+            urls.toArray()
+        );
+    }
+
     public int updateRoadmapNodeResources(
-        Object... args) {
+        UUID nodeId,
+        UUID resourceId,
+        int sequenceOrder,
+        String reason,
+        Map<String, Object> resource) {
         return db.update(
-            ("INSERT INTO roadmap_node_resources(roadmap_node_id,resource_id,"
-                + "sequence_order,recommendation_reason) VALUES(?,?,?,?)"),
-            args
+            "INSERT INTO roadmap_node_resources(roadmap_node_id,resource_id,sequence_order,recommendation_reason,"
+                + "resource_snapshot) VALUES(?,?,?,?,"
+                + "(SELECT to_jsonb(r)||?::jsonb FROM learning_resources r WHERE r.id=?))",
+            nodeId,
+            resourceId,
+            sequenceOrder,
+            reason,
+            db.json(resource),
+            resourceId
         );
     }
 
@@ -157,12 +220,19 @@ public class LearningRepository {
 
     public List<Map<String, Object>> listRoadmapNodeResourcesByRoadmapNodeId(
         Object... args) {
-        return db.list(
-            ("SELECT r.*,nr.recommendation_reason FROM roadmap_node_resources nr "
-                + "JOIN learning_resources r ON r.id=nr.resource_id WHERE "
-                + "nr.roadmap_node_id=? AND r.is_active ORDER BY nr.sequence_order"),
+        List<Map<String, Object>> rows = db.list(
+            "SELECT nr.resource_id,COALESCE(nr.resource_snapshot,to_jsonb(r)) AS resource_snapshot,"
+                + "nr.recommendation_reason FROM roadmap_node_resources nr "
+                + "JOIN learning_resources r ON r.id=nr.resource_id WHERE nr.roadmap_node_id=? "
+                + "ORDER BY nr.sequence_order",
             args
         );
+        return rows.stream().map(row -> {
+            Map<String, Object> resource = new LinkedHashMap<>(object(row.get("resource_snapshot")));
+            resource.put("id", row.get("resource_id"));
+            resource.put("recommendation_reason", row.get("recommendation_reason"));
+            return resource;
+        }).toList();
     }
 
     public List<Map<String, Object>> listGapAnalysisSkillsByGapAnalysisId(
