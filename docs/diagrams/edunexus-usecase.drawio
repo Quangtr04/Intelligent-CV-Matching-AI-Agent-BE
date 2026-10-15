@@ -1,0 +1,1486 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mxfile host="app.diagrams.net" version="24.7.17" type="device">
+  <diagram id="overview" name="EDUNEXUS · USE CASE TỔNG QUAN">
+    <mxGraphModel fold="1" pageWidth="2600" dx="2600" tooltips="1" guides="1" connect="1" grid="1" shadow="0" math="0" pageHeight="2680" dy="2680" gridSize="10" pageScale="1" page="1" arrows="1">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;fontSize=28;fontStyle=1;fontColor=#17324e;" id="page-title" value="EDUNEXUS · USE CASE TỔNG QUAN">
+          <mxGeometry y="22" width="2520" as="geometry" height="45" x="40" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;fontSize=17;fontColor=#586a7f;" id="page-subtitle" value="Phạm vi: backend hiện có · Nhóm chức năng theo mục tiêu người dùng">
+          <mxGeometry y="70" width="2520" as="geometry" height="42" x="40" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=0;fillColor=#ffffff;strokeColor=#263b52;strokeWidth=2;" id="system-boundary" value="">
+          <mxGeometry y="180" width="1940" as="geometry" height="2190" x="330" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;align=left;fontSize=23;fontStyle=1;fontColor=#17324e;" id="system-boundary-label" value="Hệ thống EduNexus">
+          <mxGeometry y="192" width="1900" as="geometry" height="40" x="350" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=1;arcSize=5;html=0;fillColor=#EFF6FF;strokeColor=#d5dfeb;strokeWidth=1;" id="g-guest" value="">
+          <mxGeometry y="290" width="750" as="geometry" height="465" x="440" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;align=left;fontSize=18;fontStyle=1;fontColor=#455e7a;" id="g-guest-label" value="Khách · trước khi đăng nhập">
+          <mxGeometry y="299" width="718" as="geometry" height="34" x="456" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=1;arcSize=5;html=0;fillColor=#F0FDFA;strokeColor=#d5dfeb;strokeWidth=1;" id="g-candidate" value="">
+          <mxGeometry y="800" width="750" as="geometry" height="1040" x="440" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;align=left;fontSize=18;fontStyle=1;fontColor=#455e7a;" id="g-candidate-label" value="Ứng viên · phát triển nghề nghiệp">
+          <mxGeometry y="809" width="718" as="geometry" height="34" x="456" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=1;arcSize=5;html=0;fillColor=#F5F3FF;strokeColor=#d5dfeb;strokeWidth=1;" id="g-consultant" value="">
+          <mxGeometry y="290" width="750" as="geometry" height="465" x="1410" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;align=left;fontSize=18;fontStyle=1;fontColor=#455e7a;" id="g-consultant-label" value="Consultant · thread được phân công">
+          <mxGeometry y="299" width="718" as="geometry" height="34" x="1426" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=1;arcSize=5;html=0;fillColor=#FFF7ED;strokeColor=#d5dfeb;strokeWidth=1;" id="g-admin" value="">
+          <mxGeometry y="800" width="750" as="geometry" height="1040" x="1410" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;align=left;fontSize=18;fontStyle=1;fontColor=#455e7a;" id="g-admin-label" value="Admin · quản trị và vận hành">
+          <mxGeometry y="809" width="718" as="geometry" height="34" x="1426" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=1;arcSize=5;html=0;fillColor=#F8FAFC;strokeColor=#d5dfeb;strokeWidth=1;" id="g-shared" value="">
+          <mxGeometry y="1910" width="1720" as="geometry" height="360" x="440" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;align=left;fontSize=18;fontStyle=1;fontColor=#455e7a;" id="g-shared-label" value="Chức năng chung của người dùng đã đăng nhập">
+          <mxGeometry y="1919" width="1688" as="geometry" height="34" x="456" />
+        </mxCell>
+        <mxCell source="guest" id="edge-1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="guest-browse">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="489" as="sourcePoint" x="170" />
+            <mxPoint y="410" as="targetPoint" x="540" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="guest" id="edge-2" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="guest-identity">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="489" as="sourcePoint" x="170" />
+            <mxPoint y="525" as="targetPoint" x="540" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="guest" id="edge-3" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="guest-trial">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="489" as="sourcePoint" x="170" />
+            <mxPoint y="640" as="targetPoint" x="540" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="candidate" id="edge-4" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="candidate-profile">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1314" as="sourcePoint" x="170" />
+            <mxPoint y="920" as="targetPoint" x="540" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="candidate" id="edge-5" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="candidate-cv">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1314" as="sourcePoint" x="170" />
+            <mxPoint y="1035" as="targetPoint" x="540" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="candidate" id="edge-6" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="candidate-analysis">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1314" as="sourcePoint" x="170" />
+            <mxPoint y="1150" as="targetPoint" x="540" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="candidate" id="edge-7" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="candidate-matching">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1314" as="sourcePoint" x="170" />
+            <mxPoint y="1265" as="targetPoint" x="540" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="candidate" id="edge-8" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="candidate-draft">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1314" as="sourcePoint" x="170" />
+            <mxPoint y="1380" as="targetPoint" x="540" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="candidate" id="edge-9" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="candidate-learning">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1314" as="sourcePoint" x="170" />
+            <mxPoint y="1495" as="targetPoint" x="540" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="candidate" id="edge-10" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="candidate-chat">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1314" as="sourcePoint" x="170" />
+            <mxPoint y="1610" as="targetPoint" x="540" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="candidate" id="edge-11" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="candidate-consult">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1314" as="sourcePoint" x="170" />
+            <mxPoint y="1725" as="targetPoint" x="540" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="consultant" id="edge-12" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.361;exitY=0.227;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="consultant-requests">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="489" as="sourcePoint" x="2440" />
+            <mxPoint y="410" as="targetPoint" x="2060" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="consultant" id="edge-13" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.361;exitY=0.227;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="consultant-reports">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="489" as="sourcePoint" x="2440" />
+            <mxPoint y="525" as="targetPoint" x="2060" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="consultant" id="edge-14" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.361;exitY=0.227;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="consultant-discussion">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="489" as="sourcePoint" x="2440" />
+            <mxPoint y="640" as="targetPoint" x="2060" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="admin" id="edge-15" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.361;exitY=0.227;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="admin-users">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1314" as="sourcePoint" x="2440" />
+            <mxPoint y="920" as="targetPoint" x="2060" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="admin" id="edge-16" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.361;exitY=0.227;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="admin-tiers">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1314" as="sourcePoint" x="2440" />
+            <mxPoint y="1035" as="targetPoint" x="2060" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="admin" id="edge-17" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.361;exitY=0.227;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="admin-jobs">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1314" as="sourcePoint" x="2440" />
+            <mxPoint y="1150" as="targetPoint" x="2060" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="admin" id="edge-18" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.361;exitY=0.227;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="admin-ai">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1314" as="sourcePoint" x="2440" />
+            <mxPoint y="1265" as="targetPoint" x="2060" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="admin" id="edge-19" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.361;exitY=0.227;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="admin-assign">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1314" as="sourcePoint" x="2440" />
+            <mxPoint y="1380" as="targetPoint" x="2060" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="admin" id="edge-20" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.361;exitY=0.227;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="admin-support">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1314" as="sourcePoint" x="2440" />
+            <mxPoint y="1495" as="targetPoint" x="2060" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="admin" id="edge-21" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.361;exitY=0.227;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="admin-billing">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1314" as="sourcePoint" x="2440" />
+            <mxPoint y="1610" as="targetPoint" x="2060" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="admin" id="edge-22" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.361;exitY=0.227;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="admin-monitoring">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1314" as="sourcePoint" x="2440" />
+            <mxPoint y="1725" as="targetPoint" x="2060" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="member" id="edge-23" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.5;exitY=0;exitPerimeter=0;entryX=0.5;entryY=1;entryPerimeter=0;" parent="1" edge="1" value="" target="shared-account">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="2440" as="sourcePoint" x="1300" />
+            <mxPoint y="2136" as="targetPoint" x="675" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="member" id="edge-24" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.5;exitY=0;exitPerimeter=0;entryX=0.5;entryY=1;entryPerimeter=0;" parent="1" edge="1" value="" target="shared-payments">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="2440" as="sourcePoint" x="1300" />
+            <mxPoint y="2136" as="targetPoint" x="1090" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="member" id="edge-25" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.5;exitY=0;exitPerimeter=0;entryX=0.5;entryY=1;entryPerimeter=0;" parent="1" edge="1" value="" target="shared-notifications">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="2440" as="sourcePoint" x="1300" />
+            <mxPoint y="2136" as="targetPoint" x="1505" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="member" id="edge-26" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.5;exitY=0;exitPerimeter=0;entryX=0.5;entryY=1;entryPerimeter=0;" parent="1" edge="1" value="" target="shared-tickets">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="2440" as="sourcePoint" x="1300" />
+            <mxPoint y="2136" as="targetPoint" x="1920" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="candidate" id="edge-27" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;endArrow=block;endFill=0;endSize=16;exitX=0.35;exitY=0.52;exitPerimeter=0;entryX=0.361;entryY=0.213;entryPerimeter=0;" parent="1" edge="1" value="" target="member">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1358" as="sourcePoint" x="121" />
+            <mxPoint y="2474" as="targetPoint" x="1275" />
+            <Array as="points">
+              <mxPoint y="1358" x="47" />
+              <mxPoint y="1430" x="47" />
+              <mxPoint y="1430" x="145" />
+              <mxPoint y="2500" x="145" />
+              <mxPoint y="2500" x="1245" />
+              <mxPoint y="2474" x="1245" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="admin" id="edge-28" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;endArrow=block;endFill=0;endSize=16;exitX=0.633;exitY=0.52;exitPerimeter=0;entryX=0.639;entryY=0.213;entryPerimeter=0;" parent="1" edge="1" value="" target="member">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1358" as="sourcePoint" x="2489" />
+            <mxPoint y="2474" as="targetPoint" x="1325" />
+            <Array as="points">
+              <mxPoint y="1358" x="2573" />
+              <mxPoint y="1430" x="2573" />
+              <mxPoint y="1430" x="2465" />
+              <mxPoint y="2500" x="2465" />
+              <mxPoint y="2500" x="1355" />
+              <mxPoint y="2474" x="1355" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="consultant" id="edge-29" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;endArrow=block;endFill=0;endSize=16;exitX=0.639;exitY=0.227;exitPerimeter=0;entryX=0.639;entryY=0.213;entryPerimeter=0;" parent="1" edge="1" value="" target="member">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="489" as="sourcePoint" x="2490" />
+            <mxPoint y="2474" as="targetPoint" x="1325" />
+            <Array as="points">
+              <mxPoint y="515" x="2580" />
+              <mxPoint y="2550" x="2580" />
+              <mxPoint y="2550" x="1450" />
+              <mxPoint y="2500" x="1450" />
+              <mxPoint y="2500" x="1355" />
+              <mxPoint y="2474" x="1355" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="guest-browse" value="Tra cứu việc làm,&#xA;kỹ năng, mẫu CV và gói">
+          <mxGeometry y="365" width="550" as="geometry" height="90" x="540" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="guest-identity" value="Đăng ký / xác minh email&#xA;và đăng nhập">
+          <mxGeometry y="480" width="550" as="geometry" height="90" x="540" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="guest-trial" value="Dùng thử CV, gợi ý việc làm&#xA;và assistant">
+          <mxGeometry y="595" width="550" as="geometry" height="90" x="540" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="candidate-profile" value="Quản lý hồ sơ nghề nghiệp">
+          <mxGeometry y="875" width="550" as="geometry" height="90" x="540" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="candidate-cv" value="Quản lý và xác nhận CV">
+          <mxGeometry y="990" width="550" as="geometry" height="90" x="540" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="candidate-analysis" value="Phân tích CV / ATS theo job">
+          <mxGeometry y="1105" width="550" as="geometry" height="90" x="540" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="candidate-matching" value="Tìm việc phù hợp&#xA;và phản hồi kết quả">
+          <mxGeometry y="1220" width="550" as="geometry" height="90" x="540" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="candidate-draft" value="Tạo CV theo job,&#xA;soạn email / cover letter">
+          <mxGeometry y="1335" width="550" as="geometry" height="90" x="540" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="candidate-learning" value="Đánh giá kỹ năng&#xA;và theo dõi lộ trình học">
+          <mxGeometry y="1450" width="550" as="geometry" height="90" x="540" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="candidate-chat" value="Chat tư vấn nghề nghiệp&#xA;và ước lượng lương">
+          <mxGeometry y="1565" width="550" as="geometry" height="90" x="540" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="candidate-consult" value="Yêu cầu và trao đổi&#xA;tư vấn với consultant">
+          <mxGeometry y="1680" width="550" as="geometry" height="90" x="540" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="consultant-requests" value="Xem yêu cầu tư vấn&#xA;được phân công">
+          <mxGeometry y="365" width="550" as="geometry" height="90" x="1510" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="consultant-reports" value="Xem hồ sơ / báo cáo ứng viên&#xA;trong thread có quyền">
+          <mxGeometry y="480" width="550" as="geometry" height="90" x="1510" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="consultant-discussion" value="Trao đổi và đóng&#xA;hội thoại tư vấn">
+          <mxGeometry y="595" width="550" as="geometry" height="90" x="1510" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="admin-users" value="Quản lý tài khoản người dùng">
+          <mxGeometry y="875" width="550" as="geometry" height="90" x="1510" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="admin-tiers" value="Quản lý gói và quota">
+          <mxGeometry y="990" width="550" as="geometry" height="90" x="1510" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="admin-jobs" value="Import / crawl / index&#xA;và quản lý việc làm">
+          <mxGeometry y="1105" width="550" as="geometry" height="90" x="1510" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="admin-ai" value="Cấu hình AI / prompt&#xA;và tài liệu RAG">
+          <mxGeometry y="1220" width="550" as="geometry" height="90" x="1510" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="admin-assign" value="Phân công tư vấn">
+          <mxGeometry y="1335" width="550" as="geometry" height="90" x="1510" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="admin-support" value="Quản lý thông báo&#xA;và ticket hỗ trợ">
+          <mxGeometry y="1450" width="550" as="geometry" height="90" x="1510" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="admin-billing" value="Xử lý phản ánh thanh toán">
+          <mxGeometry y="1565" width="550" as="geometry" height="90" x="1510" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="admin-monitoring" value="Xem dashboard, usage&#xA;và audit / monitoring">
+          <mxGeometry y="1680" width="550" as="geometry" height="90" x="1510" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="shared-account" value="Quản lý tài khoản,&#xA;mật khẩu và phiên">
+          <mxGeometry y="2040" width="370" as="geometry" height="96" x="490" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="shared-payments" value="Xem / quản lý gói,&#xA;đơn và hóa đơn">
+          <mxGeometry y="2040" width="370" as="geometry" height="96" x="905" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="shared-notifications" value="Xem thông báo&#xA;và đánh dấu đã đọc">
+          <mxGeometry y="2040" width="370" as="geometry" height="96" x="1320" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="shared-tickets" value="Tạo và trao đổi&#xA;ticket hỗ trợ">
+          <mxGeometry y="2040" width="370" as="geometry" height="96" x="1735" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="group;" id="guest" value="">
+          <mxGeometry y="455" width="160" as="geometry" height="150" x="65" />
+        </mxCell>
+        <mxCell vertex="1" parent="guest" style="ellipse;html=0;fillColor=#ffffff;strokeColor=#29465f;strokeWidth=1.9;" id="guest-head" value="">
+          <mxGeometry y="0" width="22" as="geometry" height="22" x="69" />
+        </mxCell>
+        <mxCell parent="guest" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="guest-body">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="22" as="sourcePoint" x="80" />
+            <mxPoint y="53" as="targetPoint" x="80" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="guest" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="guest-arms">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="34" as="sourcePoint" x="55" />
+            <mxPoint y="34" as="targetPoint" x="105" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="guest" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="guest-left-leg">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="53" as="sourcePoint" x="80" />
+            <mxPoint y="78" as="targetPoint" x="56" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="guest" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="guest-right-leg">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="53" as="sourcePoint" x="80" />
+            <mxPoint y="78" as="targetPoint" x="104" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell vertex="1" parent="guest" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;verticalAlign=top;fontSize=19;fontStyle=1;fontColor=#29465f;" id="guest-label" value="Khách&#xA;(Guest)">
+          <mxGeometry y="84" width="160" as="geometry" height="66" x="0" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="group;" id="candidate" value="">
+          <mxGeometry y="1280" width="160" as="geometry" height="150" x="65" />
+        </mxCell>
+        <mxCell vertex="1" parent="candidate" style="ellipse;html=0;fillColor=#ffffff;strokeColor=#29465f;strokeWidth=1.9;" id="candidate-head" value="">
+          <mxGeometry y="0" width="22" as="geometry" height="22" x="69" />
+        </mxCell>
+        <mxCell parent="candidate" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="candidate-body">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="22" as="sourcePoint" x="80" />
+            <mxPoint y="53" as="targetPoint" x="80" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="candidate" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="candidate-arms">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="34" as="sourcePoint" x="55" />
+            <mxPoint y="34" as="targetPoint" x="105" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="candidate" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="candidate-left-leg">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="53" as="sourcePoint" x="80" />
+            <mxPoint y="78" as="targetPoint" x="56" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="candidate" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="candidate-right-leg">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="53" as="sourcePoint" x="80" />
+            <mxPoint y="78" as="targetPoint" x="104" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell vertex="1" parent="candidate" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;verticalAlign=top;fontSize=19;fontStyle=1;fontColor=#29465f;" id="candidate-label" value="Ứng viên&#xA;(Candidate)">
+          <mxGeometry y="84" width="160" as="geometry" height="66" x="0" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="group;" id="consultant" value="">
+          <mxGeometry y="455" width="180" as="geometry" height="150" x="2375" />
+        </mxCell>
+        <mxCell vertex="1" parent="consultant" style="ellipse;html=0;fillColor=#ffffff;strokeColor=#29465f;strokeWidth=1.9;" id="consultant-head" value="">
+          <mxGeometry y="0" width="22" as="geometry" height="22" x="79" />
+        </mxCell>
+        <mxCell parent="consultant" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="consultant-body">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="22" as="sourcePoint" x="90" />
+            <mxPoint y="53" as="targetPoint" x="90" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="consultant" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="consultant-arms">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="34" as="sourcePoint" x="65" />
+            <mxPoint y="34" as="targetPoint" x="115" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="consultant" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="consultant-left-leg">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="53" as="sourcePoint" x="90" />
+            <mxPoint y="78" as="targetPoint" x="66" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="consultant" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="consultant-right-leg">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="53" as="sourcePoint" x="90" />
+            <mxPoint y="78" as="targetPoint" x="114" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell vertex="1" parent="consultant" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;verticalAlign=top;fontSize=19;fontStyle=1;fontColor=#29465f;" id="consultant-label" value="Chuyên viên tư vấn&#xA;(Consultant)">
+          <mxGeometry y="84" width="180" as="geometry" height="66" x="0" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="group;" id="admin" value="">
+          <mxGeometry y="1280" width="180" as="geometry" height="150" x="2375" />
+        </mxCell>
+        <mxCell vertex="1" parent="admin" style="ellipse;html=0;fillColor=#ffffff;strokeColor=#29465f;strokeWidth=1.9;" id="admin-head" value="">
+          <mxGeometry y="0" width="22" as="geometry" height="22" x="79" />
+        </mxCell>
+        <mxCell parent="admin" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="admin-body">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="22" as="sourcePoint" x="90" />
+            <mxPoint y="53" as="targetPoint" x="90" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="admin" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="admin-arms">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="34" as="sourcePoint" x="65" />
+            <mxPoint y="34" as="targetPoint" x="115" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="admin" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="admin-left-leg">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="53" as="sourcePoint" x="90" />
+            <mxPoint y="78" as="targetPoint" x="66" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="admin" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="admin-right-leg">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="53" as="sourcePoint" x="90" />
+            <mxPoint y="78" as="targetPoint" x="114" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell vertex="1" parent="admin" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;verticalAlign=top;fontSize=19;fontStyle=1;fontColor=#29465f;" id="admin-label" value="Quản trị viên&#xA;(Admin)">
+          <mxGeometry y="84" width="180" as="geometry" height="66" x="0" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="group;" id="member" value="">
+          <mxGeometry y="2440" width="180" as="geometry" height="160" x="1210" />
+        </mxCell>
+        <mxCell vertex="1" parent="member" style="ellipse;html=0;fillColor=#ffffff;strokeColor=#29465f;strokeWidth=1.9;" id="member-head" value="">
+          <mxGeometry y="0" width="22" as="geometry" height="22" x="79" />
+        </mxCell>
+        <mxCell parent="member" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="member-body">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="22" as="sourcePoint" x="90" />
+            <mxPoint y="53" as="targetPoint" x="90" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="member" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="member-arms">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="34" as="sourcePoint" x="65" />
+            <mxPoint y="34" as="targetPoint" x="115" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="member" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="member-left-leg">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="53" as="sourcePoint" x="90" />
+            <mxPoint y="78" as="targetPoint" x="66" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="member" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="member-right-leg">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="53" as="sourcePoint" x="90" />
+            <mxPoint y="78" as="targetPoint" x="114" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell vertex="1" parent="member" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;verticalAlign=top;fontSize=19;fontStyle=1;fontColor=#29465f;" id="member-label" value="Người dùng&#xA;đã đăng nhập">
+          <mxGeometry y="84" width="180" as="geometry" height="76" x="0" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=1;arcSize=5;whiteSpace=wrap;html=0;align=left;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=16;fontColor=#52647b;fillColor=#F8FAFC;strokeColor=#d5dfeb;strokeWidth=1;" id="note-1" value="Phân nhóm theo vai trò nghiệp vụ.&#xA;CV, profile và assistant còn kiểm tra ownership;&#xA;không phải ma trận quyền API đầy đủ.">
+          <mxGeometry y="2400" width="650" as="geometry" height="100" x="350" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=1;arcSize=5;whiteSpace=wrap;html=0;align=left;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=16;fontColor=#52647b;fillColor=#F8FAFC;strokeColor=#d5dfeb;strokeWidth=1;" id="note-2" value="Email ứng tuyển: bản nháp.&#xA;Chuyển sang trang tuyển dụng không đồng nghĩa&#xA;backend đã nộp hồ sơ.">
+          <mxGeometry y="2400" width="650" as="geometry" height="100" x="1590" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="candidate-detail" name="EDUNEXUS · USE CASE ỨNG VIÊN">
+    <mxGraphModel fold="1" pageWidth="2300" dx="2300" tooltips="1" guides="1" connect="1" grid="1" shadow="0" math="0" pageHeight="2310" dy="2310" gridSize="10" pageScale="1" page="1" arrows="1">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;fontSize=28;fontStyle=1;fontColor=#17324e;" id="page-title" value="EDUNEXUS · USE CASE ỨNG VIÊN">
+          <mxGeometry y="22" width="2220" as="geometry" height="45" x="40" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;fontSize=17;fontColor=#586a7f;" id="page-subtitle" value="CV · matching · assessment · roadmap · assistant · tư vấn">
+          <mxGeometry y="70" width="2220" as="geometry" height="42" x="40" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=0;fillColor=#ffffff;strokeColor=#263b52;strokeWidth=2;" id="system-boundary" value="">
+          <mxGeometry y="180" width="1730" as="geometry" height="1940" x="310" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;align=left;fontSize=23;fontStyle=1;fontColor=#17324e;" id="system-boundary-label" value="Hệ thống EduNexus · chức năng ứng viên">
+          <mxGeometry y="192" width="1690" as="geometry" height="40" x="330" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=1;arcSize=5;html=0;fillColor=#F0FDFA;strokeColor=#d5dfeb;strokeWidth=1;" id="candidate-main" value="">
+          <mxGeometry y="250" width="840" as="geometry" height="1770" x="425" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;align=left;fontSize=18;fontStyle=1;fontColor=#455e7a;" id="candidate-main-label" value="Mục tiêu của ứng viên">
+          <mxGeometry y="259" width="808" as="geometry" height="34" x="441" />
+        </mxCell>
+        <mxCell source="candidate" id="edge-1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="profile">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1084" as="sourcePoint" x="160" />
+            <mxPoint y="345" as="targetPoint" x="500" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="candidate" id="edge-2" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="cv">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1084" as="sourcePoint" x="160" />
+            <mxPoint y="460" as="targetPoint" x="500" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="candidate" id="edge-3" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="confirm">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1084" as="sourcePoint" x="160" />
+            <mxPoint y="575" as="targetPoint" x="500" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="candidate" id="edge-4" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="analysis">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1084" as="sourcePoint" x="160" />
+            <mxPoint y="690" as="targetPoint" x="500" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="candidate" id="edge-5" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="matching">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1084" as="sourcePoint" x="160" />
+            <mxPoint y="805" as="targetPoint" x="500" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="candidate" id="edge-6" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="ats">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1084" as="sourcePoint" x="160" />
+            <mxPoint y="920" as="targetPoint" x="500" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="candidate" id="edge-7" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="job-cv">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1084" as="sourcePoint" x="160" />
+            <mxPoint y="1035" as="targetPoint" x="500" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="candidate" id="edge-8" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="draft">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1084" as="sourcePoint" x="160" />
+            <mxPoint y="1150" as="targetPoint" x="500" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="candidate" id="edge-9" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="salary">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1084" as="sourcePoint" x="160" />
+            <mxPoint y="1265" as="targetPoint" x="500" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="candidate" id="edge-10" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="assessment">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1084" as="sourcePoint" x="160" />
+            <mxPoint y="1380" as="targetPoint" x="500" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="candidate" id="edge-11" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="submit">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1084" as="sourcePoint" x="160" />
+            <mxPoint y="1495" as="targetPoint" x="500" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="candidate" id="edge-12" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="roadmap">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1084" as="sourcePoint" x="160" />
+            <mxPoint y="1610" as="targetPoint" x="500" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="candidate" id="edge-13" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="assistant">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1084" as="sourcePoint" x="160" />
+            <mxPoint y="1725" as="targetPoint" x="500" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="candidate" id="edge-14" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="consultation">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1084" as="sourcePoint" x="160" />
+            <mxPoint y="1840" as="targetPoint" x="500" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="candidate" id="edge-15" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="apply">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1084" as="sourcePoint" x="160" />
+            <mxPoint y="1955" as="targetPoint" x="500" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="submit" id="edge-16" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;dashed=1;dashPattern=7 5;endArrow=open;endFill=0;endSize=12;exitX=1;exitY=0.5;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="grade">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1495" as="sourcePoint" x="1190" />
+            <mxPoint y="1495" as="targetPoint" x="1430" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="rag" id="edge-17" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;dashed=1;dashPattern=7 5;endArrow=open;endFill=0;endSize=12;exitX=0;exitY=0.5;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="assistant">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1725" as="sourcePoint" x="1430" />
+            <mxPoint y="1725" as="targetPoint" x="1190" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="profile" value="Quản lý hồ sơ nghề nghiệp">
+          <mxGeometry y="300" width="690" as="geometry" height="90" x="500" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="cv" value="Tạo / upload / chỉnh sửa CV">
+          <mxGeometry y="415" width="690" as="geometry" height="90" x="500" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="confirm" value="Xác nhận CV và chọn CV chính">
+          <mxGeometry y="530" width="690" as="geometry" height="90" x="500" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="analysis" value="Phân tích độ đầy đủ / chất lượng CV">
+          <mxGeometry y="645" width="690" as="geometry" height="90" x="500" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="matching" value="Tìm việc phù hợp và phản hồi">
+          <mxGeometry y="760" width="690" as="geometry" height="90" x="500" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="ats" value="Phân tích ATS theo việc làm">
+          <mxGeometry y="875" width="690" as="geometry" height="90" x="500" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="job-cv" value="Tạo CV hướng tới việc làm">
+          <mxGeometry y="990" width="690" as="geometry" height="90" x="500" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="draft" value="Soạn / sửa email và cover letter">
+          <mxGeometry y="1105" width="690" as="geometry" height="90" x="500" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="salary" value="Ước lượng lương">
+          <mxGeometry y="1220" width="690" as="geometry" height="90" x="500" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="assessment" value="Tạo và trả lời bài đánh giá kỹ năng">
+          <mxGeometry y="1335" width="690" as="geometry" height="90" x="500" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="submit" value="Nộp bài đánh giá kỹ năng">
+          <mxGeometry y="1450" width="690" as="geometry" height="90" x="500" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="roadmap" value="Tạo lộ trình học và cập nhật tiến độ">
+          <mxGeometry y="1565" width="690" as="geometry" height="90" x="500" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="assistant" value="Trao đổi với trợ lý AI">
+          <mxGeometry y="1680" width="690" as="geometry" height="90" x="500" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="consultation" value="Yêu cầu / trao đổi tư vấn với consultant">
+          <mxGeometry y="1795" width="690" as="geometry" height="90" x="500" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="apply" value="Mở trang ứng tuyển gốc">
+          <mxGeometry y="1910" width="690" as="geometry" height="90" x="500" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#F5F3FF;strokeColor=#3d5875;strokeWidth=1.7;" id="grade" value="Chấm điểm và tổng hợp&#xA;kết quả kỹ năng">
+          <mxGeometry y="1450" width="520" as="geometry" height="90" x="1430" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#EFF6FF;strokeColor=#3d5875;strokeWidth=1.7;" id="rag" value="Truy xuất tài liệu RAG">
+          <mxGeometry y="1680" width="520" as="geometry" height="90" x="1430" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="group;" id="candidate" value="">
+          <mxGeometry y="1050" width="160" as="geometry" height="150" x="55" />
+        </mxCell>
+        <mxCell vertex="1" parent="candidate" style="ellipse;html=0;fillColor=#ffffff;strokeColor=#29465f;strokeWidth=1.9;" id="candidate-head" value="">
+          <mxGeometry y="0" width="22" as="geometry" height="22" x="69" />
+        </mxCell>
+        <mxCell parent="candidate" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="candidate-body">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="22" as="sourcePoint" x="80" />
+            <mxPoint y="53" as="targetPoint" x="80" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="candidate" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="candidate-arms">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="34" as="sourcePoint" x="55" />
+            <mxPoint y="34" as="targetPoint" x="105" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="candidate" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="candidate-left-leg">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="53" as="sourcePoint" x="80" />
+            <mxPoint y="78" as="targetPoint" x="56" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="candidate" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="candidate-right-leg">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="53" as="sourcePoint" x="80" />
+            <mxPoint y="78" as="targetPoint" x="104" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell vertex="1" parent="candidate" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;verticalAlign=top;fontSize=19;fontStyle=1;fontColor=#29465f;" id="candidate-label" value="Ứng viên">
+          <mxGeometry y="84" width="160" as="geometry" height="66" x="0" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;fontSize=16;fontColor=#40526b;fillColor=#ffffff;" id="edge-label-16" value="«include»">
+          <mxGeometry y="1450.6" width="79.227" as="geometry" height="28.8" x="1270.387" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;fontSize=16;fontColor=#40526b;fillColor=#ffffff;" id="edge-label-17" value="«extend»">
+          <mxGeometry y="1680.6" width="76.164" as="geometry" height="28.8" x="1271.918" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=1;arcSize=5;whiteSpace=wrap;html=0;align=left;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=16;fontColor=#52647b;fillColor=#F8FAFC;strokeColor=#d5dfeb;strokeWidth=1;" id="note-1" value="Điều kiện sử dụng:&#xA;• Phân tích CV / ATS: CV của người dùng, READY.&#xA;• Matching: career profile hoặc CV READY.&#xA;• ATS / draft theo job: việc làm ACTIVE.&#xA;• Assessment chọn cho roadmap: đã completed.&#xA;• Tài nguyên học lấy từ catalog.&#xA;Các điều kiện này không phải «include».">
+          <mxGeometry y="310" width="600" as="geometry" height="300" x="1390" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=1;arcSize=5;whiteSpace=wrap;html=0;align=left;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=16;fontColor=#52647b;fillColor=#F8FAFC;strokeColor=#d5dfeb;strokeWidth=1;" id="note-2" value="Tạo bài, nộp bài và sinh roadmap&#xA;là các thao tác API độc lập.&#xA;Nộp lần đầu chấm điểm; nộp lại trả kết quả đã lưu.&#xA;&#xA;Email / cover letter chỉ là draft.&#xA;Ứng tuyển trả URL, không tự gửi đơn.">
+          <mxGeometry y="800" width="600" as="geometry" height="240" x="1390" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=1;arcSize=5;whiteSpace=wrap;html=0;align=left;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=16;fontColor=#52647b;fillColor=#F8FAFC;strokeColor=#d5dfeb;strokeWidth=1;" id="note-3" value="RAG mở rộng chat khi retrieve=true&#xA;và người dùng đã đăng nhập.&#xA;Guest không truy xuất tài liệu RAG.&#xA;Cần chat + embedding được cấu hình.">
+          <mxGeometry y="1800" width="600" as="geometry" height="175" x="1390" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=1;arcSize=5;whiteSpace=wrap;html=0;align=left;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=16;fontColor=#52647b;fillColor=#F8FAFC;strokeColor=#d5dfeb;strokeWidth=1;" id="note-4" value="Use case theo mục tiêu nghiệp vụ; API CV/profile/assistant còn dựa vào đăng nhập và ownership.&#xA;«include»: hành vi bắt buộc của use case. «extend»: nhánh mở rộng có điều kiện.">
+          <mxGeometry y="2160" width="1670" as="geometry" height="90" x="340" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="admin-detail" name="EDUNEXUS · USE CASE QUẢN TRỊ">
+    <mxGraphModel fold="1" pageWidth="2300" dx="2300" tooltips="1" guides="1" connect="1" grid="1" shadow="0" math="0" pageHeight="2150" dy="2150" gridSize="10" pageScale="1" page="1" arrows="1">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;fontSize=28;fontStyle=1;fontColor=#17324e;" id="page-title" value="EDUNEXUS · USE CASE QUẢN TRỊ">
+          <mxGeometry y="22" width="2220" as="geometry" height="45" x="40" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;fontSize=17;fontColor=#586a7f;" id="page-subtitle" value="Tài khoản · việc làm · AI / RAG · tư vấn · hỗ trợ · giám sát">
+          <mxGeometry y="70" width="2220" as="geometry" height="42" x="40" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=0;fillColor=#ffffff;strokeColor=#263b52;strokeWidth=2;" id="system-boundary" value="">
+          <mxGeometry y="180" width="1730" as="geometry" height="1780" x="310" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;align=left;fontSize=23;fontStyle=1;fontColor=#17324e;" id="system-boundary-label" value="Hệ thống EduNexus · chức năng quản trị">
+          <mxGeometry y="192" width="1690" as="geometry" height="40" x="330" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=1;arcSize=5;html=0;fillColor=#FFF7ED;strokeColor=#d5dfeb;strokeWidth=1;" id="admin-main" value="">
+          <mxGeometry y="250" width="840" as="geometry" height="1670" x="425" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;align=left;fontSize=18;fontStyle=1;fontColor=#455e7a;" id="admin-main-label" value="Quản trị và vận hành">
+          <mxGeometry y="259" width="808" as="geometry" height="34" x="441" />
+        </mxCell>
+        <mxCell source="admin" id="edge-1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="users">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1024" as="sourcePoint" x="160" />
+            <mxPoint y="345" as="targetPoint" x="500" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="admin" id="edge-2" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="tiers">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1024" as="sourcePoint" x="160" />
+            <mxPoint y="460" as="targetPoint" x="500" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="admin" id="edge-3" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="import">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1024" as="sourcePoint" x="160" />
+            <mxPoint y="575" as="targetPoint" x="500" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="admin" id="edge-4" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="crawl">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1024" as="sourcePoint" x="160" />
+            <mxPoint y="690" as="targetPoint" x="500" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="admin" id="edge-5" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="index">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1024" as="sourcePoint" x="160" />
+            <mxPoint y="805" as="targetPoint" x="500" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="admin" id="edge-6" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="config">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1024" as="sourcePoint" x="160" />
+            <mxPoint y="920" as="targetPoint" x="500" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="admin" id="edge-7" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="restore">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1024" as="sourcePoint" x="160" />
+            <mxPoint y="1035" as="targetPoint" x="500" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="admin" id="edge-8" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="rag-manage">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1024" as="sourcePoint" x="160" />
+            <mxPoint y="1150" as="targetPoint" x="500" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="admin" id="edge-9" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="rag-index">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1024" as="sourcePoint" x="160" />
+            <mxPoint y="1265" as="targetPoint" x="500" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="admin" id="edge-10" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="assign">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1024" as="sourcePoint" x="160" />
+            <mxPoint y="1380" as="targetPoint" x="500" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="admin" id="edge-11" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="announcements">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1024" as="sourcePoint" x="160" />
+            <mxPoint y="1495" as="targetPoint" x="500" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="admin" id="edge-12" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="tickets">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1024" as="sourcePoint" x="160" />
+            <mxPoint y="1610" as="targetPoint" x="500" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="admin" id="edge-13" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="payment-reports">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1024" as="sourcePoint" x="160" />
+            <mxPoint y="1725" as="targetPoint" x="500" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="admin" id="edge-14" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="monitoring">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1024" as="sourcePoint" x="160" />
+            <mxPoint y="1840" as="targetPoint" x="500" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="crawl" id="edge-15" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;dashed=1;dashPattern=7 5;endArrow=open;endFill=0;endSize=12;exitX=1;exitY=0.5;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="fetch">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="690" as="sourcePoint" x="1190" />
+            <mxPoint y="690" as="targetPoint" x="1430" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="index" id="edge-16" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;dashed=1;dashPattern=7 5;endArrow=open;endFill=0;endSize=12;exitX=1;exitY=0.5;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="embed">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="805" as="sourcePoint" x="1190" />
+            <mxPoint y="805" as="targetPoint" x="1430" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="restore" id="edge-17" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;dashed=1;dashPattern=7 5;endArrow=open;endFill=0;endSize=12;exitX=1;exitY=0.5;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="version">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1035" as="sourcePoint" x="1190" />
+            <mxPoint y="1035" as="targetPoint" x="1430" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="job-source" id="edge-18" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.348;exitY=0.219;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="fetch">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="654" as="sourcePoint" x="2157.5" />
+            <mxPoint y="690" as="targetPoint" x="1950" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="ai" id="edge-19" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.348;exitY=0.219;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="embed">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="864" as="sourcePoint" x="2157.5" />
+            <mxPoint y="805" as="targetPoint" x="1950" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="users" value="Quản lý người dùng và trạng thái tài khoản">
+          <mxGeometry y="300" width="690" as="geometry" height="90" x="500" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="tiers" value="Quản lý gói dịch vụ và quota">
+          <mxGeometry y="415" width="690" as="geometry" height="90" x="500" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="import" value="Import việc làm thủ công">
+          <mxGeometry y="530" width="690" as="geometry" height="90" x="500" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="crawl" value="Crawl URL việc làm được cung cấp">
+          <mxGeometry y="645" width="690" as="geometry" height="90" x="500" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="index" value="Index embedding cho việc làm">
+          <mxGeometry y="760" width="690" as="geometry" height="90" x="500" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="config" value="Lưu cấu hình AI và prompt">
+          <mxGeometry y="875" width="690" as="geometry" height="90" x="500" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="restore" value="Khôi phục cấu hình / prompt cũ">
+          <mxGeometry y="990" width="690" as="geometry" height="90" x="500" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="rag-manage" value="Tạo / xem / vô hiệu hóa tài liệu RAG">
+          <mxGeometry y="1105" width="690" as="geometry" height="90" x="500" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="rag-index" value="Index tài liệu RAG">
+          <mxGeometry y="1220" width="690" as="geometry" height="90" x="500" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="assign" value="Phân công consultant">
+          <mxGeometry y="1335" width="690" as="geometry" height="90" x="500" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="announcements" value="Tạo / xuất bản / lưu trữ thông báo">
+          <mxGeometry y="1450" width="690" as="geometry" height="90" x="500" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="tickets" value="Xử lý và phản hồi ticket hỗ trợ">
+          <mxGeometry y="1565" width="690" as="geometry" height="90" x="500" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="payment-reports" value="Xử lý phản ánh thanh toán">
+          <mxGeometry y="1680" width="690" as="geometry" height="90" x="500" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="monitoring" value="Xem dashboard, usage và audit">
+          <mxGeometry y="1795" width="690" as="geometry" height="90" x="500" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#EFF6FF;strokeColor=#3d5875;strokeWidth=1.7;" id="fetch" value="Thu thập và đọc&#xA;trang chi tiết JobPosting">
+          <mxGeometry y="645" width="520" as="geometry" height="90" x="1430" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#F5F3FF;strokeColor=#3d5875;strokeWidth=1.7;" id="embed" value="Sinh embedding cho việc làm">
+          <mxGeometry y="760" width="520" as="geometry" height="90" x="1430" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFF7ED;strokeColor=#3d5875;strokeWidth=1.7;" id="version" value="Tạo phiên bản mới&#xA;và kích hoạt nội dung đã chọn">
+          <mxGeometry y="990" width="520" as="geometry" height="90" x="1430" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="group;" id="admin" value="">
+          <mxGeometry y="990" width="160" as="geometry" height="150" x="55" />
+        </mxCell>
+        <mxCell vertex="1" parent="admin" style="ellipse;html=0;fillColor=#ffffff;strokeColor=#29465f;strokeWidth=1.9;" id="admin-head" value="">
+          <mxGeometry y="0" width="22" as="geometry" height="22" x="69" />
+        </mxCell>
+        <mxCell parent="admin" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="admin-body">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="22" as="sourcePoint" x="80" />
+            <mxPoint y="53" as="targetPoint" x="80" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="admin" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="admin-arms">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="34" as="sourcePoint" x="55" />
+            <mxPoint y="34" as="targetPoint" x="105" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="admin" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="admin-left-leg">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="53" as="sourcePoint" x="80" />
+            <mxPoint y="78" as="targetPoint" x="56" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="admin" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="admin-right-leg">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="53" as="sourcePoint" x="80" />
+            <mxPoint y="78" as="targetPoint" x="104" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell vertex="1" parent="admin" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;verticalAlign=top;fontSize=19;fontStyle=1;fontColor=#29465f;" id="admin-label" value="Quản trị viên">
+          <mxGeometry y="84" width="160" as="geometry" height="66" x="0" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="group;" id="job-source" value="">
+          <mxGeometry y="620" width="165" as="geometry" height="155" x="2100" />
+        </mxCell>
+        <mxCell vertex="1" parent="job-source" style="ellipse;html=0;fillColor=#ffffff;strokeColor=#29465f;strokeWidth=1.9;" id="job-source-head" value="">
+          <mxGeometry y="0" width="22" as="geometry" height="22" x="71.5" />
+        </mxCell>
+        <mxCell parent="job-source" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="job-source-body">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="22" as="sourcePoint" x="82.5" />
+            <mxPoint y="53" as="targetPoint" x="82.5" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="job-source" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="job-source-arms">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="34" as="sourcePoint" x="57.5" />
+            <mxPoint y="34" as="targetPoint" x="107.5" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="job-source" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="job-source-left-leg">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="53" as="sourcePoint" x="82.5" />
+            <mxPoint y="78" as="targetPoint" x="58.5" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="job-source" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="job-source-right-leg">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="53" as="sourcePoint" x="82.5" />
+            <mxPoint y="78" as="targetPoint" x="106.5" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell vertex="1" parent="job-source" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;verticalAlign=top;fontSize=19;fontStyle=1;fontColor=#29465f;" id="job-source-label" value="ITviec / TopCV&#xA;«hệ thống ngoài»">
+          <mxGeometry y="84" width="165" as="geometry" height="71" x="0" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="group;" id="ai" value="">
+          <mxGeometry y="830" width="165" as="geometry" height="155" x="2100" />
+        </mxCell>
+        <mxCell vertex="1" parent="ai" style="ellipse;html=0;fillColor=#ffffff;strokeColor=#29465f;strokeWidth=1.9;" id="ai-head" value="">
+          <mxGeometry y="0" width="22" as="geometry" height="22" x="71.5" />
+        </mxCell>
+        <mxCell parent="ai" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="ai-body">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="22" as="sourcePoint" x="82.5" />
+            <mxPoint y="53" as="targetPoint" x="82.5" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="ai" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="ai-arms">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="34" as="sourcePoint" x="57.5" />
+            <mxPoint y="34" as="targetPoint" x="107.5" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="ai" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="ai-left-leg">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="53" as="sourcePoint" x="82.5" />
+            <mxPoint y="78" as="targetPoint" x="58.5" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="ai" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="ai-right-leg">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="53" as="sourcePoint" x="82.5" />
+            <mxPoint y="78" as="targetPoint" x="106.5" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell vertex="1" parent="ai" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;verticalAlign=top;fontSize=19;fontStyle=1;fontColor=#29465f;" id="ai-label" value="AI provider&#xA;«hệ thống ngoài»">
+          <mxGeometry y="84" width="165" as="geometry" height="71" x="0" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;fontSize=16;fontColor=#40526b;fillColor=#ffffff;" id="edge-label-15" value="«include»">
+          <mxGeometry y="645.6" width="79.227" as="geometry" height="28.8" x="1270.387" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;fontSize=16;fontColor=#40526b;fillColor=#ffffff;" id="edge-label-16" value="«include»">
+          <mxGeometry y="760.6" width="79.227" as="geometry" height="28.8" x="1270.387" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;fontSize=16;fontColor=#40526b;fillColor=#ffffff;" id="edge-label-17" value="«include»">
+          <mxGeometry y="990.6" width="79.227" as="geometry" height="28.8" x="1270.387" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=1;arcSize=5;whiteSpace=wrap;html=0;align=left;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=16;fontColor=#52647b;fillColor=#F8FAFC;strokeColor=#d5dfeb;strokeWidth=1;" id="note-1" value="Crawl chỉ đọc URL chi tiết do admin đưa vào;&#xA;keyword là nhãn, không tự tìm kiếm URL.&#xA;Import / crawl không tự index.&#xA;&#xA;Index job / RAG cần provider embedding.&#xA;RAG index có thể tái dùng chunk đã indexed.">
+          <mxGeometry y="300" width="600" as="geometry" height="230" x="1390" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=1;arcSize=5;whiteSpace=wrap;html=0;align=left;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=16;fontColor=#52647b;fillColor=#F8FAFC;strokeColor=#d5dfeb;strokeWidth=1;" id="note-2" value="Khôi phục v1 khi đã có v2 sẽ tạo v3&#xA;chứa nội dung v1; giữ nguyên lịch sử.&#xA;&#xA;Thông báo nằm trong ứng dụng.&#xA;Giải quyết payment report chưa tự refund.&#xA;Đổi role / đình chỉ / xóa user thu hồi token.&#xA;Phân công thread quyết định quyền consultant.">
+          <mxGeometry y="1220" width="600" as="geometry" height="330" x="1390" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=1;arcSize=5;whiteSpace=wrap;html=0;align=left;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=16;fontColor=#52647b;fillColor=#F8FAFC;strokeColor=#d5dfeb;strokeWidth=1;" id="note-3" value="Sơ đồ mô tả chức năng đã có trong backend; chưa thêm chức năng checkout, tự thu tiền hay refund.&#xA;Nguồn tuyển dụng và AI provider là actor hỗ trợ, nằm ngoài biên hệ thống.">
+          <mxGeometry y="2000" width="1670" as="geometry" height="90" x="340" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="shared-integrations" name="EDUNEXUS · USE CASE CHUNG VÀ TÍCH HỢP">
+    <mxGraphModel fold="1" pageWidth="2600" dx="2600" tooltips="1" guides="1" connect="1" grid="1" shadow="0" math="0" pageHeight="2170" dy="2170" gridSize="10" pageScale="1" page="1" arrows="1">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;fontSize=28;fontStyle=1;fontColor=#17324e;" id="page-title" value="EDUNEXUS · USE CASE CHUNG VÀ TÍCH HỢP">
+          <mxGeometry y="22" width="2520" as="geometry" height="45" x="40" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;fontSize=17;fontColor=#586a7f;" id="page-subtitle" value="Xác thực · dùng thử · tài khoản · hỗ trợ · webhook thanh toán">
+          <mxGeometry y="70" width="2520" as="geometry" height="42" x="40" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=0;fillColor=#ffffff;strokeColor=#263b52;strokeWidth=2;" id="system-boundary" value="">
+          <mxGeometry y="180" width="1940" as="geometry" height="1830" x="330" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;align=left;fontSize=23;fontStyle=1;fontColor=#17324e;" id="system-boundary-label" value="Hệ thống EduNexus">
+          <mxGeometry y="192" width="1900" as="geometry" height="40" x="350" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=1;arcSize=5;html=0;fillColor=#EFF6FF;strokeColor=#d5dfeb;strokeWidth=1;" id="shared-main" value="">
+          <mxGeometry y="250" width="860" as="geometry" height="1670" x="445" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;align=left;fontSize=18;fontStyle=1;fontColor=#455e7a;" id="shared-main-label" value="Xác thực, dùng thử và chức năng chung">
+          <mxGeometry y="259" width="828" as="geometry" height="34" x="461" />
+        </mxCell>
+        <mxCell source="guest" id="edge-1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="register">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="659" as="sourcePoint" x="160" />
+            <mxPoint y="336" as="targetPoint" x="530" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="guest" id="edge-2" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="verify">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="659" as="sourcePoint" x="160" />
+            <mxPoint y="466" as="targetPoint" x="530" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="guest" id="edge-3" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="resend">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="659" as="sourcePoint" x="160" />
+            <mxPoint y="596" as="targetPoint" x="530" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="guest" id="edge-4" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="email-login">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="659" as="sourcePoint" x="160" />
+            <mxPoint y="726" as="targetPoint" x="530" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="guest" id="edge-5" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="google-login">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="659" as="sourcePoint" x="160" />
+            <mxPoint y="856" as="targetPoint" x="530" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="guest" id="edge-6" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="trial">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="659" as="sourcePoint" x="160" />
+            <mxPoint y="986" as="targetPoint" x="530" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="guest" id="edge-7" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.656;exitY=0.227;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="trial-chat">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="659" as="sourcePoint" x="160" />
+            <mxPoint y="1116" as="targetPoint" x="530" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="member" id="edge-8" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.639;exitY=0.213;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="account">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1424" as="sourcePoint" x="160" />
+            <mxPoint y="1246" as="targetPoint" x="530" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="member" id="edge-9" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.639;exitY=0.213;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="billing">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1424" as="sourcePoint" x="160" />
+            <mxPoint y="1376" as="targetPoint" x="530" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="member" id="edge-10" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.639;exitY=0.213;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="notifications">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1424" as="sourcePoint" x="160" />
+            <mxPoint y="1506" as="targetPoint" x="530" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="member" id="edge-11" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.639;exitY=0.213;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="support">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1424" as="sourcePoint" x="160" />
+            <mxPoint y="1636" as="targetPoint" x="530" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="register" id="edge-12" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;dashed=1;dashPattern=7 5;endArrow=open;endFill=0;endSize=12;exitX=1;exitY=0.5;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="issue-code">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="336" as="sourcePoint" x="1220" />
+            <mxPoint y="336" as="targetPoint" x="1470" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="resend" id="edge-13" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;dashed=1;dashPattern=7 5;endArrow=open;endFill=0;endSize=12;exitX=1;exitY=0.5;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="issue-code">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="596" as="sourcePoint" x="1220" />
+            <mxPoint y="336" as="targetPoint" x="1470" />
+            <Array as="points">
+              <mxPoint y="596" x="1360" />
+              <mxPoint y="336" x="1360" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="send-mail" id="edge-14" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;dashed=1;dashPattern=7 5;endArrow=open;endFill=0;endSize=12;exitX=0.5;exitY=0;exitPerimeter=0;entryX=0.5;entryY=1;entryPerimeter=0;" parent="1" edge="1" value="" target="issue-code">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="470" as="sourcePoint" x="1745" />
+            <mxPoint y="382" as="targetPoint" x="1745" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="smtp" id="edge-15" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.361;exitY=0.219;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="send-mail">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="484" as="sourcePoint" x="2440" />
+            <mxPoint y="516" as="targetPoint" x="2020" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="google-login" id="edge-16" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;dashed=1;dashPattern=7 5;endArrow=open;endFill=0;endSize=12;exitX=1;exitY=0.5;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="google-check">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="856" as="sourcePoint" x="1220" />
+            <mxPoint y="856" as="targetPoint" x="1470" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="google" id="edge-17" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.361;exitY=0.219;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="google-check">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="824" as="sourcePoint" x="2440" />
+            <mxPoint y="856" as="targetPoint" x="2020" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="trial-chat" id="edge-18" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;dashed=1;dashPattern=7 5;endArrow=open;endFill=0;endSize=12;exitX=1;exitY=0.5;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="trial-ai">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1116" as="sourcePoint" x="1220" />
+            <mxPoint y="1116" as="targetPoint" x="1470" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="ai" id="edge-19" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.361;exitY=0.219;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="trial-ai">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1084" as="sourcePoint" x="2440" />
+            <mxPoint y="1116" as="targetPoint" x="2020" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="payment" id="edge-20" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;exitX=0.361;exitY=0.219;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="webhook">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1474" as="sourcePoint" x="2440" />
+            <mxPoint y="1506" as="targetPoint" x="2020" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="webhook" id="edge-21" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;dashed=1;dashPattern=7 5;endArrow=open;endFill=0;endSize=12;exitX=0.5;exitY=1;exitPerimeter=0;entryX=0.5;entryY=0;entryPerimeter=0;" parent="1" edge="1" value="" target="signature">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1552" as="sourcePoint" x="1745" />
+            <mxPoint y="1610" as="targetPoint" x="1745" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell source="activate" id="edge-22" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#52647b;fontFamily=Segoe UI;fontSize=16;fontColor=#40526b;startArrow=none;endArrow=none;dashed=1;dashPattern=7 5;endArrow=open;endFill=0;endSize=12;exitX=1;exitY=0.5;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;" parent="1" edge="1" value="" target="webhook">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="1846" as="sourcePoint" x="2020" />
+            <mxPoint y="1506" as="targetPoint" x="2020" />
+            <Array as="points">
+              <mxPoint y="1846" x="2180" />
+              <mxPoint y="1506" x="2180" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="register" value="Đăng ký tài khoản">
+          <mxGeometry y="290" width="690" as="geometry" height="92" x="530" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="verify" value="Xác minh email bằng OTP">
+          <mxGeometry y="420" width="690" as="geometry" height="92" x="530" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="resend" value="Gửi lại mã xác minh">
+          <mxGeometry y="550" width="690" as="geometry" height="92" x="530" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="email-login" value="Đăng nhập bằng email">
+          <mxGeometry y="680" width="690" as="geometry" height="92" x="530" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="google-login" value="Đăng nhập bằng Google">
+          <mxGeometry y="810" width="690" as="geometry" height="92" x="530" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="trial" value="Dùng thử CV và gợi ý việc làm">
+          <mxGeometry y="940" width="690" as="geometry" height="92" x="530" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="trial-chat" value="Chat nghề nghiệp dùng thử">
+          <mxGeometry y="1070" width="690" as="geometry" height="92" x="530" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="account" value="Quản lý tài khoản / mật khẩu / phiên">
+          <mxGeometry y="1200" width="690" as="geometry" height="92" x="530" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="billing" value="Xem gói, tạo đơn, xem hóa đơn">
+          <mxGeometry y="1330" width="690" as="geometry" height="92" x="530" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="notifications" value="Xem / đánh dấu thông báo">
+          <mxGeometry y="1460" width="690" as="geometry" height="92" x="530" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="support" value="Tạo ticket và trao đổi hỗ trợ">
+          <mxGeometry y="1590" width="690" as="geometry" height="92" x="530" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="issue-code" value="Phát hành mã xác minh">
+          <mxGeometry y="290" width="550" as="geometry" height="92" x="1470" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFF7ED;strokeColor=#3d5875;strokeWidth=1.7;" id="send-mail" value="Gửi mã qua SMTP">
+          <mxGeometry y="470" width="550" as="geometry" height="92" x="1470" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#FFFFFF;strokeColor=#3d5875;strokeWidth=1.7;" id="google-check" value="Xác minh Google ID token">
+          <mxGeometry y="810" width="550" as="geometry" height="92" x="1470" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#F5F3FF;strokeColor=#3d5875;strokeWidth=1.7;" id="trial-ai" value="Sinh câu trả lời AI&#xA;cho hội thoại dùng thử">
+          <mxGeometry y="1070" width="550" as="geometry" height="92" x="1470" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#F0FDFA;strokeColor=#3d5875;strokeWidth=1.7;" id="webhook" value="Tiếp nhận webhook thanh toán">
+          <mxGeometry y="1460" width="550" as="geometry" height="92" x="1470" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#F0FDFA;strokeColor=#3d5875;strokeWidth=1.7;" id="signature" value="Kiểm tra chữ ký / timestamp&#xA;và đối chiếu đơn">
+          <mxGeometry y="1610" width="550" as="geometry" height="92" x="1470" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="ellipse;whiteSpace=wrap;html=0;align=center;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=18;fontColor=#263449;fillColor=#F0FDFA;strokeColor=#3d5875;strokeWidth=1.7;" id="activate" value="Kích hoạt gói, tạo hóa đơn&#xA;và thông báo thanh toán">
+          <mxGeometry y="1800" width="550" as="geometry" height="92" x="1470" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="group;" id="guest" value="">
+          <mxGeometry y="625" width="160" as="geometry" height="150" x="55" />
+        </mxCell>
+        <mxCell vertex="1" parent="guest" style="ellipse;html=0;fillColor=#ffffff;strokeColor=#29465f;strokeWidth=1.9;" id="guest-head" value="">
+          <mxGeometry y="0" width="22" as="geometry" height="22" x="69" />
+        </mxCell>
+        <mxCell parent="guest" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="guest-body">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="22" as="sourcePoint" x="80" />
+            <mxPoint y="53" as="targetPoint" x="80" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="guest" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="guest-arms">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="34" as="sourcePoint" x="55" />
+            <mxPoint y="34" as="targetPoint" x="105" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="guest" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="guest-left-leg">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="53" as="sourcePoint" x="80" />
+            <mxPoint y="78" as="targetPoint" x="56" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="guest" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="guest-right-leg">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="53" as="sourcePoint" x="80" />
+            <mxPoint y="78" as="targetPoint" x="104" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell vertex="1" parent="guest" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;verticalAlign=top;fontSize=19;fontStyle=1;fontColor=#29465f;" id="guest-label" value="Khách">
+          <mxGeometry y="84" width="160" as="geometry" height="66" x="0" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="group;" id="member" value="">
+          <mxGeometry y="1390" width="180" as="geometry" height="160" x="45" />
+        </mxCell>
+        <mxCell vertex="1" parent="member" style="ellipse;html=0;fillColor=#ffffff;strokeColor=#29465f;strokeWidth=1.9;" id="member-head" value="">
+          <mxGeometry y="0" width="22" as="geometry" height="22" x="79" />
+        </mxCell>
+        <mxCell parent="member" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="member-body">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="22" as="sourcePoint" x="90" />
+            <mxPoint y="53" as="targetPoint" x="90" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="member" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="member-arms">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="34" as="sourcePoint" x="65" />
+            <mxPoint y="34" as="targetPoint" x="115" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="member" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="member-left-leg">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="53" as="sourcePoint" x="90" />
+            <mxPoint y="78" as="targetPoint" x="66" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="member" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="member-right-leg">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="53" as="sourcePoint" x="90" />
+            <mxPoint y="78" as="targetPoint" x="114" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell vertex="1" parent="member" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;verticalAlign=top;fontSize=19;fontStyle=1;fontColor=#29465f;" id="member-label" value="Người dùng&#xA;đã đăng nhập">
+          <mxGeometry y="84" width="180" as="geometry" height="76" x="0" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="group;" id="smtp" value="">
+          <mxGeometry y="450" width="180" as="geometry" height="155" x="2375" />
+        </mxCell>
+        <mxCell vertex="1" parent="smtp" style="ellipse;html=0;fillColor=#ffffff;strokeColor=#29465f;strokeWidth=1.9;" id="smtp-head" value="">
+          <mxGeometry y="0" width="22" as="geometry" height="22" x="79" />
+        </mxCell>
+        <mxCell parent="smtp" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="smtp-body">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="22" as="sourcePoint" x="90" />
+            <mxPoint y="53" as="targetPoint" x="90" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="smtp" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="smtp-arms">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="34" as="sourcePoint" x="65" />
+            <mxPoint y="34" as="targetPoint" x="115" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="smtp" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="smtp-left-leg">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="53" as="sourcePoint" x="90" />
+            <mxPoint y="78" as="targetPoint" x="66" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="smtp" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="smtp-right-leg">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="53" as="sourcePoint" x="90" />
+            <mxPoint y="78" as="targetPoint" x="114" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell vertex="1" parent="smtp" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;verticalAlign=top;fontSize=19;fontStyle=1;fontColor=#29465f;" id="smtp-label" value="SMTP / Mailtrap&#xA;«hệ thống ngoài»">
+          <mxGeometry y="84" width="180" as="geometry" height="71" x="0" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="group;" id="google" value="">
+          <mxGeometry y="790" width="180" as="geometry" height="155" x="2375" />
+        </mxCell>
+        <mxCell vertex="1" parent="google" style="ellipse;html=0;fillColor=#ffffff;strokeColor=#29465f;strokeWidth=1.9;" id="google-head" value="">
+          <mxGeometry y="0" width="22" as="geometry" height="22" x="79" />
+        </mxCell>
+        <mxCell parent="google" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="google-body">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="22" as="sourcePoint" x="90" />
+            <mxPoint y="53" as="targetPoint" x="90" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="google" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="google-arms">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="34" as="sourcePoint" x="65" />
+            <mxPoint y="34" as="targetPoint" x="115" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="google" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="google-left-leg">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="53" as="sourcePoint" x="90" />
+            <mxPoint y="78" as="targetPoint" x="66" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="google" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="google-right-leg">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="53" as="sourcePoint" x="90" />
+            <mxPoint y="78" as="targetPoint" x="114" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell vertex="1" parent="google" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;verticalAlign=top;fontSize=19;fontStyle=1;fontColor=#29465f;" id="google-label" value="Google Identity&#xA;«hệ thống ngoài»">
+          <mxGeometry y="84" width="180" as="geometry" height="71" x="0" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="group;" id="ai" value="">
+          <mxGeometry y="1050" width="180" as="geometry" height="155" x="2375" />
+        </mxCell>
+        <mxCell vertex="1" parent="ai" style="ellipse;html=0;fillColor=#ffffff;strokeColor=#29465f;strokeWidth=1.9;" id="ai-head" value="">
+          <mxGeometry y="0" width="22" as="geometry" height="22" x="79" />
+        </mxCell>
+        <mxCell parent="ai" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="ai-body">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="22" as="sourcePoint" x="90" />
+            <mxPoint y="53" as="targetPoint" x="90" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="ai" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="ai-arms">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="34" as="sourcePoint" x="65" />
+            <mxPoint y="34" as="targetPoint" x="115" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="ai" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="ai-left-leg">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="53" as="sourcePoint" x="90" />
+            <mxPoint y="78" as="targetPoint" x="66" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="ai" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="ai-right-leg">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="53" as="sourcePoint" x="90" />
+            <mxPoint y="78" as="targetPoint" x="114" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell vertex="1" parent="ai" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;verticalAlign=top;fontSize=19;fontStyle=1;fontColor=#29465f;" id="ai-label" value="AI provider&#xA;«hệ thống ngoài»">
+          <mxGeometry y="84" width="180" as="geometry" height="71" x="0" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="group;" id="payment" value="">
+          <mxGeometry y="1440" width="180" as="geometry" height="155" x="2375" />
+        </mxCell>
+        <mxCell vertex="1" parent="payment" style="ellipse;html=0;fillColor=#ffffff;strokeColor=#29465f;strokeWidth=1.9;" id="payment-head" value="">
+          <mxGeometry y="0" width="22" as="geometry" height="22" x="79" />
+        </mxCell>
+        <mxCell parent="payment" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="payment-body">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="22" as="sourcePoint" x="90" />
+            <mxPoint y="53" as="targetPoint" x="90" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="payment" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="payment-arms">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="34" as="sourcePoint" x="65" />
+            <mxPoint y="34" as="targetPoint" x="115" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="payment" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="payment-left-leg">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="53" as="sourcePoint" x="90" />
+            <mxPoint y="78" as="targetPoint" x="66" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell parent="payment" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.6;strokeColor=#29465f;startArrow=none;endArrow=none;" edge="1" id="payment-right-leg">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint y="53" as="sourcePoint" x="90" />
+            <mxPoint y="78" as="targetPoint" x="114" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell vertex="1" parent="payment" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;verticalAlign=top;fontSize=19;fontStyle=1;fontColor=#29465f;" id="payment-label" value="Nguồn webhook&#xA;thanh toán">
+          <mxGeometry y="84" width="180" as="geometry" height="71" x="0" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;fontSize=16;fontColor=#40526b;fillColor=#ffffff;" id="edge-label-12" value="«include»">
+          <mxGeometry y="291.6" width="79.227" as="geometry" height="28.8" x="1305.387" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;fontSize=16;fontColor=#40526b;fillColor=#ffffff;" id="edge-label-13" value="«include»">
+          <mxGeometry y="520.6" width="79.227" as="geometry" height="28.8" x="1310.387" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;fontSize=16;fontColor=#40526b;fillColor=#ffffff;" id="edge-label-14" value="«extend»">
+          <mxGeometry y="410.6" width="76.164" as="geometry" height="28.8" x="1896.918" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;fontSize=16;fontColor=#40526b;fillColor=#ffffff;" id="edge-label-16" value="«include»">
+          <mxGeometry y="811.6" width="79.227" as="geometry" height="28.8" x="1305.387" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;fontSize=16;fontColor=#40526b;fillColor=#ffffff;" id="edge-label-18" value="«include»">
+          <mxGeometry y="1071.6" width="79.227" as="geometry" height="28.8" x="1305.387" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;fontSize=16;fontColor=#40526b;fillColor=#ffffff;" id="edge-label-21" value="«include»">
+          <mxGeometry y="1565.6" width="79.227" as="geometry" height="28.8" x="1905.387" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;rounded=0;align=center;verticalAlign=middle;fontFamily=Segoe UI;strokeColor=none;fillColor=none;fontSize=16;fontColor=#40526b;fillColor=#ffffff;" id="edge-label-22" value="«extend»&#xA;[COMPLETED mới, đơn PENDING]">
+          <mxGeometry y="1700.2" width="249.578" as="geometry" height="49.6" x="2025.211" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=1;arcSize=5;whiteSpace=wrap;html=0;align=left;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=16;fontColor=#52647b;fillColor=#F8FAFC;strokeColor=#d5dfeb;strokeWidth=1;" id="note-1" value="SMTP khi dev OTP=false và mail enabled=true.&#xA;Dev OTP=true trả code, bỏ qua gửi thư.&#xA;Resend: tài khoản tồn tại và còn PENDING.">
+          <mxGeometry y="605" width="620" as="geometry" height="115" x="1450" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=1;arcSize=5;whiteSpace=wrap;html=0;align=left;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=16;fontColor=#52647b;fillColor=#F8FAFC;strokeColor=#d5dfeb;strokeWidth=1;" id="note-2" value="Trial builder cần AI; recommendations dùng rule.&#xA;Tạo đơn chỉ tạo PENDING, chưa checkout.&#xA;Webhook là hợp đồng adapter generic.">
+          <mxGeometry y="1230" width="620" as="geometry" height="140" x="1450" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=1;arcSize=5;whiteSpace=wrap;html=0;align=left;verticalAlign=middle;spacing=16;fontFamily=Segoe UI;fontSize=16;fontColor=#52647b;fillColor=#F8FAFC;strokeColor=#d5dfeb;strokeWidth=1;" id="note-3" value="Google dùng email bên thứ ba có thể cần OTP hệ thống. Webhook FAILED/CANCELLED không kích hoạt gói.&#xA;Đường liên kết actor không có mũi tên; «include» trỏ tới hành vi bắt buộc, «extend» trỏ tới use case được mở rộng.&#xA;Webhook lặp không tạo lại gói / hóa đơn.">
+          <mxGeometry y="2050" width="1900" as="geometry" height="80" x="350" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -209,21 +209,17 @@ public class CareerAssistantService {
             )
         );
 
-        for (Map<String, Object> source : sources)
-            db.insertCareerAssistantMessageSources(
-                Map.of(
-                    "message_id",
-                    reply,
-                    "rag_chunk_id",
-                    source.get("chunk_id"),
-                    "rag_document_id",
-                    source.get("document_id"),
-                    "source_label",
-                    source.get("title"),
-                    "similarity_score",
-                    source.get("similarity")
-                )
-            );
+        for (Map<String, Object> source : sources) {
+            Map<String, Object> citation = new LinkedHashMap<>();
+            citation.put("message_id", reply);
+            citation.put("rag_chunk_id", source.get("chunk_id"));
+            citation.put("rag_document_id", source.get("document_id"));
+            citation.put("source_label", source.get("title"));
+            citation.put("similarity_score", source.get("similarity"));
+            citation.put("source_url", source.get("source_url"));
+            citation.put("source_provider", source.get("source_provider"));
+            db.insertCareerAssistantMessageSources(citation);
+        }
 
         db.updateCareerAssistantConversationsById(answeredAt, answeredAt, id);
 

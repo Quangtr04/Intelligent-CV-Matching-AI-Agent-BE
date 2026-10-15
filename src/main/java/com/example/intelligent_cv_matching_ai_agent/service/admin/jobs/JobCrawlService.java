@@ -2,21 +2,16 @@ package com.example.intelligent_cv_matching_ai_agent.service.admin.jobs;
 
 import com.example.intelligent_cv_matching_ai_agent.dto.request.admin.jobs.CrawlRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.admin.jobs.ImportJobRequest;
-import com.example.intelligent_cv_matching_ai_agent.service.shared.jobs.JobService;
-
-import com.example.intelligent_cv_matching_ai_agent.util.shared.FlowSupport;
-
-import com.example.intelligent_cv_matching_ai_agent.security.shared.CurrentUser;
-
-import com.example.intelligent_cv_matching_ai_agent.repository.admin.jobs.JobCrawlRepository;
-
 import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException;
-
+import com.example.intelligent_cv_matching_ai_agent.repository.admin.jobs.JobCrawlRepository;
+import com.example.intelligent_cv_matching_ai_agent.security.shared.CurrentUser;
+import com.example.intelligent_cv_matching_ai_agent.service.shared.jobs.JobService;
+import com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobNormalizer;
+import com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobPostingParser;
+import com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobUrlDiscovery;
 import java.io.IOException;
 import java.net.URI;
-import java.text.Normalizer;
-import java.time.*;
-import java.time.format.DateTimeParseException;
+import java.time.OffsetDateTime;
 import java.util.*;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -24,22 +19,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
-import tools.jackson.databind.json.JsonMapper;
 import static com.example.intelligent_cv_matching_ai_agent.util.shared.Values.*;
 import static com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobSourceValidator.validateSourceUrl;
 
-/**
- * Explicit administrator ingestion; requests never follow links or invoke AI
- * automatically.
- */
+/** Bounded source-restricted ingestion with isolated item transactions and durable monitoring. */
 @Service
 public class JobCrawlService {
 
     private static final int MAX_BODY_BYTES = 2 * 1024 * 1024;
-
-    private static final JsonMapper JSON = JsonMapper.builder().build();
-
-    private static final ZoneId SOURCE_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
 
     private final JobCrawlRepository db;
 
@@ -64,16 +51,37 @@ public class JobCrawlService {
     public Map<String, Object> crawl(
         CrawlRequest input) {
         user.requireRole("ADMIN");
+        return collect(input, user.id(), false);
+    }
 
-        // Validate every URL before opening a run or making a network request.
-        List<String> urls = input.urls().stream().map(url -> validateSourceUrl(input.sourceSite(), url).toASCIIString())
-            .distinct().toList();
+    /** Used by the scheduler, without manufacturing a web authentication context. */
+    public Map<String, Object> crawlAs(
+        CrawlRequest input,
+        UUID actor) {
+        db.requireActiveAdmin(actor);
+        return collect(input, actor, true);
+    }
 
+    private Map<String, Object> collect(
+        CrawlRequest input,
+        UUID actor,
+        boolean scheduled) {
+        if (input.effectiveLimit() < 1 || input.effectiveLimit() > 20 || input.effectiveMaxPages() < 1
+            || input.effectiveMaxPages() > 5)
+            throw ApiException.badRequest("limit must be 1..20 and maxPages must be 1..5");
+        String site = text(input.sourceSite()).strip().toUpperCase(Locale.ROOT);
+        // Validate the source and all explicit URLs before opening a run or accessing the network.
+        JobUrlDiscovery.searchUrl(site, input.keyword(), input.location(), 1);
+        List<String> urls = (input.urls() == null ? List.<String>of() : input.urls()).stream()
+            .map(url -> JobUrlDiscovery.canonicalUrl(site, url)).distinct().toList();
+        if (urls.size() > 20)
+            throw ApiException.badRequest("At most 20 detail URLs are allowed");
+        int requestedLimit = urls.isEmpty() ? input.effectiveLimit() : urls.size();
         UUID run = tx.execute(
             status -> db.insertMarketCrawlRuns(
                 fields(
                     "source_site",
-                    input.sourceSite(),
+                    site,
                     "keyword",
                     input.keyword().strip(),
                     "role_category",
@@ -81,7 +89,9 @@ public class JobCrawlService {
                     "requested_location",
                     input.location(),
                     "requested_limit",
-                    urls.size(),
+                    requestedLimit,
+                    "requested_by",
+                    actor,
                     "status",
                     "RUNNING",
                     "candidate_urls_discovered",
@@ -91,41 +101,79 @@ public class JobCrawlService {
                 )
             )
         );
-
-        int fetched = 0, parsed = 0, imported = 0, duplicates = 0, rejected = 0, wrongRegion = 0;
-
+        int searchPages = 0, rejected = 0;
+        if (urls.isEmpty()) {
+            Set<String> found = new LinkedHashSet<>();
+            for (int pageNumber = 1; pageNumber <= input.effectiveMaxPages()
+                && found.size() < input.effectiveLimit(); pageNumber++) {
+                String searchUrl = JobUrlDiscovery.searchUrl(site, input.keyword(), input.location(), pageNumber);
+                try {
+                    HttpPage page = fetch(site, searchUrl);
+                    searchPages++;
+                    if (page.status() < 200 || page.status() >= 300)
+                        throw new IOException("Search returned HTTP " + page.status());
+                    List<String> links =
+                        JobUrlDiscovery.discoverLinks(page.html(), site, page.url(), input.effectiveLimit());
+                    int before = found.size();
+                    for (String link : links) {
+                        if (found.size() >= input.effectiveLimit())
+                            break;
+                        found.add(link);
+                    }
+                    recordItem(
+                        run,
+                        page.url(),
+                        "SEARCH_FETCHED",
+                        page.status(),
+                        null,
+                        null,
+                        "Discovered " + (found.size() - before) + " new detail URLs"
+                    );
+                    if (found.size() == before)
+                        break;
+                } catch (IOException | ApiException ex) {
+                    recordItem(run, searchUrl, "SEARCH_FETCH_FAILED", null, null, null, ex.getMessage());
+                    rejected++;
+                    break;
+                }
+            }
+            urls = List.copyOf(found);
+        }
+        int fetched = 0, parsed = 0, imported = 0, duplicates = 0, wrongRegion = 0, importedSkills = 0;
         for (String requestedUrl : urls) {
             Integer httpStatus = null;
-            String title = null;
-            String hash = null;
-            String finalUrl = requestedUrl;
-
+            String title = null, hash = null, finalUrl = requestedUrl;
             try {
-                HttpPage page = fetch(input.sourceSite(), requestedUrl);
+                HttpPage page = fetch(site, requestedUrl);
                 fetched++;
                 httpStatus = page.status();
-                finalUrl = page.url();
+                finalUrl = JobUrlDiscovery.canonicalUrl(site, page.url());
+                if (httpStatus == 404 || httpStatus == 410) {
+                    expireSource(site, requestedUrl);
+                    if (!requestedUrl.equals(finalUrl))
+                        expireSource(site, finalUrl);
+                    recordItem(
+                        run,
+                        finalUrl,
+                        "EXPIRED",
+                        httpStatus,
+                        null,
+                        null,
+                        "Source returned HTTP " + httpStatus + "; source marked expired"
+                    );
+                    rejected++;
+                    continue;
+                }
                 if (httpStatus < 200 || httpStatus >= 300)
                     throw ApiException.badRequest("Source returned HTTP " + httpStatus);
-
-                ParsedJob posting =
-                    parseJobPosting(page.html(), input.sourceSite(), finalUrl, input.roleCategory()).orElseThrow(
-                        () -> ApiException
-                            .badRequest("No supported schema.org JobPosting JSON-LD was found; use manual job import")
-                    );
+                var posting = JobPostingParser.parse(page.html(), site, finalUrl, input.roleCategory())
+                    .orElseThrow(() -> ApiException.badRequest("No supported job detail data found"));
                 parsed++;
                 title = posting.job().jobTitle();
                 hash = contentHash(posting.job());
-
-                if (posting.validThrough() != null && !posting.validThrough().isAfter(OffsetDateTime.now())) {
-                    String expiredUrl = finalUrl;
-
-                    tx.executeWithoutResult(status -> {
-                        db.readDatabaseValue(expiredUrl);
-
-                        db.updateMarketJobEmbeddingsByMarketJobId(input.sourceSite(), expiredUrl);
-                        db.updateMarketJobPostsByUpper(input.sourceSite(), expiredUrl);
-                    });
+                if (posting.job().validThrough() != null
+                    && !posting.job().validThrough().isAfter(OffsetDateTime.now())) {
+                    expireSource(site, finalUrl);
                     recordItem(
                         run,
                         finalUrl,
@@ -138,9 +186,7 @@ public class JobCrawlService {
                     rejected++;
                     continue;
                 }
-
-                if (input.location() != null && !input.location().isBlank()
-                    && !fold(posting.job().location()).contains(fold(input.location()))) {
+                if (!JobNormalizer.matchesLocation(posting.job().location(), input.location())) {
                     recordItem(
                         run,
                         finalUrl,
@@ -154,52 +200,43 @@ public class JobCrawlService {
                     rejected++;
                     continue;
                 }
-
                 int responseStatus = httpStatus;
-
                 boolean duplicate = Boolean.TRUE.equals(tx.execute(status -> {
-                    db.readDatabaseValue(posting.job().sourceUrl());
                     boolean existing = db.findMarketJobPostsByRawContentHash(contentHash(posting.job())).isPresent();
-                    Map<String, Object> saved = jobs.importJob(posting.job());
-
-                    if (!existing)
-                        db.updateMarketJobPostsById(posting.postedAt(), OffsetDateTime.now(), saved.get("id"));
-
+                    Map<String, Object> saved =
+                        scheduled ? jobs.importJobAs(posting.job(), actor) : jobs.importJob(posting.job());
+                    boolean reused = existing || Boolean.TRUE.equals(saved.get("deduplicated"));
+                    if (!reused)
+                        db.updateParsedMetadata(posting.quality(), OffsetDateTime.now(), saved.get("id"));
                     insertItem(
                         run,
                         posting.job().sourceUrl(),
-                        existing ? "DUPLICATE" : "IMPORTED",
+                        reused ? "DUPLICATE" : "IMPORTED",
                         responseStatus,
                         posting.job().jobTitle(),
                         contentHash(posting.job()),
-                        existing
-                            ? "Unchanged active job already imported"
-                            : "Imported schema.org JobPosting; awaiting explicit vector indexing"
+                        reused ? "Existing job reused; source refreshed" : "Imported; embedding queued automatically"
                     );
-
-                    return existing;
+                    return reused;
                 }));
-
                 if (duplicate)
                     duplicates++;
-                else
+                else {
                     imported++;
+                    importedSkills += posting.job().skills().size();
+                }
             } catch (IOException ex) {
                 if (ex instanceof FetchFailure failure) {
                     httpStatus = failure.httpStatus;
-
                     if (httpStatus != null)
                         fetched++;
                 }
-
                 recordItem(run, finalUrl, "FETCH_FAILED", httpStatus, title, hash, ex.getMessage());
                 rejected++;
             } catch (ApiException ex) {
                 recordItem(run, finalUrl, "REJECTED", httpStatus, title, hash, ex.getMessage());
                 rejected++;
             } catch (RuntimeException ex) {
-                // An import rolls back its own item transaction; its failure remains
-                // independently visible.
                 recordItem(
                     run,
                     finalUrl,
@@ -212,11 +249,11 @@ public class JobCrawlService {
                 rejected++;
             }
         }
-
         String outcome = rejected == 0 ? "COMPLETED" : imported + duplicates == 0 ? "FAILED" : "PARTIAL";
         int fetchedCount = fetched, parsedCount = parsed, importedCount = imported, duplicateCount = duplicates,
-            rejectedCount = rejected, wrongRegionCount = wrongRegion;
-
+            rejectedCount = rejected, wrongRegionCount = wrongRegion, searchCount = searchPages,
+            discoveredCount = input.urls() == null || input.urls().isEmpty() ? urls.size() : 0,
+            skillCount = importedSkills, checkedCount = urls.size();
         tx.executeWithoutResult(status -> {
             db.updateMarketCrawlRunsById(
                 outcome,
@@ -224,17 +261,18 @@ public class JobCrawlService {
                 parsedCount,
                 importedCount,
                 duplicateCount,
-                urls.size(),
+                checkedCount,
                 wrongRegionCount,
                 rejectedCount,
-                "Processed " + urls.size() + " supplied URLs; inspect item outcomes for details",
+                "Imported " + importedCount + "; duplicates " + duplicateCount + "; rejected " + rejectedCount,
                 OffsetDateTime.now(),
                 run
             );
+            db.updateDiscoveryCounts(searchCount, discoveredCount, skillCount, run);
             db.insertAuditLogs(
                 fields(
                     "actor_user_id",
-                    user.id(),
+                    actor,
                     "action",
                     "JOB_CRAWL",
                     "entity_type",
@@ -244,28 +282,34 @@ public class JobCrawlService {
                 )
             );
         });
-
         var result = db.getMarketCrawlRunsById(run);
         result.put("items", db.listMarketCrawlItemsByCrawlRunId(run));
-
         return result;
+    }
+
+    private void expireSource(
+        String site,
+        String url) {
+        tx.executeWithoutResult(status -> {
+            db.readDatabaseValue(url);
+            db.expireSource(site, url);
+            db.updateMarketJobEmbeddingsByMarketJobId(site, url);
+            db.updateMarketJobPostsByUpper(site, url);
+        });
     }
 
     public List<Map<String, Object>> runs(
         int limit,
         int offset) {
         user.requireRole("ADMIN");
-
         return db.listMarketCrawlRuns(pageSize(limit), offset(offset));
     }
 
     public Map<String, Object> run(
         UUID id) {
         user.requireRole("ADMIN");
-
         var result = db.getMarketCrawlRunsById(id);
         result.put("items", db.listMarketCrawlItemsByCrawlRunId(id));
-
         return result;
     }
 
@@ -303,7 +347,7 @@ public class JobCrawlService {
                 "raw_content_hash",
                 hash,
                 "message",
-                message,
+                message == null ? null : message.substring(0, Math.min(1000, message.length())),
                 "created_at",
                 OffsetDateTime.now()
             )
@@ -402,210 +446,12 @@ public class JobCrawlService {
         String source,
         String url,
         String roleCategory) {
-        List<Map<String, Object>> postings = new ArrayList<>();
-
-        for (var script : Jsoup.parse(html).select("script[type=application/ld+json]")) {
-            try {
-                findJobPostings(JSON.readValue(script.data(), Object.class), postings, 0);
-            } catch (RuntimeException ex) {
-                /* A malformed unrelated JSON-LD block cannot hide a valid following block. */ }
-        }
-
-        if (postings.isEmpty())
-            return Optional.empty();
-        if (postings.size() > 1)
-            throw ApiException.badRequest("Expected one JobPosting per supplied detail page");
-
-        Map<String, Object> posting = postings.getFirst();
-        String title = requiredText(Jsoup.parse(textValue(posting.get("title"))).text(), 255, "title");
-        String description = requiredText(posting.get("description"), 100000, "description");
-        String plainDescription = Jsoup.parse(description).text().strip();
-        if (plainDescription.length() < 30)
-            throw ApiException.badRequest("JobPosting description must contain at least 30 characters");
-
-        String company = optionalText(asMap(posting.get("hiringOrganization")).get("name"), 255);
-        String location = locations(posting.get("jobLocation"));
-
-        if (location.isBlank() && "TELECOMMUTE".equals(textValue(posting.get("jobLocationType"))))
-            location = "Remote";
-
-        return Optional.of(
-            new ParsedJob(
-                new ImportJobRequest(
-                    source,
-                    url,
-                    title,
-                    company,
-                    location,
-                    salary(posting),
-                    roleCategory.strip(),
-                    description,
-                    List.of()
-                ),
-                date(posting.get("datePosted"), false),
-                date(posting.get("validThrough"), true)
-            )
-        );
-    }
-
-    @SuppressWarnings("unchecked")
-    private static Map<String, Object> asMap(
-        Object value) {
-        return value instanceof Map<?, ?> ? (Map<String, Object>) value : Map.of();
-    }
-
-    private static void findJobPostings(
-        Object value,
-        List<Map<String, Object>> postings,
-        int depth) {
-        if (depth > 10)
-            return;
-
-        if (value instanceof List<?> list) {
-            for (Object item : list)
-                findJobPostings(item, postings, depth + 1);
-        } else if (value instanceof Map<?, ?>) {
-            Map<String, Object> object = asMap(value);
-            Object type = object.get("@type");
-            List<?> types = type instanceof List<?> list ? list : Collections.singletonList(type);
-
-            if (types.stream().anyMatch(
-                t -> Set.of("JobPosting", "https://schema.org/JobPosting", "http://schema.org/JobPosting")
-                    .contains(textValue(t))
-            ))
-                postings.add(object);
-
-            if (object.containsKey("@graph"))
-                findJobPostings(object.get("@graph"), postings, depth + 1);
-        }
-    }
-
-    private static String requiredText(
-        Object value,
-        int max,
-        String field) {
-        String result = textValue(value).strip();
-        if (result.isBlank() || result.length() > max)
-            throw ApiException.badRequest("JobPosting " + field + " is missing or too long");
-
-        return result;
-    }
-
-    private static String optionalText(
-        Object value,
-        int max) {
-        String result = Jsoup.parse(textValue(value)).text().strip();
-
-        return result.length() > max ? result.substring(0, max) : result;
-    }
-
-    private static String textValue(
-        Object value) {
-        return value instanceof String || value instanceof Number ? value.toString() : "";
-    }
-
-    private static String locations(
-        Object value) {
-        List<?> entries = value instanceof List<?> list ? list : Collections.singletonList(value);
-        Set<String> locations = new LinkedHashSet<>();
-
-        for (Object entry : entries) {
-            var place = asMap(entry);
-            var address = asMap(place.get("address"));
-            List<String> parts = new ArrayList<>();
-
-            for (String key : List.of("addressLocality", "addressRegion", "addressCountry")) {
-                Object part = address.get(key);
-                String name = optionalText(part instanceof Map<?, ?> ? asMap(part).get("name") : part, 120);
-
-                if (!name.isBlank() && !parts.contains(name))
-                    parts.add(name);
-            }
-
-            String location = parts.isEmpty() ? optionalText(place.get("name"), 255) : String.join(", ", parts);
-
-            if (!location.isBlank())
-                locations.add(location);
-        }
-
-        return optionalText(String.join("; ", locations), 255);
-    }
-
-    private static String salary(
-        Map<String, Object> posting) {
-        Object base = posting.get("baseSalary");
-        if (base instanceof String || base instanceof Number)
-            return optionalText(base, 255);
-
-        var amount = asMap(base);
-        Object value = amount.get("value");
-        var range = asMap(value);
-        String number = textValue(value);
-
-        if (number.isBlank()) {
-            number = textValue(range.get("value"));
-
-            if (number.isBlank())
-                number = String.join(" - ", List.of(textValue(range.get("minValue")), textValue(range.get("maxValue"))))
-                    .replaceAll("^ - | - $", "");
-        }
-
-        if (number.isBlank())
-            return "";
-
-        return optionalText(
-            number + " " + textValue(amount.getOrDefault("currency", posting.get("salaryCurrency")))
-                + (textValue(range.get("unitText")).isBlank() ? "" : " / " + textValue(range.get("unitText"))),
-            255
-        );
-    }
-
-    private static OffsetDateTime date(
-        Object value,
-        boolean endOfDay) {
-        String date = textValue(value);
-        if (date.isBlank())
-            return null;
-
-        try {
-            return OffsetDateTime.parse(date);
-        } catch (DateTimeParseException ignored) {
-            try {
-                return LocalDateTime.parse(date).atZone(SOURCE_ZONE).toOffsetDateTime();
-            } catch (DateTimeParseException ignoredAgain) {
-                try {
-                    LocalDate day = LocalDate.parse(date);
-
-                    return (endOfDay ? day.plusDays(1) : day).atStartOfDay(SOURCE_ZONE).toOffsetDateTime();
-                } catch (DateTimeParseException ex) {
-                    throw ApiException.badRequest("JobPosting contains an invalid date");
-                }
-            }
-        }
+        return JobPostingParser.parse(html, source, url, roleCategory)
+            .map(parsed -> new ParsedJob(parsed.job(), parsed.job().postedAt(), parsed.job().validThrough()));
     }
 
     static String contentHash(
         ImportJobRequest job) {
-        String skills = (job.skills() == null
-            ? List.<com.example.intelligent_cv_matching_ai_agent.dto.request.admin.jobs.JobSkillRequest>of()
-            : job.skills())
-            .stream()
-            .map(
-                skill -> text(skill.skillId()) + ":" + text(skill.name()).strip().toLowerCase(Locale.ROOT) + ":"
-                    + skill.required()
-            ).sorted().toList().toString();
-
-        return FlowSupport.hash(
-            text(job.sourceSite()).strip().toUpperCase(Locale.ROOT) + "\n" + text(job.sourceUrl()).strip() + "\n"
-                + text(job.jobTitle()).strip() + "\n" + text(job.companyName()).strip() + "\n"
-                + text(job.location()).strip() + "\n" + text(job.salaryText()).strip() + "\n"
-                + text(job.roleCategory()).strip() + "\n" + skills + "\n" + Jsoup.parse(job.content()).text().strip()
-        );
-    }
-
-    private static String fold(
-        String value) {
-        return Normalizer.normalize(value == null ? "" : value, Normalizer.Form.NFD).replaceAll("\\p{M}", "")
-            .toLowerCase(Locale.ROOT).replace('đ', 'd').strip();
+        return JobNormalizer.contentHash(job);
     }
 }

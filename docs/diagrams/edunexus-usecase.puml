@@ -1,0 +1,327 @@
+' EduNexus use cases — semantic source for the four views.
+' Geometry for supplied SVG/PNG/draw.io is in edunexus-usecase-model.json.
+
+@startuml edunexus-usecase-overview
+left to right direction
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam defaultFontName Segoe UI
+skinparam defaultFontSize 17
+skinparam ArrowColor #64748B
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor white
+  BorderColor #334155
+  FontColor #0F172A
+}
+skinparam actor {
+  BorderColor #334155
+  FontColor #0F172A
+}
+title EDUNEXUS · USE CASE TỔNG QUAN
+caption Phạm vi: backend hiện có · Nhóm chức năng theo mục tiêu người dùng
+
+actor "Khách\n(Guest)" as actor_guest
+actor "Ứng viên\n(Candidate)" as actor_candidate
+actor "Chuyên viên tư vấn\n(Consultant)" as actor_consultant
+actor "Quản trị viên\n(Admin)" as actor_admin
+actor "Người dùng\nđã đăng nhập" as actor_member
+
+rectangle "Hệ thống EduNexus" as edunexus {
+  rectangle "Khách · trước khi đăng nhập" as group_g_guest #EFF6FF {
+    usecase "Tra cứu việc làm,\nkỹ năng, mẫu CV và gói" as uc_guest_browse
+    usecase "Đăng ký / xác minh email\nvà đăng nhập" as uc_guest_identity
+    usecase "Dùng thử CV, gợi ý việc làm\nvà assistant" as uc_guest_trial
+  }
+  rectangle "Ứng viên · phát triển nghề nghiệp" as group_g_candidate #F0FDFA {
+    usecase "Quản lý hồ sơ nghề nghiệp" as uc_candidate_profile
+    usecase "Quản lý và xác nhận CV" as uc_candidate_cv
+    usecase "Phân tích CV / ATS theo job" as uc_candidate_analysis
+    usecase "Tìm việc phù hợp\nvà phản hồi kết quả" as uc_candidate_matching
+    usecase "Tạo CV theo job,\nsoạn email / cover letter" as uc_candidate_draft
+    usecase "Đánh giá kỹ năng\nvà theo dõi lộ trình học" as uc_candidate_learning
+    usecase "Chat tư vấn nghề nghiệp\nvà ước lượng lương" as uc_candidate_chat
+    usecase "Yêu cầu và trao đổi\ntư vấn với consultant" as uc_candidate_consult
+  }
+  rectangle "Consultant · thread được phân công" as group_g_consultant #F5F3FF {
+    usecase "Xem yêu cầu tư vấn\nđược phân công" as uc_consultant_requests
+    usecase "Xem hồ sơ / báo cáo ứng viên\ntrong thread có quyền" as uc_consultant_reports
+    usecase "Trao đổi và đóng\nhội thoại tư vấn" as uc_consultant_discussion
+  }
+  rectangle "Admin · quản trị và vận hành" as group_g_admin #FFF7ED {
+    usecase "Quản lý tài khoản người dùng" as uc_admin_users
+    usecase "Quản lý gói và quota" as uc_admin_tiers
+    usecase "Import / crawl / index\nvà quản lý việc làm" as uc_admin_jobs
+    usecase "Cấu hình AI / prompt\nvà tài liệu RAG" as uc_admin_ai
+    usecase "Phân công tư vấn" as uc_admin_assign
+    usecase "Quản lý thông báo\nvà ticket hỗ trợ" as uc_admin_support
+    usecase "Xử lý phản ánh thanh toán" as uc_admin_billing
+    usecase "Xem dashboard, usage\nvà audit / monitoring" as uc_admin_monitoring
+  }
+  rectangle "Chức năng chung của người dùng đã đăng nhập" as group_g_shared #F8FAFC {
+    usecase "Quản lý tài khoản,\nmật khẩu và phiên" as uc_shared_account
+    usecase "Xem / quản lý gói,\nđơn và hóa đơn" as uc_shared_payments
+    usecase "Xem thông báo\nvà đánh dấu đã đọc" as uc_shared_notifications
+    usecase "Tạo và trao đổi\nticket hỗ trợ" as uc_shared_tickets
+  }
+}
+
+actor_guest -- uc_guest_browse
+actor_guest -- uc_guest_identity
+actor_guest -- uc_guest_trial
+actor_candidate -- uc_candidate_profile
+actor_candidate -- uc_candidate_cv
+actor_candidate -- uc_candidate_analysis
+actor_candidate -- uc_candidate_matching
+actor_candidate -- uc_candidate_draft
+actor_candidate -- uc_candidate_learning
+actor_candidate -- uc_candidate_chat
+actor_candidate -- uc_candidate_consult
+actor_consultant -- uc_consultant_requests
+actor_consultant -- uc_consultant_reports
+actor_consultant -- uc_consultant_discussion
+actor_admin -- uc_admin_users
+actor_admin -- uc_admin_tiers
+actor_admin -- uc_admin_jobs
+actor_admin -- uc_admin_ai
+actor_admin -- uc_admin_assign
+actor_admin -- uc_admin_support
+actor_admin -- uc_admin_billing
+actor_admin -- uc_admin_monitoring
+actor_member -- uc_shared_account
+actor_member -- uc_shared_payments
+actor_member -- uc_shared_notifications
+actor_member -- uc_shared_tickets
+actor_candidate --|> actor_member
+actor_admin --|> actor_member
+actor_consultant --|> actor_member
+
+note "Phân nhóm theo vai trò nghiệp vụ.\nCV, profile và assistant còn kiểm tra ownership;\nkhông phải ma trận quyền API đầy đủ." as note_1
+
+note "Email ứng tuyển: bản nháp.\nChuyển sang trang tuyển dụng không đồng nghĩa\nbackend đã nộp hồ sơ." as note_2
+@enduml
+
+@startuml edunexus-usecase-candidate
+left to right direction
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam defaultFontName Segoe UI
+skinparam defaultFontSize 17
+skinparam ArrowColor #64748B
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor white
+  BorderColor #334155
+  FontColor #0F172A
+}
+skinparam actor {
+  BorderColor #334155
+  FontColor #0F172A
+}
+title EDUNEXUS · USE CASE ỨNG VIÊN
+caption CV · matching · assessment · roadmap · assistant · tư vấn
+
+actor "Ứng viên" as actor_candidate
+
+rectangle "Hệ thống EduNexus · chức năng ứng viên" as edunexus {
+  rectangle "Mục tiêu của ứng viên" as group_candidate_main #F0FDFA {
+    usecase "Quản lý hồ sơ nghề nghiệp" as uc_profile
+    usecase "Tạo / upload / chỉnh sửa CV" as uc_cv
+    usecase "Xác nhận CV và chọn CV chính" as uc_confirm
+    usecase "Phân tích độ đầy đủ / chất lượng CV" as uc_analysis
+    usecase "Tìm việc phù hợp và phản hồi" as uc_matching
+    usecase "Phân tích ATS theo việc làm" as uc_ats
+    usecase "Tạo CV hướng tới việc làm" as uc_job_cv
+    usecase "Soạn / sửa email và cover letter" as uc_draft
+    usecase "Ước lượng lương" as uc_salary
+    usecase "Tạo và trả lời bài đánh giá kỹ năng" as uc_assessment
+    usecase "Nộp bài đánh giá kỹ năng" as uc_submit
+    usecase "Tạo lộ trình học và cập nhật tiến độ" as uc_roadmap
+    usecase "Trao đổi với trợ lý AI" as uc_assistant
+    usecase "Yêu cầu / trao đổi tư vấn với consultant" as uc_consultation
+    usecase "Mở trang ứng tuyển gốc" as uc_apply
+  }
+  usecase "Chấm điểm và tổng hợp\nkết quả kỹ năng" as uc_grade
+  usecase "Truy xuất tài liệu RAG" as uc_rag
+}
+
+actor_candidate -- uc_profile
+actor_candidate -- uc_cv
+actor_candidate -- uc_confirm
+actor_candidate -- uc_analysis
+actor_candidate -- uc_matching
+actor_candidate -- uc_ats
+actor_candidate -- uc_job_cv
+actor_candidate -- uc_draft
+actor_candidate -- uc_salary
+actor_candidate -- uc_assessment
+actor_candidate -- uc_submit
+actor_candidate -- uc_roadmap
+actor_candidate -- uc_assistant
+actor_candidate -- uc_consultation
+actor_candidate -- uc_apply
+uc_submit .> uc_grade : <<include>>
+uc_rag .> uc_assistant : <<extend>>
+
+note "Điều kiện sử dụng:\n• Phân tích CV / ATS: CV của người dùng, READY.\n• Matching: career profile hoặc CV READY.\n• ATS / draft theo job: việc làm ACTIVE.\n• Assessment chọn cho roadmap: đã completed.\n• Tài nguyên học lấy từ catalog.\nCác điều kiện này không phải «include»." as note_1
+
+note "Tạo bài, nộp bài và sinh roadmap\nlà các thao tác API độc lập.\nNộp lần đầu chấm điểm; nộp lại trả kết quả đã lưu.\n\nEmail / cover letter chỉ là draft.\nỨng tuyển trả URL, không tự gửi đơn." as note_2
+
+note "RAG mở rộng chat khi retrieve=true\nvà người dùng đã đăng nhập.\nGuest không truy xuất tài liệu RAG.\nCần chat + embedding được cấu hình." as note_3
+
+note "Use case theo mục tiêu nghiệp vụ; API CV/profile/assistant còn dựa vào đăng nhập và ownership.\n«include»: hành vi bắt buộc của use case. «extend»: nhánh mở rộng có điều kiện." as note_4
+@enduml
+
+@startuml edunexus-usecase-admin
+left to right direction
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam defaultFontName Segoe UI
+skinparam defaultFontSize 17
+skinparam ArrowColor #64748B
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor white
+  BorderColor #334155
+  FontColor #0F172A
+}
+skinparam actor {
+  BorderColor #334155
+  FontColor #0F172A
+}
+title EDUNEXUS · USE CASE QUẢN TRỊ
+caption Tài khoản · việc làm · AI / RAG · tư vấn · hỗ trợ · giám sát
+
+actor "Quản trị viên" as actor_admin
+actor "ITviec / TopCV\n«hệ thống ngoài»" as actor_job_source
+actor "AI provider\n«hệ thống ngoài»" as actor_ai
+
+rectangle "Hệ thống EduNexus · chức năng quản trị" as edunexus {
+  rectangle "Quản trị và vận hành" as group_admin_main #FFF7ED {
+    usecase "Quản lý người dùng và trạng thái tài khoản" as uc_users
+    usecase "Quản lý gói dịch vụ và quota" as uc_tiers
+    usecase "Import việc làm thủ công" as uc_import
+    usecase "Crawl URL việc làm được cung cấp" as uc_crawl
+    usecase "Index embedding cho việc làm" as uc_index
+    usecase "Lưu cấu hình AI và prompt" as uc_config
+    usecase "Khôi phục cấu hình / prompt cũ" as uc_restore
+    usecase "Tạo / xem / vô hiệu hóa tài liệu RAG" as uc_rag_manage
+    usecase "Index tài liệu RAG" as uc_rag_index
+    usecase "Phân công consultant" as uc_assign
+    usecase "Tạo / xuất bản / lưu trữ thông báo" as uc_announcements
+    usecase "Xử lý và phản hồi ticket hỗ trợ" as uc_tickets
+    usecase "Xử lý phản ánh thanh toán" as uc_payment_reports
+    usecase "Xem dashboard, usage và audit" as uc_monitoring
+  }
+  usecase "Thu thập và đọc\ntrang chi tiết JobPosting" as uc_fetch
+  usecase "Sinh embedding cho việc làm" as uc_embed
+  usecase "Tạo phiên bản mới\nvà kích hoạt nội dung đã chọn" as uc_version
+}
+
+actor_admin -- uc_users
+actor_admin -- uc_tiers
+actor_admin -- uc_import
+actor_admin -- uc_crawl
+actor_admin -- uc_index
+actor_admin -- uc_config
+actor_admin -- uc_restore
+actor_admin -- uc_rag_manage
+actor_admin -- uc_rag_index
+actor_admin -- uc_assign
+actor_admin -- uc_announcements
+actor_admin -- uc_tickets
+actor_admin -- uc_payment_reports
+actor_admin -- uc_monitoring
+uc_crawl .> uc_fetch : <<include>>
+uc_index .> uc_embed : <<include>>
+uc_restore .> uc_version : <<include>>
+actor_job_source -- uc_fetch
+actor_ai -- uc_embed
+
+note "Crawl chỉ đọc URL chi tiết do admin đưa vào;\nkeyword là nhãn, không tự tìm kiếm URL.\nImport / crawl không tự index.\n\nIndex job / RAG cần provider embedding.\nRAG index có thể tái dùng chunk đã indexed." as note_1
+
+note "Khôi phục v1 khi đã có v2 sẽ tạo v3\nchứa nội dung v1; giữ nguyên lịch sử.\n\nThông báo nằm trong ứng dụng.\nGiải quyết payment report chưa tự refund.\nĐổi role / đình chỉ / xóa user thu hồi token.\nPhân công thread quyết định quyền consultant." as note_2
+
+note "Sơ đồ mô tả chức năng đã có trong backend; chưa thêm chức năng checkout, tự thu tiền hay refund.\nNguồn tuyển dụng và AI provider là actor hỗ trợ, nằm ngoài biên hệ thống." as note_3
+@enduml
+
+@startuml edunexus-usecase-shared
+left to right direction
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam defaultFontName Segoe UI
+skinparam defaultFontSize 17
+skinparam ArrowColor #64748B
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor white
+  BorderColor #334155
+  FontColor #0F172A
+}
+skinparam actor {
+  BorderColor #334155
+  FontColor #0F172A
+}
+title EDUNEXUS · USE CASE CHUNG VÀ TÍCH HỢP
+caption Xác thực · dùng thử · tài khoản · hỗ trợ · webhook thanh toán
+
+actor "Khách" as actor_guest
+actor "Người dùng\nđã đăng nhập" as actor_member
+actor "SMTP / Mailtrap\n«hệ thống ngoài»" as actor_smtp
+actor "Google Identity\n«hệ thống ngoài»" as actor_google
+actor "AI provider\n«hệ thống ngoài»" as actor_ai
+actor "Nguồn webhook\nthanh toán" as actor_payment
+
+rectangle "Hệ thống EduNexus" as edunexus {
+  rectangle "Xác thực, dùng thử và chức năng chung" as group_shared_main #EFF6FF {
+    usecase "Đăng ký tài khoản" as uc_register
+    usecase "Xác minh email bằng OTP" as uc_verify
+    usecase "Gửi lại mã xác minh" as uc_resend
+    usecase "Đăng nhập bằng email" as uc_email_login
+    usecase "Đăng nhập bằng Google" as uc_google_login
+    usecase "Dùng thử CV và gợi ý việc làm" as uc_trial
+    usecase "Chat nghề nghiệp dùng thử" as uc_trial_chat
+    usecase "Quản lý tài khoản / mật khẩu / phiên" as uc_account
+    usecase "Xem gói, tạo đơn, xem hóa đơn" as uc_billing
+    usecase "Xem / đánh dấu thông báo" as uc_notifications
+    usecase "Tạo ticket và trao đổi hỗ trợ" as uc_support
+  }
+  usecase "Phát hành mã xác minh" as uc_issue_code
+  usecase "Gửi mã qua SMTP" as uc_send_mail
+  usecase "Xác minh Google ID token" as uc_google_check
+  usecase "Sinh câu trả lời AI\ncho hội thoại dùng thử" as uc_trial_ai
+  usecase "Tiếp nhận webhook thanh toán" as uc_webhook
+  usecase "Kiểm tra chữ ký / timestamp\nvà đối chiếu đơn" as uc_signature
+  usecase "Kích hoạt gói, tạo hóa đơn\nvà thông báo thanh toán" as uc_activate
+}
+
+actor_guest -- uc_register
+actor_guest -- uc_verify
+actor_guest -- uc_resend
+actor_guest -- uc_email_login
+actor_guest -- uc_google_login
+actor_guest -- uc_trial
+actor_guest -- uc_trial_chat
+actor_member -- uc_account
+actor_member -- uc_billing
+actor_member -- uc_notifications
+actor_member -- uc_support
+uc_register .> uc_issue_code : <<include>>
+uc_resend .> uc_issue_code : <<include>>
+uc_send_mail .> uc_issue_code : <<extend>>
+actor_smtp -- uc_send_mail
+uc_google_login .> uc_google_check : <<include>>
+actor_google -- uc_google_check
+uc_trial_chat .> uc_trial_ai : <<include>>
+actor_ai -- uc_trial_ai
+actor_payment -- uc_webhook
+uc_webhook .> uc_signature : <<include>>
+uc_activate .> uc_webhook : <<extend>>\n[COMPLETED mới, đơn PENDING]
+
+note "SMTP khi dev OTP=false và mail enabled=true.\nDev OTP=true trả code, bỏ qua gửi thư.\nResend: tài khoản tồn tại và còn PENDING." as note_1
+
+note "Trial builder cần AI; recommendations dùng rule.\nTạo đơn chỉ tạo PENDING, chưa checkout.\nWebhook là hợp đồng adapter generic.\nWebhook lặp không tạo lại gói / hóa đơn." as note_2
+
+note "Google dùng email bên thứ ba có thể cần OTP hệ thống. Webhook FAILED/CANCELLED không kích hoạt gói.\nĐường liên kết actor không có mũi tên; «include» trỏ tới hành vi bắt buộc, «extend» trỏ tới use case được mở rộng." as note_3
+@enduml
+

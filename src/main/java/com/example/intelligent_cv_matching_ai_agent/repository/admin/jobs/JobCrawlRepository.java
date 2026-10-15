@@ -30,11 +30,76 @@ public class JobCrawlRepository {
         return db.scalar("SELECT pg_advisory_xact_lock(hashtext('JOB_IMPORT:' || ?))", args);
     }
 
+    public void requireActiveAdmin(
+        UUID actor) {
+        if (db.optional(
+            "SELECT id FROM users WHERE id=? AND role='ADMIN' AND status='ACTIVE' " + "AND deleted_at IS NULL",
+            actor
+        ).isEmpty())
+            throw com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException
+                .forbidden("Scheduled collection requires an active administrator");
+    }
+
+    public void expireSource(
+        String site,
+        String url) {
+        db.list(
+            "SELECT j.id FROM market_job_posts j JOIN market_job_sources s ON s.market_job_id=j.id "
+                + "WHERE s.source_site=? AND s.source_url=? ORDER BY j.id FOR UPDATE OF j",
+            site,
+            url
+        );
+        db.update(
+            "UPDATE market_job_sources SET status='EXPIRED',last_seen_at=now() "
+                + "WHERE source_site=? AND source_url=?",
+            site,
+            url
+        );
+        db.update(
+            "UPDATE market_job_posts j SET valid_through=(SELECT CASE WHEN count(*)=0 THEN j.valid_through "
+                + "WHEN count(*) FILTER "
+                + "(WHERE a.valid_through IS NULL)>0 THEN NULL ELSE max(a.valid_through) END FROM market_job_sources a "
+                + "WHERE a.market_job_id=j.id AND a.status='ACTIVE') WHERE j.id IN "
+                + "(SELECT market_job_id FROM market_job_sources WHERE source_site=? AND source_url=?)",
+            site,
+            url
+        );
+    }
+
+    public void updateParsedMetadata(
+        String quality,
+        java.time.OffsetDateTime parsedAt,
+        Object id) {
+        db.update(
+            "UPDATE market_job_posts SET original_content_quality=?,parsed_at=? WHERE id=?",
+            quality,
+            parsedAt,
+            id
+        );
+    }
+
+    public void updateDiscoveryCounts(
+        int search,
+        int discovered,
+        int skills,
+        UUID run) {
+        db.update(
+            "UPDATE market_crawl_runs SET search_pages_checked=?,candidate_urls_discovered=?,"
+                + "imported_skills=? WHERE id=?",
+            search,
+            discovered,
+            skills,
+            run
+        );
+    }
+
     public int updateMarketJobEmbeddingsByMarketJobId(
         Object... args) {
         return db.update(
-            ("UPDATE market_job_embeddings SET is_current=false WHERE market_job_id "
-                + "IN (SELECT id FROM market_job_posts WHERE upper(source_site)=? AND " + "source_url=?)"),
+            ("UPDATE market_job_embeddings e SET is_current=false WHERE market_job_id "
+                + "IN (SELECT market_job_id FROM market_job_sources WHERE source_site=? AND source_url=?) "
+                + "AND NOT EXISTS (SELECT 1 FROM market_job_sources s WHERE s.market_job_id=e.market_job_id "
+                + "AND s.status='ACTIVE' AND (s.valid_through IS NULL OR s.valid_through>now()))"),
             args
         );
     }
@@ -42,8 +107,11 @@ public class JobCrawlRepository {
     public int updateMarketJobPostsByUpper(
         Object... args) {
         return db.update(
-            ("UPDATE market_job_posts SET status='EXPIRED' WHERE "
-                + "upper(source_site)=? AND source_url=? AND status='ACTIVE'"),
+            ("UPDATE market_job_posts j SET status='EXPIRED' WHERE j.id IN "
+                + "(SELECT market_job_id FROM market_job_sources WHERE source_site=? AND source_url=?) "
+                + "AND j.status='ACTIVE' AND NOT EXISTS (SELECT 1 FROM market_job_sources s "
+                + "WHERE s.market_job_id=j.id AND s.status='ACTIVE' "
+                + "AND (s.valid_through IS NULL OR s.valid_through>now()))"),
             args
         );
     }

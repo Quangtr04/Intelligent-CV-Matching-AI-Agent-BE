@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1410" viewBox="0 0 1600 1410" role="img" aria-labelledby="title description">
+<title id="title">EDUNEXUS · 04 TƯ VẤN &amp; TRỢ LÝ AI</title>
+<desc id="description">Conceptual Diagram · Ký hiệu Crow’s Foot · Quan hệ nghiệp vụ và bội số</desc>
+<rect x="0" y="0" width="1600" height="1410" rx="0" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<text x="70" y="70.6" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="36" font-weight="600" fill="#0F172A">EDUNEXUS · 04 TƯ VẤN &amp; TRỢ LÝ AI</text>
+<text x="72" y="117" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748B">Conceptual Diagram · Ký hiệu Crow’s Foot · Quan hệ nghiệp vụ và bội số</text>
+<rect x="40" y="145" width="1520" height="1110" rx="18" fill="#F0FDFA" stroke="#DCE5EF" stroke-width="1.5"/>
+<text x="60" y="190.4" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="24" font-weight="600" fill="#0F766E">TƯ VẤN &amp; TRỢ LÝ AI</text>
+<text x="60" y="220.95" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="17" font-weight="400" fill="#64748B">Tư vấn: 1 Candidate + 0..1 Consultant · AI chat thuộc User hoặc Guest (XOR) · Guest không dùng RAG</text>
+<polyline points="380,305 650,305" fill="none" stroke="#64748B" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1220,305 950,305" fill="none" stroke="#64748B" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="800,360 800,510" fill="none" stroke="#64748B" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="950,565 1220,565" fill="none" stroke="#64748B" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="230,620 230,770" fill="none" stroke="#64748B" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1220,825 1100,825 1100,950 440,950 440,850 380,850" fill="none" stroke="#64748B" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="230,880 230,1030" fill="none" stroke="#64748B" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="650,1085 380,1085" fill="none" stroke="#64748B" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="380,335 530,335 530,825 650,825" fill="none" stroke="#64748B" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1220,335 1080,335 1080,825 950,825" fill="none" stroke="#64748B" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1220,1085 1100,1085 1100,1190 480,1190 480,800 380,800" fill="none" stroke="#64748B" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="7 5"/>
+<rect x="80" y="250" width="300" height="110" rx="12" fill="#FFFFFF" stroke="#64748B" stroke-width="1.8"/>
+<text x="230" y="284.7" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#0F172A">User</text>
+<text x="230" y="314.1" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">Người dùng đăng nhập</text>
+<rect x="650" y="250" width="300" height="110" rx="12" fill="#FFFFFF" stroke="#0F766E" stroke-width="1.8"/>
+<text x="800" y="284.7" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#0F172A">AI Conversation</text>
+<text x="800" y="314.1" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">Hội thoại trợ lý nghề nghiệp</text>
+<text x="800" y="337.1" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">Có ngữ cảnh và lịch sử</text>
+<rect x="1220" y="250" width="300" height="110" rx="12" fill="#FFFFFF" stroke="#64748B" stroke-width="1.8"/>
+<text x="1370" y="284.7" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#0F172A">Guest Session</text>
+<text x="1370" y="314.1" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">Chat dùng thử</text>
+<rect x="80" y="510" width="300" height="110" rx="12" fill="#FFFFFF" stroke="#64748B" stroke-width="1.8"/>
+<text x="230" y="544.7" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#0F172A">User (Candidate)</text>
+<text x="230" y="574.1" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">Ứng viên yêu cầu tư vấn</text>
+<rect x="650" y="510" width="300" height="110" rx="12" fill="#FFFFFF" stroke="#0F766E" stroke-width="1.8"/>
+<text x="800" y="544.7" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#0F172A">AI Message</text>
+<text x="800" y="574.1" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">Vai trò, nội dung, thời gian</text>
+<text x="800" y="597.1" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">Nguồn trích dẫn</text>
+<rect x="1220" y="510" width="300" height="110" rx="12" fill="#FFFFFF" stroke="#0F766E" stroke-width="1.8"/>
+<text x="1370" y="544.7" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#0F172A">RAG Document</text>
+<text x="1370" y="574.1" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">Tài liệu User / Admin</text>
+<text x="1370" y="597.1" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">Kho tri thức tham chiếu</text>
+<rect x="80" y="770" width="300" height="110" rx="12" fill="#FFFFFF" stroke="#0F766E" stroke-width="1.8"/>
+<text x="230" y="804.7" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#0F172A">Career Consultation</text>
+<text x="230" y="834.1" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">Phiên tư vấn người thật</text>
+<text x="230" y="857.1" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">Admin phân công</text>
+<rect x="650" y="770" width="300" height="110" rx="12" fill="#FFFFFF" stroke="#0F766E" stroke-width="1.8"/>
+<text x="800" y="804.7" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#0F172A">AI Usage</text>
+<text x="800" y="834.1" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">Feature, model, token</text>
+<text x="800" y="857.1" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">Kết quả / chi phí sử dụng</text>
+<rect x="1220" y="770" width="300" height="110" rx="12" fill="#FFFFFF" stroke="#64748B" stroke-width="1.8"/>
+<text x="1370" y="804.7" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#0F172A">User (Consultant)</text>
+<text x="1370" y="834.1" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">Chuyên viên được phân công</text>
+<rect x="80" y="1030" width="300" height="110" rx="12" fill="#FFFFFF" stroke="#0F766E" stroke-width="1.8"/>
+<text x="230" y="1064.7" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#0F172A">Consultation Message</text>
+<text x="230" y="1094.1" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">Người gửi, nội dung</text>
+<text x="230" y="1117.1" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">Thời gian, trạng thái đọc</text>
+<rect x="650" y="1030" width="300" height="110" rx="12" fill="#FFFFFF" stroke="#64748B" stroke-width="1.8"/>
+<text x="800" y="1064.7" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#0F172A">User (Sender)</text>
+<text x="800" y="1094.1" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">Người gửi tin tư vấn</text>
+<rect x="1220" y="1030" width="300" height="110" rx="12" fill="#FFFFFF" stroke="#64748B" stroke-width="1.8"/>
+<text x="1370" y="1064.7" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#0F172A">User (Admin)</text>
+<text x="1370" y="1094.1" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">Phân công chuyên viên</text>
+<rect x="395" y="282" width="240" height="48" rx="6" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<text x="515" y="301.2" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">chat đăng nhập</text>
+<text x="515" y="322" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">0..1 : 0..n</text>
+<rect x="970" y="282" width="240" height="48" rx="6" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<text x="1090" y="301.2" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">chat dùng thử</text>
+<text x="1090" y="322" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">0..1 : 0..n</text>
+<rect x="820" y="410" width="205" height="48" rx="6" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<text x="922.5" y="429.2" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">gồm tin nhắn</text>
+<text x="922.5" y="450" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">1 : 0..n</text>
+<rect x="970" y="542" width="240" height="48" rx="6" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<text x="1090" y="561.2" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">trích dẫn tài liệu</text>
+<text x="1090" y="582" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">0..n : 0..n</text>
+<rect x="250" y="665" width="240" height="48" rx="6" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<text x="370" y="684.2" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">yêu cầu tư vấn</text>
+<text x="370" y="705" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">1 : 0..n</text>
+<rect x="630" y="928" width="250" height="48" rx="6" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<text x="755" y="947.2" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">được phân công</text>
+<text x="755" y="968" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">0..1 : 0..n</text>
+<rect x="250" y="925" width="200" height="48" rx="6" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<text x="350" y="944.2" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">gồm tin nhắn</text>
+<text x="350" y="965" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">1 : 0..n</text>
+<rect x="405" y="1062" width="220" height="48" rx="6" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<text x="515" y="1081.2" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">gửi tin</text>
+<text x="515" y="1102" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">1 : 0..n</text>
+<rect x="550" y="680" width="220" height="48" rx="6" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<text x="660" y="699.2" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">ghi nhận sử dụng</text>
+<text x="660" y="720" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">0..1 : 0..n</text>
+<rect x="985" y="680" width="235" height="48" rx="6" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<text x="1102.5" y="699.2" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">ghi nhận dùng thử</text>
+<text x="1102.5" y="720" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">0..1 : 0..n</text>
+<rect x="695" y="1169" width="290" height="42" rx="6" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<text x="840" y="1195.6" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#475569">phân công (Admin)</text>
+<polyline points="387,298 387,312" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="402" cy="305" rx="5" ry="5" fill="#FFFFFF" stroke="#64748B" stroke-width="1.8"/>
+<polyline points="648,312 636,305" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="648,305 636,305" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="648,298 636,305" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="628" cy="305" rx="5" ry="5" fill="#FFFFFF" stroke="#64748B" stroke-width="1.8"/>
+<polyline points="1213,312 1213,298" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="1198" cy="305" rx="5" ry="5" fill="#FFFFFF" stroke="#64748B" stroke-width="1.8"/>
+<polyline points="952,298 964,305" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="952,305 964,305" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="952,312 964,305" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="972" cy="305" rx="5" ry="5" fill="#FFFFFF" stroke="#64748B" stroke-width="1.8"/>
+<polyline points="807,367 793,367" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="807,377 793,377" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="793,508 800,496" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="800,508 800,496" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="807,508 800,496" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="800" cy="488" rx="5" ry="5" fill="#FFFFFF" stroke="#64748B" stroke-width="1.8"/>
+<polyline points="952,558 964,565" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="952,565 964,565" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="952,572 964,565" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="972" cy="565" rx="5" ry="5" fill="#FFFFFF" stroke="#64748B" stroke-width="1.8"/>
+<polyline points="1218,572 1206,565" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1218,565 1206,565" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1218,558 1206,565" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="1198" cy="565" rx="5" ry="5" fill="#FFFFFF" stroke="#64748B" stroke-width="1.8"/>
+<polyline points="237,627 223,627" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="237,637 223,637" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="223,768 230,756" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="230,768 230,756" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="237,768 230,756" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="230" cy="748" rx="5" ry="5" fill="#FFFFFF" stroke="#64748B" stroke-width="1.8"/>
+<polyline points="1213,832 1213,818" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="1198" cy="825" rx="5" ry="5" fill="#FFFFFF" stroke="#64748B" stroke-width="1.8"/>
+<polyline points="382,843 394,850" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="382,850 394,850" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="382,857 394,850" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="402" cy="850" rx="5" ry="5" fill="#FFFFFF" stroke="#64748B" stroke-width="1.8"/>
+<polyline points="237,887 223,887" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="237,897 223,897" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="223,1028 230,1016" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="230,1028 230,1016" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="237,1028 230,1016" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="230" cy="1008" rx="5" ry="5" fill="#FFFFFF" stroke="#64748B" stroke-width="1.8"/>
+<polyline points="643,1092 643,1078" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="633,1092 633,1078" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="382,1078 394,1085" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="382,1085 394,1085" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="382,1092 394,1085" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="402" cy="1085" rx="5" ry="5" fill="#FFFFFF" stroke="#64748B" stroke-width="1.8"/>
+<polyline points="387,328 387,342" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="402" cy="335" rx="5" ry="5" fill="#FFFFFF" stroke="#64748B" stroke-width="1.8"/>
+<polyline points="648,832 636,825" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="648,825 636,825" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="648,818 636,825" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="628" cy="825" rx="5" ry="5" fill="#FFFFFF" stroke="#64748B" stroke-width="1.8"/>
+<polyline points="1213,342 1213,328" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="1198" cy="335" rx="5" ry="5" fill="#FFFFFF" stroke="#64748B" stroke-width="1.8"/>
+<polyline points="952,818 964,825" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="952,825 964,825" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="952,832 964,825" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="972" cy="825" rx="5" ry="5" fill="#FFFFFF" stroke="#64748B" stroke-width="1.8"/>
+<rect x="60" y="1275" width="1480" height="114" rx="14" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1"/>
+<text x="80" y="1307.3" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#475569">Candidate / Consultant / Admin đều là vai trò của User; các ô lặp lại là cùng khái niệm.</text>
+<text x="80" y="1339.3" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#475569">AI Message tham chiếu RAG Document; chỉ hội thoại của User đăng nhập dùng kho tri thức.</text>
+<text x="80" y="1371.3" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#475569">AI Usage có tối đa 1 User hoặc Guest; tác vụ hệ thống có thể không thuộc chủ thể nào.</text>
+</svg>

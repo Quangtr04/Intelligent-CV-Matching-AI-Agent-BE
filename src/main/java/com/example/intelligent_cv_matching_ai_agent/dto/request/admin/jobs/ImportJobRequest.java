@@ -2,8 +2,8 @@ package com.example.intelligent_cv_matching_ai_agent.dto.request.admin.jobs;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
+import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.UUID;
 
 public record ImportJobRequest(
     @NotBlank
@@ -28,6 +28,45 @@ public record ImportJobRequest(
     @Size(max = 100000)
     String content,
     @Size(max = 100)
-    List<@Valid JobSkillRequest> skills
+    List<@Valid JobSkillRequest> skills,
+    @Size(max = 50)
+    String employmentType,
+    @Size(max = 100000)
+    String requirements,
+    @Size(max = 100000)
+    String responsibilities,
+    @Size(max = 100000)
+    String benefits,
+    OffsetDateTime postedAt,
+    OffsetDateTime validThrough
 ) {
+
+    public ImportJobRequest(
+        String sourceSite,
+        String sourceUrl,
+        String jobTitle,
+        String companyName,
+        String location,
+        String salaryText,
+        String roleCategory,
+        String content,
+        List<JobSkillRequest> skills) {
+        this(
+            sourceSite,
+            sourceUrl,
+            jobTitle,
+            companyName,
+            location,
+            salaryText,
+            roleCategory,
+            content,
+            skills,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        );
+    }
 }

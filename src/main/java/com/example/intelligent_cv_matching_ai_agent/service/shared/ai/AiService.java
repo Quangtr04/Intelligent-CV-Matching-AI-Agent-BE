@@ -239,6 +239,21 @@ public class AiService {
 
     public float[] embed(
         String text) {
+        return embedForActor(null, text);
+    }
+
+    public float[] embedForUser(
+        UUID actor,
+        String text) {
+        if (actor == null)
+            throw ApiException.badRequest("An AI usage owner is required");
+
+        return embedForActor(actor, text);
+    }
+
+    private float[] embedForActor(
+        UUID requestedActor,
+        String text) {
         if (!embeddingsEnabled())
             throw new ApiException(503, "Embedding provider is disabled.");
         if (text == null || text.isBlank())
@@ -248,7 +263,8 @@ public class AiService {
 
         long started = System.nanoTime();
         int budget = text.getBytes(java.nio.charset.StandardCharsets.UTF_8).length + 128;
-        UUID reservation = entitlement.reserve(current.id(), "EMBEDDING", budget);
+        UUID actor = requestedActor == null ? current.id() : requestedActor;
+        UUID reservation = entitlement.reserve(actor, "EMBEDDING", budget);
         int tokens = 0;
         boolean received = false;
 
@@ -274,14 +290,15 @@ public class AiService {
 
             settle(reservation, null, budget, tokens, received, true);
             reservation = null;
-            log("EMBEDDING", null, tokens, 0, started, true, null, embeddingModel);
+            logForUser(actor, "EMBEDDING", null, tokens, 0, started, true, null, embeddingModel);
 
             return vector;
         } catch (Exception ex) {
             if (reservation != null)
                 settle(reservation, null, budget, tokens, received, false);
 
-            log(
+            logForUser(
+                actor,
                 "EMBEDDING",
                 null,
                 tokens,
@@ -328,7 +345,6 @@ public class AiService {
         boolean success,
         String error,
         String usedModel) {
-        Map<String, Object> fields = new LinkedHashMap<>();
         UUID userId = null;
 
         if (guestId == null) {
@@ -337,6 +353,21 @@ public class AiService {
             } catch (ApiException ignored) {
             }
         }
+
+        logForUser(userId, feature, guestId, in, out, started, success, error, usedModel);
+    }
+
+    private void logForUser(
+        UUID userId,
+        String feature,
+        UUID guestId,
+        int in,
+        int out,
+        long started,
+        boolean success,
+        String error,
+        String usedModel) {
+        Map<String, Object> fields = new LinkedHashMap<>();
 
         fields.put("user_id", userId);
         fields.put("guest_session_id", guestId);

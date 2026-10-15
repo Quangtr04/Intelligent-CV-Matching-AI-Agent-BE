@@ -1,0 +1,2226 @@
+{
+  "fileStem": "edunexus-conceptual-diagram",
+  "verifiedOn": "2026-10-14",
+  "pages": [
+    {
+      "id": "edunexus-unified",
+      "name": "EduNexus Conceptual Diagram",
+      "fileSuffix": "",
+      "title": "EDUNEXUS · CONCEPTUAL DIAGRAM",
+      "subtitle": "Một sơ đồ thống nhất · Các khái niệm nghiệp vụ và quan hệ · Crow’s Foot",
+      "width": 3000,
+      "height": 1900,
+      "contentScale": 0.8,
+      "groups": [],
+      "nodes": [
+        {
+          "id": "guest",
+          "title": "Guest Session",
+          "x": 60,
+          "y": 135,
+          "width": 165,
+          "height": 82.5,
+          "group": null,
+          "accent": "#14B8A6",
+          "radius": 0,
+          "reference": false,
+          "fontSize": 22,
+          "bodySize": 16,
+          "body": [],
+          "concept": "Guest Session"
+        },
+        {
+          "id": "user",
+          "title": "User",
+          "x": 1380,
+          "y": 135,
+          "width": 210,
+          "height": 82.5,
+          "group": null,
+          "accent": "#C084FC",
+          "radius": 0,
+          "reference": false,
+          "fontSize": 22,
+          "bodySize": 16,
+          "body": [],
+          "concept": "User"
+        },
+        {
+          "id": "plan",
+          "title": "Plan",
+          "x": 2587.5,
+          "y": 135,
+          "width": 165,
+          "height": 82.5,
+          "group": null,
+          "accent": "#22C55E",
+          "radius": 0,
+          "reference": false,
+          "fontSize": 22,
+          "bodySize": 16,
+          "body": [],
+          "concept": "Plan"
+        },
+        {
+          "id": "ai",
+          "title": "AI Conversation",
+          "x": 75,
+          "y": 465,
+          "width": 187.5,
+          "height": 82.5,
+          "group": null,
+          "accent": "#22D3EE",
+          "radius": 0,
+          "reference": false,
+          "fontSize": 22,
+          "bodySize": 16,
+          "body": [],
+          "concept": "AI Conversation"
+        },
+        {
+          "id": "announcement",
+          "title": "Announcement",
+          "x": 487.5,
+          "y": 465,
+          "width": 172.5,
+          "height": 82.5,
+          "group": null,
+          "accent": "#A3E635",
+          "radius": 0,
+          "reference": false,
+          "fontSize": 22,
+          "bodySize": 16,
+          "body": [],
+          "concept": "Announcement"
+        },
+        {
+          "id": "consultation",
+          "title": "Career\\nConsultation",
+          "x": 735,
+          "y": 465,
+          "width": 210,
+          "height": 82.5,
+          "group": null,
+          "accent": "#06B6D4",
+          "radius": 0,
+          "reference": false,
+          "fontSize": 22,
+          "bodySize": 16,
+          "body": [],
+          "concept": "Career Consultation"
+        },
+        {
+          "id": "support",
+          "title": "Support Ticket",
+          "x": 1035,
+          "y": 465,
+          "width": 172.5,
+          "height": 82.5,
+          "group": null,
+          "accent": "#F59E0B",
+          "radius": 0,
+          "reference": false,
+          "fontSize": 22,
+          "bodySize": 16,
+          "body": [],
+          "concept": "Support Ticket"
+        },
+        {
+          "id": "usage",
+          "title": "AI Usage",
+          "x": 1305,
+          "y": 465,
+          "width": 172.5,
+          "height": 82.5,
+          "group": null,
+          "accent": "#A78BFA",
+          "radius": 0,
+          "reference": false,
+          "fontSize": 22,
+          "bodySize": 16,
+          "body": [],
+          "concept": "AI Usage"
+        },
+        {
+          "id": "cv",
+          "title": "CV / Resume",
+          "x": 1590,
+          "y": 465,
+          "width": 180,
+          "height": 82.5,
+          "group": null,
+          "accent": "#22D3EE",
+          "radius": 0,
+          "reference": false,
+          "fontSize": 22,
+          "bodySize": 16,
+          "body": [],
+          "concept": "CV / Resume"
+        },
+        {
+          "id": "profile",
+          "title": "Career Profile",
+          "x": 1912.5,
+          "y": 465,
+          "width": 187.5,
+          "height": 82.5,
+          "group": null,
+          "accent": "#F59E0B",
+          "radius": 0,
+          "reference": false,
+          "fontSize": 22,
+          "bodySize": 16,
+          "body": [],
+          "concept": "Career Profile"
+        },
+        {
+          "id": "subscription",
+          "title": "User\\nSubscription",
+          "x": 2235,
+          "y": 465,
+          "width": 187.5,
+          "height": 82.5,
+          "group": null,
+          "accent": "#A78BFA",
+          "radius": 0,
+          "reference": false,
+          "fontSize": 22,
+          "bodySize": 16,
+          "body": [],
+          "concept": "User Subscription"
+        },
+        {
+          "id": "assessment",
+          "title": "Assessment",
+          "x": 2617.5,
+          "y": 465,
+          "width": 195,
+          "height": 82.5,
+          "group": null,
+          "accent": "#84CC16",
+          "radius": 0,
+          "reference": false,
+          "fontSize": 22,
+          "bodySize": 16,
+          "body": [],
+          "concept": "Assessment"
+        },
+        {
+          "id": "ai-message",
+          "title": "AI Message",
+          "x": 75,
+          "y": 810,
+          "width": 187.5,
+          "height": 82.5,
+          "group": null,
+          "accent": "#22D3EE",
+          "radius": 0,
+          "reference": false,
+          "fontSize": 22,
+          "bodySize": 16,
+          "body": [],
+          "concept": "AI Message"
+        },
+        {
+          "id": "consultation-message",
+          "title": "Consultation\\nMessage",
+          "x": 735,
+          "y": 810,
+          "width": 210,
+          "height": 82.5,
+          "group": null,
+          "accent": "#06B6D4",
+          "radius": 0,
+          "reference": false,
+          "fontSize": 22,
+          "bodySize": 16,
+          "body": [],
+          "concept": "Consultation Message"
+        },
+        {
+          "id": "matching",
+          "title": "Matching\\nSession",
+          "x": 1222.5,
+          "y": 810,
+          "width": 202.5,
+          "height": 82.5,
+          "group": null,
+          "accent": "#FB7185",
+          "radius": 0,
+          "reference": false,
+          "fontSize": 22,
+          "bodySize": 16,
+          "body": [],
+          "concept": "Matching Session"
+        },
+        {
+          "id": "resume-analysis",
+          "title": "Resume Analysis",
+          "x": 1567.5,
+          "y": 810,
+          "width": 195,
+          "height": 82.5,
+          "group": null,
+          "accent": "#22D3EE",
+          "radius": 0,
+          "reference": false,
+          "fontSize": 22,
+          "bodySize": 16,
+          "body": [],
+          "concept": "Resume Analysis"
+        },
+        {
+          "id": "skill",
+          "title": "Skill",
+          "x": 1867.5,
+          "y": 810,
+          "width": 172.5,
+          "height": 82.5,
+          "group": null,
+          "accent": "#22C55E",
+          "radius": 0,
+          "reference": false,
+          "fontSize": 22,
+          "bodySize": 16,
+          "body": [],
+          "concept": "Skill"
+        },
+        {
+          "id": "job",
+          "title": "Job Post",
+          "x": 2205,
+          "y": 810,
+          "width": 187.5,
+          "height": 82.5,
+          "group": null,
+          "accent": "#A78BFA",
+          "radius": 0,
+          "reference": false,
+          "fontSize": 22,
+          "bodySize": 16,
+          "body": [],
+          "concept": "Job Post"
+        },
+        {
+          "id": "payment",
+          "title": "Payment Order",
+          "x": 2497.5,
+          "y": 810,
+          "width": 195,
+          "height": 82.5,
+          "group": null,
+          "accent": "#FB7185",
+          "radius": 0,
+          "reference": false,
+          "fontSize": 22,
+          "bodySize": 16,
+          "body": [],
+          "concept": "Payment Order"
+        },
+        {
+          "id": "gap",
+          "title": "Skill Gap\\nAnalysis",
+          "x": 2737.5,
+          "y": 810,
+          "width": 210,
+          "height": 82.5,
+          "group": null,
+          "accent": "#38BDF8",
+          "radius": 0,
+          "reference": false,
+          "fontSize": 22,
+          "bodySize": 16,
+          "body": [],
+          "concept": "Skill Gap Analysis"
+        },
+        {
+          "id": "rag",
+          "title": "RAG Document",
+          "x": 75,
+          "y": 1155,
+          "width": 187.5,
+          "height": 82.5,
+          "group": null,
+          "accent": "#F59E0B",
+          "radius": 0,
+          "reference": false,
+          "fontSize": 22,
+          "bodySize": 16,
+          "body": [],
+          "concept": "RAG Document"
+        },
+        {
+          "id": "support-message",
+          "title": "Support\\nMessage",
+          "x": 555,
+          "y": 1155,
+          "width": 195,
+          "height": 82.5,
+          "group": null,
+          "accent": "#F59E0B",
+          "radius": 0,
+          "reference": false,
+          "fontSize": 22,
+          "bodySize": 16,
+          "body": [],
+          "concept": "Support Message"
+        },
+        {
+          "id": "notification",
+          "title": "Notification",
+          "x": 870,
+          "y": 1155,
+          "width": 180,
+          "height": 82.5,
+          "group": null,
+          "accent": "#FBBF24",
+          "radius": 0,
+          "reference": false,
+          "fontSize": 22,
+          "bodySize": 16,
+          "body": [],
+          "concept": "Notification"
+        },
+        {
+          "id": "apply",
+          "title": "External Apply\\nEvent",
+          "x": 1155,
+          "y": 1155,
+          "width": 210,
+          "height": 82.5,
+          "group": null,
+          "accent": "#A78BFA",
+          "radius": 0,
+          "reference": false,
+          "fontSize": 22,
+          "bodySize": 16,
+          "body": [],
+          "concept": "External Apply Event"
+        },
+        {
+          "id": "result",
+          "title": "Job Match\\nResult",
+          "x": 1507.5,
+          "y": 1155,
+          "width": 202.5,
+          "height": 82.5,
+          "group": null,
+          "accent": "#FB7185",
+          "radius": 0,
+          "reference": false,
+          "fontSize": 22,
+          "bodySize": 16,
+          "body": [],
+          "concept": "Job Match Result"
+        },
+        {
+          "id": "settings",
+          "title": "Crawl Settings",
+          "x": 1822.5,
+          "y": 1155,
+          "width": 187.5,
+          "height": 82.5,
+          "group": null,
+          "accent": "#94A3B8",
+          "radius": 0,
+          "reference": false,
+          "fontSize": 22,
+          "bodySize": 16,
+          "body": [],
+          "concept": "Crawl Settings"
+        },
+        {
+          "id": "run",
+          "title": "Crawl Run /\\nHistory",
+          "x": 2107.5,
+          "y": 1155,
+          "width": 187.5,
+          "height": 82.5,
+          "group": null,
+          "accent": "#94A3B8",
+          "radius": 0,
+          "reference": false,
+          "fontSize": 22,
+          "bodySize": 16,
+          "body": [],
+          "concept": "Crawl Run / History"
+        },
+        {
+          "id": "invoice",
+          "title": "Invoice",
+          "x": 2490,
+          "y": 1155,
+          "width": 195,
+          "height": 82.5,
+          "group": null,
+          "accent": "#FB7185",
+          "radius": 0,
+          "reference": false,
+          "fontSize": 22,
+          "bodySize": 16,
+          "body": [],
+          "concept": "Invoice"
+        },
+        {
+          "id": "roadmap",
+          "title": "Learning\\nRoadmap",
+          "x": 2760,
+          "y": 1155,
+          "width": 202.5,
+          "height": 82.5,
+          "group": null,
+          "accent": "#FB7185",
+          "radius": 0,
+          "reference": false,
+          "fontSize": 22,
+          "bodySize": 16,
+          "body": [],
+          "concept": "Learning Roadmap"
+        },
+        {
+          "id": "job-source",
+          "title": "Job Source URL",
+          "x": 2085,
+          "y": 1507.5,
+          "width": 202.5,
+          "height": 82.5,
+          "group": null,
+          "accent": "#94A3B8",
+          "radius": 0,
+          "reference": false,
+          "fontSize": 22,
+          "bodySize": 16,
+          "body": [],
+          "concept": "Job Source URL"
+        },
+        {
+          "id": "resource",
+          "title": "Learning\\nResource",
+          "x": 2760,
+          "y": 1507.5,
+          "width": 202.5,
+          "height": 82.5,
+          "group": null,
+          "accent": "#C084FC",
+          "radius": 0,
+          "reference": false,
+          "fontSize": 22,
+          "bodySize": 16,
+          "body": [],
+          "concept": "Learning Resource"
+        }
+      ],
+      "edges": [
+        {
+          "id": "rel-user-ai",
+          "source": "user",
+          "target": "ai",
+          "label": "chats",
+          "startCardinality": "0..1",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 1391.25,
+              "y": 217.5
+            },
+            {
+              "x": 1391.25,
+              "y": 251.25
+            },
+            {
+              "x": 195,
+              "y": 251.25
+            },
+            {
+              "x": 195,
+              "y": 465
+            }
+          ],
+          "labelX": 322.5,
+          "labelY": 239.25,
+          "labelWidth": 120,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-guest-ai",
+          "source": "guest",
+          "target": "ai",
+          "label": "trial chats",
+          "startCardinality": "0..1",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 127.5,
+              "y": 217.5
+            },
+            {
+              "x": 127.5,
+              "y": 405
+            },
+            {
+              "x": 138.75,
+              "y": 405
+            },
+            {
+              "x": 138.75,
+              "y": 465
+            }
+          ],
+          "labelX": 52.5,
+          "labelY": 356.25,
+          "labelWidth": 120,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-user-announcement",
+          "source": "user",
+          "target": "announcement",
+          "label": "creates (Admin)",
+          "startCardinality": "1",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 1404.75,
+              "y": 217.5
+            },
+            {
+              "x": 1404.75,
+              "y": 281.25
+            },
+            {
+              "x": 573.75,
+              "y": 281.25
+            },
+            {
+              "x": 573.75,
+              "y": 465
+            }
+          ],
+          "labelX": 503.75,
+          "labelY": 401.25,
+          "labelWidth": 140,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-user-candidate",
+          "source": "user",
+          "target": "consultation",
+          "label": "requests (Candidate)",
+          "startCardinality": "1",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 1418.25,
+              "y": 217.5
+            },
+            {
+              "x": 1418.25,
+              "y": 311.25
+            },
+            {
+              "x": 810,
+              "y": 311.25
+            },
+            {
+              "x": 810,
+              "y": 465
+            }
+          ],
+          "labelX": 712.5,
+          "labelY": 382.5,
+          "labelWidth": 172.5,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-user-consultant",
+          "source": "user",
+          "target": "consultation",
+          "label": "assigned (Consultant)",
+          "startCardinality": "0..1",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 1431.75,
+              "y": 217.5
+            },
+            {
+              "x": 1431.75,
+              "y": 341.25
+            },
+            {
+              "x": 885,
+              "y": 341.25
+            },
+            {
+              "x": 885,
+              "y": 465
+            }
+          ],
+          "labelX": 795,
+          "labelY": 427.5,
+          "labelWidth": 187.5,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-user-support",
+          "source": "user",
+          "target": "support",
+          "label": "opens",
+          "startCardinality": "1",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 1445.25,
+              "y": 217.5
+            },
+            {
+              "x": 1445.25,
+              "y": 371.25
+            },
+            {
+              "x": 1121.25,
+              "y": 371.25
+            },
+            {
+              "x": 1121.25,
+              "y": 465
+            }
+          ],
+          "labelX": 1057.5,
+          "labelY": 405,
+          "labelWidth": 127.5,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-user-usage",
+          "source": "user",
+          "target": "usage",
+          "label": "usage tracked",
+          "startCardinality": "0..1",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 1458.75,
+              "y": 217.5
+            },
+            {
+              "x": 1458.75,
+              "y": 401.25
+            },
+            {
+              "x": 1361.25,
+              "y": 401.25
+            },
+            {
+              "x": 1361.25,
+              "y": 465
+            }
+          ],
+          "labelX": 1293.75,
+          "labelY": 426,
+          "labelWidth": 142.5,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-guest-usage",
+          "source": "guest",
+          "target": "usage",
+          "label": "trial usage tracked",
+          "startCardinality": "0..1",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 225,
+              "y": 198.75
+            },
+            {
+              "x": 360,
+              "y": 198.75
+            },
+            {
+              "x": 360,
+              "y": 637.5
+            },
+            {
+              "x": 1507.5,
+              "y": 637.5
+            },
+            {
+              "x": 1507.5,
+              "y": 510
+            },
+            {
+              "x": 1477.5,
+              "y": 510
+            }
+          ],
+          "labelX": 487.5,
+          "labelY": 625.5,
+          "labelWidth": 180,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-user-cv",
+          "source": "user",
+          "target": "cv",
+          "label": "owns",
+          "startCardinality": "0..1",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 1472.25,
+              "y": 217.5
+            },
+            {
+              "x": 1472.25,
+              "y": 251.25
+            },
+            {
+              "x": 1680,
+              "y": 251.25
+            },
+            {
+              "x": 1680,
+              "y": 465
+            }
+          ],
+          "labelX": 1623.75,
+          "labelY": 371.25,
+          "labelWidth": 112.5,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-user-profile",
+          "source": "user",
+          "target": "profile",
+          "label": "has",
+          "startCardinality": "1",
+          "endCardinality": "0..1",
+          "contextual": false,
+          "points": [
+            {
+              "x": 1485.75,
+              "y": 217.5
+            },
+            {
+              "x": 1485.75,
+              "y": 281.25
+            },
+            {
+              "x": 2006.25,
+              "y": 281.25
+            },
+            {
+              "x": 2006.25,
+              "y": 465
+            }
+          ],
+          "labelX": 1942.5,
+          "labelY": 390,
+          "labelWidth": 127.5,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-user-subscription",
+          "source": "user",
+          "target": "subscription",
+          "label": "subscribes",
+          "startCardinality": "1",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 1499.25,
+              "y": 217.5
+            },
+            {
+              "x": 1499.25,
+              "y": 311.25
+            },
+            {
+              "x": 2328.75,
+              "y": 311.25
+            },
+            {
+              "x": 2328.75,
+              "y": 465
+            }
+          ],
+          "labelX": 2261.25,
+          "labelY": 390,
+          "labelWidth": 135,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-user-assessment",
+          "source": "user",
+          "target": "assessment",
+          "label": "takes",
+          "startCardinality": "1",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 1512.75,
+              "y": 217.5
+            },
+            {
+              "x": 1512.75,
+              "y": 341.25
+            },
+            {
+              "x": 2715,
+              "y": 341.25
+            },
+            {
+              "x": 2715,
+              "y": 465
+            }
+          ],
+          "labelX": 2647.5,
+          "labelY": 412.5,
+          "labelWidth": 135,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-user-matching",
+          "source": "user",
+          "target": "matching",
+          "label": "starts",
+          "startCardinality": "0..1",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 1526.25,
+              "y": 217.5
+            },
+            {
+              "x": 1526.25,
+              "y": 431.25
+            },
+            {
+              "x": 1252.5,
+              "y": 431.25
+            },
+            {
+              "x": 1252.5,
+              "y": 750
+            },
+            {
+              "x": 1297.5,
+              "y": 750
+            },
+            {
+              "x": 1297.5,
+              "y": 810
+            }
+          ],
+          "labelX": 1188.75,
+          "labelY": 686.25,
+          "labelWidth": 123.75,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-guest-matching",
+          "source": "guest",
+          "target": "matching",
+          "label": "trial matching",
+          "startCardinality": "0..1",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 225,
+              "y": 176.25
+            },
+            {
+              "x": 330,
+              "y": 176.25
+            },
+            {
+              "x": 330,
+              "y": 720
+            },
+            {
+              "x": 1252.5,
+              "y": 720
+            },
+            {
+              "x": 1252.5,
+              "y": 810
+            }
+          ],
+          "labelX": 390,
+          "labelY": 708,
+          "labelWidth": 157.5,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-user-payment",
+          "source": "user",
+          "target": "payment",
+          "label": "places order",
+          "startCardinality": "1",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 1380,
+              "y": 180
+            },
+            {
+              "x": 1215,
+              "y": 180
+            },
+            {
+              "x": 1215,
+              "y": 592.5
+            },
+            {
+              "x": 2475,
+              "y": 592.5
+            },
+            {
+              "x": 2475,
+              "y": 832.5
+            },
+            {
+              "x": 2497.5,
+              "y": 832.5
+            }
+          ],
+          "labelX": 2238.75,
+          "labelY": 580.5,
+          "labelWidth": 165,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-user-gap",
+          "source": "user",
+          "target": "gap",
+          "label": "owns analysis",
+          "startCardinality": "1",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 1590,
+              "y": 180
+            },
+            {
+              "x": 1642.5,
+              "y": 180
+            },
+            {
+              "x": 1642.5,
+              "y": 435
+            },
+            {
+              "x": 2872.5,
+              "y": 435
+            },
+            {
+              "x": 2872.5,
+              "y": 810
+            }
+          ],
+          "labelX": 2842.5,
+          "labelY": 570,
+          "labelWidth": 142.5,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-user-roadmap",
+          "source": "user",
+          "target": "roadmap",
+          "label": "owns roadmap",
+          "startCardinality": "1",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 1590,
+              "y": 198.75
+            },
+            {
+              "x": 1627.5,
+              "y": 198.75
+            },
+            {
+              "x": 1627.5,
+              "y": 420
+            },
+            {
+              "x": 2985,
+              "y": 420
+            },
+            {
+              "x": 2985,
+              "y": 1196.25
+            },
+            {
+              "x": 2962.5,
+              "y": 1196.25
+            }
+          ],
+          "labelX": 2812.5,
+          "labelY": 1046.25,
+          "labelWidth": 142.5,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-user-apply",
+          "source": "user",
+          "target": "apply",
+          "label": "opens apply link",
+          "startCardinality": "1",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 1380,
+              "y": 202.5
+            },
+            {
+              "x": 975,
+              "y": 202.5
+            },
+            {
+              "x": 975,
+              "y": 675
+            },
+            {
+              "x": 1087.5,
+              "y": 675
+            },
+            {
+              "x": 1087.5,
+              "y": 1196.25
+            },
+            {
+              "x": 1155,
+              "y": 1196.25
+            }
+          ],
+          "labelX": 1005,
+          "labelY": 960,
+          "labelWidth": 157.5,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-user-notification",
+          "source": "user",
+          "target": "notification",
+          "label": "receives",
+          "startCardinality": "1",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 1539.75,
+              "y": 217.5
+            },
+            {
+              "x": 1539.75,
+              "y": 427.5
+            },
+            {
+              "x": 1005,
+              "y": 427.5
+            },
+            {
+              "x": 1005,
+              "y": 937.5
+            },
+            {
+              "x": 960,
+              "y": 937.5
+            },
+            {
+              "x": 960,
+              "y": 1155
+            }
+          ],
+          "labelX": 885,
+          "labelY": 1072.5,
+          "labelWidth": 150,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-user-settings",
+          "source": "user",
+          "target": "settings",
+          "label": "configures (Admin)",
+          "startCardinality": null,
+          "endCardinality": null,
+          "contextual": true,
+          "points": [
+            {
+              "x": 1380,
+              "y": 157.5
+            },
+            {
+              "x": 465,
+              "y": 157.5
+            },
+            {
+              "x": 465,
+              "y": 1057.5
+            },
+            {
+              "x": 1912.5,
+              "y": 1057.5
+            },
+            {
+              "x": 1912.5,
+              "y": 1155
+            }
+          ],
+          "labelX": 1728.75,
+          "labelY": 1045.5,
+          "labelWidth": 187.5,
+          "labelHeight": 28,
+          "dashed": true,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-user-skill",
+          "source": "user",
+          "target": "skill",
+          "label": "possesses",
+          "startCardinality": "0..n",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 1553.25,
+              "y": 217.5
+            },
+            {
+              "x": 1553.25,
+              "y": 431.25
+            },
+            {
+              "x": 1807.5,
+              "y": 431.25
+            },
+            {
+              "x": 1807.5,
+              "y": 930
+            },
+            {
+              "x": 1912.5,
+              "y": 930
+            },
+            {
+              "x": 1912.5,
+              "y": 892.5
+            }
+          ],
+          "labelX": 1687.5,
+          "labelY": 918,
+          "labelWidth": 150,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-plan-subscription",
+          "source": "plan",
+          "target": "subscription",
+          "label": "offers",
+          "startCardinality": "1",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 2632.5,
+              "y": 217.5
+            },
+            {
+              "x": 2632.5,
+              "y": 356.25
+            },
+            {
+              "x": 2407.5,
+              "y": 356.25
+            },
+            {
+              "x": 2407.5,
+              "y": 465
+            }
+          ],
+          "labelX": 2411.25,
+          "labelY": 367.5,
+          "labelWidth": 135,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-plan-payment",
+          "source": "plan",
+          "target": "payment",
+          "label": "tier purchased",
+          "startCardinality": "1",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 2752.5,
+              "y": 172.5
+            },
+            {
+              "x": 2917.5,
+              "y": 172.5
+            },
+            {
+              "x": 2917.5,
+              "y": 697.5
+            },
+            {
+              "x": 2617.5,
+              "y": 697.5
+            },
+            {
+              "x": 2617.5,
+              "y": 810
+            }
+          ],
+          "labelX": 2718.75,
+          "labelY": 685.5,
+          "labelWidth": 180,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-subscription-payment",
+          "source": "subscription",
+          "target": "payment",
+          "label": "billed by",
+          "startCardinality": "0..1",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 2328.75,
+              "y": 547.5
+            },
+            {
+              "x": 2328.75,
+              "y": 645
+            },
+            {
+              "x": 2565,
+              "y": 645
+            },
+            {
+              "x": 2565,
+              "y": 810
+            }
+          ],
+          "labelX": 2377.5,
+          "labelY": 633,
+          "labelWidth": 142.5,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-payment-invoice",
+          "source": "payment",
+          "target": "invoice",
+          "label": "issues invoice",
+          "startCardinality": "1",
+          "endCardinality": "0..1",
+          "contextual": false,
+          "points": [
+            {
+              "x": 2591.25,
+              "y": 892.5
+            },
+            {
+              "x": 2591.25,
+              "y": 1155
+            }
+          ],
+          "labelX": 2602.5,
+          "labelY": 982.5,
+          "labelWidth": 142.5,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-ai-message",
+          "source": "ai",
+          "target": "ai-message",
+          "label": "contains",
+          "startCardinality": "1",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 168.75,
+              "y": 547.5
+            },
+            {
+              "x": 168.75,
+              "y": 810
+            }
+          ],
+          "labelX": 183.75,
+          "labelY": 697.5,
+          "labelWidth": 120,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-message-rag",
+          "source": "ai-message",
+          "target": "rag",
+          "label": "references",
+          "startCardinality": "0..n",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 168.75,
+              "y": 892.5
+            },
+            {
+              "x": 168.75,
+              "y": 1155
+            }
+          ],
+          "labelX": 183.75,
+          "labelY": 1020,
+          "labelWidth": 127.5,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-consultation-message",
+          "source": "consultation",
+          "target": "consultation-message",
+          "label": "contains messages",
+          "startCardinality": "1",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 840,
+              "y": 547.5
+            },
+            {
+              "x": 840,
+              "y": 810
+            }
+          ],
+          "labelX": 855,
+          "labelY": 720,
+          "labelWidth": 176.25,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-support-message",
+          "source": "support",
+          "target": "support-message",
+          "label": "contains replies",
+          "startCardinality": "1",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 1121.25,
+              "y": 547.5
+            },
+            {
+              "x": 1121.25,
+              "y": 990
+            },
+            {
+              "x": 652.5,
+              "y": 990
+            },
+            {
+              "x": 652.5,
+              "y": 1155
+            }
+          ],
+          "labelX": 772.5,
+          "labelY": 978,
+          "labelWidth": 180,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-cv-matching",
+          "source": "cv",
+          "target": "matching",
+          "label": "selected for",
+          "startCardinality": "0..n",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 1590,
+              "y": 502.5
+            },
+            {
+              "x": 1530,
+              "y": 502.5
+            },
+            {
+              "x": 1530,
+              "y": 720
+            },
+            {
+              "x": 1372.5,
+              "y": 720
+            },
+            {
+              "x": 1372.5,
+              "y": 810
+            }
+          ],
+          "labelX": 1395,
+          "labelY": 708,
+          "labelWidth": 138.75,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-profile-matching",
+          "source": "profile",
+          "target": "matching",
+          "label": "career context",
+          "startCardinality": null,
+          "endCardinality": null,
+          "contextual": true,
+          "points": [
+            {
+              "x": 1912.5,
+              "y": 502.5
+            },
+            {
+              "x": 1837.5,
+              "y": 502.5
+            },
+            {
+              "x": 1837.5,
+              "y": 720
+            },
+            {
+              "x": 1455,
+              "y": 720
+            },
+            {
+              "x": 1455,
+              "y": 851.25
+            },
+            {
+              "x": 1425,
+              "y": 851.25
+            }
+          ],
+          "labelX": 1695,
+          "labelY": 708,
+          "labelWidth": 150,
+          "labelHeight": 28,
+          "dashed": true,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-cv-analysis",
+          "source": "cv",
+          "target": "resume-analysis",
+          "label": "analyzed",
+          "startCardinality": "1",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 1650,
+              "y": 547.5
+            },
+            {
+              "x": 1650,
+              "y": 810
+            }
+          ],
+          "labelX": 1586.25,
+          "labelY": 626.25,
+          "labelWidth": 127.5,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-cv-skill",
+          "source": "cv",
+          "target": "skill",
+          "label": "lists",
+          "startCardinality": "0..n",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 1725,
+              "y": 547.5
+            },
+            {
+              "x": 1725,
+              "y": 757.5
+            },
+            {
+              "x": 1950,
+              "y": 757.5
+            },
+            {
+              "x": 1950,
+              "y": 810
+            }
+          ],
+          "labelX": 1800,
+          "labelY": 745.5,
+          "labelWidth": 120,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-job-skill",
+          "source": "job",
+          "target": "skill",
+          "label": "requires",
+          "startCardinality": "0..n",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 2205,
+              "y": 851.25
+            },
+            {
+              "x": 2040,
+              "y": 851.25
+            }
+          ],
+          "labelX": 2058.75,
+          "labelY": 839.25,
+          "labelWidth": 127.5,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-matching-result",
+          "source": "matching",
+          "target": "result",
+          "label": "returns",
+          "startCardinality": "1",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 1323.75,
+              "y": 892.5
+            },
+            {
+              "x": 1323.75,
+              "y": 1061.25
+            },
+            {
+              "x": 1608.75,
+              "y": 1061.25
+            },
+            {
+              "x": 1608.75,
+              "y": 1155
+            }
+          ],
+          "labelX": 1361.25,
+          "labelY": 1049.25,
+          "labelWidth": 135,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-job-result",
+          "source": "job",
+          "target": "result",
+          "label": "ranked in",
+          "startCardinality": "1",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 2287.5,
+              "y": 892.5
+            },
+            {
+              "x": 2287.5,
+              "y": 1035
+            },
+            {
+              "x": 1665,
+              "y": 1035
+            },
+            {
+              "x": 1665,
+              "y": 1155
+            }
+          ],
+          "labelX": 2013.75,
+          "labelY": 1023,
+          "labelWidth": 146.25,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-job-apply",
+          "source": "job",
+          "target": "apply",
+          "label": "target job",
+          "startCardinality": "1",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 2205,
+              "y": 866.25
+            },
+            {
+              "x": 2160,
+              "y": 866.25
+            },
+            {
+              "x": 2160,
+              "y": 1091.25
+            },
+            {
+              "x": 1342.5,
+              "y": 1091.25
+            },
+            {
+              "x": 1342.5,
+              "y": 1155
+            }
+          ],
+          "labelX": 1807.5,
+          "labelY": 1079.25,
+          "labelWidth": 142.5,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-cv-apply",
+          "source": "cv",
+          "target": "apply",
+          "label": "optional CV",
+          "startCardinality": "0..1",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 1590,
+              "y": 528.75
+            },
+            {
+              "x": 1560,
+              "y": 528.75
+            },
+            {
+              "x": 1560,
+              "y": 1012.5
+            },
+            {
+              "x": 1267.5,
+              "y": 1012.5
+            },
+            {
+              "x": 1267.5,
+              "y": 1155
+            }
+          ],
+          "labelX": 1413.75,
+          "labelY": 1000.5,
+          "labelWidth": 142.5,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-assessment-gap",
+          "source": "assessment",
+          "target": "gap",
+          "label": "informs",
+          "startCardinality": "0..1",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 2715,
+              "y": 547.5
+            },
+            {
+              "x": 2715,
+              "y": 622.5
+            },
+            {
+              "x": 2842.5,
+              "y": 622.5
+            },
+            {
+              "x": 2842.5,
+              "y": 810
+            }
+          ],
+          "labelX": 2677.5,
+          "labelY": 610.5,
+          "labelWidth": 142.5,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-cv-gap",
+          "source": "cv",
+          "target": "gap",
+          "label": "CV input",
+          "startCardinality": "0..1",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 1770,
+              "y": 502.5
+            },
+            {
+              "x": 1800,
+              "y": 502.5
+            },
+            {
+              "x": 1800,
+              "y": 656.25
+            },
+            {
+              "x": 2752.5,
+              "y": 656.25
+            },
+            {
+              "x": 2752.5,
+              "y": 810
+            }
+          ],
+          "labelX": 2178.75,
+          "labelY": 644.25,
+          "labelWidth": 135,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-job-gap",
+          "source": "job",
+          "target": "gap",
+          "label": "target job",
+          "startCardinality": "0..1",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 2392.5,
+              "y": 851.25
+            },
+            {
+              "x": 2430,
+              "y": 851.25
+            },
+            {
+              "x": 2430,
+              "y": 915
+            },
+            {
+              "x": 2715,
+              "y": 915
+            },
+            {
+              "x": 2715,
+              "y": 828.75
+            },
+            {
+              "x": 2737.5,
+              "y": 828.75
+            }
+          ],
+          "labelX": 2527.5,
+          "labelY": 903,
+          "labelWidth": 150,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-profile-gap",
+          "source": "profile",
+          "target": "gap",
+          "label": "career context",
+          "startCardinality": null,
+          "endCardinality": null,
+          "contextual": true,
+          "points": [
+            {
+              "x": 2100,
+              "y": 502.5
+            },
+            {
+              "x": 2145,
+              "y": 502.5
+            },
+            {
+              "x": 2145,
+              "y": 757.5
+            },
+            {
+              "x": 2707.5,
+              "y": 757.5
+            },
+            {
+              "x": 2707.5,
+              "y": 866.25
+            },
+            {
+              "x": 2737.5,
+              "y": 866.25
+            }
+          ],
+          "labelX": 2302.5,
+          "labelY": 745.5,
+          "labelWidth": 172.5,
+          "labelHeight": 28,
+          "dashed": true,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-gap-roadmap",
+          "source": "gap",
+          "target": "roadmap",
+          "label": "informs roadmap",
+          "startCardinality": "0..1",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 2857.5,
+              "y": 892.5
+            },
+            {
+              "x": 2857.5,
+              "y": 1155
+            }
+          ],
+          "labelX": 2760,
+          "labelY": 1012.5,
+          "labelWidth": 187.5,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-job-roadmap",
+          "source": "job",
+          "target": "roadmap",
+          "label": "learning goal",
+          "startCardinality": "0..1",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 2370,
+              "y": 892.5
+            },
+            {
+              "x": 2370,
+              "y": 1095
+            },
+            {
+              "x": 2707.5,
+              "y": 1095
+            },
+            {
+              "x": 2707.5,
+              "y": 1196.25
+            },
+            {
+              "x": 2760,
+              "y": 1196.25
+            }
+          ],
+          "labelX": 2422.5,
+          "labelY": 1083,
+          "labelWidth": 165,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-roadmap-resource",
+          "source": "roadmap",
+          "target": "resource",
+          "label": "recommends",
+          "startCardinality": "0..n",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 2857.5,
+              "y": 1237.5
+            },
+            {
+              "x": 2857.5,
+              "y": 1507.5
+            }
+          ],
+          "labelX": 2707.5,
+          "labelY": 1350,
+          "labelWidth": 195,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-settings-run",
+          "source": "settings",
+          "target": "run",
+          "label": "schedules",
+          "startCardinality": null,
+          "endCardinality": null,
+          "contextual": true,
+          "points": [
+            {
+              "x": 2010,
+              "y": 1196.25
+            },
+            {
+              "x": 2107.5,
+              "y": 1196.25
+            }
+          ],
+          "labelX": 2013.75,
+          "labelY": 1170,
+          "labelWidth": 90,
+          "labelHeight": 28,
+          "dashed": true,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-run-job",
+          "source": "run",
+          "target": "job",
+          "label": "collects / updates",
+          "startCardinality": null,
+          "endCardinality": null,
+          "contextual": true,
+          "points": [
+            {
+              "x": 2201.25,
+              "y": 1155
+            },
+            {
+              "x": 2201.25,
+              "y": 1106.25
+            },
+            {
+              "x": 2175,
+              "y": 1106.25
+            },
+            {
+              "x": 2175,
+              "y": 787.5
+            },
+            {
+              "x": 2298.75,
+              "y": 787.5
+            },
+            {
+              "x": 2298.75,
+              "y": 810
+            }
+          ],
+          "labelX": 2103.75,
+          "labelY": 911.25,
+          "labelWidth": 172.5,
+          "labelHeight": 28,
+          "dashed": true,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        },
+        {
+          "id": "rel-job-source",
+          "source": "job",
+          "target": "job-source",
+          "label": "has source URLs",
+          "startCardinality": "1",
+          "endCardinality": "0..n",
+          "contextual": false,
+          "points": [
+            {
+              "x": 2340,
+              "y": 892.5
+            },
+            {
+              "x": 2340,
+              "y": 1425
+            },
+            {
+              "x": 2186.25,
+              "y": 1425
+            },
+            {
+              "x": 2186.25,
+              "y": 1507.5
+            }
+          ],
+          "labelX": 2197.5,
+          "labelY": 1401,
+          "labelWidth": 187.5,
+          "labelHeight": 28,
+          "dashed": false,
+          "color": "#CBD5E1",
+          "fontSize": 18
+        }
+      ],
+      "notesX": 52.5,
+      "notesY": 1650,
+      "notesWidth": 2895,
+      "notesHeight": 210,
+      "notes": [
+        "1 = đúng một · 0..1 = không hoặc một · 0..n = không hoặc nhiều. Nét đứt: ngữ cảnh / điều phối nghiệp vụ.",
+        "User có các vai trò Candidate, Career Consultant, Admin. Career Consultation có 1 Candidate và 0..1 Consultant; mỗi tin nhắn tư vấn/hỗ trợ có 1 User gửi. Support Ticket có 0..1 Admin được phân công.",
+        "AI Conversation và Matching Session thuộc đúng một User hoặc Guest (XOR). AI Usage có tối đa một chủ; tác vụ hệ thống có thể không có chủ.",
+        "CV cá nhân có 1 User sở hữu; CV demo có thể không có chủ. Guest matching dùng CV demo, guest chat không dùng RAG.",
+        "User có tối đa 1 Subscription ACTIVE. Payment Order có trước khi kích hoạt gói. Assessment không tự tạo Roadmap; roadmap.sh là nguồn liên kết tham khảo. Plan gồm giá và quota theo tính năng.",
+        "External Apply Event chỉ ghi nhận mở link ứng tuyển. Job Source URL là URL nguồn của job chuẩn hóa; địa điểm crawl do Admin chọn."
+      ],
+      "theme": {
+        "background": "#111111",
+        "titleColor": "#E5E7EB",
+        "subtitleColor": "#9CA3AF",
+        "nodeFill": "#151515",
+        "nodeText": "#E5E7EB",
+        "bodyText": "#9CA3AF",
+        "labelFill": "#111111",
+        "labelText": "#CBD5E1",
+        "noteFill": "#151515",
+        "noteStroke": "#374151",
+        "noteText": "#CBD5E1"
+      }
+    }
+  ]
+}

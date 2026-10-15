@@ -1,6 +1,7 @@
 package com.example.intelligent_cv_matching_ai_agent.repository.candidate.jobs;
 
 import com.example.intelligent_cv_matching_ai_agent.repository.shared.SqlStore;
+import com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobSourceProjection;
 import java.util.*;
 import org.springframework.stereotype.Repository;
 
@@ -159,7 +160,13 @@ public class CareerToolsRepository {
 
     public Map<String, Object> getMarketJobPostsById(
         Object... args) {
-        return db.one("SELECT * FROM market_job_posts WHERE id=? AND status='ACTIVE'", args);
+        return db.one(
+            "SELECT j.*,j.source_url AS original_source_url,j.source_site AS original_source_site,"
+                + JobSourceProjection.ACTIVE_URL + " AS source_url," + JobSourceProjection.ACTIVE_SITE
+                + " AS source_site FROM market_job_posts j WHERE j.id=? AND j.status='ACTIVE' "
+                + "AND (j.valid_through IS NULL OR j.valid_through>now())",
+            args
+        );
     }
 
 }

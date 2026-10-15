@@ -15,14 +15,36 @@ public record CrawlRequest(
     String roleCategory,
     @Size(max = 120)
     String location,
-    @NotEmpty
     @Size(max = 20)
     // @formatter:off
     List<
         @NotBlank
         @Size(max = 2000)
         String
-    > urls
+    > urls,
     // @formatter:on
+    @Min(1)
+    @Max(20)
+    Integer limit,
+    @Min(1)
+    @Max(5)
+    Integer maxPages
 ) {
+
+    public CrawlRequest(
+        String sourceSite,
+        String keyword,
+        String roleCategory,
+        String location,
+        List<String> urls) {
+        this(sourceSite, keyword, roleCategory, location, urls, 20, 3);
+    }
+
+    public int effectiveLimit() {
+        return limit == null ? 20 : limit;
+    }
+
+    public int effectiveMaxPages() {
+        return maxPages == null ? 3 : maxPages;
+    }
 }

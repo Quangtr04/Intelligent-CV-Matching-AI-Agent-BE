@@ -113,4 +113,8 @@ public class MarketCrawlRun {
     @Column(name = "finished_at", nullable = true, columnDefinition = "timestamptz")
     private OffsetDateTime finishedAt;
 
+    @JsonProperty("requested_by")
+    @Column(name = "requested_by")
+    private UUID requestedBy;
+
 }

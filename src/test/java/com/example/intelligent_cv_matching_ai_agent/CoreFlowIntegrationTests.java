@@ -39,10 +39,22 @@ import static com.example.intelligent_cv_matching_ai_agent.util.shared.Values.fi
  */
 @SpringBootTest(
     properties = {
+        "APP_ENV_FILE=src/test/resources/test.env",
         "spring.datasource.url=${EDUNEXUS_TEST_DATABASE_URL}",
         "spring.datasource.username=${EDUNEXUS_TEST_DATABASE_USER:edunexus_test}",
         "spring.datasource.password=${EDUNEXUS_TEST_DATABASE_PASSWORD:}",
         "spring.flyway.enabled=${EDUNEXUS_TEST_FLYWAY:false}",
+        "app.security.jwt-secret=${random.uuid}${random.uuid}",
+        "spring.docker.compose.enabled=false",
+        "spring.ai.model.chat=none",
+        "spring.ai.model.embedding=none",
+        "app.ai.enabled=false",
+        "app.jobs.collection.enabled=false",
+        "app.jobs.expiration.enabled=false",
+        "app.jobs.embedding.enabled=false",
+        "app.billing.maintenance-enabled=false",
+        "app.mail.enabled=false",
+        "app.ocr.enabled=false",
         "app.auth.expose-development-code=true",
         "app.payment.webhook-secret=integration-test-secret-with-32-bytes-minimum",
         "app.payment.provider=MANUAL_GATEWAY",

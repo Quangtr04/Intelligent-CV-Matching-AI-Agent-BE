@@ -136,6 +136,30 @@ Các thao tác giữ chỗ/hoàn tất/hủy quota dùng `REQUIRES_NEW` để vi
 
 `SecurityConfig` kiểm soát truy cập URL; `BearerFilter` xác thực token và lấy vai trò/trạng thái hiện hành. `CurrentUser` cung cấp ID, kiểm tra role và quyền sở hữu. Service giữ các kiểm tra quyền theo tài nguyên; repository JPA không tự cấp quyền truy cập cho người gọi. Request DTO giữ validation và che thông tin nhạy cảm trong `toString()`. `ApiExceptionHandler` chuyển lỗi nghiệp vụ/validation/database thành phản hồi HTTP nhất quán.
 
+`TokenService` dùng `NimbusJwtEncoder`/`NimbusJwtDecoder` của Spring Security để ký và xác minh JWT HS256.
+Access token cần `sub` UUID, `exp`, `iat`, `jti`; decoder kiểm chữ ký, hạn dùng, `nbf` nếu có và thời điểm phát hành.
+Mỗi lần xác thực còn tra hash token trong database, kiểm session chưa thu hồi/chưa hết hạn, tài khoản
+`ACTIVE`/chưa xóa và đối chiếu chủ token với `sub`. Rotation khóa account trước token, đối chiếu chủ sở hữu
+và chỉ cấp cặp mới khi thao tác thu hồi có điều kiện cập nhật đúng một bản ghi trong cùng transaction.
+
+`APP_JWT_SECRET` bắt buộc, không có fallback hoặc constructor tự dùng secret development. Ứng dụng từ chối
+secret trống, dưới 32 byte UTF-8 và placeholder đã biết. Hãy sinh secret từ ít nhất 32 byte ngẫu nhiên mật mã
+theo [hướng dẫn chạy local](../README.md); độ dài không chứng minh độ ngẫu nhiên. Secret được dùng nguyên
+dưới dạng UTF-8, không giải mã Base64, và phải giống nhau giữa các instance.
+
+## Cấu hình runtime
+
+`application.yaml` giữ cấu trúc Spring/app và ánh xạ các giá trị runtime bằng `${VAR}`.
+Ứng dụng nạp `.env` UTF-8 từ working directory qua
+`spring.config.import=optional:file:${APP_ENV_FILE:.env}[extension=.properties][encoding=utf-8]` của Spring Boot.
+Chạy IDE, Maven hoặc JAR từ thư mục dự án chứa `.env`; các key và giá trị mẫu nằm trong
+[.env.example](../.env.example). Biến môi trường hệ điều hành/container có độ ưu tiên cao hơn file;
+import optional cho phép triển khai chỉ bằng biến môi trường nếu cung cấp đủ các key bắt buộc.
+`APP_ENV_FILE` là biến môi trường tùy chọn để chọn file khác; script local thiết lập nó theo `-EnvFile`.
+
+File `.env` dùng `KEY=value` không bọc nháy, không có `export` hoặc comment cuối dòng.
+Comment đặt trên dòng riêng; đường dẫn Windows dùng `/`. Sau khi sửa cấu hình, khởi động lại ứng dụng.
+
 ## Sinh lại entity và JPA repository
 
 Chạy từ thư mục có `pom.xml`, với JDK của dự án:

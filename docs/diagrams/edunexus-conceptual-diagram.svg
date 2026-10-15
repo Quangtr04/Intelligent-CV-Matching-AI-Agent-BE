@@ -1,0 +1,498 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="3000" height="1900" viewBox="0 0 3000 1900" role="img" aria-labelledby="title description">
+<title id="title">EDUNEXUS · CONCEPTUAL DIAGRAM</title>
+<desc id="description">Một sơ đồ thống nhất · Các khái niệm nghiệp vụ và quan hệ · Crow’s Foot</desc>
+<rect x="0" y="0" width="3000" height="1900" rx="0" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="70" y="70.6" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="36" font-weight="600" fill="#E5E7EB">EDUNEXUS · CONCEPTUAL DIAGRAM</text>
+<text x="72" y="117" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#9CA3AF">Một sơ đồ thống nhất · Các khái niệm nghiệp vụ và quan hệ · Crow’s Foot</text>
+<polyline points="1391.25,217.5 1391.25,251.25 195,251.25 195,465" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="127.5,217.5 127.5,405 138.75,405 138.75,465" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1404.75,217.5 1404.75,281.25 573.75,281.25 573.75,465" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1418.25,217.5 1418.25,311.25 810,311.25 810,465" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1431.75,217.5 1431.75,341.25 885,341.25 885,465" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1445.25,217.5 1445.25,371.25 1121.25,371.25 1121.25,465" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1458.75,217.5 1458.75,401.25 1361.25,401.25 1361.25,465" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="225,198.75 360,198.75 360,637.5 1507.5,637.5 1507.5,510 1477.5,510" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1472.25,217.5 1472.25,251.25 1680,251.25 1680,465" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1485.75,217.5 1485.75,281.25 2006.25,281.25 2006.25,465" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1499.25,217.5 1499.25,311.25 2328.75,311.25 2328.75,465" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1512.75,217.5 1512.75,341.25 2715,341.25 2715,465" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1526.25,217.5 1526.25,431.25 1252.5,431.25 1252.5,750 1297.5,750 1297.5,810" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="225,176.25 330,176.25 330,720 1252.5,720 1252.5,810" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1380,180 1215,180 1215,592.5 2475,592.5 2475,832.5 2497.5,832.5" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1590,180 1642.5,180 1642.5,435 2872.5,435 2872.5,810" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1590,198.75 1627.5,198.75 1627.5,420 2985,420 2985,1196.25 2962.5,1196.25" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1380,202.5 975,202.5 975,675 1087.5,675 1087.5,1196.25 1155,1196.25" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1539.75,217.5 1539.75,427.5 1005,427.5 1005,937.5 960,937.5 960,1155" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1380,157.5 465,157.5 465,1057.5 1912.5,1057.5 1912.5,1155" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="7 5"/>
+<polyline points="1553.25,217.5 1553.25,431.25 1807.5,431.25 1807.5,930 1912.5,930 1912.5,892.5" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2632.5,217.5 2632.5,356.25 2407.5,356.25 2407.5,465" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2752.5,172.5 2917.5,172.5 2917.5,697.5 2617.5,697.5 2617.5,810" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2328.75,547.5 2328.75,645 2565,645 2565,810" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2591.25,892.5 2591.25,1155" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="168.75,547.5 168.75,810" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="168.75,892.5 168.75,1155" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="840,547.5 840,810" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1121.25,547.5 1121.25,990 652.5,990 652.5,1155" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1590,502.5 1530,502.5 1530,720 1372.5,720 1372.5,810" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1912.5,502.5 1837.5,502.5 1837.5,720 1455,720 1455,851.25 1425,851.25" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="7 5"/>
+<polyline points="1650,547.5 1650,810" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1725,547.5 1725,757.5 1950,757.5 1950,810" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2205,851.25 2040,851.25" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1323.75,892.5 1323.75,1061.25 1608.75,1061.25 1608.75,1155" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2287.5,892.5 2287.5,1035 1665,1035 1665,1155" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2205,866.25 2160,866.25 2160,1091.25 1342.5,1091.25 1342.5,1155" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1590,528.75 1560,528.75 1560,1012.5 1267.5,1012.5 1267.5,1155" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2715,547.5 2715,622.5 2842.5,622.5 2842.5,810" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1770,502.5 1800,502.5 1800,656.25 2752.5,656.25 2752.5,810" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2392.5,851.25 2430,851.25 2430,915 2715,915 2715,828.75 2737.5,828.75" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2100,502.5 2145,502.5 2145,757.5 2707.5,757.5 2707.5,866.25 2737.5,866.25" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="7 5"/>
+<polyline points="2857.5,892.5 2857.5,1155" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2370,892.5 2370,1095 2707.5,1095 2707.5,1196.25 2760,1196.25" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2857.5,1237.5 2857.5,1507.5" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2010,1196.25 2107.5,1196.25" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="7 5"/>
+<polyline points="2201.25,1155 2201.25,1106.25 2175,1106.25 2175,787.5 2298.75,787.5 2298.75,810" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="7 5"/>
+<polyline points="2340,892.5 2340,1425 2186.25,1425 2186.25,1507.5" fill="none" stroke="#CBD5E1" stroke-width="1.68" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="60" y="135" width="165" height="82.5" rx="0" fill="#151515" stroke="#14B8A6" stroke-width="1.44"/>
+<text x="142.5" y="183.95" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">Guest Session</text>
+<rect x="1380" y="135" width="210" height="82.5" rx="0" fill="#151515" stroke="#C084FC" stroke-width="1.44"/>
+<text x="1485" y="183.95" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">User</text>
+<rect x="2587.5" y="135" width="165" height="82.5" rx="0" fill="#151515" stroke="#22C55E" stroke-width="1.44"/>
+<text x="2670" y="183.95" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">Plan</text>
+<rect x="75" y="465" width="187.5" height="82.5" rx="0" fill="#151515" stroke="#22D3EE" stroke-width="1.44"/>
+<text x="168.75" y="513.95" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">AI Conversation</text>
+<rect x="487.5" y="465" width="172.5" height="82.5" rx="0" fill="#151515" stroke="#A3E635" stroke-width="1.44"/>
+<text x="573.75" y="513.95" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">Announcement</text>
+<rect x="735" y="465" width="210" height="82.5" rx="0" fill="#151515" stroke="#06B6D4" stroke-width="1.44"/>
+<text x="840" y="499.65" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">Career</text>
+<text x="840" y="528.25" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">Consultation</text>
+<rect x="1035" y="465" width="172.5" height="82.5" rx="0" fill="#151515" stroke="#F59E0B" stroke-width="1.44"/>
+<text x="1121.25" y="513.95" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">Support Ticket</text>
+<rect x="1305" y="465" width="172.5" height="82.5" rx="0" fill="#151515" stroke="#A78BFA" stroke-width="1.44"/>
+<text x="1391.25" y="513.95" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">AI Usage</text>
+<rect x="1590" y="465" width="180" height="82.5" rx="0" fill="#151515" stroke="#22D3EE" stroke-width="1.44"/>
+<text x="1680" y="513.95" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">CV / Resume</text>
+<rect x="1912.5" y="465" width="187.5" height="82.5" rx="0" fill="#151515" stroke="#F59E0B" stroke-width="1.44"/>
+<text x="2006.25" y="513.95" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">Career Profile</text>
+<rect x="2235" y="465" width="187.5" height="82.5" rx="0" fill="#151515" stroke="#A78BFA" stroke-width="1.44"/>
+<text x="2328.75" y="499.65" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">User</text>
+<text x="2328.75" y="528.25" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">Subscription</text>
+<rect x="2617.5" y="465" width="195" height="82.5" rx="0" fill="#151515" stroke="#84CC16" stroke-width="1.44"/>
+<text x="2715" y="513.95" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">Assessment</text>
+<rect x="75" y="810" width="187.5" height="82.5" rx="0" fill="#151515" stroke="#22D3EE" stroke-width="1.44"/>
+<text x="168.75" y="858.95" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">AI Message</text>
+<rect x="735" y="810" width="210" height="82.5" rx="0" fill="#151515" stroke="#06B6D4" stroke-width="1.44"/>
+<text x="840" y="844.65" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">Consultation</text>
+<text x="840" y="873.25" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">Message</text>
+<rect x="1222.5" y="810" width="202.5" height="82.5" rx="0" fill="#151515" stroke="#FB7185" stroke-width="1.44"/>
+<text x="1323.75" y="844.65" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">Matching</text>
+<text x="1323.75" y="873.25" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">Session</text>
+<rect x="1567.5" y="810" width="195" height="82.5" rx="0" fill="#151515" stroke="#22D3EE" stroke-width="1.44"/>
+<text x="1665" y="858.95" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">Resume Analysis</text>
+<rect x="1867.5" y="810" width="172.5" height="82.5" rx="0" fill="#151515" stroke="#22C55E" stroke-width="1.44"/>
+<text x="1953.75" y="858.95" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">Skill</text>
+<rect x="2205" y="810" width="187.5" height="82.5" rx="0" fill="#151515" stroke="#A78BFA" stroke-width="1.44"/>
+<text x="2298.75" y="858.95" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">Job Post</text>
+<rect x="2497.5" y="810" width="195" height="82.5" rx="0" fill="#151515" stroke="#FB7185" stroke-width="1.44"/>
+<text x="2595" y="858.95" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">Payment Order</text>
+<rect x="2737.5" y="810" width="210" height="82.5" rx="0" fill="#151515" stroke="#38BDF8" stroke-width="1.44"/>
+<text x="2842.5" y="844.65" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">Skill Gap</text>
+<text x="2842.5" y="873.25" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">Analysis</text>
+<rect x="75" y="1155" width="187.5" height="82.5" rx="0" fill="#151515" stroke="#F59E0B" stroke-width="1.44"/>
+<text x="168.75" y="1203.95" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">RAG Document</text>
+<rect x="555" y="1155" width="195" height="82.5" rx="0" fill="#151515" stroke="#F59E0B" stroke-width="1.44"/>
+<text x="652.5" y="1189.65" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">Support</text>
+<text x="652.5" y="1218.25" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">Message</text>
+<rect x="870" y="1155" width="180" height="82.5" rx="0" fill="#151515" stroke="#FBBF24" stroke-width="1.44"/>
+<text x="960" y="1203.95" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">Notification</text>
+<rect x="1155" y="1155" width="210" height="82.5" rx="0" fill="#151515" stroke="#A78BFA" stroke-width="1.44"/>
+<text x="1260" y="1189.65" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">External Apply</text>
+<text x="1260" y="1218.25" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">Event</text>
+<rect x="1507.5" y="1155" width="202.5" height="82.5" rx="0" fill="#151515" stroke="#FB7185" stroke-width="1.44"/>
+<text x="1608.75" y="1189.65" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">Job Match</text>
+<text x="1608.75" y="1218.25" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">Result</text>
+<rect x="1822.5" y="1155" width="187.5" height="82.5" rx="0" fill="#151515" stroke="#94A3B8" stroke-width="1.44"/>
+<text x="1916.25" y="1203.95" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">Crawl Settings</text>
+<rect x="2107.5" y="1155" width="187.5" height="82.5" rx="0" fill="#151515" stroke="#94A3B8" stroke-width="1.44"/>
+<text x="2201.25" y="1189.65" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">Crawl Run /</text>
+<text x="2201.25" y="1218.25" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">History</text>
+<rect x="2490" y="1155" width="195" height="82.5" rx="0" fill="#151515" stroke="#FB7185" stroke-width="1.44"/>
+<text x="2587.5" y="1203.95" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">Invoice</text>
+<rect x="2760" y="1155" width="202.5" height="82.5" rx="0" fill="#151515" stroke="#FB7185" stroke-width="1.44"/>
+<text x="2861.25" y="1189.65" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">Learning</text>
+<text x="2861.25" y="1218.25" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">Roadmap</text>
+<rect x="2085" y="1507.5" width="202.5" height="82.5" rx="0" fill="#151515" stroke="#94A3B8" stroke-width="1.44"/>
+<text x="2186.25" y="1556.45" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">Job Source URL</text>
+<rect x="2760" y="1507.5" width="202.5" height="82.5" rx="0" fill="#151515" stroke="#C084FC" stroke-width="1.44"/>
+<text x="2861.25" y="1542.15" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">Learning</text>
+<text x="2861.25" y="1570.75" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">Resource</text>
+<rect x="322.5" y="239.25" width="120" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="382.5" y="259.55" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">chats</text>
+<rect x="52.5" y="356.25" width="120" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="112.5" y="376.55" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">trial chats</text>
+<rect x="503.75" y="401.25" width="140" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="573.75" y="421.55" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">creates (Admin)</text>
+<rect x="712.5" y="382.5" width="172.5" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="798.75" y="402.8" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">requests (Candidate)</text>
+<rect x="795" y="427.5" width="187.5" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="888.75" y="447.8" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">assigned (Consultant)</text>
+<rect x="1057.5" y="405" width="127.5" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="1121.25" y="425.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">opens</text>
+<rect x="1293.75" y="426" width="142.5" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="1365" y="446.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">usage tracked</text>
+<rect x="487.5" y="625.5" width="180" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="577.5" y="645.8" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">trial usage tracked</text>
+<rect x="1623.75" y="371.25" width="112.5" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="1680" y="391.55" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">owns</text>
+<rect x="1942.5" y="390" width="127.5" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="2006.25" y="410.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">has</text>
+<rect x="2261.25" y="390" width="135" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="2328.75" y="410.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">subscribes</text>
+<rect x="2647.5" y="412.5" width="135" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="2715" y="432.8" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">takes</text>
+<rect x="1188.75" y="686.25" width="123.75" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="1250.625" y="706.55" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">starts</text>
+<rect x="390" y="708" width="157.5" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="468.75" y="728.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">trial matching</text>
+<rect x="2238.75" y="580.5" width="165" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="2321.25" y="600.8" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">places order</text>
+<rect x="2842.5" y="570" width="142.5" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="2913.75" y="590.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">owns analysis</text>
+<rect x="2812.5" y="1046.25" width="142.5" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="2883.75" y="1066.55" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">owns roadmap</text>
+<rect x="1005" y="960" width="157.5" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="1083.75" y="980.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">opens apply link</text>
+<rect x="885" y="1072.5" width="150" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="960" y="1092.8" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">receives</text>
+<rect x="1728.75" y="1045.5" width="187.5" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="1822.5" y="1065.8" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">configures (Admin)</text>
+<rect x="1687.5" y="918" width="150" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="1762.5" y="938.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">possesses</text>
+<rect x="2411.25" y="367.5" width="135" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="2478.75" y="387.8" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">offers</text>
+<rect x="2718.75" y="685.5" width="180" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="2808.75" y="705.8" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">tier purchased</text>
+<rect x="2377.5" y="633" width="142.5" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="2448.75" y="653.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">billed by</text>
+<rect x="2602.5" y="982.5" width="142.5" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="2673.75" y="1002.8" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">issues invoice</text>
+<rect x="183.75" y="697.5" width="120" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="243.75" y="717.8" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">contains</text>
+<rect x="183.75" y="1020" width="127.5" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="247.5" y="1040.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">references</text>
+<rect x="855" y="720" width="176.25" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="943.125" y="740.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">contains messages</text>
+<rect x="772.5" y="978" width="180" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="862.5" y="998.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">contains replies</text>
+<rect x="1395" y="708" width="138.75" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="1464.375" y="728.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">selected for</text>
+<rect x="1695" y="708" width="150" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="1770" y="728.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">career context</text>
+<rect x="1586.25" y="626.25" width="127.5" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="1650" y="646.55" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">analyzed</text>
+<rect x="1800" y="745.5" width="120" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="1860" y="765.8" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">lists</text>
+<rect x="2058.75" y="839.25" width="127.5" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="2122.5" y="859.55" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">requires</text>
+<rect x="1361.25" y="1049.25" width="135" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="1428.75" y="1069.55" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">returns</text>
+<rect x="2013.75" y="1023" width="146.25" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="2086.875" y="1043.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">ranked in</text>
+<rect x="1807.5" y="1079.25" width="142.5" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="1878.75" y="1099.55" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">target job</text>
+<rect x="1413.75" y="1000.5" width="142.5" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="1485" y="1020.8" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">optional CV</text>
+<rect x="2677.5" y="610.5" width="142.5" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="2748.75" y="630.8" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">informs</text>
+<rect x="2178.75" y="644.25" width="135" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="2246.25" y="664.55" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">CV input</text>
+<rect x="2527.5" y="903" width="150" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="2602.5" y="923.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">target job</text>
+<rect x="2302.5" y="745.5" width="172.5" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="2388.75" y="765.8" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">career context</text>
+<rect x="2760" y="1012.5" width="187.5" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="2853.75" y="1032.8" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">informs roadmap</text>
+<rect x="2422.5" y="1083" width="165" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="2505" y="1103.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">learning goal</text>
+<rect x="2707.5" y="1350" width="195" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="2805" y="1370.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">recommends</text>
+<rect x="2013.75" y="1170" width="90" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="2058.75" y="1190.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">schedules</text>
+<rect x="2103.75" y="911.25" width="172.5" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="2190" y="931.55" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">collects / updates</text>
+<rect x="2197.5" y="1401" width="187.5" height="28" rx="4.8" fill="#111111" stroke="none" stroke-width="0"/>
+<text x="2291.25" y="1421.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">has source URLs</text>
+<polyline points="1396.85,223.1 1385.65,223.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="1391.25" cy="235.1" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="189.4,463.4 195,453.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="195,463.4 195,453.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="200.6,463.4 195,453.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="195" cy="447.4" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="133.1,223.1 121.9,223.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="127.5" cy="235.1" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="133.15,463.4 138.75,453.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="138.75,463.4 138.75,453.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="144.35,463.4 138.75,453.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="138.75" cy="447.4" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="1410.35,223.1 1399.15,223.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1410.35,231.1 1399.15,231.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="568.15,463.4 573.75,453.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="573.75,463.4 573.75,453.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="579.35,463.4 573.75,453.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="573.75" cy="447.4" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="1423.85,223.1 1412.65,223.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1423.85,231.1 1412.65,231.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="804.4,463.4 810,453.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="810,463.4 810,453.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="815.6,463.4 810,453.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="810" cy="447.4" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="1437.35,223.1 1426.15,223.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="1431.75" cy="235.1" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="879.4,463.4 885,453.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="885,463.4 885,453.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="890.6,463.4 885,453.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="885" cy="447.4" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="1450.85,223.1 1439.65,223.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1450.85,231.1 1439.65,231.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1115.65,463.4 1121.25,453.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1121.25,463.4 1121.25,453.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1126.85,463.4 1121.25,453.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="1121.25" cy="447.4" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="1464.35,223.1 1453.15,223.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="1458.75" cy="235.1" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="1355.65,463.4 1361.25,453.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1361.25,463.4 1361.25,453.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1366.85,463.4 1361.25,453.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="1361.25" cy="447.4" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="230.6,193.15 230.6,204.35" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="242.6" cy="198.75" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="1479.1,504.4 1488.7,510" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1479.1,510 1488.7,510" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1479.1,515.6 1488.7,510" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="1495.1" cy="510" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="1477.85,223.1 1466.65,223.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="1472.25" cy="235.1" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="1674.4,463.4 1680,453.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1680,463.4 1680,453.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1685.6,463.4 1680,453.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="1680" cy="447.4" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="1491.35,223.1 1480.15,223.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1491.35,231.1 1480.15,231.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2000.65,459.4 2011.85,459.4" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="2006.25" cy="447.4" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="1504.85,223.1 1493.65,223.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1504.85,231.1 1493.65,231.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2323.15,463.4 2328.75,453.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2328.75,463.4 2328.75,453.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2334.35,463.4 2328.75,453.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="2328.75" cy="447.4" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="1518.35,223.1 1507.15,223.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1518.35,231.1 1507.15,231.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2709.4,463.4 2715,453.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2715,463.4 2715,453.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2720.6,463.4 2715,453.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="2715" cy="447.4" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="1531.85,223.1 1520.65,223.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="1526.25" cy="235.1" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="1291.9,808.4 1297.5,798.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1297.5,808.4 1297.5,798.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1303.1,808.4 1297.5,798.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="1297.5" cy="792.4" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="230.6,170.65 230.6,181.85" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="242.6" cy="176.25" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="1246.9,808.4 1252.5,798.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1252.5,808.4 1252.5,798.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1258.1,808.4 1252.5,798.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="1252.5" cy="792.4" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="1374.4,185.6 1374.4,174.4" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1366.4,185.6 1366.4,174.4" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2495.9,838.1 2486.3,832.5" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2495.9,832.5 2486.3,832.5" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2495.9,826.9 2486.3,832.5" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="2479.9" cy="832.5" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="1595.6,174.4 1595.6,185.6" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1603.6,174.4 1603.6,185.6" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2866.9,808.4 2872.5,798.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2872.5,808.4 2872.5,798.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2878.1,808.4 2872.5,798.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="2872.5" cy="792.4" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="1595.6,193.15 1595.6,204.35" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1603.6,193.15 1603.6,204.35" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2964.1,1190.65 2973.7,1196.25" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2964.1,1196.25 2973.7,1196.25" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2964.1,1201.85 2973.7,1196.25" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="2980.1" cy="1196.25" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="1374.4,208.1 1374.4,196.9" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1366.4,208.1 1366.4,196.9" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1153.4,1201.85 1143.8,1196.25" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1153.4,1196.25 1143.8,1196.25" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1153.4,1190.65 1143.8,1196.25" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="1137.4" cy="1196.25" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="1545.35,223.1 1534.15,223.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1545.35,231.1 1534.15,231.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="954.4,1153.4 960,1143.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="960,1153.4 960,1143.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="965.6,1153.4 960,1143.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="960" cy="1137.4" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="1558.85,219.1 1553.25,228.7" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1553.25,219.1 1553.25,228.7" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1547.65,219.1 1553.25,228.7" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="1553.25" cy="235.1" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="1918.1,894.1 1912.5,903.7" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1912.5,894.1 1912.5,903.7" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1906.9,894.1 1912.5,903.7" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="1912.5" cy="910.1" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="2638.1,223.1 2626.9,223.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2638.1,231.1 2626.9,231.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2401.9,463.4 2407.5,453.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2407.5,463.4 2407.5,453.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2413.1,463.4 2407.5,453.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="2407.5" cy="447.4" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="2758.1,166.9 2758.1,178.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2766.1,166.9 2766.1,178.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2611.9,808.4 2617.5,798.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2617.5,808.4 2617.5,798.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2623.1,808.4 2617.5,798.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="2617.5" cy="792.4" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="2334.35,553.1 2323.15,553.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="2328.75" cy="565.1" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="2559.4,808.4 2565,798.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2565,808.4 2565,798.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2570.6,808.4 2565,798.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="2565" cy="792.4" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="2596.85,898.1 2585.65,898.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2596.85,906.1 2585.65,906.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2585.65,1149.4 2596.85,1149.4" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="2591.25" cy="1137.4" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="174.35,553.1 163.15,553.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="174.35,561.1 163.15,561.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="163.15,808.4 168.75,798.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="168.75,808.4 168.75,798.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="174.35,808.4 168.75,798.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="168.75" cy="792.4" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="174.35,894.1 168.75,903.7" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="168.75,894.1 168.75,903.7" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="163.15,894.1 168.75,903.7" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="168.75" cy="910.1" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="163.15,1153.4 168.75,1143.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="168.75,1153.4 168.75,1143.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="174.35,1153.4 168.75,1143.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="168.75" cy="1137.4" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="845.6,553.1 834.4,553.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="845.6,561.1 834.4,561.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="834.4,808.4 840,798.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="840,808.4 840,798.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="845.6,808.4 840,798.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="840" cy="792.4" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="1126.85,553.1 1115.65,553.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1126.85,561.1 1115.65,561.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="646.9,1153.4 652.5,1143.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="652.5,1153.4 652.5,1143.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="658.1,1153.4 652.5,1143.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="652.5" cy="1137.4" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="1588.4,508.1 1578.8,502.5" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1588.4,502.5 1578.8,502.5" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1588.4,496.9 1578.8,502.5" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="1572.4" cy="502.5" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="1366.9,808.4 1372.5,798.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1372.5,808.4 1372.5,798.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1378.1,808.4 1372.5,798.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="1372.5" cy="792.4" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="1655.6,553.1 1644.4,553.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1655.6,561.1 1644.4,561.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1644.4,808.4 1650,798.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1650,808.4 1650,798.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1655.6,808.4 1650,798.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="1650" cy="792.4" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="1730.6,549.1 1725,558.7" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1725,549.1 1725,558.7" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1719.4,549.1 1725,558.7" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="1725" cy="565.1" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="1944.4,808.4 1950,798.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1950,808.4 1950,798.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1955.6,808.4 1950,798.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="1950" cy="792.4" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="2203.4,856.85 2193.8,851.25" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2203.4,851.25 2193.8,851.25" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2203.4,845.65 2193.8,851.25" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="2187.4" cy="851.25" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="2041.6,845.65 2051.2,851.25" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2041.6,851.25 2051.2,851.25" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2041.6,856.85 2051.2,851.25" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="2057.6" cy="851.25" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="1329.35,898.1 1318.15,898.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1329.35,906.1 1318.15,906.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1603.15,1153.4 1608.75,1143.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1608.75,1153.4 1608.75,1143.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1614.35,1153.4 1608.75,1143.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="1608.75" cy="1137.4" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="2293.1,898.1 2281.9,898.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2293.1,906.1 2281.9,906.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1659.4,1153.4 1665,1143.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1665,1153.4 1665,1143.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1670.6,1153.4 1665,1143.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="1665" cy="1137.4" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="2199.4,871.85 2199.4,860.65" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2191.4,871.85 2191.4,860.65" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1336.9,1153.4 1342.5,1143.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1342.5,1153.4 1342.5,1143.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1348.1,1153.4 1342.5,1143.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="1342.5" cy="1137.4" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="1584.4,534.35 1584.4,523.15" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="1572.4" cy="528.75" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="1261.9,1153.4 1267.5,1143.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1267.5,1153.4 1267.5,1143.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1273.1,1153.4 1267.5,1143.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="1267.5" cy="1137.4" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="2720.6,553.1 2709.4,553.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="2715" cy="565.1" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="2836.9,808.4 2842.5,798.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2842.5,808.4 2842.5,798.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2848.1,808.4 2842.5,798.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="2842.5" cy="792.4" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="1775.6,496.9 1775.6,508.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="1787.6" cy="502.5" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="2746.9,808.4 2752.5,798.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2752.5,808.4 2752.5,798.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2758.1,808.4 2752.5,798.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="2752.5" cy="792.4" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="2398.1,845.65 2398.1,856.85" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="2410.1" cy="851.25" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="2735.9,834.35 2726.3,828.75" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2735.9,828.75 2726.3,828.75" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2735.9,823.15 2726.3,828.75" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="2719.9" cy="828.75" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="2863.1,898.1 2851.9,898.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="2857.5" cy="910.1" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="2851.9,1153.4 2857.5,1143.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2857.5,1153.4 2857.5,1143.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2863.1,1153.4 2857.5,1143.8" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="2857.5" cy="1137.4" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="2375.6,898.1 2364.4,898.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="2370" cy="910.1" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="2758.4,1201.85 2748.8,1196.25" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2758.4,1196.25 2748.8,1196.25" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2758.4,1190.65 2748.8,1196.25" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="2742.4" cy="1196.25" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="2863.1,1239.1 2857.5,1248.7" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2857.5,1239.1 2857.5,1248.7" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2851.9,1239.1 2857.5,1248.7" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="2857.5" cy="1255.1" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="2851.9,1505.9 2857.5,1496.3" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2857.5,1505.9 2857.5,1496.3" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2863.1,1505.9 2857.5,1496.3" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="2857.5" cy="1489.9" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<polyline points="2345.6,898.1 2334.4,898.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2345.6,906.1 2334.4,906.1" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2180.65,1505.9 2186.25,1496.3" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2186.25,1505.9 2186.25,1496.3" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="2191.85,1505.9 2186.25,1496.3" fill="none" stroke="#CBD5E1" stroke-width="1.44" stroke-linejoin="round" stroke-linecap="round"/>
+<ellipse cx="2186.25" cy="1489.9" rx="4" ry="4" fill="#111111" stroke="#CBD5E1" stroke-width="1.44"/>
+<rect x="52.5" y="1650" width="2895" height="210" rx="14" fill="#151515" stroke="#374151" stroke-width="1"/>
+<text x="72.5" y="1682.3" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">1 = đúng một · 0..1 = không hoặc một · 0..n = không hoặc nhiều. Nét đứt: ngữ cảnh / điều phối nghiệp vụ.</text>
+<text x="72.5" y="1714.3" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">User có các vai trò Candidate, Career Consultant, Admin. Career Consultation có 1 Candidate và 0..1 Consultant; mỗi tin nhắn tư vấn/hỗ trợ có 1 User gửi. Support Ticket có 0..1 Admin được phân công.</text>
+<text x="72.5" y="1746.3" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">AI Conversation và Matching Session thuộc đúng một User hoặc Guest (XOR). AI Usage có tối đa một chủ; tác vụ hệ thống có thể không có chủ.</text>
+<text x="72.5" y="1778.3" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">CV cá nhân có 1 User sở hữu; CV demo có thể không có chủ. Guest matching dùng CV demo, guest chat không dùng RAG.</text>
+<text x="72.5" y="1810.3" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">User có tối đa 1 Subscription ACTIVE. Payment Order có trước khi kích hoạt gói. Assessment không tự tạo Roadmap; roadmap.sh là nguồn liên kết tham khảo. Plan gồm giá và quota theo tính năng.</text>
+<text x="72.5" y="1842.3" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#CBD5E1">External Apply Event chỉ ghi nhận mở link ứng tuyển. Job Source URL là URL nguồn của job chuẩn hóa; địa điểm crawl do Admin chọn.</text>
+</svg>

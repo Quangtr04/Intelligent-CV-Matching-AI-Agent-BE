@@ -65,7 +65,7 @@ class CareerToolsAtsCacheTests {
         when(resumes.owned(secondCv))
             .thenReturn(Map.of("id", secondCv, "status", "READY", "structured_data", Map.of("summary", canonical)));
         when(resumes.canonicalText(anyMap())).thenReturn(canonical);
-        when(db.one("SELECT * FROM market_job_posts WHERE id=? AND status='ACTIVE'", job))
+        when(db.one(contains("FROM market_job_posts j WHERE j.id=? AND j.status='ACTIVE'"), eq(job)))
             .thenReturn(Map.of("id", job, "raw_content_hash", "job-content-hash"));
         when(ai.provider()).thenReturn("openai");
         when(ai.model()).thenReturn("test-model");
@@ -169,5 +169,41 @@ class CareerToolsAtsCacheTests {
                 Map.of("input_hash", inputHash, "items", List.of("Describe the project"))
             )
         );
+    }
+
+    @Test
+    void externalApplyUsesTheActiveAliasAndPersistsThatExactTarget() {
+        String active = "https://www.topcv.vn/viec-lam/active-java-developer/1234567.html";
+        when(db.one(contains("FROM market_job_posts j WHERE j.id=? AND j.status='ACTIVE'"), eq(job))).thenReturn(
+            Map.of("id", job, "source_url", active, "original_source_url", "https://itviec.com/it-jobs/expired-primary")
+        );
+        UUID event = UUID.randomUUID();
+        when(db.insert(eq("external_apply_events"), anyMap())).thenReturn(event);
+
+        Map<String, Object> result = service.apply(job, null);
+
+        assertEquals(active, result.get("target_url"));
+        assertEquals(event, result.get("event_id"));
+        verify(db).insert(
+            eq("external_apply_events"),
+            argThat(
+                values -> active.equals(values.get("target_url")) && actor.equals(values.get("user_id"))
+                    && job.equals(values.get("market_job_id"))
+            )
+        );
+    }
+
+    @Test
+    void externalApplyDoesNotReviveAnExpiredKnownSource() {
+        when(db.one(contains("FROM market_job_posts j WHERE j.id=? AND j.status='ACTIVE'"), eq(job)))
+            .thenReturn(Map.of("id", job, "original_source_url", "https://itviec.com/it-jobs/expired-primary"));
+
+        var error = assertThrows(
+            com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException.class,
+            () -> service.apply(job, null)
+        );
+
+        assertEquals(409, error.status());
+        verify(db, never()).insert(eq("external_apply_events"), anyMap());
     }
 }

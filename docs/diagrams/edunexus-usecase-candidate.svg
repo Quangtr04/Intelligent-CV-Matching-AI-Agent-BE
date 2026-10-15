@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="2300" height="2310" viewBox="0 0 2300 2310" role="img" aria-labelledby="title description">
+<title id="title">EDUNEXUS · USE CASE ỨNG VIÊN</title>
+<desc id="description">CV · matching · assessment · roadmap · assistant · tư vấn</desc>
+<rect x="0" y="0" width="2300" height="2310" rx="0" fill="#ffffff" stroke="none" stroke-width="0"/>
+<text x="1150" y="54.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="28" font-weight="600" fill="#17324e">EDUNEXUS · USE CASE ỨNG VIÊN</text>
+<text x="1150" y="96.95" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="17" font-weight="400" fill="#586a7f">CV · matching · assessment · roadmap · assistant · tư vấn</text>
+<rect x="310" y="180" width="1730" height="1940" rx="0" fill="#ffffff" stroke="#263b52" stroke-width="2"/>
+<text x="330" y="220.05" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="600" fill="#17324e">Hệ thống EduNexus · chức năng ứng viên</text>
+<rect x="425" y="250" width="840" height="1770" rx="8" fill="#F0FDFA" stroke="#d5dfeb" stroke-width="1"/>
+<text x="441" y="282.3" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="600" fill="#455e7a">Mục tiêu của ứng viên</text>
+<polyline points="160,1084 500,345" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="160,1084 500,460" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="160,1084 500,575" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="160,1084 500,690" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="160,1084 500,805" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="160,1084 500,920" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="160,1084 500,1035" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="160,1084 500,1150" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="160,1084 500,1265" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="160,1084 500,1380" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="160,1084 500,1495" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="160,1084 500,1610" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="160,1084 500,1725" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="160,1084 500,1840" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="160,1084 500,1955" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="1190,1495 1430,1495" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="7 5"/><polyline points="1418,1489.5 1430,1495 1418,1500.5" fill="none" stroke="#52647b" stroke-width="1.6"/>
+<polyline points="1430,1725 1190,1725" fill="none" stroke="#52647b" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="7 5"/><polyline points="1202,1730.5 1190,1725 1202,1719.5" fill="none" stroke="#52647b" stroke-width="1.6"/>
+<ellipse cx="845" cy="345" rx="345" ry="45" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="845" y="351.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Quản lý hồ sơ nghề nghiệp</text>
+<ellipse cx="845" cy="460" rx="345" ry="45" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="845" y="466.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Tạo / upload / chỉnh sửa CV</text>
+<ellipse cx="845" cy="575" rx="345" ry="45" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="845" y="581.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Xác nhận CV và chọn CV chính</text>
+<ellipse cx="845" cy="690" rx="345" ry="45" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="845" y="696.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Phân tích độ đầy đủ / chất lượng CV</text>
+<ellipse cx="845" cy="805" rx="345" ry="45" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="845" y="811.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Tìm việc phù hợp và phản hồi</text>
+<ellipse cx="845" cy="920" rx="345" ry="45" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="845" y="926.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Phân tích ATS theo việc làm</text>
+<ellipse cx="845" cy="1035" rx="345" ry="45" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="845" y="1041.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Tạo CV hướng tới việc làm</text>
+<ellipse cx="845" cy="1150" rx="345" ry="45" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="845" y="1156.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Soạn / sửa email và cover letter</text>
+<ellipse cx="845" cy="1265" rx="345" ry="45" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="845" y="1271.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Ước lượng lương</text>
+<ellipse cx="845" cy="1380" rx="345" ry="45" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="845" y="1386.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Tạo và trả lời bài đánh giá kỹ năng</text>
+<ellipse cx="845" cy="1495" rx="345" ry="45" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="845" y="1501.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Nộp bài đánh giá kỹ năng</text>
+<ellipse cx="845" cy="1610" rx="345" ry="45" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="845" y="1616.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Tạo lộ trình học và cập nhật tiến độ</text>
+<ellipse cx="845" cy="1725" rx="345" ry="45" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="845" y="1731.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Trao đổi với trợ lý AI</text>
+<ellipse cx="845" cy="1840" rx="345" ry="45" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="845" y="1846.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Yêu cầu / trao đổi tư vấn với consultant</text>
+<ellipse cx="845" cy="1955" rx="345" ry="45" fill="#FFFFFF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="845" y="1961.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Mở trang ứng tuyển gốc</text>
+<ellipse cx="1690" cy="1495" rx="260" ry="45" fill="#F5F3FF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="1690" y="1489.6" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Chấm điểm và tổng hợp</text>
+<text x="1690" y="1513" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">kết quả kỹ năng</text>
+<ellipse cx="1690" cy="1725" rx="260" ry="45" fill="#EFF6FF" stroke="#3d5875" stroke-width="1.7"/>
+<text x="1690" y="1731.3" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#263449">Truy xuất tài liệu RAG</text>
+<ellipse cx="135" cy="1061" rx="11" ry="11" fill="#ffffff" stroke="#29465f" stroke-width="1.9"/>
+<polyline points="135,1072 135,1103" fill="none" stroke="#29465f" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="110,1084 160,1084" fill="none" stroke="#29465f" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="111,1128 135,1103 159,1128" fill="none" stroke="#29465f" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="135" y="1153" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="19" font-weight="600" fill="#29465f">Ứng viên</text>
+<rect x="1270.387" y="1450.6" width="79.227" height="28.8" rx="0" fill="#ffffff" stroke="none" stroke-width="0"/>
+<text x="1310" y="1470.6" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#40526b">«include»</text>
+<rect x="1271.918" y="1680.6" width="76.164" height="28.8" rx="0" fill="#ffffff" stroke="none" stroke-width="0"/>
+<text x="1310" y="1700.6" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#40526b">«extend»</text>
+<rect x="1390" y="310" width="600" height="300" rx="6" fill="#F8FAFC" stroke="#d5dfeb" stroke-width="1"/>
+<text x="1406" y="403.2" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b">Điều kiện sử dụng:</text>
+<text x="1406" y="424" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b">• Phân tích CV / ATS: CV của người dùng, READY.</text>
+<text x="1406" y="444.8" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b">• Matching: career profile hoặc CV READY.</text>
+<text x="1406" y="465.6" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b">• ATS / draft theo job: việc làm ACTIVE.</text>
+<text x="1406" y="486.4" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b">• Assessment chọn cho roadmap: đã completed.</text>
+<text x="1406" y="507.2" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b">• Tài nguyên học lấy từ catalog.</text>
+<text x="1406" y="528" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b">Các điều kiện này không phải «include».</text>
+<rect x="1390" y="800" width="600" height="240" rx="6" fill="#F8FAFC" stroke="#d5dfeb" stroke-width="1"/>
+<text x="1406" y="873.6" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b">Tạo bài, nộp bài và sinh roadmap</text>
+<text x="1406" y="894.4" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b">là các thao tác API độc lập.</text>
+<text x="1406" y="915.2" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b">Nộp lần đầu chấm điểm; nộp lại trả kết quả đã lưu.</text>
+<text x="1406" y="936" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b"></text>
+<text x="1406" y="956.8" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b">Email / cover letter chỉ là draft.</text>
+<text x="1406" y="977.6" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b">Ứng tuyển trả URL, không tự gửi đơn.</text>
+<rect x="1390" y="1800" width="600" height="175" rx="6" fill="#F8FAFC" stroke="#d5dfeb" stroke-width="1"/>
+<text x="1406" y="1861.9" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b">RAG mở rộng chat khi retrieve=true</text>
+<text x="1406" y="1882.7" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b">và người dùng đã đăng nhập.</text>
+<text x="1406" y="1903.5" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b">Guest không truy xuất tài liệu RAG.</text>
+<text x="1406" y="1924.3" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b">Cần chat + embedding được cấu hình.</text>
+<rect x="340" y="2160" width="1670" height="90" rx="6" fill="#F8FAFC" stroke="#d5dfeb" stroke-width="1"/>
+<text x="356" y="2200.2" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b">Use case theo mục tiêu nghiệp vụ; API CV/profile/assistant còn dựa vào đăng nhập và ownership.</text>
+<text x="356" y="2221" text-anchor="start" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="400" fill="#52647b">«include»: hành vi bắt buộc của use case. «extend»: nhánh mở rộng có điều kiện.</text>
+</svg>

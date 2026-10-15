@@ -1,0 +1,756 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mxfile host="app.diagrams.net" version="24.7.17" type="device">
+  <diagram id="edunexus-unified" name="EduNexus Conceptual Diagram">
+    <mxGraphModel fold="1" pageWidth="3000" dx="3000" tooltips="1" guides="1" connect="1" grid="1" shadow="0" math="0" pageHeight="1900" dy="1900" gridSize="10" background="#111111" pageScale="1" page="1" arrows="1">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=left;fontSize=36;fontStyle=1;fontColor=#E5E7EB;" id="diagram-title" value="EDUNEXUS · CONCEPTUAL DIAGRAM">
+          <mxGeometry y="26" width="2860" as="geometry" height="64" x="70" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=left;fontSize=20;fontColor=#9CA3AF;" id="diagram-subtitle" value="Một sơ đồ thống nhất · Các khái niệm nghiệp vụ và quan hệ · Crow’s Foot">
+          <mxGeometry y="92" width="2856" as="geometry" height="36" x="72" />
+        </mxCell>
+        <mxCell id="rel-user-ai" parent="1" source="user" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERzeroToOne;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=0.054;exitY=1;exitPerimeter=0;entryX=0.64;entryY=0;entryPerimeter=0;" target="ai">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint y="251.25" x="1391.25" />
+              <mxPoint y="251.25" x="195" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-guest-ai" parent="1" source="guest" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERzeroToOne;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=0.409;exitY=1;exitPerimeter=0;entryX=0.34;entryY=0;entryPerimeter=0;" target="ai">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint y="405" x="127.5" />
+              <mxPoint y="405" x="138.75" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-user-announcement" parent="1" source="user" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERmandOne;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=0.118;exitY=1;exitPerimeter=0;entryX=0.5;entryY=0;entryPerimeter=0;" target="announcement">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint y="281.25" x="1404.75" />
+              <mxPoint y="281.25" x="573.75" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-user-candidate" parent="1" source="user" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERmandOne;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=0.182;exitY=1;exitPerimeter=0;entryX=0.357;entryY=0;entryPerimeter=0;" target="consultation">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint y="311.25" x="1418.25" />
+              <mxPoint y="311.25" x="810" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-user-consultant" parent="1" source="user" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERzeroToOne;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=0.246;exitY=1;exitPerimeter=0;entryX=0.714;entryY=0;entryPerimeter=0;" target="consultation">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint y="341.25" x="1431.75" />
+              <mxPoint y="341.25" x="885" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-user-support" parent="1" source="user" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERmandOne;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=0.311;exitY=1;exitPerimeter=0;entryX=0.5;entryY=0;entryPerimeter=0;" target="support">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint y="371.25" x="1445.25" />
+              <mxPoint y="371.25" x="1121.25" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-user-usage" parent="1" source="user" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERzeroToOne;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=0.375;exitY=1;exitPerimeter=0;entryX=0.326;entryY=0;entryPerimeter=0;" target="usage">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint y="401.25" x="1458.75" />
+              <mxPoint y="401.25" x="1361.25" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-guest-usage" parent="1" source="guest" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERzeroToOne;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=1;exitY=0.773;exitPerimeter=0;entryX=1;entryY=0.545;entryPerimeter=0;" target="usage">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint y="198.75" x="360" />
+              <mxPoint y="637.5" x="360" />
+              <mxPoint y="637.5" x="1507.5" />
+              <mxPoint y="510" x="1507.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-user-cv" parent="1" source="user" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERzeroToOne;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=0.439;exitY=1;exitPerimeter=0;entryX=0.5;entryY=0;entryPerimeter=0;" target="cv">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint y="251.25" x="1472.25" />
+              <mxPoint y="251.25" x="1680" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-user-profile" parent="1" source="user" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERmandOne;endArrow=ERzeroToOne;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=0.504;exitY=1;exitPerimeter=0;entryX=0.5;entryY=0;entryPerimeter=0;" target="profile">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint y="281.25" x="1485.75" />
+              <mxPoint y="281.25" x="2006.25" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-user-subscription" parent="1" source="user" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERmandOne;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=0.568;exitY=1;exitPerimeter=0;entryX=0.5;entryY=0;entryPerimeter=0;" target="subscription">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint y="311.25" x="1499.25" />
+              <mxPoint y="311.25" x="2328.75" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-user-assessment" parent="1" source="user" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERmandOne;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=0.632;exitY=1;exitPerimeter=0;entryX=0.5;entryY=0;entryPerimeter=0;" target="assessment">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint y="341.25" x="1512.75" />
+              <mxPoint y="341.25" x="2715" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-user-matching" parent="1" source="user" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERzeroToOne;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=0.696;exitY=1;exitPerimeter=0;entryX=0.37;entryY=0;entryPerimeter=0;" target="matching">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint y="431.25" x="1526.25" />
+              <mxPoint y="431.25" x="1252.5" />
+              <mxPoint y="750" x="1252.5" />
+              <mxPoint y="750" x="1297.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-guest-matching" parent="1" source="guest" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERzeroToOne;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=1;exitY=0.5;exitPerimeter=0;entryX=0.148;entryY=0;entryPerimeter=0;" target="matching">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint y="176.25" x="330" />
+              <mxPoint y="720" x="330" />
+              <mxPoint y="720" x="1252.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-user-payment" parent="1" source="user" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERmandOne;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=0;exitY=0.545;exitPerimeter=0;entryX=0;entryY=0.273;entryPerimeter=0;" target="payment">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint y="180" x="1215" />
+              <mxPoint y="592.5" x="1215" />
+              <mxPoint y="592.5" x="2475" />
+              <mxPoint y="832.5" x="2475" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-user-gap" parent="1" source="user" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERmandOne;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=1;exitY=0.545;exitPerimeter=0;entryX=0.643;entryY=0;entryPerimeter=0;" target="gap">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint y="180" x="1642.5" />
+              <mxPoint y="435" x="1642.5" />
+              <mxPoint y="435" x="2872.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-user-roadmap" parent="1" source="user" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERmandOne;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=1;exitY=0.773;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;" target="roadmap">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint y="198.75" x="1627.5" />
+              <mxPoint y="420" x="1627.5" />
+              <mxPoint y="420" x="2985" />
+              <mxPoint y="1196.25" x="2985" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-user-apply" parent="1" source="user" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERmandOne;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=0;exitY=0.818;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" target="apply">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint y="202.5" x="975" />
+              <mxPoint y="675" x="975" />
+              <mxPoint y="675" x="1087.5" />
+              <mxPoint y="1196.25" x="1087.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-user-notification" parent="1" source="user" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERmandOne;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=0.761;exitY=1;exitPerimeter=0;entryX=0.5;entryY=0;entryPerimeter=0;" target="notification">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint y="427.5" x="1539.75" />
+              <mxPoint y="427.5" x="1005" />
+              <mxPoint y="937.5" x="1005" />
+              <mxPoint y="937.5" x="960" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-user-settings" parent="1" source="user" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=none;endArrow=none;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;dashed=1;dashPattern=7 5;exitX=0;exitY=0.273;exitPerimeter=0;entryX=0.48;entryY=0;entryPerimeter=0;" target="settings">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint y="157.5" x="465" />
+              <mxPoint y="1057.5" x="465" />
+              <mxPoint y="1057.5" x="1912.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-user-skill" parent="1" source="user" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERzeroToMany;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=0.825;exitY=1;exitPerimeter=0;entryX=0.261;entryY=1;entryPerimeter=0;" target="skill">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint y="431.25" x="1553.25" />
+              <mxPoint y="431.25" x="1807.5" />
+              <mxPoint y="930" x="1807.5" />
+              <mxPoint y="930" x="1912.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-plan-subscription" parent="1" source="plan" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERmandOne;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=0.273;exitY=1;exitPerimeter=0;entryX=0.92;entryY=0;entryPerimeter=0;" target="subscription">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint y="356.25" x="2632.5" />
+              <mxPoint y="356.25" x="2407.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-plan-payment" parent="1" source="plan" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERmandOne;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=1;exitY=0.455;exitPerimeter=0;entryX=0.615;entryY=0;entryPerimeter=0;" target="payment">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint y="172.5" x="2917.5" />
+              <mxPoint y="697.5" x="2917.5" />
+              <mxPoint y="697.5" x="2617.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-subscription-payment" parent="1" source="subscription" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERzeroToOne;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=0.5;exitY=1;exitPerimeter=0;entryX=0.346;entryY=0;entryPerimeter=0;" target="payment">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint y="645" x="2328.75" />
+              <mxPoint y="645" x="2565" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-payment-invoice" parent="1" source="payment" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERmandOne;endArrow=ERzeroToOne;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=0.481;exitY=1;exitPerimeter=0;entryX=0.519;entryY=0;entryPerimeter=0;" target="invoice">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-ai-message" parent="1" source="ai" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERmandOne;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=0.5;exitY=1;exitPerimeter=0;entryX=0.5;entryY=0;entryPerimeter=0;" target="ai-message">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-message-rag" parent="1" source="ai-message" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERzeroToMany;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=0.5;exitY=1;exitPerimeter=0;entryX=0.5;entryY=0;entryPerimeter=0;" target="rag">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-consultation-message" parent="1" source="consultation" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERmandOne;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=0.5;exitY=1;exitPerimeter=0;entryX=0.5;entryY=0;entryPerimeter=0;" target="consultation-message">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-support-message" parent="1" source="support" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERmandOne;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=0.5;exitY=1;exitPerimeter=0;entryX=0.5;entryY=0;entryPerimeter=0;" target="support-message">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint y="990" x="1121.25" />
+              <mxPoint y="990" x="652.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-cv-matching" parent="1" source="cv" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERzeroToMany;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=0;exitY=0.455;exitPerimeter=0;entryX=0.741;entryY=0;entryPerimeter=0;" target="matching">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint y="502.5" x="1530" />
+              <mxPoint y="720" x="1530" />
+              <mxPoint y="720" x="1372.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-profile-matching" parent="1" source="profile" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=none;endArrow=none;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;dashed=1;dashPattern=7 5;exitX=0;exitY=0.455;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;" target="matching">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint y="502.5" x="1837.5" />
+              <mxPoint y="720" x="1837.5" />
+              <mxPoint y="720" x="1455" />
+              <mxPoint y="851.25" x="1455" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-cv-analysis" parent="1" source="cv" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERmandOne;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=0.333;exitY=1;exitPerimeter=0;entryX=0.423;entryY=0;entryPerimeter=0;" target="resume-analysis">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-cv-skill" parent="1" source="cv" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERzeroToMany;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=0.75;exitY=1;exitPerimeter=0;entryX=0.478;entryY=0;entryPerimeter=0;" target="skill">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint y="757.5" x="1725" />
+              <mxPoint y="757.5" x="1950" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-job-skill" parent="1" source="job" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERzeroToMany;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=0;exitY=0.5;exitPerimeter=0;entryX=1;entryY=0.5;entryPerimeter=0;" target="skill">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-matching-result" parent="1" source="matching" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERmandOne;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=0.5;exitY=1;exitPerimeter=0;entryX=0.5;entryY=0;entryPerimeter=0;" target="result">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint y="1061.25" x="1323.75" />
+              <mxPoint y="1061.25" x="1608.75" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-job-result" parent="1" source="job" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERmandOne;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=0.44;exitY=1;exitPerimeter=0;entryX=0.778;entryY=0;entryPerimeter=0;" target="result">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint y="1035" x="2287.5" />
+              <mxPoint y="1035" x="1665" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-job-apply" parent="1" source="job" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERmandOne;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=0;exitY=0.682;exitPerimeter=0;entryX=0.893;entryY=0;entryPerimeter=0;" target="apply">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint y="866.25" x="2160" />
+              <mxPoint y="1091.25" x="2160" />
+              <mxPoint y="1091.25" x="1342.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-cv-apply" parent="1" source="cv" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERzeroToOne;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=0;exitY=0.773;exitPerimeter=0;entryX=0.536;entryY=0;entryPerimeter=0;" target="apply">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint y="528.75" x="1560" />
+              <mxPoint y="1012.5" x="1560" />
+              <mxPoint y="1012.5" x="1267.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-assessment-gap" parent="1" source="assessment" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERzeroToOne;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=0.5;exitY=1;exitPerimeter=0;entryX=0.5;entryY=0;entryPerimeter=0;" target="gap">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint y="622.5" x="2715" />
+              <mxPoint y="622.5" x="2842.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-cv-gap" parent="1" source="cv" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERzeroToOne;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=1;exitY=0.455;exitPerimeter=0;entryX=0.071;entryY=0;entryPerimeter=0;" target="gap">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint y="502.5" x="1800" />
+              <mxPoint y="656.25" x="1800" />
+              <mxPoint y="656.25" x="2752.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-job-gap" parent="1" source="job" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERzeroToOne;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=1;exitY=0.5;exitPerimeter=0;entryX=0;entryY=0.227;entryPerimeter=0;" target="gap">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint y="851.25" x="2430" />
+              <mxPoint y="915" x="2430" />
+              <mxPoint y="915" x="2715" />
+              <mxPoint y="828.75" x="2715" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-profile-gap" parent="1" source="profile" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=none;endArrow=none;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;dashed=1;dashPattern=7 5;exitX=1;exitY=0.455;exitPerimeter=0;entryX=0;entryY=0.682;entryPerimeter=0;" target="gap">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint y="502.5" x="2145" />
+              <mxPoint y="757.5" x="2145" />
+              <mxPoint y="757.5" x="2707.5" />
+              <mxPoint y="866.25" x="2707.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-gap-roadmap" parent="1" source="gap" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERzeroToOne;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=0.571;exitY=1;exitPerimeter=0;entryX=0.481;entryY=0;entryPerimeter=0;" target="roadmap">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-job-roadmap" parent="1" source="job" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERzeroToOne;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=0.88;exitY=1;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" target="roadmap">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint y="1095" x="2370" />
+              <mxPoint y="1095" x="2707.5" />
+              <mxPoint y="1196.25" x="2707.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-roadmap-resource" parent="1" source="roadmap" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERzeroToMany;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=0.481;exitY=1;exitPerimeter=0;entryX=0.481;entryY=0;entryPerimeter=0;" target="resource">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-settings-run" parent="1" source="settings" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=none;endArrow=none;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;dashed=1;dashPattern=7 5;exitX=1;exitY=0.5;exitPerimeter=0;entryX=0;entryY=0.5;entryPerimeter=0;" target="run">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-run-job" parent="1" source="run" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=none;endArrow=none;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;dashed=1;dashPattern=7 5;exitX=0.5;exitY=0;exitPerimeter=0;entryX=0.5;entryY=0;entryPerimeter=0;" target="job">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint y="1106.25" x="2201.25" />
+              <mxPoint y="1106.25" x="2175" />
+              <mxPoint y="787.5" x="2175" />
+              <mxPoint y="787.5" x="2298.75" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-job-source" parent="1" source="job" edge="1" style="edgeStyle=none;rounded=0;html=0;strokeWidth=1.68;startArrow=ERmandOne;endArrow=ERzeroToMany;startSize=17.6;endSize=17.6;startFill=0;endFill=0;strokeColor=#CBD5E1;exitX=0.72;exitY=1;exitPerimeter=0;entryX=0.5;entryY=0;entryPerimeter=0;" target="job-source">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint y="1425" x="2340" />
+              <mxPoint y="1425" x="2186.25" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=0;arcSize=0;html=0;whiteSpace=wrap;fillColor=#151515;strokeColor=#14B8A6;strokeWidth=1.44;" id="guest" value="">
+          <mxGeometry y="135" width="165" as="geometry" height="82.5" x="60" />
+        </mxCell>
+        <mxCell vertex="1" parent="guest" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#E5E7EB;" id="guest-title" value="Guest Session">
+          <mxGeometry y="26.95" width="145.8" as="geometry" height="28.6" x="9.6" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=0;arcSize=0;html=0;whiteSpace=wrap;fillColor=#151515;strokeColor=#C084FC;strokeWidth=1.44;" id="user" value="">
+          <mxGeometry y="135" width="210" as="geometry" height="82.5" x="1380" />
+        </mxCell>
+        <mxCell vertex="1" parent="user" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#E5E7EB;" id="user-title" value="User">
+          <mxGeometry y="26.95" width="190.8" as="geometry" height="28.6" x="9.6" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=0;arcSize=0;html=0;whiteSpace=wrap;fillColor=#151515;strokeColor=#22C55E;strokeWidth=1.44;" id="plan" value="">
+          <mxGeometry y="135" width="165" as="geometry" height="82.5" x="2587.5" />
+        </mxCell>
+        <mxCell vertex="1" parent="plan" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#E5E7EB;" id="plan-title" value="Plan">
+          <mxGeometry y="26.95" width="145.8" as="geometry" height="28.6" x="9.6" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=0;arcSize=0;html=0;whiteSpace=wrap;fillColor=#151515;strokeColor=#22D3EE;strokeWidth=1.44;" id="ai" value="">
+          <mxGeometry y="465" width="187.5" as="geometry" height="82.5" x="75" />
+        </mxCell>
+        <mxCell vertex="1" parent="ai" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#E5E7EB;" id="ai-title" value="AI Conversation">
+          <mxGeometry y="26.95" width="168.3" as="geometry" height="28.6" x="9.6" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=0;arcSize=0;html=0;whiteSpace=wrap;fillColor=#151515;strokeColor=#A3E635;strokeWidth=1.44;" id="announcement" value="">
+          <mxGeometry y="465" width="172.5" as="geometry" height="82.5" x="487.5" />
+        </mxCell>
+        <mxCell vertex="1" parent="announcement" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#E5E7EB;" id="announcement-title" value="Announcement">
+          <mxGeometry y="26.95" width="153.3" as="geometry" height="28.6" x="9.6" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=0;arcSize=0;html=0;whiteSpace=wrap;fillColor=#151515;strokeColor=#06B6D4;strokeWidth=1.44;" id="consultation" value="">
+          <mxGeometry y="465" width="210" as="geometry" height="82.5" x="735" />
+        </mxCell>
+        <mxCell vertex="1" parent="consultation" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#E5E7EB;" id="consultation-title" value="Career&#xA;Consultation">
+          <mxGeometry y="12.65" width="190.8" as="geometry" height="57.2" x="9.6" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=0;arcSize=0;html=0;whiteSpace=wrap;fillColor=#151515;strokeColor=#F59E0B;strokeWidth=1.44;" id="support" value="">
+          <mxGeometry y="465" width="172.5" as="geometry" height="82.5" x="1035" />
+        </mxCell>
+        <mxCell vertex="1" parent="support" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#E5E7EB;" id="support-title" value="Support Ticket">
+          <mxGeometry y="26.95" width="153.3" as="geometry" height="28.6" x="9.6" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=0;arcSize=0;html=0;whiteSpace=wrap;fillColor=#151515;strokeColor=#A78BFA;strokeWidth=1.44;" id="usage" value="">
+          <mxGeometry y="465" width="172.5" as="geometry" height="82.5" x="1305" />
+        </mxCell>
+        <mxCell vertex="1" parent="usage" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#E5E7EB;" id="usage-title" value="AI Usage">
+          <mxGeometry y="26.95" width="153.3" as="geometry" height="28.6" x="9.6" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=0;arcSize=0;html=0;whiteSpace=wrap;fillColor=#151515;strokeColor=#22D3EE;strokeWidth=1.44;" id="cv" value="">
+          <mxGeometry y="465" width="180" as="geometry" height="82.5" x="1590" />
+        </mxCell>
+        <mxCell vertex="1" parent="cv" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#E5E7EB;" id="cv-title" value="CV / Resume">
+          <mxGeometry y="26.95" width="160.8" as="geometry" height="28.6" x="9.6" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=0;arcSize=0;html=0;whiteSpace=wrap;fillColor=#151515;strokeColor=#F59E0B;strokeWidth=1.44;" id="profile" value="">
+          <mxGeometry y="465" width="187.5" as="geometry" height="82.5" x="1912.5" />
+        </mxCell>
+        <mxCell vertex="1" parent="profile" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#E5E7EB;" id="profile-title" value="Career Profile">
+          <mxGeometry y="26.95" width="168.3" as="geometry" height="28.6" x="9.6" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=0;arcSize=0;html=0;whiteSpace=wrap;fillColor=#151515;strokeColor=#A78BFA;strokeWidth=1.44;" id="subscription" value="">
+          <mxGeometry y="465" width="187.5" as="geometry" height="82.5" x="2235" />
+        </mxCell>
+        <mxCell vertex="1" parent="subscription" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#E5E7EB;" id="subscription-title" value="User&#xA;Subscription">
+          <mxGeometry y="12.65" width="168.3" as="geometry" height="57.2" x="9.6" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=0;arcSize=0;html=0;whiteSpace=wrap;fillColor=#151515;strokeColor=#84CC16;strokeWidth=1.44;" id="assessment" value="">
+          <mxGeometry y="465" width="195" as="geometry" height="82.5" x="2617.5" />
+        </mxCell>
+        <mxCell vertex="1" parent="assessment" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#E5E7EB;" id="assessment-title" value="Assessment">
+          <mxGeometry y="26.95" width="175.8" as="geometry" height="28.6" x="9.6" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=0;arcSize=0;html=0;whiteSpace=wrap;fillColor=#151515;strokeColor=#22D3EE;strokeWidth=1.44;" id="ai-message" value="">
+          <mxGeometry y="810" width="187.5" as="geometry" height="82.5" x="75" />
+        </mxCell>
+        <mxCell vertex="1" parent="ai-message" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#E5E7EB;" id="ai-message-title" value="AI Message">
+          <mxGeometry y="26.95" width="168.3" as="geometry" height="28.6" x="9.6" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=0;arcSize=0;html=0;whiteSpace=wrap;fillColor=#151515;strokeColor=#06B6D4;strokeWidth=1.44;" id="consultation-message" value="">
+          <mxGeometry y="810" width="210" as="geometry" height="82.5" x="735" />
+        </mxCell>
+        <mxCell vertex="1" parent="consultation-message" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#E5E7EB;" id="consultation-message-title" value="Consultation&#xA;Message">
+          <mxGeometry y="12.65" width="190.8" as="geometry" height="57.2" x="9.6" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=0;arcSize=0;html=0;whiteSpace=wrap;fillColor=#151515;strokeColor=#FB7185;strokeWidth=1.44;" id="matching" value="">
+          <mxGeometry y="810" width="202.5" as="geometry" height="82.5" x="1222.5" />
+        </mxCell>
+        <mxCell vertex="1" parent="matching" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#E5E7EB;" id="matching-title" value="Matching&#xA;Session">
+          <mxGeometry y="12.65" width="183.3" as="geometry" height="57.2" x="9.6" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=0;arcSize=0;html=0;whiteSpace=wrap;fillColor=#151515;strokeColor=#22D3EE;strokeWidth=1.44;" id="resume-analysis" value="">
+          <mxGeometry y="810" width="195" as="geometry" height="82.5" x="1567.5" />
+        </mxCell>
+        <mxCell vertex="1" parent="resume-analysis" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#E5E7EB;" id="resume-analysis-title" value="Resume Analysis">
+          <mxGeometry y="26.95" width="175.8" as="geometry" height="28.6" x="9.6" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=0;arcSize=0;html=0;whiteSpace=wrap;fillColor=#151515;strokeColor=#22C55E;strokeWidth=1.44;" id="skill" value="">
+          <mxGeometry y="810" width="172.5" as="geometry" height="82.5" x="1867.5" />
+        </mxCell>
+        <mxCell vertex="1" parent="skill" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#E5E7EB;" id="skill-title" value="Skill">
+          <mxGeometry y="26.95" width="153.3" as="geometry" height="28.6" x="9.6" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=0;arcSize=0;html=0;whiteSpace=wrap;fillColor=#151515;strokeColor=#A78BFA;strokeWidth=1.44;" id="job" value="">
+          <mxGeometry y="810" width="187.5" as="geometry" height="82.5" x="2205" />
+        </mxCell>
+        <mxCell vertex="1" parent="job" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#E5E7EB;" id="job-title" value="Job Post">
+          <mxGeometry y="26.95" width="168.3" as="geometry" height="28.6" x="9.6" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=0;arcSize=0;html=0;whiteSpace=wrap;fillColor=#151515;strokeColor=#FB7185;strokeWidth=1.44;" id="payment" value="">
+          <mxGeometry y="810" width="195" as="geometry" height="82.5" x="2497.5" />
+        </mxCell>
+        <mxCell vertex="1" parent="payment" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#E5E7EB;" id="payment-title" value="Payment Order">
+          <mxGeometry y="26.95" width="175.8" as="geometry" height="28.6" x="9.6" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=0;arcSize=0;html=0;whiteSpace=wrap;fillColor=#151515;strokeColor=#38BDF8;strokeWidth=1.44;" id="gap" value="">
+          <mxGeometry y="810" width="210" as="geometry" height="82.5" x="2737.5" />
+        </mxCell>
+        <mxCell vertex="1" parent="gap" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#E5E7EB;" id="gap-title" value="Skill Gap&#xA;Analysis">
+          <mxGeometry y="12.65" width="190.8" as="geometry" height="57.2" x="9.6" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=0;arcSize=0;html=0;whiteSpace=wrap;fillColor=#151515;strokeColor=#F59E0B;strokeWidth=1.44;" id="rag" value="">
+          <mxGeometry y="1155" width="187.5" as="geometry" height="82.5" x="75" />
+        </mxCell>
+        <mxCell vertex="1" parent="rag" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#E5E7EB;" id="rag-title" value="RAG Document">
+          <mxGeometry y="26.95" width="168.3" as="geometry" height="28.6" x="9.6" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=0;arcSize=0;html=0;whiteSpace=wrap;fillColor=#151515;strokeColor=#F59E0B;strokeWidth=1.44;" id="support-message" value="">
+          <mxGeometry y="1155" width="195" as="geometry" height="82.5" x="555" />
+        </mxCell>
+        <mxCell vertex="1" parent="support-message" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#E5E7EB;" id="support-message-title" value="Support&#xA;Message">
+          <mxGeometry y="12.65" width="175.8" as="geometry" height="57.2" x="9.6" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=0;arcSize=0;html=0;whiteSpace=wrap;fillColor=#151515;strokeColor=#FBBF24;strokeWidth=1.44;" id="notification" value="">
+          <mxGeometry y="1155" width="180" as="geometry" height="82.5" x="870" />
+        </mxCell>
+        <mxCell vertex="1" parent="notification" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#E5E7EB;" id="notification-title" value="Notification">
+          <mxGeometry y="26.95" width="160.8" as="geometry" height="28.6" x="9.6" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=0;arcSize=0;html=0;whiteSpace=wrap;fillColor=#151515;strokeColor=#A78BFA;strokeWidth=1.44;" id="apply" value="">
+          <mxGeometry y="1155" width="210" as="geometry" height="82.5" x="1155" />
+        </mxCell>
+        <mxCell vertex="1" parent="apply" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#E5E7EB;" id="apply-title" value="External Apply&#xA;Event">
+          <mxGeometry y="12.65" width="190.8" as="geometry" height="57.2" x="9.6" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=0;arcSize=0;html=0;whiteSpace=wrap;fillColor=#151515;strokeColor=#FB7185;strokeWidth=1.44;" id="result" value="">
+          <mxGeometry y="1155" width="202.5" as="geometry" height="82.5" x="1507.5" />
+        </mxCell>
+        <mxCell vertex="1" parent="result" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#E5E7EB;" id="result-title" value="Job Match&#xA;Result">
+          <mxGeometry y="12.65" width="183.3" as="geometry" height="57.2" x="9.6" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=0;arcSize=0;html=0;whiteSpace=wrap;fillColor=#151515;strokeColor=#94A3B8;strokeWidth=1.44;" id="settings" value="">
+          <mxGeometry y="1155" width="187.5" as="geometry" height="82.5" x="1822.5" />
+        </mxCell>
+        <mxCell vertex="1" parent="settings" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#E5E7EB;" id="settings-title" value="Crawl Settings">
+          <mxGeometry y="26.95" width="168.3" as="geometry" height="28.6" x="9.6" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=0;arcSize=0;html=0;whiteSpace=wrap;fillColor=#151515;strokeColor=#94A3B8;strokeWidth=1.44;" id="run" value="">
+          <mxGeometry y="1155" width="187.5" as="geometry" height="82.5" x="2107.5" />
+        </mxCell>
+        <mxCell vertex="1" parent="run" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#E5E7EB;" id="run-title" value="Crawl Run /&#xA;History">
+          <mxGeometry y="12.65" width="168.3" as="geometry" height="57.2" x="9.6" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=0;arcSize=0;html=0;whiteSpace=wrap;fillColor=#151515;strokeColor=#FB7185;strokeWidth=1.44;" id="invoice" value="">
+          <mxGeometry y="1155" width="195" as="geometry" height="82.5" x="2490" />
+        </mxCell>
+        <mxCell vertex="1" parent="invoice" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#E5E7EB;" id="invoice-title" value="Invoice">
+          <mxGeometry y="26.95" width="175.8" as="geometry" height="28.6" x="9.6" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=0;arcSize=0;html=0;whiteSpace=wrap;fillColor=#151515;strokeColor=#FB7185;strokeWidth=1.44;" id="roadmap" value="">
+          <mxGeometry y="1155" width="202.5" as="geometry" height="82.5" x="2760" />
+        </mxCell>
+        <mxCell vertex="1" parent="roadmap" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#E5E7EB;" id="roadmap-title" value="Learning&#xA;Roadmap">
+          <mxGeometry y="12.65" width="183.3" as="geometry" height="57.2" x="9.6" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=0;arcSize=0;html=0;whiteSpace=wrap;fillColor=#151515;strokeColor=#94A3B8;strokeWidth=1.44;" id="job-source" value="">
+          <mxGeometry y="1507.5" width="202.5" as="geometry" height="82.5" x="2085" />
+        </mxCell>
+        <mxCell vertex="1" parent="job-source" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#E5E7EB;" id="job-source-title" value="Job Source URL">
+          <mxGeometry y="26.95" width="183.3" as="geometry" height="28.6" x="9.6" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=0;arcSize=0;html=0;whiteSpace=wrap;fillColor=#151515;strokeColor=#C084FC;strokeWidth=1.44;" id="resource" value="">
+          <mxGeometry y="1507.5" width="202.5" as="geometry" height="82.5" x="2760" />
+        </mxCell>
+        <mxCell vertex="1" parent="resource" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#E5E7EB;" id="resource-title" value="Learning&#xA;Resource">
+          <mxGeometry y="12.65" width="183.3" as="geometry" height="57.2" x="9.6" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-user-ai-label" value="chats">
+          <mxGeometry y="239.25" width="120" as="geometry" height="28" x="322.5" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-guest-ai-label" value="trial chats">
+          <mxGeometry y="356.25" width="120" as="geometry" height="28" x="52.5" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-user-announcement-label" value="creates (Admin)">
+          <mxGeometry y="401.25" width="140" as="geometry" height="28" x="503.75" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-user-candidate-label" value="requests (Candidate)">
+          <mxGeometry y="382.5" width="172.5" as="geometry" height="28" x="712.5" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-user-consultant-label" value="assigned (Consultant)">
+          <mxGeometry y="427.5" width="187.5" as="geometry" height="28" x="795" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-user-support-label" value="opens">
+          <mxGeometry y="405" width="127.5" as="geometry" height="28" x="1057.5" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-user-usage-label" value="usage tracked">
+          <mxGeometry y="426" width="142.5" as="geometry" height="28" x="1293.75" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-guest-usage-label" value="trial usage tracked">
+          <mxGeometry y="625.5" width="180" as="geometry" height="28" x="487.5" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-user-cv-label" value="owns">
+          <mxGeometry y="371.25" width="112.5" as="geometry" height="28" x="1623.75" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-user-profile-label" value="has">
+          <mxGeometry y="390" width="127.5" as="geometry" height="28" x="1942.5" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-user-subscription-label" value="subscribes">
+          <mxGeometry y="390" width="135" as="geometry" height="28" x="2261.25" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-user-assessment-label" value="takes">
+          <mxGeometry y="412.5" width="135" as="geometry" height="28" x="2647.5" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-user-matching-label" value="starts">
+          <mxGeometry y="686.25" width="123.75" as="geometry" height="28" x="1188.75" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-guest-matching-label" value="trial matching">
+          <mxGeometry y="708" width="157.5" as="geometry" height="28" x="390" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-user-payment-label" value="places order">
+          <mxGeometry y="580.5" width="165" as="geometry" height="28" x="2238.75" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-user-gap-label" value="owns analysis">
+          <mxGeometry y="570" width="142.5" as="geometry" height="28" x="2842.5" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-user-roadmap-label" value="owns roadmap">
+          <mxGeometry y="1046.25" width="142.5" as="geometry" height="28" x="2812.5" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-user-apply-label" value="opens apply link">
+          <mxGeometry y="960" width="157.5" as="geometry" height="28" x="1005" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-user-notification-label" value="receives">
+          <mxGeometry y="1072.5" width="150" as="geometry" height="28" x="885" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-user-settings-label" value="configures (Admin)">
+          <mxGeometry y="1045.5" width="187.5" as="geometry" height="28" x="1728.75" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-user-skill-label" value="possesses">
+          <mxGeometry y="918" width="150" as="geometry" height="28" x="1687.5" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-plan-subscription-label" value="offers">
+          <mxGeometry y="367.5" width="135" as="geometry" height="28" x="2411.25" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-plan-payment-label" value="tier purchased">
+          <mxGeometry y="685.5" width="180" as="geometry" height="28" x="2718.75" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-subscription-payment-label" value="billed by">
+          <mxGeometry y="633" width="142.5" as="geometry" height="28" x="2377.5" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-payment-invoice-label" value="issues invoice">
+          <mxGeometry y="982.5" width="142.5" as="geometry" height="28" x="2602.5" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-ai-message-label" value="contains">
+          <mxGeometry y="697.5" width="120" as="geometry" height="28" x="183.75" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-message-rag-label" value="references">
+          <mxGeometry y="1020" width="127.5" as="geometry" height="28" x="183.75" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-consultation-message-label" value="contains messages">
+          <mxGeometry y="720" width="176.25" as="geometry" height="28" x="855" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-support-message-label" value="contains replies">
+          <mxGeometry y="978" width="180" as="geometry" height="28" x="772.5" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-cv-matching-label" value="selected for">
+          <mxGeometry y="708" width="138.75" as="geometry" height="28" x="1395" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-profile-matching-label" value="career context">
+          <mxGeometry y="708" width="150" as="geometry" height="28" x="1695" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-cv-analysis-label" value="analyzed">
+          <mxGeometry y="626.25" width="127.5" as="geometry" height="28" x="1586.25" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-cv-skill-label" value="lists">
+          <mxGeometry y="745.5" width="120" as="geometry" height="28" x="1800" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-job-skill-label" value="requires">
+          <mxGeometry y="839.25" width="127.5" as="geometry" height="28" x="2058.75" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-matching-result-label" value="returns">
+          <mxGeometry y="1049.25" width="135" as="geometry" height="28" x="1361.25" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-job-result-label" value="ranked in">
+          <mxGeometry y="1023" width="146.25" as="geometry" height="28" x="2013.75" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-job-apply-label" value="target job">
+          <mxGeometry y="1079.25" width="142.5" as="geometry" height="28" x="1807.5" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-cv-apply-label" value="optional CV">
+          <mxGeometry y="1000.5" width="142.5" as="geometry" height="28" x="1413.75" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-assessment-gap-label" value="informs">
+          <mxGeometry y="610.5" width="142.5" as="geometry" height="28" x="2677.5" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-cv-gap-label" value="CV input">
+          <mxGeometry y="644.25" width="135" as="geometry" height="28" x="2178.75" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-job-gap-label" value="target job">
+          <mxGeometry y="903" width="150" as="geometry" height="28" x="2527.5" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-profile-gap-label" value="career context">
+          <mxGeometry y="745.5" width="172.5" as="geometry" height="28" x="2302.5" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-gap-roadmap-label" value="informs roadmap">
+          <mxGeometry y="1012.5" width="187.5" as="geometry" height="28" x="2760" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-job-roadmap-label" value="learning goal">
+          <mxGeometry y="1083" width="165" as="geometry" height="28" x="2422.5" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-roadmap-resource-label" value="recommends">
+          <mxGeometry y="1350" width="195" as="geometry" height="28" x="2707.5" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-settings-run-label" value="schedules">
+          <mxGeometry y="1170" width="90" as="geometry" height="28" x="2013.75" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-run-job-label" value="collects / updates">
+          <mxGeometry y="911.25" width="172.5" as="geometry" height="28" x="2103.75" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=center;verticalAlign=middle;fillColor=#111111;rounded=1;fontSize=18;fontColor=#CBD5E1;spacing=2.4;" id="rel-job-source-label" value="has source URLs">
+          <mxGeometry y="1401" width="187.5" as="geometry" height="28" x="2197.5" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="rounded=1;arcSize=10;html=0;fillColor=#151515;strokeColor=#374151;strokeWidth=1;" id="notes-background" value="">
+          <mxGeometry y="1650" width="2895" as="geometry" height="210" x="52.5" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=left;fontSize=18;fontColor=#CBD5E1;" id="note-0" value="1 = đúng một · 0..1 = không hoặc một · 0..n = không hoặc nhiều. Nét đứt: ngữ cảnh / điều phối nghiệp vụ.">
+          <mxGeometry y="1662" width="2855" as="geometry" height="28" x="72.5" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=left;fontSize=18;fontColor=#CBD5E1;" id="note-1" value="User có các vai trò Candidate, Career Consultant, Admin. Career Consultation có 1 Candidate và 0..1 Consultant; mỗi tin nhắn tư vấn/hỗ trợ có 1 User gửi. Support Ticket có 0..1 Admin được phân công.">
+          <mxGeometry y="1694" width="2855" as="geometry" height="28" x="72.5" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=left;fontSize=18;fontColor=#CBD5E1;" id="note-2" value="AI Conversation và Matching Session thuộc đúng một User hoặc Guest (XOR). AI Usage có tối đa một chủ; tác vụ hệ thống có thể không có chủ.">
+          <mxGeometry y="1726" width="2855" as="geometry" height="28" x="72.5" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=left;fontSize=18;fontColor=#CBD5E1;" id="note-3" value="CV cá nhân có 1 User sở hữu; CV demo có thể không có chủ. Guest matching dùng CV demo, guest chat không dùng RAG.">
+          <mxGeometry y="1758" width="2855" as="geometry" height="28" x="72.5" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=left;fontSize=18;fontColor=#CBD5E1;" id="note-4" value="User có tối đa 1 Subscription ACTIVE. Payment Order có trước khi kích hoạt gói. Assessment không tự tạo Roadmap; roadmap.sh là nguồn liên kết tham khảo. Plan gồm giá và quota theo tính năng.">
+          <mxGeometry y="1790" width="2855" as="geometry" height="28" x="72.5" />
+        </mxCell>
+        <mxCell vertex="1" parent="1" style="text;html=0;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Segoe UI;align=left;fontSize=18;fontColor=#CBD5E1;" id="note-5" value="External Apply Event chỉ ghi nhận mở link ứng tuyển. Job Source URL là URL nguồn của job chuẩn hóa; địa điểm crawl do Admin chọn.">
+          <mxGeometry y="1822" width="2855" as="geometry" height="28" x="72.5" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

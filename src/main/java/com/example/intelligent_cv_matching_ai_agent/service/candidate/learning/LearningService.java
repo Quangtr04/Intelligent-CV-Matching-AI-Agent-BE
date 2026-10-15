@@ -16,6 +16,7 @@ import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiExceptio
 import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiService;
 
 import com.example.intelligent_cv_matching_ai_agent.service.candidate.resume.ResumeService;
+import com.example.intelligent_cv_matching_ai_agent.service.shared.learning.LearningReferenceService;
 import java.time.OffsetDateTime;
 import java.util.*;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,22 +36,40 @@ public class LearningService {
 
     private final ResumeService resumes;
 
+    private final LearningReferenceService references;
+
     public LearningService(
         LearningRepository db,
         CurrentUser user,
         AiService ai,
         AssessmentService assessments,
-        ResumeService resumes) {
+        ResumeService resumes,
+        LearningReferenceService references) {
         this.db = db;
         this.user = user;
         this.ai = ai;
         this.assessments = assessments;
         this.resumes = resumes;
+        this.references = references;
     }
 
     public Map<String, Object> assess(
         AssessmentRequest request) {
         return assessments.create(request.targetJobTitle(), request.jobId());
+    }
+
+    public Map<String, Object> recommendations(
+        String target,
+        List<String> skills) {
+        user.requireRole("CANDIDATE");
+        if (target == null || target.isBlank() || target.length() > 255) {
+            throw ApiException.badRequest("Select a target career");
+        }
+        List<String> names = skills == null ? List.of() : skills;
+        if (names.size() > 50 || names.stream().anyMatch(s -> s == null || s.isBlank() || s.length() > 150)) {
+            throw ApiException.badRequest("Provide up to 50 valid skill names");
+        }
+        return references.recommend(target.strip(), names);
     }
 
     public List<Map<String, Object>> assessments() {
@@ -59,7 +78,7 @@ public class LearningService {
 
     public Map<String, Object> assessment(
         UUID id) {
-        return assessments.get(id);
+        return withAssessmentRecommendations(assessments.get(id));
     }
 
     public Map<String, Object> answer(
@@ -70,7 +89,17 @@ public class LearningService {
 
     public Map<String, Object> submit(
         UUID id) {
-        return assessments.submit(id);
+        return withAssessmentRecommendations(assessments.submit(id));
+    }
+
+    private Map<String, Object> withAssessmentRecommendations(
+        Map<String, Object> session) {
+        if (!"completed".equals(session.get("status"))) {
+            return session;
+        }
+        Map<String, Object> result = new LinkedHashMap<>(session);
+        result.put("learning_recommendations", references.forAssessment(session));
+        return result;
     }
 
     @Transactional
@@ -105,7 +134,29 @@ public class LearningService {
             assessment = db.findAssessmentSessionsByUserId(user.id(), target).orElse(Map.of());
 
         var profileSkills = db.listCandidateProfileSkillsByUserId(user.id());
-        var requirements = request.jobId() == null ? List.of() : db.listMarketJobSkillsByMarketJobId(request.jobId());
+        List<Map<String, Object>> requirements =
+            request.jobId() == null ? List.of() : db.listMarketJobSkillsByMarketJobId(request.jobId());
+        Set<String> referenceSkills = new LinkedHashSet<>();
+        if (!assessment.isEmpty()) {
+            for (Object skill : array(references.forAssessment(assessment).get("focus_skills"))) {
+                if (skill instanceof String name && !name.isBlank()) {
+                    referenceSkills.add(name);
+                }
+            }
+        }
+        for (var requirement : requirements) {
+            String skill = text(requirement.get("skill_name"));
+            if (!skill.isBlank()) {
+                referenceSkills.add(skill);
+            }
+        }
+        for (var profileSkill : profileSkills) {
+            String skill = text(profileSkill.get("name"));
+            if (!skill.isBlank()) {
+                referenceSkills.add(skill);
+            }
+        }
+        var learningReferences = references.recommend(target, referenceSkills.stream().limit(50).toList());
         var generated = ai.generate(
             "ROADMAP_GENERATE",
             fields(
@@ -123,6 +174,8 @@ public class LearningService {
                 cv,
                 "assessment",
                 assessment,
+                "learning_references",
+                learningReferences,
                 "prerequisite_numbering",
                 ("1-based sequence, prerequisites must precede their node; do not " + "invent resource URLs")
             )
@@ -138,6 +191,8 @@ public class LearningService {
 
         List<?> gaps = array(generated.get("skill_gaps"));
         validateGaps(gaps);
+        var recommendationSnapshot =
+            references.recommend(target, nodes.stream().map(node -> text(object(node).get("skill_name"))).toList());
 
         db.getUsersByIdForUpdate(user.id());
         int version = ((Number) db.readGapAnalysesByUserId(user.id(), target)).intValue();
@@ -208,7 +263,9 @@ public class LearningService {
                 "estimated_total_hours",
                 hours,
                 "status",
-                "ready"
+                "ready",
+                "learning_recommendations_snapshot",
+                db.json(recommendationSnapshot)
             )
         );
 
@@ -238,13 +295,20 @@ public class LearningService {
             );
             nodeIds.add(nodeId);
 
-            for (var resource : db.listLearningResourcesByIsActive("%" + skill + "%"))
+            int resourceOrder = 1;
+            Set<UUID> attachedResources = new HashSet<>();
+            for (var resource : references.resourcesForSkill(skill)) {
+                if (!(resource.get("id") instanceof UUID resourceId) || !attachedResources.add(resourceId)) {
+                    continue;
+                }
                 db.updateRoadmapNodeResources(
                     nodeId,
-                    resource.get("id"),
-                    1,
-                    "Existing catalog resource related to " + skill
+                    resourceId,
+                    resourceOrder++,
+                    "Catalog resource from " + text(resource.get("provider")) + " related to " + skill,
+                    resource
                 );
+            }
         }
 
         for (int i = 0; i < nodes.size(); i++)
@@ -314,7 +378,9 @@ public class LearningService {
     }
 
     public List<Map<String, Object>> roadmaps() {
-        return db.listRoadmapsByUserId(user.id());
+        List<Map<String, Object>> roadmaps = db.listRoadmapsByUserId(user.id());
+        roadmaps.forEach(roadmap -> roadmap.remove("learning_recommendations_snapshot"));
+        return roadmaps;
     }
 
     public Map<String, Object> roadmap(
@@ -329,6 +395,16 @@ public class LearningService {
 
         roadmap.put("nodes", nodes);
         roadmap.put("skill_gaps", db.listGapAnalysisSkillsByGapAnalysisId(roadmap.get("gap_analysis_id")));
+        Object snapshot = roadmap.remove("learning_recommendations_snapshot");
+        roadmap.put(
+            "learning_recommendations",
+            snapshot instanceof Map<?, ?>
+                ? snapshot
+                : references.recommend(
+                    text(roadmap.get("target_job_title")),
+                    nodes.stream().map(node -> text(node.get("skill_name"))).filter(skill -> !skill.isBlank()).toList()
+                )
+        );
 
         return roadmap;
     }
