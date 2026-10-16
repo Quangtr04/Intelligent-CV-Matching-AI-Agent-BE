@@ -1,0 +1,291 @@
+package com.example.intelligent_cv_matching_ai_agent.service.consultant.consultation;
+
+import com.example.intelligent_cv_matching_ai_agent.dto.request.consultant.consultation.ConsultationAtsRequest;
+import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException;
+import com.example.intelligent_cv_matching_ai_agent.repository.consultant.consultation.ConsultationEvaluationRepository;
+import com.example.intelligent_cv_matching_ai_agent.security.shared.CurrentUser;
+import com.example.intelligent_cv_matching_ai_agent.service.candidate.resume.ResumeService;
+import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiService;
+import com.example.intelligent_cv_matching_ai_agent.util.shared.FlowSupport;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.UUID;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import static com.example.intelligent_cv_matching_ai_agent.util.shared.Values.fields;
+import static com.example.intelligent_cv_matching_ai_agent.util.shared.Values.text;
+
+/** Candidate report ownership and the consultant's AI usage identity are deliberately separate. */
+@Service
+public class ConsultantEvaluationService {
+
+    private static final String ATS_VERSION = "consultation-ats-v1";
+
+    private final ConsultationEvaluationRepository repository;
+
+    private final CurrentUser currentUser;
+
+    private final AiService ai;
+
+    private final ResumeService resumes;
+
+    public ConsultantEvaluationService(
+        ConsultationEvaluationRepository repository,
+        CurrentUser currentUser,
+        AiService ai,
+        ResumeService resumes) {
+        this.repository = repository;
+        this.currentUser = currentUser;
+        this.ai = ai;
+        this.resumes = resumes;
+    }
+
+    @Transactional
+    public List<Map<String, Object>> candidateResumes(
+        UUID consultationId) {
+        return repository.listReadyResumes(assignedCandidate(consultationId, false));
+    }
+
+    @Transactional
+    public Map<String, Object> analyzeResume(
+        UUID consultationId,
+        UUID resumeId) {
+        UUID candidateId = assignedCandidate(consultationId, true);
+        Map<String, Object> resume = repository.readyResume(resumeId, candidateId);
+        requireAi();
+
+        Map<String, Object> generated = ai.generate(
+            "CV_ANALYZE",
+            fields(
+                "resume",
+                resume.get("structured_data"),
+                "resume_text",
+                resumes.canonicalText(resume),
+                "language",
+                languageOf(resume),
+                "evaluation_guidance",
+                "Evaluate CV clarity, completeness, evidence of achievements and improvement opportunities. "
+                    + "This is a general CV quality review without a target job. Do not infer job suitability. "
+                    + "Base suggestions on reviewed CV facts; never invent candidate qualifications."
+            )
+        );
+        double overall = FlowSupport.score(generated.get("overall_score"), 100, "CV overall score");
+        double ats = FlowSupport.score(generated.get("ats_score"), 100, "CV ATS score");
+        String summary = aiText(generated.get("summary"), "CV summary", 100000, true);
+        List<String> strengths = aiStrings(generated, "strengths");
+        List<String> issues = aiStrings(generated, "issues");
+        List<?> suggestions = aiArray(generated, "suggestions");
+        List<Map<String, Object>> checkedSuggestions = suggestions.stream().map(this::suggestion).toList();
+
+        UUID analysisId = repository.insertResumeAnalysis(
+            fields(
+                "resume_id",
+                resumeId,
+                "analysis_type",
+                "AI_QUALITY",
+                "overall_score",
+                overall,
+                "ats_score",
+                ats,
+                "summary",
+                summary,
+                "strengths_json",
+                repository.json(strengths),
+                "issues_json",
+                repository.json(issues),
+                "model_name",
+                modelOf(generated)
+            )
+        );
+        for (Map<String, Object> item : checkedSuggestions) {
+            item.put("analysis_id", analysisId);
+            repository.insertSuggestion(item);
+        }
+        audit(consultationId, candidateId, resumeId, null, analysisId, "CONSULTATION_CV_ANALYZE");
+        return repository.resumeAnalysis(analysisId, resumeId);
+    }
+
+    @Transactional
+    public Map<String, Object> ats(
+        UUID consultationId,
+        UUID jobId,
+        ConsultationAtsRequest request) {
+        UUID candidateId = assignedCandidate(consultationId, true);
+        UUID resumeId = request.resumeId();
+        Map<String, Object> resume = repository.readyResume(resumeId, candidateId);
+        Map<String, Object> job = repository.activeJob(jobId);
+        List<Map<String, Object>> skills = repository.jobSkills(jobId);
+        String canonical = resumes.canonicalText(resume);
+        String inputHash = FlowSupport.hash(
+            ATS_VERSION + "\n" + canonical + "\n" + languageOf(resume) + "\n" + job + "\n" + skills + "\n"
+                + ai.provider() + "\n" + ai.model()
+        );
+        var cached = repository.findAtsAnalysis(candidateId, resumeId, jobId, inputHash);
+        if (cached.isPresent()) {
+            return atsResponse(cached.get(), true);
+        }
+        requireAi();
+
+        Map<String, Object> generated = ai.generate(
+            "JOB_ATS",
+            fields(
+                "resume",
+                resume.get("structured_data"),
+                "resume_text",
+                canonical,
+                "job",
+                job,
+                "required_skills",
+                skills,
+                "language",
+                languageOf(resume),
+                "evaluation_guidance",
+                "Assess how well this reviewed CV meets this job's explicit requirements. "
+                    + "Consider required and preferred skills separately, relevant experience, seniority and duties. "
+                    + "Use evidence from the CV and JD. Related technologies are not automatically equivalent. "
+                    + "Distinguish missing evidence from a confirmed lack of competence. Explain uncertainty in "
+                    + "missing_skills and improvement_suggestions. Return an advisory ATS score from 0 to 100."
+            )
+        );
+        double score = FlowSupport.score(generated.get("ats_score"), 100, "ATS score");
+        List<String> strengths = aiStrings(generated, "strengths");
+        List<String> missing = aiStrings(generated, "missing_skills");
+        List<String> suggestions = aiStrings(generated, "improvement_suggestions");
+        UUID analysisId = repository.insertAtsAnalysis(
+            fields(
+                "user_id",
+                candidateId,
+                "resume_id",
+                resumeId,
+                "market_job_id",
+                jobId,
+                "ats_score",
+                score,
+                "strengths_json",
+                repository.json(strengths),
+                "missing_skills_json",
+                repository.json(missing),
+                "improvement_suggestions_json",
+                repository.json(fields("input_hash", inputHash, "items", suggestions)),
+                "model_name",
+                modelOf(generated)
+            )
+        );
+        audit(consultationId, candidateId, resumeId, jobId, analysisId, "CONSULTATION_JOB_ATS");
+        return atsResponse(repository.atsAnalysis(analysisId, candidateId, resumeId, jobId), false);
+    }
+
+    private UUID assignedCandidate(
+        UUID consultationId,
+        boolean requireOpen) {
+        currentUser.requireRole("CAREER_CONSULTANT");
+        Map<String, Object> thread = repository.assignedThread(consultationId, currentUser.id());
+        if (requireOpen && !"OPEN".equals(thread.get("status"))) {
+            throw ApiException.conflict("Consultation is closed");
+        }
+        return (UUID) thread.get("candidate_user_id");
+    }
+
+    private void requireAi() {
+        if (!ai.enabled()) {
+            throw new ApiException(503, "AI evaluation is disabled. Configure a chat provider before analysis.");
+        }
+    }
+
+    private Map<String, Object> suggestion(
+        Object value) {
+        if (!(value instanceof Map<?, ?> row)) {
+            throw new ApiException(502, "AI returned an invalid CV suggestion");
+        }
+        Map<String, Object> result = new LinkedHashMap<>();
+        for (String key : List.of("category", "severity", "original_content", "suggested_content", "explanation")) {
+            if (row.get(key) != null) {
+                int limit = "category".equals(key) ? 100 : "severity".equals(key) ? 30 : 100000;
+                result.put(key, aiText(row.get(key), "suggestion " + key, limit, false));
+            }
+        }
+        return result;
+    }
+
+    private List<?> aiArray(
+        Map<String, Object> generated,
+        String key) {
+        if (!(generated.get(key) instanceof List<?> rows)) {
+            throw new ApiException(502, "AI returned invalid " + key);
+        }
+        return rows;
+    }
+
+    private List<String> aiStrings(
+        Map<String, Object> generated,
+        String key) {
+        return aiArray(generated, key).stream().map(value -> aiText(value, key, 100000, true)).toList();
+    }
+
+    private String aiText(
+        Object value,
+        String field,
+        int limit,
+        boolean required) {
+        if (!(value instanceof String result) || result.length() > limit || (required && result.isBlank())) {
+            throw new ApiException(502, "AI returned invalid " + field);
+        }
+        return result;
+    }
+
+    private String modelOf(
+        Map<String, Object> generated) {
+        String model = text(generated.get("_model"));
+        return model.isBlank() ? ai.model() : model;
+    }
+
+    private String languageOf(
+        Map<String, Object> resume) {
+        String language = text(resume.get("language")).toLowerCase(Locale.ROOT);
+        return List.of("vi", "en").contains(language) ? language : "vi";
+    }
+
+    private Map<String, Object> atsResponse(
+        Map<String, Object> row,
+        boolean cached) {
+        Map<String, Object> result = new LinkedHashMap<>(row);
+        result.put("cached", cached);
+        return result;
+    }
+
+    private void audit(
+        UUID consultationId,
+        UUID candidateId,
+        UUID resumeId,
+        UUID jobId,
+        UUID analysisId,
+        String action) {
+        repository.insertAudit(
+            fields(
+                "actor_user_id",
+                currentUser.id(),
+                "action",
+                action,
+                "entity_type",
+                "consultation_threads",
+                "entity_id",
+                consultationId,
+                "new_value",
+                repository.json(
+                    fields(
+                        "candidate_id",
+                        candidateId,
+                        "resume_id",
+                        resumeId,
+                        "job_id",
+                        jobId,
+                        "analysis_id",
+                        analysisId
+                    )
+                )
+            )
+        );
+    }
+}

@@ -1279,6 +1279,387 @@ class CoreFlowIntegrationTests {
         }
     }
 
+    @Test
+    @SuppressWarnings("unchecked")
+    void consultantEvaluationCreatesCandidateReportsAndCachesAtsWithoutExposingInternals() throws Exception {
+        UUID threadId = assignedConsultation(), resumeId = confirmedCv(), jobId = importedJob();
+        UUID draftId = seedAnalysisResume(candidateId, "DRAFT");
+        UUID foreignId = seedAnalysisResume((UUID) tokens.authenticate(other).get("id"), "READY");
+        stubConsultantEvaluationAi();
+        String base = "/api/v1/consultations/" + threadId;
+
+        var listResult = mvc.perform(get(base + "/candidate-resumes").header("Authorization", "Bearer " + consultant))
+            .andExpect(status().isOk()).andReturn();
+        var resumes =
+            (List<Map<String, Object>>) mapper.readValue(listResult.getResponse().getContentAsString(), List.class);
+        assertEquals(List.of(resumeId.toString()), resumes.stream().map(row -> row.get("id").toString()).toList());
+        assertEquals("READY", resumes.getFirst().get("status"));
+        assertEquals("Java CV", resumes.getFirst().get("title"));
+        for (String internal : List.of("raw_content", "structured_data", "file_url", "content_hash")) {
+            assertFalse(resumes.getFirst().containsKey(internal), internal);
+        }
+        assertFalse(listResult.getResponse().getContentAsString().contains(draftId.toString()));
+        assertFalse(listResult.getResponse().getContentAsString().contains(foreignId.toString()));
+
+        var quality = postJson(base + "/resumes/" + resumeId + "/analyze", consultant, Map.of());
+        assertEquals(resumeId.toString(), quality.get("resume_id"));
+        assertEquals("AI_QUALITY", quality.get("analysis_type"));
+        assertEquals(84, ((Number) quality.get("overall_score")).intValue());
+        assertEquals("Add measurable project results", quality.get("summary"));
+        assertEquals(List.of("Java experience"), quality.get("strengths_json"));
+        var suggestions = (List<Map<String, Object>>) quality.get("suggestions");
+        assertEquals(1, suggestions.size());
+        assertEquals("Quantify backend performance", suggestions.getFirst().get("suggested_content"));
+        assertFalse(json(quality).contains("PRIVATE_MODEL_TRACE"));
+        assertFalse(json(quality).contains("_usage"));
+        assertFalse(suggestions.getFirst().containsKey("_internal"));
+
+        var ats = postJson(base + "/jobs/" + jobId + "/ats", consultant, Map.of("resumeId", resumeId));
+        assertEquals(false, ats.get("cached"));
+        assertEquals(candidateId.toString(), ats.get("user_id"));
+        assertEquals(resumeId.toString(), ats.get("resume_id"));
+        assertEquals(jobId.toString(), ats.get("market_job_id"));
+        assertEquals(79, ((Number) ats.get("ats_score")).intValue());
+        assertEquals(List.of("Docker"), ats.get("missing_skills_json"));
+        assertEquals(List.of("Show production deployment evidence"), ats.get("improvement_suggestions_json"));
+        assertFalse(json(ats).contains("PRIVATE_MODEL_TRACE"));
+        assertFalse(json(ats).contains("input_hash"));
+        assertFalse(json(ats).contains("_usage"));
+        var cached = postJson(base + "/jobs/" + jobId + "/ats", consultant, Map.of("resumeId", resumeId));
+        assertEquals(true, cached.get("cached"));
+        assertEquals(ats.get("id"), cached.get("id"));
+        assertEquals(ats.get("improvement_suggestions_json"), cached.get("improvement_suggestions_json"));
+        when(ai.enabled()).thenReturn(false);
+        var cachedWithoutAi = postJson(base + "/jobs/" + jobId + "/ats", consultant, Map.of("resumeId", resumeId));
+        assertEquals(true, cachedWithoutAi.get("cached"));
+        assertEquals(ats.get("id"), cachedWithoutAi.get("id"));
+        verify(ai, times(1)).generate(eq("CV_ANALYZE"), anyMap());
+        verify(ai, times(1)).generate(eq("JOB_ATS"), anyMap());
+        assertEquals(
+            candidateId,
+            db.one("SELECT user_id FROM job_resume_analyses WHERE id=?::uuid", ats.get("id")).get("user_id")
+        );
+        assertEquals(
+            2,
+            ((Number) db.scalar(
+                "SELECT count(*) FROM audit_logs WHERE actor_user_id=? "
+                    + "AND entity_id=? AND new_value->>'analysis_id' IN (?, ?)",
+                consultantId,
+                threadId,
+                quality.get("id"),
+                ats.get("id")
+            )).intValue()
+        );
+
+        for (String viewer : List.of(candidate, consultant, admin)) {
+            var reports = candidateAnalyses(threadId, viewer, Map.of("resumeId", resumeId.toString()));
+            assertTrue(analysisIds(reports, "resume_analyses").contains(quality.get("id")));
+            assertTrue(analysisIds(reports, "ats_analyses").contains(ats.get("id")));
+        }
+    }
+
+    @Test
+    void consultantAtsCacheTracksCanonicalResumeJobSkillsAndModelChanges() throws Exception {
+        UUID threadId = assignedConsultation(), resumeId = confirmedCv(), jobId = importedJob();
+        stubConsultantEvaluationAi();
+        String path = "/api/v1/consultations/" + threadId + "/jobs/" + jobId + "/ats";
+        var first = postJson(path, consultant, Map.of("resumeId", resumeId));
+        db.update(
+            "UPDATE resumes SET structured_data=? WHERE id=?",
+            db.json(Map.of("summary", "Java SQL developer with Docker deployment experience")),
+            resumeId
+        );
+        var changedResume = postJson(path, consultant, Map.of("resumeId", resumeId));
+        assertEquals(false, changedResume.get("cached"));
+        assertNotEquals(first.get("id"), changedResume.get("id"));
+
+        db.update("UPDATE market_job_posts SET parsed_requirements=? WHERE id=?", "Requires Kubernetes", jobId);
+        var changedJob = postJson(path, consultant, Map.of("resumeId", resumeId));
+        assertEquals(false, changedJob.get("cached"));
+        assertNotEquals(changedResume.get("id"), changedJob.get("id"));
+
+        db.update("UPDATE market_job_skills SET is_required=NOT is_required WHERE market_job_id=?", jobId);
+        var changedSkills = postJson(path, consultant, Map.of("resumeId", resumeId));
+        assertEquals(false, changedSkills.get("cached"));
+        assertNotEquals(changedJob.get("id"), changedSkills.get("id"));
+
+        when(ai.model()).thenReturn("test-model-v2");
+        var changedModel = postJson(path, consultant, Map.of("resumeId", resumeId));
+        assertEquals(false, changedModel.get("cached"));
+        assertNotEquals(changedSkills.get("id"), changedModel.get("id"));
+        when(ai.provider()).thenReturn("another-provider");
+        var changedProvider = postJson(path, consultant, Map.of("resumeId", resumeId));
+        assertEquals(false, changedProvider.get("cached"));
+        assertNotEquals(changedModel.get("id"), changedProvider.get("id"));
+        assertEquals(true, postJson(path, consultant, Map.of("resumeId", resumeId)).get("cached"));
+        verify(ai, times(6)).generate(eq("JOB_ATS"), anyMap());
+    }
+
+    @Test
+    void consultantEvaluationRejectsWrongRolesUnassignedThreadsAndReassignedConsultantsBeforeAi() throws Exception {
+        UUID resumeId = confirmedCv(), jobId = importedJob(), threadId = assignedConsultation();
+        stubConsultantEvaluationAi();
+        String base = "/api/v1/consultations/" + threadId;
+        mvc.perform(get(base + "/candidate-resumes")).andExpect(status().isUnauthorized());
+        for (String wrongRole : List.of(candidate, other, admin)) {
+            assertConsultantEvaluationDenied(threadId, resumeId, jobId, wrongRole, 403, true);
+        }
+        String anotherConsultant = access(createUser("CAREER_CONSULTANT"));
+        assertConsultantEvaluationDenied(threadId, resumeId, jobId, anotherConsultant, 404, true);
+        UUID unassigned = db.insert("consultation_threads", Map.of("candidate_user_id", candidateId));
+        assertConsultantEvaluationDenied(unassigned, resumeId, jobId, consultant, 404, true);
+        assertConsultantEvaluationDenied(UUID.randomUUID(), resumeId, jobId, consultant, 404, true);
+
+        UUID replacementId = createUser("CAREER_CONSULTANT");
+        response(
+            mvc.perform(
+                put(base + "/consultant").header("Authorization", "Bearer " + admin)
+                    .contentType(MediaType.APPLICATION_JSON).content(json(Map.of("consultantId", replacementId)))
+            )
+        );
+        assertConsultantEvaluationDenied(threadId, resumeId, jobId, consultant, 404, true);
+        mvc.perform(get(base + "/candidate-resumes").header("Authorization", "Bearer " + access(replacementId)))
+            .andExpect(status().isOk());
+        verify(ai, never()).generate(anyString(), anyMap());
+    }
+
+    @Test
+    void consultantEvaluationRejectsUnownedUnreadyAndMissingResumesBeforeAi() throws Exception {
+        UUID threadId = assignedConsultation(), jobId = importedJob();
+        UUID foreignId = seedAnalysisResume((UUID) tokens.authenticate(other).get("id"), "READY");
+        UUID draftId = seedAnalysisResume(candidateId, "DRAFT");
+        UUID parsingId = seedAnalysisResume(candidateId, "PARSING");
+        stubConsultantEvaluationAi();
+        for (UUID invalid : List.of(foreignId, draftId, parsingId, UUID.randomUUID())) {
+            assertConsultantEvaluationDenied(threadId, invalid, jobId, consultant, 404, false);
+        }
+        mvc.perform(
+            post("/api/v1/consultations/" + threadId + "/jobs/" + jobId + "/ats")
+                .header("Authorization", "Bearer " + consultant).contentType(MediaType.APPLICATION_JSON).content("{}")
+        ).andExpect(status().isBadRequest());
+        verify(ai, never()).generate(anyString(), anyMap());
+    }
+
+    @Test
+    void consultantEvaluationRejectsClosedThreadsDeletedCandidatesAndDisabledAi() throws Exception {
+        UUID threadId = assignedConsultation(), resumeId = confirmedCv(), jobId = importedJob();
+        assertConsultantEvaluationDenied(threadId, resumeId, jobId, consultant, 503, false);
+        verify(ai, never()).generate(anyString(), anyMap());
+        assertEquals(
+            0,
+            ((Number) db.scalar("SELECT count(*) FROM resume_analyses WHERE resume_id=?", resumeId)).intValue()
+        );
+        assertEquals(
+            0,
+            ((Number) db.scalar("SELECT count(*) FROM job_resume_analyses WHERE resume_id=?", resumeId)).intValue()
+        );
+
+        stubConsultantEvaluationAi();
+        db.update("UPDATE consultation_threads SET status='CLOSED',closed_at=now() WHERE id=?", threadId);
+        assertConsultantEvaluationDenied(threadId, resumeId, jobId, consultant, 409, false);
+        mvc.perform(
+            get("/api/v1/consultations/" + threadId + "/candidate-resumes")
+                .header("Authorization", "Bearer " + consultant)
+        ).andExpect(status().isOk());
+        db.update("UPDATE consultation_threads SET status='OPEN',closed_at=NULL WHERE id=?", threadId);
+        db.update("UPDATE users SET status='DELETED' WHERE id=?", candidateId);
+        assertConsultantEvaluationDenied(threadId, resumeId, jobId, consultant, 404, true);
+        verify(ai, never()).generate(anyString(), anyMap());
+    }
+
+    @Test
+    void consultantAtsRejectsInactiveExpiredAndUnavailableJobsBeforeAi() throws Exception {
+        UUID threadId = assignedConsultation(), resumeId = confirmedCv(), jobId = importedJob();
+        stubConsultantEvaluationAi();
+        String base = "/api/v1/consultations/" + threadId + "/jobs/";
+        for (String state : List.of("EXPIRED", "REMOVED", "INVALID")) {
+            db.update("UPDATE market_job_posts SET status=? WHERE id=?", state, jobId);
+            mvc.perform(
+                post(base + jobId + "/ats").header("Authorization", "Bearer " + consultant)
+                    .contentType(MediaType.APPLICATION_JSON).content(json(Map.of("resumeId", resumeId)))
+            ).andExpect(status().isNotFound());
+        }
+        db.update("UPDATE market_job_posts SET status='ACTIVE',valid_through=now()-interval '1 day' WHERE id=?", jobId);
+        mvc.perform(
+            post(base + jobId + "/ats").header("Authorization", "Bearer " + consultant)
+                .contentType(MediaType.APPLICATION_JSON).content(json(Map.of("resumeId", resumeId)))
+        ).andExpect(status().isNotFound());
+        db.update("UPDATE market_job_posts SET valid_through=NULL WHERE id=?", jobId);
+        db.update("UPDATE market_job_sources SET status='REMOVED' WHERE market_job_id=?", jobId);
+        mvc.perform(
+            post(base + jobId + "/ats").header("Authorization", "Bearer " + consultant)
+                .contentType(MediaType.APPLICATION_JSON).content(json(Map.of("resumeId", resumeId)))
+        ).andExpect(status().isNotFound());
+        db.update(
+            "UPDATE market_job_sources SET status='ACTIVE',valid_through=now()-interval '1 day' "
+                + "WHERE market_job_id=?",
+            jobId
+        );
+        mvc.perform(
+            post(base + jobId + "/ats").header("Authorization", "Bearer " + consultant)
+                .contentType(MediaType.APPLICATION_JSON).content(json(Map.of("resumeId", resumeId)))
+        ).andExpect(status().isNotFound());
+        mvc.perform(
+            post(base + UUID.randomUUID() + "/ats").header("Authorization", "Bearer " + consultant)
+                .contentType(MediaType.APPLICATION_JSON).content(json(Map.of("resumeId", resumeId)))
+        ).andExpect(status().isNotFound());
+        verify(ai, never()).generate(anyString(), anyMap());
+    }
+
+    @Test
+    void consultantEvaluationRejectsMalformedAiReportsWithoutPartialPersistence() throws Exception {
+        UUID threadId = assignedConsultation(), resumeId = confirmedCv(), jobId = importedJob();
+        stubConsultantEvaluationAi();
+        String base = "/api/v1/consultations/" + threadId;
+        var invalidQuality = fields(
+            "overall_score",
+            80,
+            "ats_score",
+            70,
+            "summary",
+            "Review",
+            "strengths",
+            List.of(),
+            "issues",
+            List.of(),
+            "suggestions",
+            List.of("Invalid suggestion")
+        );
+        when(ai.generate(eq("CV_ANALYZE"), anyMap())).thenReturn(invalidQuality);
+        mvc.perform(post(base + "/resumes/" + resumeId + "/analyze").header("Authorization", "Bearer " + consultant))
+            .andExpect(status().isBadGateway());
+        invalidQuality.put("suggestions", List.of());
+        invalidQuality.put("overall_score", 101);
+        mvc.perform(post(base + "/resumes/" + resumeId + "/analyze").header("Authorization", "Bearer " + consultant))
+            .andExpect(status().isBadGateway());
+        invalidQuality.put("overall_score", 80);
+        invalidQuality.put("strengths", List.of(Map.of("_internal", "PRIVATE_MODEL_TRACE")));
+        mvc.perform(post(base + "/resumes/" + resumeId + "/analyze").header("Authorization", "Bearer " + consultant))
+            .andExpect(status().isBadGateway());
+
+        var invalidAts = fields(
+            "ats_score",
+            75,
+            "strengths",
+            List.of(),
+            "missing_skills",
+            List.of(),
+            "improvement_suggestions",
+            "Invalid array"
+        );
+        when(ai.generate(eq("JOB_ATS"), anyMap())).thenReturn(invalidAts);
+        mvc.perform(
+            post(base + "/jobs/" + jobId + "/ats").header("Authorization", "Bearer " + consultant)
+                .contentType(MediaType.APPLICATION_JSON).content(json(Map.of("resumeId", resumeId)))
+        ).andExpect(status().isBadGateway());
+        invalidAts.put("improvement_suggestions", List.of());
+        invalidAts.put("ats_score", -1);
+        mvc.perform(
+            post(base + "/jobs/" + jobId + "/ats").header("Authorization", "Bearer " + consultant)
+                .contentType(MediaType.APPLICATION_JSON).content(json(Map.of("resumeId", resumeId)))
+        ).andExpect(status().isBadGateway());
+        invalidAts.put("ats_score", 75);
+        invalidAts.put("missing_skills", List.of(Map.of("_internal", "PRIVATE_MODEL_TRACE")));
+        mvc.perform(
+            post(base + "/jobs/" + jobId + "/ats").header("Authorization", "Bearer " + consultant)
+                .contentType(MediaType.APPLICATION_JSON).content(json(Map.of("resumeId", resumeId)))
+        ).andExpect(status().isBadGateway());
+        assertEquals(
+            0,
+            ((Number) db.scalar("SELECT count(*) FROM resume_analyses WHERE resume_id=?", resumeId)).intValue()
+        );
+        assertEquals(
+            0,
+            ((Number) db.scalar("SELECT count(*) FROM job_resume_analyses WHERE resume_id=?", resumeId)).intValue()
+        );
+        assertEquals(
+            0,
+            ((Number) db.scalar(
+                "SELECT count(*) FROM audit_logs WHERE entity_id=? AND action IN "
+                    + "('CONSULTATION_CV_ANALYZE', 'CONSULTATION_JOB_ATS')",
+                threadId
+            )).intValue()
+        );
+    }
+
+    private void stubConsultantEvaluationAi() {
+        when(ai.enabled()).thenReturn(true);
+        when(ai.generate(eq("CV_ANALYZE"), anyMap())).thenReturn(
+            fields(
+                "overall_score",
+                84,
+                "ats_score",
+                82,
+                "summary",
+                "Add measurable project results",
+                "strengths",
+                List.of("Java experience"),
+                "issues",
+                List.of("Missing project outcomes"),
+                "suggestions",
+                List.of(
+                    fields(
+                        "category",
+                        "PROJECTS",
+                        "severity",
+                        "MEDIUM",
+                        "suggested_content",
+                        "Quantify backend performance",
+                        "explanation",
+                        "Provide evidence",
+                        "_internal",
+                        "PRIVATE_MODEL_TRACE"
+                    )
+                ),
+                "_model",
+                "test-model",
+                "_usage",
+                Map.of("input_tokens", 32, "output_tokens", 16),
+                "_internal",
+                "PRIVATE_MODEL_TRACE"
+            )
+        );
+        when(ai.generate(eq("JOB_ATS"), anyMap())).thenReturn(
+            fields(
+                "ats_score",
+                79,
+                "strengths",
+                List.of("Java"),
+                "missing_skills",
+                List.of("Docker"),
+                "improvement_suggestions",
+                List.of("Show production deployment evidence"),
+                "_model",
+                "test-model",
+                "_usage",
+                Map.of("input_tokens", 32, "output_tokens", 16),
+                "_internal",
+                "PRIVATE_MODEL_TRACE"
+            )
+        );
+    }
+
+    private void assertConsultantEvaluationDenied(
+        UUID threadId,
+        UUID resumeId,
+        UUID jobId,
+        String token,
+        int expectedStatus,
+        boolean includeList)
+        throws Exception {
+        String base = "/api/v1/consultations/" + threadId;
+        if (includeList) {
+            mvc.perform(get(base + "/candidate-resumes").header("Authorization", "Bearer " + token))
+                .andExpect(status().is(expectedStatus));
+        }
+        mvc.perform(post(base + "/resumes/" + resumeId + "/analyze").header("Authorization", "Bearer " + token))
+            .andExpect(status().is(expectedStatus));
+        mvc.perform(
+            post(base + "/jobs/" + jobId + "/ats").header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON).content(json(Map.of("resumeId", resumeId)))
+        ).andExpect(status().is(expectedStatus));
+    }
+
     private UUID assignedConsultation() {
         return db.insert(
             "consultation_threads",

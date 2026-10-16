@@ -68,7 +68,7 @@ Script chỉ nâng quyền khi tài khoản đã xác minh và hệ thống chư
 | Resume processing / builder | Upload PDF/DOCX/TXT, trích xuất nội dung, xem lại/sửa/xác nhận, nhiều CV, CV chính, phân tích, tải về và embedding |
 | Job discovery / matching | Danh sách/detail job, matching profile/CV, cache, feedback, ATS CV–job, draft email/cover letter, ghi nhận mở trang ứng tuyển |
 | Assessment / learning roadmap | Sinh câu hỏi, lưu đáp án, chấm khách quan, skill gaps, roadmap, prerequisite và tiến độ học |
-| Career consultation | Tạo thread, admin phân công consultant, lịch sử tin nhắn, SSE và đóng hội thoại |
+| Career consultation | Tạo thread, admin phân công consultant, chọn READY CV, AI đánh giá CV và ATS CV–job, xem báo cáo, lịch sử tin nhắn, SSE và đóng hội thoại |
 | Subscription / payment | Gói/quota, đơn thanh toán, webhook HMAC, kích hoạt gói, invoice, báo lỗi và nhắc gia hạn |
 | Admin / system | Tài khoản, gói/quota, AI config/prompt, thông báo theo đối tượng, audit, monitoring, support và RAG |
 | External job processing | Admin import/crawl URL ITviec hoặc TopCV, chuẩn hóa JSON-LD, chống trùng, xử lý phiên bản job và index vector |
@@ -78,6 +78,8 @@ Danh mục mẫu gồm FREE/BASIC/PRO, kỹ năng, template/CV demo và tài ngu
 ## Bật AI và các dịch vụ bên ngoài
 
 Mặc định `AI_ENABLED=false`. Nhập/sửa/xác nhận CV, so khớp kỹ năng cơ bản, tư vấn giữa người dùng, quản trị và xử lý đơn/webhook hoạt động độc lập với AI. Kết quả cơ bản ghi rõ `RULE_BASED` hoặc `SKILL_OVERLAP`; chức năng sinh nội dung trả 503 khi chưa có model.
+
+Career Consultant được phân công có thể gọi AI đánh giá chất lượng CV và độ phù hợp CV–job ngay trong consultation đang mở. Kết quả được lưu vào lịch sử của candidate; usage/quota tính cho consultant thực hiện. Chức năng này dùng nội dung CV đã xác nhận và JD, không yêu cầu embedding. Xem [API và các bước đánh giá CV/ATS cho consultant](docs/consultant-ai-evaluation.md).
 
 Để dùng adapter OpenAI hiện có, đặt các biến sau trong `.env`, rồi khởi động lại:
 
@@ -160,6 +162,7 @@ CI chạy kiểm thử, upload JAR rồi tải artifact vào `target` trước k
 - [Conceptual Diagram EduNexus: sơ đồ tổng thể một trang](docs/conceptual-diagram.md)
 - [Identity, billing và quản trị](docs/identity-billing.md)
 - [CV, AI, assistant, trial và RAG](docs/resume-ai.md)
+- [Career Consultant: đánh giá AI chất lượng CV và ATS CV–job](docs/consultant-ai-evaluation.md)
 - [Khóa học YouTube/Coursera do Admin duyệt và gợi ý trong lộ trình](docs/curated-course-links.md)
 - [Nguồn tham khảo roadmap học tập và gợi ý sau assessment](docs/learning-roadmap-sources.md)
 - [Discovery, parsing, deduplicate và embedding việc làm](docs/crawling.md)
