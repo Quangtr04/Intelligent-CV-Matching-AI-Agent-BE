@@ -121,6 +121,24 @@ Trạng thái node nhận `not_started`, `in_progress`, `completed`. Phải hoà
 
 Candidate tạo `POST /consultations` với `subject`, `requestType` tùy chọn và `description`. Admin phân công qua `PUT /consultations/{id}/consultant` với `consultantId`. Candidate và consultant được phân công đọc/gửi tin nhắn tại `/consultations/{id}/messages`. `/consultations/{id}/candidate-profile` cung cấp career profile, kỹ năng và CV chính đã xác nhận để tư vấn; có thể chọn `?resumeId=...` của candidate trong thread. `POST /consultations/{id}/close` đóng thread.
 
+### Consultant tạo đánh giá AI CV và ATS CV–job
+
+Các endpoint sau chỉ dành cho tài khoản `CAREER_CONSULTANT` đang hoạt động và đang được phân công cho hội thoại. Candidate/admin dùng các luồng hiện có của vai trò mình; các endpoint mới trả `403` nếu sai vai trò.
+
+| Method | Path | Body / kết quả |
+| --- | --- | --- |
+| GET | `/consultations/{id}/candidate-resumes` | Danh sách metadata CV `READY` của candidate trong hội thoại; không trả nội dung raw hoặc file |
+| POST | `/consultations/{id}/resumes/{resumeId}/analyze` | Không body; AI đánh giá chất lượng CV, trả điểm, tóm tắt, điểm mạnh, vấn đề và `suggestions` |
+| POST | `/consultations/{id}/jobs/{jobId}/ats` | `{"resumeId":"<UUID>"}`; AI so sánh CV với JD, trả `ats_score` 0–100, `strengths_json`, `missing_skills_json`, `improvement_suggestions_json` dạng mảng và `cached` |
+
+Hai POST chỉ được thực hiện khi thread `OPEN`; thread đã đóng trả `409`. CV phải là `READY` và thuộc candidate trong thread. Job phải `ACTIVE`, chưa hết hạn và còn nguồn đang hoạt động khi có bản ghi nguồn. Consultant không được phân công, candidate đã bị xóa, CV sai chủ/trạng thái hoặc job không hợp lệ trả `404`. GET danh sách CV vẫn đọc được trong thread đã đóng nếu quan hệ phân công còn hiệu lực.
+
+Đánh giá mới dùng `CV_ANALYZE` hoặc `JOB_ATS`, cần AI được bật; không dùng fallback chấm theo số mục CV. Usage/quota tính cho consultant đang gọi model. Báo cáo lưu vào các bảng phân tích hiện có của candidate để đọc lại qua `/candidate-analyses` và lịch sử CV; audit lưu liên kết thread, actor, candidate, CV và job khi áp dụng. Backend không tự gửi kết quả thành tin nhắn tư vấn.
+
+ATS dùng cache database theo candidate/CV/job, nội dung CV/JD/kỹ năng và provider/model/phiên bản phân tích. Kết quả hợp lệ được dùng lại với `cached=true`, kể cả khi AI đã tắt, vì không cần gọi model; thay đầu vào làm mất hiệu lực cache cũ. Phiên bản prompt Admin chưa nằm riêng trong hash. Không cần job/CV embedding hoặc migration schema cho luồng này.
+
+Thiếu bearer hợp lệ trả `401`; UUID/body không hợp lệ trả `400`; quota không đủ trả `429`; lỗi đầu ra/provider AI trả `502`; cần gọi model nhưng AI chưa bật trả `503`. Xem [request/response mẫu và các bước kiểm tra](consultant-ai-evaluation.md).
+
 ### Xem kết quả phân tích đã lưu của ứng viên
 
 `GET /consultations/{id}/candidate-analyses` cung cấp dữ liệu phân tích của ứng viên trong
