@@ -35,12 +35,13 @@ giữa các instance. Chạy backend sau khi đã lưu cấu hình:
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-local.ps1 -WithInfrastructure
 ```
 
-Script đọc `.env` vào môi trường của tiến trình, khởi động PostgreSQL rồi chạy ứng dụng. Flyway tự tạo schema và danh mục ban đầu. `.env` và file upload được loại khỏi Git. Với PostgreSQL riêng, đặt `DATABASE_URL`, `POSTGRES_USER`, `POSTGRES_PASSWORD` và chạy script không có `-WithInfrastructure`.
+Script đọc `.env` vào môi trường của tiến trình, khởi động PostgreSQL rồi chạy ứng dụng. Khi chưa chọn profile, backend dùng `dev`; có thể chọn rõ bằng `-RuntimeProfile dev|prod|docker`. Nếu bỏ tham số này, script giữ lựa chọn `SPRING_PROFILES_ACTIVE` đang có trong môi trường hoặc `.env`. Flyway tự tạo schema và danh mục ban đầu. `.env` và file upload được loại khỏi Git. Với PostgreSQL riêng, đặt `DATABASE_URL`, `POSTGRES_USER`, `POSTGRES_PASSWORD` và chạy script không có `-WithInfrastructure`.
 
 Ứng dụng cũng tự nạp `.env` bằng `spring.config.import` của Spring Boot khi chạy từ IDE,
 `mvn spring-boot:run` hoặc `java -jar`. Đặt working directory là thư mục chứa `pom.xml` và `.env`.
 Muốn dùng file khác, đặt biến môi trường `APP_ENV_FILE` trước khi chạy hoặc truyền `-EnvFile` cho script local.
-`application.yaml` ánh xạ các thiết lập runtime qua `${VAR}`; giá trị cấu hình nằm trong `.env`,
+`application.yaml` giữ cấu hình chung; `application-dev.yaml`, `application-prod.yaml` và
+`application-docker.yaml` giữ các mặc định theo môi trường. Giá trị runtime được ánh xạ qua `${VAR}` trong `.env`,
 và [`.env.example`](.env.example) liệt kê đầy đủ các key để bổ sung khi cập nhật dự án. Giữ giá trị
 đang có trong `.env` khi bổ sung key mới.
 
@@ -52,13 +53,40 @@ Sửa cấu hình rồi khởi động lại backend.
 
 Trong môi trường phát triển, `AUTH_EXPOSE_DEV_OTP=true` trả `developmentCode` khi đăng ký để thử bước xác minh email. Khi dùng SMTP, đặt `AUTH_EXPOSE_DEV_OTP=false`, `MAIL_ENABLED=true` và các biến `MAIL_*`. Google login nhận ID token từ frontend khi đã cấu hình `GOOGLE_CLIENT_ID`.
 
-Admin đầu tiên được tạo từ tài khoản đã đăng ký và xác minh, bằng thao tác quản trị database:
+### Chọn môi trường chạy
+
+| Spring profile | Mục đích và mặc định |
+| --- | --- |
+| `dev` | IDE/Maven/JAR chạy trên máy phát triển; PostgreSQL và Redis tại `localhost`, upload `./uploads` |
+| `docker` | Backend trong Compose local kết nối PostgreSQL trên host qua `host.docker.internal:5432/edunexus`, Redis `redis:6379`, upload `/app/uploads` |
+| `prod` | Kết nối PostgreSQL/Redis được cấp từ môi trường triển khai; bắt buộc `DATABASE_URL`, `REDIS_HOST`, `REDIS_PORT`; tắt devtools, mã OTP development, chi tiết lỗi và health |
+
+Chạy Maven với profile cụ thể:
 
 ```powershell
-Get-Content -Raw scripts/bootstrap-admin.sql | docker compose exec -T postgres psql -U edunexus -d edunexus -v admin_email='you@example.com'
+mvn spring-boot:run "-Dspring-boot.run.profiles=dev"
 ```
 
-Script chỉ nâng quyền khi tài khoản đã xác minh và hệ thống chưa có admin hoạt động. Những admin tiếp theo được tạo qua API quản trị. Hệ thống không có mật khẩu admin mặc định.
+Có thể chọn profile bằng biến `SPRING_PROFILES_ACTIVE` hoặc `--spring.profiles.active` khi chạy JAR. Profile `docker` phục vụ Compose local; deployment dùng `prod`. Xem [cấu hình profile, thứ tự ưu tiên và các lệnh chạy](docs/runtime-profiles.md).
+
+Muốn chạy backend trong Compose local, chuẩn bị PostgreSQL có pgvector trên host tại port 5432/database `edunexus`, tạo JAR rồi khởi động app và Redis:
+
+```powershell
+mvn verify
+docker compose --profile app --profile optional up -d --build app
+```
+
+Service `app` chờ Redis healthy và lưu CV trong volume `resume_uploads`; lệnh chỉ chọn app cùng Redis phụ thuộc, không khởi động Qdrant/RabbitMQ. PostgreSQL trong Compose thuộc profile `database`, không tự khởi động cùng app. Để dùng PostgreSQL container cho backend chạy trên host, gọi `docker compose --profile database up -d --wait postgres` hoặc `run-local.ps1 -WithInfrastructure`. Compose profile `app` chọn service, còn Spring profile `docker` chọn cấu hình bên trong backend.
+
+Compose gán rõ `SPRING_PROFILES_ACTIVE=docker`, `DATABASE_URL=jdbc:postgresql://host.docker.internal:5432/edunexus`, Redis `redis:6379` với username/password trống và upload `/app/uploads`. Các key cùng tên trong `.env` không ghi đè các giá trị này. Xem [hướng dẫn profile](docs/runtime-profiles.md) để phân biệt cấu hình host, Compose local và production.
+
+Admin đầu tiên được tạo từ tài khoản đã đăng ký và xác minh, bằng thao tác quản trị đúng database backend đang dùng. Với PostgreSQL trên host:
+
+```powershell
+Get-Content -Raw scripts/bootstrap-admin.sql | psql -h localhost -p 5432 -U edunexus -d edunexus -v admin_email='you@example.com'
+```
+
+Nếu backend dùng PostgreSQL container, có thể thay phần `psql ...` bằng `docker compose exec -T postgres psql -U edunexus -d edunexus -v admin_email='you@example.com'`. Script chỉ nâng quyền khi tài khoản đã xác minh và hệ thống chưa có admin hoạt động. Những admin tiếp theo được tạo qua API quản trị. Hệ thống không có mật khẩu admin mặc định.
 
 ## Các luồng đã triển khai
 
@@ -68,7 +96,7 @@ Script chỉ nâng quyền khi tài khoản đã xác minh và hệ thống chư
 | Resume processing / builder | Upload PDF/DOCX/TXT, trích xuất nội dung, xem lại/sửa/xác nhận, nhiều CV, CV chính, phân tích, tải về và embedding |
 | Job discovery / matching | Danh sách/detail job, matching profile/CV, cache, feedback, ATS CV–job, draft email/cover letter, ghi nhận mở trang ứng tuyển |
 | Assessment / learning roadmap | Sinh câu hỏi, lưu đáp án, chấm khách quan, skill gaps, roadmap, prerequisite và tiến độ học |
-| Career consultation | Tạo thread, admin phân công consultant, lịch sử tin nhắn, SSE và đóng hội thoại |
+| Career consultation | Tạo thread, admin phân công consultant, chọn READY CV, AI đánh giá CV và ATS CV–job, xem báo cáo, lịch sử tin nhắn, SSE và đóng hội thoại |
 | Subscription / payment | Gói/quota, đơn thanh toán, webhook HMAC, kích hoạt gói, invoice, báo lỗi và nhắc gia hạn |
 | Admin / system | Tài khoản, gói/quota, AI config/prompt, thông báo theo đối tượng, audit, monitoring, support và RAG |
 | External job processing | Admin import/crawl URL ITviec hoặc TopCV, chuẩn hóa JSON-LD, chống trùng, xử lý phiên bản job và index vector |
@@ -78,6 +106,8 @@ Danh mục mẫu gồm FREE/BASIC/PRO, kỹ năng, template/CV demo và tài ngu
 ## Bật AI và các dịch vụ bên ngoài
 
 Mặc định `AI_ENABLED=false`. Nhập/sửa/xác nhận CV, so khớp kỹ năng cơ bản, tư vấn giữa người dùng, quản trị và xử lý đơn/webhook hoạt động độc lập với AI. Kết quả cơ bản ghi rõ `RULE_BASED` hoặc `SKILL_OVERLAP`; chức năng sinh nội dung trả 503 khi chưa có model.
+
+Career Consultant được phân công có thể gọi AI đánh giá chất lượng CV và độ phù hợp CV–job ngay trong consultation đang mở. Kết quả được lưu vào lịch sử của candidate; usage/quota tính cho consultant thực hiện. Chức năng này dùng nội dung CV đã xác nhận và JD, không yêu cầu embedding. Xem [API và các bước đánh giá CV/ATS cho consultant](docs/consultant-ai-evaluation.md).
 
 Để dùng adapter OpenAI hiện có, đặt các biến sau trong `.env`, rồi khởi động lại:
 
@@ -94,8 +124,8 @@ Model embedding phải trả đúng 1536 chiều. Import/crawl job tự enqueue 
 
 ### Redis cho cache ATS và matching
 
-Cấu hình kết nối Redis được [`spring.data.redis` trong application.yaml](src/main/resources/application.yaml)
-ánh xạ từ các key trong [`.env.example`](.env.example). Với backend chạy trực tiếp trên Windows và
+Cấu hình Redis chung được [`spring.data.redis` trong application.yaml](src/main/resources/application.yaml)
+ánh xạ từ các key trong [`.env.example`](.env.example); host/port do từng Spring profile chọn mặc định. Với backend chạy trực tiếp trên Windows và
 Redis local trong Compose, thêm các dòng sau vào `.env` rồi khởi động lại backend bằng `scripts/run-local.ps1`:
 
 ```dotenv
@@ -155,11 +185,13 @@ CI chạy kiểm thử, upload JAR rồi tải artifact vào `target` trước k
 - [Hướng dẫn kiểm thử API bằng Swagger](docs/swagger-testing.md)
 - [Hợp đồng API và ví dụ core-flow](docs/api.md)
 - [Cấu trúc controller / DTO / entity / repository / service / util](docs/architecture.md)
+- [Profile runtime dev/prod/docker và cách chạy local/Compose/production](docs/runtime-profiles.md)
 - [Quy ước Java và lệnh định dạng/kiểm tra](docs/java-coding-style.md)
 - [Schema, migration và ràng buộc](docs/schema.md)
 - [Conceptual Diagram EduNexus: sơ đồ tổng thể một trang](docs/conceptual-diagram.md)
 - [Identity, billing và quản trị](docs/identity-billing.md)
 - [CV, AI, assistant, trial và RAG](docs/resume-ai.md)
+- [Career Consultant: đánh giá AI chất lượng CV và ATS CV–job](docs/consultant-ai-evaluation.md)
 - [Khóa học YouTube/Coursera do Admin duyệt và gợi ý trong lộ trình](docs/curated-course-links.md)
 - [Nguồn tham khảo roadmap học tập và gợi ý sau assessment](docs/learning-roadmap-sources.md)
 - [Discovery, parsing, deduplicate và embedding việc làm](docs/crawling.md)
@@ -201,7 +233,7 @@ Create the GitHub **production** environment, then configure the following repos
 | Environment secret `DEPLOY_SSH_KEY` | Private SSH key for `DEPLOY_USER` |
 
 On the server, create `DEPLOY_PATH/.env`. It must contain all runtime Spring secrets and configuration,
-including a randomly generated `APP_JWT_SECRET`; there is no JWT secret fallback. Do not commit this file.
+including `DATABASE_URL`, `REDIS_HOST`, `REDIS_PORT`, database credentials and a randomly generated `APP_JWT_SECRET`; there is no JWT secret fallback. Use PostgreSQL and Redis addresses reachable from the app container. `compose.production.yaml` selects Spring profile `prod`, runs only the app against external services, and fixes uploads at `/app/uploads` backed by `resume_uploads`. Do not commit this file.
 For a private GHCR image, authenticate the server once with a GitHub token that has `read:packages`:
 
 ```sh

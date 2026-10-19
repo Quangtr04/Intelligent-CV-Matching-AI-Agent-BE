@@ -149,7 +149,8 @@ dưới dạng UTF-8, không giải mã Base64, và phải giống nhau giữa c
 
 ## Cấu hình runtime
 
-`application.yaml` giữ cấu trúc Spring/app và ánh xạ các giá trị runtime bằng `${VAR}`.
+`application.yaml` giữ cấu hình dùng chung, import `.env` và `spring.profiles.default=dev`.
+Ba file `application-dev.yaml`, `application-prod.yaml`, `application-docker.yaml` chỉ bổ sung các thiết lập theo môi trường; cấu hình chung tiếp tục được ánh xạ bằng `${VAR}`.
 Ứng dụng nạp `.env` UTF-8 từ working directory qua
 `spring.config.import=optional:file:${APP_ENV_FILE:.env}[extension=.properties][encoding=utf-8]` của Spring Boot.
 Chạy IDE, Maven hoặc JAR từ thư mục dự án chứa `.env`; các key và giá trị mẫu nằm trong
@@ -159,6 +160,18 @@ import optional cho phép triển khai chỉ bằng biến môi trường nếu 
 
 File `.env` dùng `KEY=value` không bọc nháy, không có `export` hoặc comment cuối dòng.
 Comment đặt trên dòng riêng; đường dẫn Windows dùng `/`. Sau khi sửa cấu hình, khởi động lại ứng dụng.
+
+| Profile | Trách nhiệm cấu hình |
+| --- | --- |
+| `dev` | Mặc định kết nối `localhost` cho PostgreSQL/Redis, upload `./uploads`, logging tùy chỉnh qua biến môi trường |
+| `docker` | Fallback YAML: PostgreSQL `postgres:5432`, Redis `redis:6379`, upload `/app/uploads`; Compose hiện ghi đè database sang host `host.docker.internal:5432/edunexus`; tắt Spring tự khởi động Compose |
+| `prod` | Bắt buộc URL database và host/port Redis từ môi trường; tắt Compose tự động, devtools, development OTP, chi tiết lỗi và health |
+
+Chọn một profile qua `SPRING_PROFILES_ACTIVE`, tham số `--spring.profiles.active` của JAR hoặc cấu hình Maven/IDE. Script `run-local.ps1 -RuntimeProfile` chỉ thay lựa chọn profile khi truyền tham số; nếu bỏ thì giữ môi trường hiện có và mặc định `dev` của Spring. File `.env.example` không bật sẵn một active profile để tránh áp dụng nhầm sang container.
+
+Dockerfile đóng gói cùng một JAR cho mọi môi trường và không gán profile. `compose.yaml` đặt app trong Compose profile `app`, gán Spring profile `docker`, kết nối PostgreSQL trên host qua `host.docker.internal:5432/edunexus` và chờ Redis healthy. Redis thuộc profile `optional`; PostgreSQL container riêng thuộc profile `database`, không phải dependency của app. `compose.production.yaml` chỉ chạy app với Spring profile `prod` và dịch vụ ngoài. Cả hai cách chạy container gắn volume `resume_uploads` vào `/app/uploads`.
+
+Compose `environment` có ưu tiên hơn `env_file`; Spring ưu tiên tham số command line và biến môi trường hơn file import. Compose local gán rõ URL database trên host, Redis `redis:6379` với username/password trống và upload `/app/uploads`, nên các key cùng tên trong `.env` không thay các giá trị đó. Lệnh chạy app là `docker compose --profile app --profile optional up -d --build app`; chi tiết và phân biệt Compose profile với Spring profile ở [runtime-profiles.md](runtime-profiles.md).
 
 ## Sinh lại entity và JPA repository
 

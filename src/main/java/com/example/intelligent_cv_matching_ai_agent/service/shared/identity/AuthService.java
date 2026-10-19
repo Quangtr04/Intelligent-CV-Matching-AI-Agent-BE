@@ -2,14 +2,17 @@ package com.example.intelligent_cv_matching_ai_agent.service.shared.identity;
 
 import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException;
 import com.example.intelligent_cv_matching_ai_agent.repository.shared.identity.AuthRepository;
+import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.time.OffsetDateTime;
@@ -151,17 +154,7 @@ public class AuthService {
             if (sender == null)
                 throw new ApiException(503, "Email delivery is not configured");
 
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(mailFrom);
-            message.setTo(email);
-            message.setSubject("EduNexus email verification");
-            message.setText("Your verification code is " + code + ". It expires in 10 minutes.");
-
-            try {
-                sender.send(message);
-            } catch (RuntimeException ex) {
-                throw new ApiException(503, "Email could not be sent; retry later");
-            }
+            sendVerificationEmail(sender, email, code);
         }
 
         Map<String, Object> result = new LinkedHashMap<>();
@@ -172,6 +165,39 @@ public class AuthService {
             result.put("developmentCode", code);
 
         return result;
+    }
+
+    private void sendVerificationEmail(
+        JavaMailSender sender,
+        String recipient,
+        String code) {
+        try {
+            MimeMessageHelper message =
+                new MimeMessageHelper(sender.createMimeMessage(), true, StandardCharsets.UTF_8.name());
+            message.setFrom(mailFrom, "EduNexus");
+            message.setTo(recipient);
+            message.setSubject("EduNexus - Xác minh email của bạn");
+
+            String plainText = """
+                Xin chào,
+
+                Mã xác minh email của bạn tại EduNexus: %s
+
+                Nhập mã này trên màn hình xác minh để hoàn tất đăng ký.
+                Mã có hiệu lực trong 10 phút. Nếu mã đã hết hạn, hãy yêu cầu gửi lại trên ứng dụng.
+
+                Không chia sẻ mã này với bất kỳ ai.
+                Nếu bạn không yêu cầu đăng ký tài khoản, bạn có thể bỏ qua email này.
+
+                Đội ngũ EduNexus
+                """.formatted(code);
+            String html = new ClassPathResource("templates/mail/email-verification.html")
+                .getContentAsString(StandardCharsets.UTF_8).replace("{{verificationCode}}", code);
+            message.setText(plainText, html);
+            sender.send(message.getMimeMessage());
+        } catch (MessagingException | IOException | RuntimeException ex) {
+            throw new ApiException(503, "Email could not be sent; retry later");
+        }
     }
 
     @Transactional(noRollbackFor = ApiException.class)

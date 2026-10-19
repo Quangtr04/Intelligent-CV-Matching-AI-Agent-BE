@@ -1,0 +1,47 @@
+# Local application container. Compose supplies overrides for existing localhost .env values.
+spring:
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://postgres:5432/${POSTGRES_DB:edunexus}}
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+  docker:
+    compose:
+      enabled: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: ${MANAGEMENT_ENDPOINTS_EXPOSURE:health,info}
+  endpoint:
+    health:
+      show-details: ${HEALTH_SHOW_DETAILS:never}
+      probes:
+        enabled: ${HEALTH_PROBES_ENABLED:true}
+  health:
+    redis:
+      enabled: ${HEALTH_REDIS_ENABLED:false}
+    rabbit:
+      enabled: ${HEALTH_RABBIT_ENABLED:false}
+    mail:
+      enabled: ${HEALTH_MAIL_ENABLED:false}
+
+server:
+  error:
+    include-message: ${SERVER_ERROR_INCLUDE_MESSAGE:never}
+    include-stacktrace: ${SERVER_ERROR_INCLUDE_STACKTRACE:never}
+
+logging:
+  level:
+    web: ${LOG_WEB_LEVEL:INFO}
+    sql: ${LOG_SQL_LEVEL:INFO}
+    org.springframework.web: ${LOG_SPRING_WEB_LEVEL:INFO}
+    org.springframework.jdbc: ${LOG_SPRING_JDBC_LEVEL:INFO}
+
+app:
+  storage:
+    path: ${UPLOAD_DIR:/app/uploads}
+  auth:
+    expose-development-code: ${AUTH_EXPOSE_DEV_OTP:false}

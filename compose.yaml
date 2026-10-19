@@ -1,8 +1,38 @@
 name: edunexus
 
 services:
+  # Opt in to run the backend in a container; default Compose still starts infrastructure only.
+  app:
+    profiles: ['app']
+    build:
+      context: .
+    image: edunexus-backend:local
+    env_file:
+      - .env
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: ${SERVER_PORT:-8080}
+      DATABASE_URL: jdbc:postgresql://host.docker.internal:5432/edunexus
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_USERNAME: ""
+      REDIS_PASSWORD: ""
+      UPLOAD_DIR: /app/uploads
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - '127.0.0.1:${APP_PORT:-8080}:${SERVER_PORT:-8080}'
+    volumes:
+      - resume_uploads:/app/uploads
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+
   postgres:
     image: pgvector/pgvector:0.8.7-pg17-bookworm
+    profiles: ['database']
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-edunexus}
       POSTGRES_USER: ${POSTGRES_USER:-edunexus}
@@ -36,8 +66,8 @@ services:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-edunexus}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?Set RABBITMQ_PASSWORD in .env}
     ports:
-      - '127.0.0.1:5672:5672'
-      - '127.0.0.1:15672:15672'
+      - '127.0.0.1:5673:5672'
+      - '127.0.0.1:15673:15672'
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 
@@ -57,6 +87,7 @@ services:
     restart: unless-stopped
 
 volumes:
+  resume_uploads:
   postgres_data:
   qdrant_data:
   rabbitmq_data:

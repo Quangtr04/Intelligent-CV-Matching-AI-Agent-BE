@@ -4973,7 +4973,9 @@ Không tự tạo IDs giả: jobId, resumeId, taskId, conversationId, paymentOrd
 | Billing maintenance | BILLING_MAINTENANCE_ENABLED và maintenance zone/batch properties |
 | Cache/SSE | Redis tùy chọn cho cache; SSE subscribers trong memory của một process |
 
-Cấu hình hiệu lực được ánh xạ ở [application.yaml](../src/main/resources/application.yaml), không có giá trị runtime mặc định trong YAML. Spring Boot tự nạp `.env` UTF-8 từ working directory qua `spring.config.import`; có thể chọn file khác bằng `APP_ENV_FILE`. Biến môi trường hệ điều hành/container được ưu tiên hơn file. Xem [README](../README.md) để khai báo đủ biến và đúng định dạng.
+Cấu hình dùng chung được ánh xạ ở [application.yaml](../src/main/resources/application.yaml); các profile `dev`, `prod`, `docker` bổ sung cấu hình và giá trị mặc định theo môi trường. Không chọn active profile thì dùng `dev`. Spring Boot tự nạp `.env` UTF-8 từ working directory qua `spring.config.import`; có thể chọn file khác bằng `APP_ENV_FILE`. Biến môi trường hệ điều hành/container được ưu tiên hơn file; secret và các biến bắt buộc vẫn phải được cấp. Xem [cấu hình profile](runtime-profiles.md) và [README](../README.md) để chọn cách chạy và khai báo biến.
+
+Compose local hiện chạy app với PostgreSQL trên host qua `host.docker.internal:5432/edunexus`, Redis `redis:6379` và chờ Redis healthy. Chạy bằng `docker compose --profile app --profile optional up -d --build app`; PostgreSQL container là lựa chọn riêng trong profile `database` cho backend chạy trên host.
 
 ### Kiểm thử code hiện có
 
