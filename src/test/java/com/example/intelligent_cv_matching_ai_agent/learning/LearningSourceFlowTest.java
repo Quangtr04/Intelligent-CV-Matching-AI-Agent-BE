@@ -59,6 +59,8 @@ class LearningSourceFlowTest {
 
     private final UUID assessmentId = UUID.randomUUID();
 
+    private final UUID assessmentJobId = UUID.randomUUID();
+
     @BeforeEach
     void identity() {
         when(current.id()).thenReturn(actor);
@@ -67,15 +69,15 @@ class LearningSourceFlowTest {
     @Test
     void directRecommendationsValidateTheCandidateAndReturnReferencesWithoutCallingAi() {
         List<String> skills = List.of("Java", "Spring Boot");
-        when(references.recommend("Java Backend", skills)).thenReturn(RECOMMENDATIONS);
-        when(references.recommend("Java Backend", List.of())).thenReturn(RECOMMENDATIONS);
+        when(references.recommendSkills(skills)).thenReturn(RECOMMENDATIONS);
+        when(references.recommendSkills(List.of())).thenReturn(RECOMMENDATIONS);
 
         assertSame(RECOMMENDATIONS, service.recommendations("  Java Backend  ", skills));
         assertSame(RECOMMENDATIONS, service.recommendations("Java Backend", null));
 
         verify(current, times(2)).requireRole("CANDIDATE");
-        verify(references).recommend("Java Backend", skills);
-        verify(references).recommend("Java Backend", List.of());
+        verify(references).recommendSkills(skills);
+        verify(references).recommendSkills(List.of());
         verifyNoInteractions(ai, db, assessmentDb, resumes);
     }
 
@@ -158,7 +160,7 @@ class LearningSourceFlowTest {
         verify(assessmentDb).countAssessmentQuestionsBySessionId(assessmentId);
         verify(assessmentDb).updateAssessmentAnswersByQuestionId(assessmentId);
         verify(assessmentDb).updateAssessmentSessionsById("encoded-scores", assessmentId);
-        verify(assessmentDb).updateRoadmapsByUserId(actor, "Java Backend");
+        verify(assessmentDb).updateRoadmapsByUserId(actor, assessmentJobId);
         verify(references, times(2)).forAssessment(completed);
         verifyNoInteractions(ai);
     }
@@ -177,11 +179,13 @@ class LearningSourceFlowTest {
     @Test
     void foreignResumeIsRejectedBeforeReferencesOrAiAreRequested() {
         UUID resumeId = UUID.randomUUID();
+        UUID jobId = UUID.randomUUID();
+        when(db.getMarketJobPostsById(jobId)).thenReturn(Map.of("job_title", "Java Backend"));
         when(resumes.owned(resumeId)).thenThrow(new ApiException(404, "Resume not found"));
 
         assertThrows(
             ApiException.class,
-            () -> service.createRoadmap(new RoadmapRequest("Java Backend", null, resumeId, null))
+            () -> service.createRoadmap(new RoadmapRequest("Java Backend", jobId, resumeId, null))
         );
 
         verify(current).requireRole("CANDIDATE");
@@ -203,12 +207,16 @@ class LearningSourceFlowTest {
 
     @Test
     void quotaRejectedGenerationCannotPersistARoadmapOrResourceLinks() {
+        UUID jobId = UUID.randomUUID();
+        when(db.getMarketJobPostsById(jobId)).thenReturn(Map.of("job_title", "Java Backend"));
+        when(db.listMarketJobSkillsByMarketJobId(jobId))
+            .thenReturn(List.of(Map.of("skill_name", "Spring Boot", "is_required", true)));
         when(references.recommend(eq("Java Backend"), anyCollection())).thenReturn(RECOMMENDATIONS);
         when(ai.generate(eq("ROADMAP_GENERATE"), anyMap())).thenThrow(new ApiException(429, "AI quota exhausted"));
 
         ApiException failure = assertThrows(
             ApiException.class,
-            () -> service.createRoadmap(new RoadmapRequest("Java Backend", null, null, null))
+            () -> service.createRoadmap(new RoadmapRequest("Java Backend", jobId, null, null))
         );
 
         assertEquals(429, failure.status());
@@ -222,6 +230,10 @@ class LearningSourceFlowTest {
     @Test
     void roadmapGenerationSnapshotsTrustedCourseLinksAndIgnoresInventedResources() {
         UUID gapId = UUID.randomUUID();
+        UUID jobId = UUID.randomUUID();
+        when(db.getMarketJobPostsById(jobId)).thenReturn(Map.of("job_title", "Java Backend"));
+        when(db.listMarketJobSkillsByMarketJobId(jobId))
+            .thenReturn(List.of(Map.of("skill_name", "Spring Boot", "is_required", true)));
         UUID roadmapId = UUID.randomUUID();
         UUID nodeId = UUID.randomUUID();
         UUID firstResource = UUID.randomUUID();
@@ -255,7 +267,7 @@ class LearningSourceFlowTest {
                 "title",
                 "Java Backend",
                 "skill_gaps",
-                List.of(),
+                List.of(Map.of("skill_name", "Spring Boot", "gap_status", "MISSING_EVIDENCE", "urgency_score", 80)),
                 "nodes",
                 List.of(
                     Map.of(
@@ -271,10 +283,10 @@ class LearningSourceFlowTest {
                 )
             )
         );
-        when(db.readGapAnalysesByUserId(actor, "Java Backend")).thenReturn(1);
+        when(db.readGapAnalysesByUserId(actor, jobId)).thenReturn(1);
         when(db.insertGapAnalyses(anyMap())).thenReturn(gapId);
         when(db.insertRoadmaps(anyMap())).thenReturn(roadmapId);
-        when(db.json(RECOMMENDATIONS)).thenReturn("saved-recommendations");
+        when(db.json(anyMap())).thenReturn("saved-recommendations");
         when(db.insertRoadmapNodes(anyMap())).thenReturn(nodeId);
         when(db.getRoadmapsById(roadmapId, actor)).thenReturn(
             new HashMap<>(
@@ -295,11 +307,16 @@ class LearningSourceFlowTest {
         when(db.listRoadmapNodesByRoadmapId(roadmapId))
             .thenReturn(List.of(new HashMap<>(Map.of("id", nodeId, "skill_name", "Spring Boot"))));
 
-        Map<String, Object> result = service.createRoadmap(new RoadmapRequest("Java Backend", null, null, null));
+        Map<String, Object> result = service.createRoadmap(new RoadmapRequest("Java Backend", jobId, null, null));
 
         verify(current).requireRole("CANDIDATE");
-        verify(ai)
-            .generate(eq("ROADMAP_GENERATE"), argThat(input -> input.get("learning_references") == RECOMMENDATIONS));
+        verify(ai).generate(
+            eq("ROADMAP_GENERATE"),
+            argThat(
+                input -> "MISSING_SKILLS_ONLY".equals(input.get("learning_scope"))
+                    && ((List<?>) input.get("allowed_missing_skills")).size() == 1
+            )
+        );
         verify(db).insertRoadmaps(
             argThat(fields -> "saved-recommendations".equals(fields.get("learning_recommendations_snapshot")))
         );
@@ -318,7 +335,7 @@ class LearningSourceFlowTest {
             argThat(resource -> "https://www.coursera.org/learn/spring-boot".equals(resource.get("url")))
         );
         verify(db, never()).updateRoadmapNodeResources(eq(nodeId), eq(inventedResource), anyInt(), any(), anyMap());
-        verify(references, times(2)).recommend(eq("Java Backend"), anyCollection());
+        verify(references, never()).recommend(anyString(), anyCollection());
         assertSame(RECOMMENDATIONS, result.get("learning_recommendations"));
         assertFalse(result.containsKey("learning_recommendations_snapshot"));
     }
@@ -373,6 +390,8 @@ class LearningSourceFlowTest {
                 actor,
                 "target_job_title",
                 "Java Backend",
+                "market_job_id",
+                assessmentJobId,
                 "status",
                 status,
                 "skill_scores",

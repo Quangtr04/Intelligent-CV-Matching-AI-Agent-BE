@@ -1,7 +1,7 @@
 name: edunexus
 
 services:
-  # Opt in to run the backend in a container; default Compose still starts infrastructure only.
+  # Opt in to run the backend; AI models stay private on the Compose network.
   app:
     profiles: ['app']
     build:
@@ -18,6 +18,15 @@ services:
       REDIS_USERNAME: ""
       REDIS_PASSWORD: ""
       UPLOAD_DIR: /app/uploads
+      AI_PROVIDER: ollama
+      AI_CHAT_PROVIDER: ollama
+      AI_EMBEDDING_PROVIDER: ollama
+      AI_CHAT_MODEL: ${AI_CHAT_MODEL:-qwen2.5:7b}
+      AI_ASSESSMENT_MODEL: ${AI_ASSESSMENT_MODEL-qwen3.5:4b}
+      AI_ASSESSMENT_THINK: ${AI_ASSESSMENT_THINK:-true}
+      AI_EMBEDDING_MODEL: ${AI_EMBEDDING_MODEL:-qwen3-embedding:0.6b}
+      AI_EMBEDDING_DIMENSIONS: 1024
+      OLLAMA_BASE_URL: http://ollama:11434
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
@@ -27,7 +36,53 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+      ollama:
+        condition: service_healthy
+      ollama-init:
+        condition: service_completed_successfully
     restart: unless-stopped
+
+  ollama:
+    image: ${OLLAMA_IMAGE:-ollama/ollama:latest}
+    profiles: ['ai', 'app']
+    environment:
+      OLLAMA_HOST: 0.0.0.0:11434
+      OLLAMA_NO_CLOUD: "1"
+      OLLAMA_KEEP_ALIVE: ${OLLAMA_KEEP_ALIVE:-5m}
+    expose:
+      - '11434'
+    volumes:
+      - ollama_models:/root/.ollama
+    healthcheck:
+      test: ['CMD', 'ollama', 'list']
+      interval: 5s
+      timeout: 5s
+      retries: 24
+      start_period: 10s
+    restart: unless-stopped
+
+  ollama-init:
+    image: ${OLLAMA_IMAGE:-ollama/ollama:latest}
+    profiles: ['ai', 'app']
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+      AI_CHAT_MODEL: ${AI_CHAT_MODEL:-qwen2.5:7b}
+      AI_ASSESSMENT_MODEL: ${AI_ASSESSMENT_MODEL-qwen3.5:4b}
+      AI_EMBEDDING_MODEL: ${AI_EMBEDDING_MODEL:-qwen3-embedding:0.6b}
+    entrypoint: ['/bin/sh', '-ec']
+    command:
+      - |
+        for model in "$${AI_CHAT_MODEL}" "$${AI_EMBEDDING_MODEL}" "$${AI_ASSESSMENT_MODEL}"; do
+          [ -n "$${model}" ] || continue
+          if ! ollama show "$${model}" >/dev/null 2>&1; then
+            ollama pull "$${model}"
+          fi
+          ollama show "$${model}" >/dev/null
+        done
+    depends_on:
+      ollama:
+        condition: service_healthy
+    restart: 'no'
 
 
   postgres:
@@ -92,3 +147,4 @@ volumes:
   qdrant_data:
   rabbitmq_data:
   redis_data:
+  ollama_models:

@@ -10,6 +10,8 @@ import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiService;
 
 import java.time.OffsetDateTime;
 import java.util.*;
+import com.example.intelligent_cv_matching_ai_agent.util.candidate.learning.AssessmentValidator;
+import com.example.intelligent_cv_matching_ai_agent.util.candidate.learning.SkillNames;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import static com.example.intelligent_cv_matching_ai_agent.util.shared.Values.*;
@@ -48,16 +50,30 @@ public class AssessmentService {
         UUID jobId) {
         user.requireRole("CANDIDATE");
 
-        Map<String, Object> job = jobId == null ? Map.of() : db.getMarketJobPostsById(jobId);
+        if (jobId == null)
+            throw ApiException.badRequest("Select a job description before generating assessment questions");
 
-        if (target == null || target.isBlank())
-            target = text(job.get("job_title"));
+        Map<String, Object> job = db.getMarketJobPostsById(jobId);
+        String jobTitle = text(job.get("job_title")).strip();
+        if (jobTitle.isBlank())
+            throw ApiException.conflict("The selected job has no title to assess");
+        if (target != null && !target.isBlank() && !SkillNames.normalize(target).equals(SkillNames.normalize(jobTitle)))
+            throw ApiException.badRequest("The target career must match the selected job description");
+        target = jobTitle;
 
-        if (target.isBlank())
-            target = text(db.findCandidateProfilesByUserId(user.id()).orElse(Map.of()).get("target_job_title"));
-
-        if (target.isBlank() || target.length() > 255)
-            throw ApiException.badRequest("Select a target career first");
+        List<Map<String, Object>> jobSkills =
+            db.listMarketJobSkills(jobId).stream().filter(skill -> !text(skill.get("skill_name")).isBlank()).toList();
+        if (jobSkills.isEmpty())
+            throw ApiException.conflict("The selected job needs extracted skills before generating an assessment");
+        List<String> jdSources = new ArrayList<>();
+        for (String key : List
+            .of("raw_content", "parsed_requirements", "parsed_responsibilities", "parsed_description")) {
+            String value = text(job.get(key)).strip();
+            if (!value.isBlank())
+                jdSources.add(value);
+        }
+        if (jdSources.isEmpty())
+            throw ApiException.conflict("The selected job has no job description to assess");
 
         var generated = ai.generate(
             "ASSESSMENT_GENERATE",
@@ -66,6 +82,10 @@ public class AssessmentService {
                 target,
                 "job",
                 job,
+                "jd_skills",
+                jobSkills,
+                "jd_text",
+                String.join("\n\n", jdSources),
                 "profile",
                 db.findCandidateProfilesByUserId2(user.id()).orElse(Map.of()),
                 "foundation_count",
@@ -75,9 +95,9 @@ public class AssessmentService {
             )
         );
         List<?> questions = array(generated.get("questions"));
-        validateQuestions(questions);
+        AssessmentValidator.validateQuestions(questions, jobSkills, jdSources);
 
-        db.updateAssessmentSessionsByUserId(user.id(), target);
+        db.updateAssessmentSessionsByUserId(user.id(), jobId);
 
         int foundation = (int) questions.stream().filter(q -> number(object(q).get("part"), 0) == 1).count();
 
@@ -104,7 +124,12 @@ public class AssessmentService {
 
         for (Object raw : questions) {
             var q = object(raw);
-            String skill = text(q.get("related_skill_name"));
+            var jobSkill = jobSkills.stream()
+                .filter(
+                    s -> SkillNames.normalize(text(s.get("skill_name")))
+                        .equals(SkillNames.normalize(text(q.get("related_skill_name"))))
+                ).findFirst().orElseThrow();
+            String skill = text(jobSkill.get("skill_name"));
 
             db.insertAssessmentQuestions(
                 fields(
@@ -122,6 +147,8 @@ public class AssessmentService {
                     q.get("correct_option"),
                     "related_skill_name",
                     skill,
+                    "related_skill_id",
+                    jobSkill.get("skill_id"),
                     "explanation",
                     q.get("explanation")
                 )
@@ -133,38 +160,7 @@ public class AssessmentService {
 
     public static void validateQuestions(
         List<?> questions) {
-        if (questions.size() < 2 || questions.size() > 30)
-            throw new ApiException(502, "AI must generate 2..30 assessment questions");
-
-        boolean foundation = false, technical = false;
-
-        for (Object raw : questions) {
-            var q = object(raw);
-            double part = number(q.get("part"), 0);
-
-            if (part == 1)
-                foundation = true;
-            else if (part == 2)
-                technical = true;
-            else
-                throw new ApiException(502, "Invalid assessment part");
-
-            if (!(q.get("question_text") instanceof String question) || question.isBlank() || question.length() > 5000
-                || q.get("related_skill_name") != null
-                    && (!(q.get("related_skill_name") instanceof String skill) || skill.length() > 150)
-                || q.get("explanation") != null
-                    && (!(q.get("explanation") instanceof String explanation) || explanation.length() > 10000))
-                throw new ApiException(502, "Invalid question content");
-
-            Map<String, Object> options = object(q.get("options"));
-            if (!options.keySet().equals(Set.of("A", "B", "C", "D"))
-                || options.values().stream().anyMatch(v -> !(v instanceof String s) || s.isBlank() || s.length() > 2000)
-                || !(q.get("correct_option") instanceof String correct) || !options.containsKey(correct))
-                throw new ApiException(502, "Invalid answer choices");
-        }
-
-        if (!foundation || !technical)
-            throw new ApiException(502, "Assessment must contain foundation and role-specific questions");
+        AssessmentValidator.validateQuestions(questions);
     }
 
     @Transactional
@@ -203,7 +199,7 @@ public class AssessmentService {
         var scores = db.listAssessmentQuestionsByIsCorrect(id);
 
         db.updateAssessmentSessionsById(db.json(scores), id);
-        db.updateRoadmapsByUserId(user.id(), session.get("target_job_title"));
+        db.updateRoadmapsByUserId(user.id(), session.get("market_job_id"));
 
         return get(id);
     }

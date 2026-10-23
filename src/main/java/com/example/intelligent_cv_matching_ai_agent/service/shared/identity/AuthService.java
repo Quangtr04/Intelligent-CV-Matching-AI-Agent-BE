@@ -2,6 +2,7 @@ package com.example.intelligent_cv_matching_ai_agent.service.shared.identity;
 
 import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException;
 import com.example.intelligent_cv_matching_ai_agent.repository.shared.identity.AuthRepository;
+import com.example.intelligent_cv_matching_ai_agent.util.shared.identity.AuthValidation;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,7 +18,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.time.OffsetDateTime;
 import java.util.LinkedHashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
@@ -63,13 +63,7 @@ public class AuthService {
 
     public static String email(
         String email) {
-        return email.trim().toLowerCase(Locale.ROOT);
-    }
-
-    private void passwordLength(
-        String password) {
-        if (password.getBytes(StandardCharsets.UTF_8).length > 72)
-            throw ApiException.badRequest("Password must fit within 72 UTF-8 bytes");
+        return AuthValidation.email(email);
     }
 
     @Transactional
@@ -78,7 +72,7 @@ public class AuthService {
         String password,
         String fullName,
         String language) {
-        passwordLength(password);
+        AuthValidation.passwordLength(password);
 
         String normalized = email(email);
         if (db.findUsersByEmail(normalized).isPresent())
@@ -225,7 +219,7 @@ public class AuthService {
     public Map<String, Object> login(
         String email,
         String password) {
-        passwordLength(password);
+        AuthValidation.passwordLength(password);
 
         var user = db.findUsersByEmailForUpdate(email(email));
         String hashed = user.map(u -> u.get("password_hash")).map(Object::toString).orElse(dummyHash);

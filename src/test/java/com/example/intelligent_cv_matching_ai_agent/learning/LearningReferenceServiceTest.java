@@ -95,7 +95,8 @@ class LearningReferenceServiceTest {
         Map<String, Object> result = service.forAssessment(session);
 
         assertEquals(Set.of("Java", "Spring Boot"), new HashSet<>((List<?>) result.get("focus_skills")));
-        assertTrue(slugs(roadmaps(result)).containsAll(Set.of("java", "spring-boot")));
+        assertTrue(roadmaps(result).isEmpty());
+        verify(db, never()).listApprovedCourseResources(anyCollection(), anyString());
     }
 
     @Test

@@ -11,8 +11,12 @@ import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiExceptio
 import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiService;
 
 import com.example.intelligent_cv_matching_ai_agent.service.candidate.resume.ResumeService;
+import com.example.intelligent_cv_matching_ai_agent.util.candidate.jobs.SalaryExpectation;
+import com.example.intelligent_cv_matching_ai_agent.service.shared.jobs.MatchingSalaryPolicyService;
+import com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.MatchingSalaryPolicy;
 import java.time.OffsetDateTime;
 import java.util.*;
+import com.example.intelligent_cv_matching_ai_agent.util.candidate.jobs.JobSkillOverlap;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -32,23 +36,30 @@ public class MatchingService {
 
     private final ObjectProvider<StringRedisTemplate> redis;
 
+    private final MatchingSalaryPolicyService salaryPolicies;
+
     public MatchingService(
         MatchingRepository db,
         CurrentUser user,
         AiService ai,
         ResumeService resumes,
-        ObjectProvider<StringRedisTemplate> redis) {
+        ObjectProvider<StringRedisTemplate> redis,
+        MatchingSalaryPolicyService salaryPolicies) {
         this.db = db;
         this.user = user;
         this.ai = ai;
         this.resumes = resumes;
         this.redis = redis;
+        this.salaryPolicies = salaryPolicies;
     }
 
     public Map<String, Object> result(
         UUID runId) {
         var run = db.getJobMatchingRunsById(runId, user.id());
         run.put("results", db.listJobMatchResultsByMatchingRunId(runId));
+        Map<String, Object> snapshot = object(run.get("profile_snapshot"));
+        if (snapshot.containsKey("salary_filter"))
+            run.put("salary_filter", snapshot.get("salary_filter"));
 
         return run;
     }
@@ -64,6 +75,7 @@ public class MatchingService {
         if (!Set.of("CAREER_PROFILE", "ALL_CVS", "SELECTED_CV").contains(basis))
             throw ApiException.badRequest("Invalid matching basis");
 
+        MatchingSalaryPolicy settings = salaryPolicies.effective();
         List<Map<String, Object>> cvs = new ArrayList<>();
 
         if (basis.equals("ALL_CVS")) {
@@ -84,10 +96,18 @@ public class MatchingService {
         }
 
         StringBuilder candidate = new StringBuilder();
+        Optional<Map<String, Object>> storedProfile = db.findCandidateProfilesByUserId(user.id());
+        Map<String, Object> profile = new LinkedHashMap<>(storedProfile.orElse(Map.of()));
+        profile.remove("expected_salary_min");
+        profile.remove("expected_salary_max");
+        Optional<SalaryExpectation> salary = SalaryExpectation.fromProfile(profile, settings);
 
         if (basis.equals("CAREER_PROFILE")) {
-            var profile = db.findCandidateProfilesByUserId(user.id())
-                .orElseThrow(() -> ApiException.badRequest("Complete your career profile first"));
+            if (storedProfile.isEmpty())
+                throw ApiException.badRequest("Complete your career profile first");
+            if (salary.isEmpty())
+                throw ApiException
+                    .badRequest("Set expectedSalary in your career profile before requesting job recommendations");
             candidate.append(profile);
             candidate.append(db.listCandidateProfileSkillsByUserId(user.id()));
         } else {
@@ -95,11 +115,37 @@ public class MatchingService {
                 throw ApiException.badRequest("At least one confirmed CV is required");
 
             cvs.forEach(cv -> candidate.append(resumes.canonicalText(cv)).append('\n'));
+            salary.ifPresent(
+                expectation -> candidate.append("\nMonthly salary preference: ").append(expectation.policy())
+            );
         }
 
-        List<Map<String, Object>> jobs = db.listMarketJobSkillsByMarketJobId();
-        if (jobs.isEmpty())
+        List<Map<String, Object>> catalog =
+            salary.isPresent() ? db.listActiveJobSalaryMetadata() : db.listMarketJobSkillsByMarketJobId();
+        if (catalog.isEmpty())
             throw ApiException.conflict("No active jobs have been imported");
+        Map<UUID, Map<String, Object>> salaryMatches = new HashMap<>();
+        List<Map<String, Object>> jobs =
+            salary.isPresent() ? salaryEligible(catalog, salary.get(), salaryMatches) : new ArrayList<>(catalog);
+        Map<String, Object> salaryPolicy = salary.map(SalaryExpectation::policy).orElseGet(
+            () -> fields(
+                "active",
+                false,
+                "policy_version",
+                SalaryExpectation.POLICY_VERSION,
+                "tolerance_percent",
+                settings.tolerancePercent(),
+                "minimum_ratio",
+                settings.minimumRatio(),
+                "settings_version",
+                settings.version()
+            )
+        );
+        salaryPolicy.put("examined_jobs", catalog.size());
+        salaryPolicy.put("eligible_jobs", jobs.size());
+        String eligibleIds = jobIds(jobs);
+        if (salary.isPresent() && !ai.enabled() && !jobs.isEmpty())
+            jobs = salaryEligible(db.listMarketJobSkillsByIds(eligibleIds), salary.get(), salaryMatches);
 
         String mode = ai.enabled() ? "SEMANTIC_LLM" : "SKILL_OVERLAP";
         String catalogFingerprint = text(db.readMarketJobPostsByStatus());
@@ -108,7 +154,8 @@ public class MatchingService {
         List<String> resumeIds = cvs.stream().map(cv -> cv.get("id").toString()).sorted().toList();
         String cacheHash = FlowSupport.hash(
             basis + "\n" + resumeIds + "\n" + candidate + "\n" + catalogFingerprint + "\n" + vectorFingerprint + "\n"
-                + mode + "\n" + ai.provider() + "\n" + ai.model() + "\n" + ai.embeddingModel() + "\n" + limit
+                + mode + "\n" + ai.provider() + "\n" + ai.model() + "\n" + ai.embeddingModel() + "\n" + limit + "\n"
+                + salaryPolicy
         );
         String cacheKey = "edunexus:matching:" + user.id() + ":" + cacheHash;
         Optional<UUID> redisRun = cachedRun(cacheKey);
@@ -138,7 +185,18 @@ public class MatchingService {
                 "basis",
                 basis,
                 "profile_snapshot",
-                db.json(fields("request_hash", cacheHash, "mode", mode, "candidate", candidate.toString())),
+                db.json(
+                    fields(
+                        "request_hash",
+                        cacheHash,
+                        "mode",
+                        mode,
+                        "candidate",
+                        candidate.toString(),
+                        "salary_filter",
+                        salaryPolicy
+                    )
+                ),
                 "provider",
                 ai.enabled() ? ai.provider() : "RULE_BASED",
                 "model",
@@ -155,20 +213,34 @@ public class MatchingService {
 
         List<Map<String, Object>> ranked;
 
-        if (ai.enabled()) {
+        if (jobs.isEmpty()) {
+            ranked = new ArrayList<>();
+        } else if (ai.enabled()) {
             String vector = FlowSupport.vector(ai.embed(candidate.toString()));
-            ranked = db.listMarketJobEmbeddingsByStatus(
-                vector,
-                ai.provider(),
-                ai.embeddingModel(),
-                vector,
-                Math.min(100, Math.max(limit, 20))
-            );
+            ranked = salary.isPresent()
+                ? db.listMarketJobEmbeddingsByStatusForIds(
+                    ai.provider(),
+                    ai.embeddingModel(),
+                    eligibleIds,
+                    vector,
+                    vector,
+                    Math.min(100, Math.max(limit, 20))
+                )
+                : db.listMarketJobEmbeddingsByStatus(
+                    vector,
+                    ai.provider(),
+                    ai.embeddingModel(),
+                    vector,
+                    Math.min(100, Math.max(limit, 20))
+                );
             if (ranked.isEmpty())
                 throw ApiException.conflict("Index active jobs with the configured embedding model first");
+            if (salary.isPresent())
+                ranked = salaryEligible(ranked, salary.get(), salaryMatches);
 
-            Map<String, Object> generated =
-                ai.generate("JOB_MATCH_RERANK", fields("candidate", candidate.toString(), "jobs", ranked));
+            Map<String, Object> generated = ranked.isEmpty()
+                ? fields("results", List.of())
+                : ai.generate("JOB_MATCH_RERANK", fields("candidate", candidate.toString(), "jobs", ranked));
             Map<UUID, Map<String, Object>> aiResults = new HashMap<>();
 
             for (Object raw : array(generated.get("results"))) {
@@ -200,7 +272,9 @@ public class MatchingService {
 
         ranked.sort(
             Comparator.<Map<String, Object>>comparingDouble(j -> number(j.get("final_score"), 0)).reversed()
-                .thenComparing(j -> j.get("id").toString())
+                .thenComparingDouble(
+                    j -> number(salaryMatches.getOrDefault(uuid(j.get("id")), Map.of()).get("shortfall_percent"), 0)
+                ).thenComparing(j -> j.get("id").toString())
         );
 
         for (int i = 0; i < Math.min(limit, ranked.size()); i++) {
@@ -222,7 +296,16 @@ public class MatchingService {
                     "rank_position",
                     i + 1,
                     "match_reason_json",
-                    db.json(fields("method", mode, "reason", explanation.get("reason"))),
+                    db.json(
+                        fields(
+                            "method",
+                            mode,
+                            "reason",
+                            explanation.get("reason"),
+                            "salary_match",
+                            salaryMatches.get(uuid(job.get("id")))
+                        )
+                    ),
                     "strengths_json",
                     db.json(array(explanation.get("strengths"))),
                     "skill_gaps_json",
@@ -238,6 +321,28 @@ public class MatchingService {
         remember(cacheKey, runId);
 
         return result;
+    }
+
+    private static List<Map<String, Object>> salaryEligible(
+        List<Map<String, Object>> jobs,
+        SalaryExpectation expectation,
+        Map<UUID, Map<String, Object>> matches) {
+        List<Map<String, Object>> eligible = new ArrayList<>();
+        for (Map<String, Object> job : jobs) {
+            expectation.match(text(job.get("salary_text"))).ifPresent(match -> {
+                matches.put(uuid(job.get("id")), match);
+                eligible.add(new LinkedHashMap<>(job));
+            });
+        }
+        return eligible;
+    }
+
+    private static String jobIds(
+        List<Map<String, Object>> jobs) {
+        StringJoiner ids = new StringJoiner(",", "{", "}");
+        for (Map<String, Object> job : jobs)
+            ids.add(uuid(job.get("id")).toString());
+        return ids.toString();
     }
 
     private Optional<UUID> cachedRun(
@@ -268,44 +373,6 @@ public class MatchingService {
     public static Map<String, Object> overlap(
         String candidate,
         Map<String, Object> job) {
-        String lower = " " + candidate.toLowerCase(Locale.ROOT) + " ";
-        List<String> strengths = new ArrayList<>(), gaps = new ArrayList<>();
-        int requiredCount = 0, matched = 0;
-
-        for (Object raw : array(job.get("skills"))) {
-            var skill = object(raw);
-            String name = text(skill.get("name")).toLowerCase(Locale.ROOT);
-            boolean required = !Boolean.FALSE.equals(skill.get("required"));
-            boolean found = java.util.regex.Pattern
-                .compile("(?<![\\p{L}\\p{N}])" + java.util.regex.Pattern.quote(name) + "(?![\\p{L}\\p{N}])")
-                .matcher(lower).find();
-
-            if (found)
-                strengths.add(name);
-            else if (required)
-                gaps.add(name);
-
-            if (required) {
-                requiredCount++;
-
-                if (found)
-                    matched++;
-            }
-        }
-
-        double score = requiredCount == 0 ? 0.0 : (double) matched / requiredCount;
-
-        return fields(
-            "score",
-            score,
-            "reason",
-            requiredCount == 0
-                ? "No structured job skills available for comparison"
-                : "Matched " + matched + " of " + requiredCount + " required skills; keyword comparison",
-            "strengths",
-            strengths,
-            "skill_gaps",
-            gaps
-        );
+        return JobSkillOverlap.overlap(candidate, job);
     }
 }

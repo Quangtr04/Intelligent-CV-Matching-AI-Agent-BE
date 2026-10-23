@@ -7,6 +7,7 @@ import jakarta.validation.constraints.AssertTrue;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Collections;
+import java.util.UUID;
 
 /**
  * CV sections and AI builder facts are intentionally extensible JSON objects.
@@ -33,7 +34,9 @@ public final class ResumeWriteRequest {
         return new LinkedHashMap<>(values);
     }
 
-    @AssertTrue(message = "CV title, language, raw_content, structured_data and is_primary have invalid types")
+    @AssertTrue(
+        message = "CV title, language, raw_content, structured_data, template_id " + "and is_primary have invalid types"
+    )
     @JsonIgnore
     public boolean isValidShape() {
         return optionalText("title", 255)
@@ -41,8 +44,21 @@ public final class ResumeWriteRequest {
             && (!values.containsKey("raw_content") || values.get("raw_content") == null
                 || optionalText("raw_content", 200000))
             && (!values.containsKey("structured_data") || values.get("structured_data") instanceof Map<?, ?>)
-            && (!values.containsKey("is_primary") || values.get("is_primary") == null
+            && optionalTemplateId() && (!values.containsKey("is_primary") || values.get("is_primary") == null
                 || values.get("is_primary") instanceof Boolean);
+    }
+
+    private boolean optionalTemplateId() {
+        Object value = values.get("template_id");
+        if (value == null)
+            return true;
+        if (!(value instanceof String text))
+            return false;
+        try {
+            return UUID.fromString(text).toString().equalsIgnoreCase(text);
+        } catch (IllegalArgumentException ex) {
+            return false;
+        }
     }
 
     private boolean optionalText(

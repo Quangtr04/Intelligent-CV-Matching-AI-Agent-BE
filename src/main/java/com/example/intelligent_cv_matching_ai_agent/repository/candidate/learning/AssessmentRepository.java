@@ -48,7 +48,20 @@ public class AssessmentRepository {
 
     public Map<String, Object> getMarketJobPostsById(
         Object... args) {
-        return db.one("SELECT * FROM market_job_posts WHERE id=? AND status='ACTIVE'", args);
+        return db.one(
+            "SELECT * FROM market_job_posts WHERE id=? AND status='ACTIVE' "
+                + "AND (valid_through IS NULL OR valid_through>now())",
+            args
+        );
+    }
+
+    public List<Map<String, Object>> listMarketJobSkills(
+        UUID jobId) {
+        return db.list(
+            "SELECT skill_id,skill_name,normalized_skill,is_required FROM market_job_skills "
+                + "WHERE market_job_id=? ORDER BY is_required DESC,normalized_skill",
+            jobId
+        );
     }
 
     public Optional<Map<String, Object>> findCandidateProfilesByUserId(
@@ -63,11 +76,7 @@ public class AssessmentRepository {
 
     public int updateAssessmentSessionsByUserId(
         Object... args) {
-        return db.update(
-            ("UPDATE assessment_sessions SET is_current=false WHERE user_id=? AND "
-                + "COALESCE(target_job_title,'')=?"),
-            args
-        );
+        return db.update("UPDATE assessment_sessions SET is_current=false WHERE user_id=? AND market_job_id=?", args);
     }
 
     public UUID insertAssessmentSessions(
@@ -144,7 +153,7 @@ public class AssessmentRepository {
         Object... args) {
         return db.update(
             ("UPDATE roadmaps SET is_outdated=true,updated_at=now() WHERE user_id=? "
-                + "AND COALESCE(target_job_title,'')=COALESCE(?,'')"),
+                + "AND market_job_id IS NOT DISTINCT FROM CAST(? AS uuid)"),
             args
         );
     }

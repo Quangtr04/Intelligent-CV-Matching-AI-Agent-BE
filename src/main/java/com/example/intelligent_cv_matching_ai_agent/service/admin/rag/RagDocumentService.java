@@ -8,6 +8,7 @@ import com.example.intelligent_cv_matching_ai_agent.repository.admin.rag.RagDocu
 
 import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException;
 
+import com.example.intelligent_cv_matching_ai_agent.util.admin.rag.RagDocumentSupport;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.resume.ResumeData;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,7 +72,7 @@ public class RagDocumentService {
                 v) -> metadata.put(k.toString(), v)
         );
         metadata.put("disabled", false);
-        List<String> chunks = split(content);
+        List<String> chunks = RagDocumentSupport.split(content);
 
         UUID id = db.insertRagDocuments(
             Map.of(
@@ -159,7 +160,7 @@ public class RagDocumentService {
                     db.updateRagChunkEmbeddings(chunkId, ai.provider(), ai.embeddingModel(), Arrays.toString(vector));
                     db.updateVectorIndexingJobsById(job);
                 } catch (RuntimeException ex) {
-                    db.updateVectorIndexingJobsById2(safeError(ex), job);
+                    db.updateVectorIndexingJobsById2(RagDocumentSupport.safeError(ex), job);
                     throw ex;
                 }
             }
@@ -208,29 +209,10 @@ public class RagDocumentService {
         return get(id);
     }
 
+    /** Retained for callers that previously used the service as a chunking utility. */
     public static List<String> split(
         String content) {
-        List<String> result = new ArrayList<>();
-        int start = 0;
-
-        while (start < content.length()) {
-            int end = Math.min(content.length(), start + 4000);
-
-            if (end < content.length() && Character.isHighSurrogate(content.charAt(end - 1)))
-                end--;
-
-            result.add(content.substring(start, end));
-
-            if (end == content.length())
-                break;
-
-            start = Math.max(start + 1, end - 300);
-
-            if (start > 0 && Character.isLowSurrogate(content.charAt(start)))
-                start--;
-        }
-
-        return result;
+        return RagDocumentSupport.split(content);
     }
 
     private void audit(
@@ -251,12 +233,5 @@ public class RagDocumentService {
                 db.json(detail)
             )
         );
-    }
-
-    private String safeError(
-        RuntimeException ex) {
-        String value = ex instanceof ApiException ? ex.getMessage() : "Embedding index operation failed";
-
-        return value == null ? "Index operation failed" : value.substring(0, Math.min(1000, value.length()));
     }
 }

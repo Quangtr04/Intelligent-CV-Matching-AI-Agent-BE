@@ -11,7 +11,8 @@ repository/<role>/<chức năng>/       Truy vấn JDBC của từng workflow
 repository/<role>/<chức năng>/jpa/   Spring Data JPA repository có kiểu entity/khóa
 repository/shared/SqlStore.java     Prepared statement, bind tham số, đọc JDBC
 entity/<role>/<chức năng>/           Entity và lớp khóa ghép
-util/shared/                        Tiện ích dùng chung, xử lý tệp và dữ liệu
+util/<role>/<chức năng>/             Helper kiểm tra, chuyển đổi dữ liệu và xử lý kỹ thuật
+util/shared/                        Tiện ích tổng quát Values, FlowSupport
 config/shared/                      Cấu hình Spring, Security, OpenAPI, lịch tác vụ
 security/shared/                    Bearer filter, CurrentUser, giới hạn xác thực
 exception/shared/                   Lỗi nghiệp vụ và phản hồi HTTP
@@ -53,15 +54,51 @@ và response DTO cho bảy nhóm kết quả. Repository khóa chia sẻ hội t
 
 `util/shared/jobs/JobSourceValidator` kiểm tra URL nguồn cho import, crawling và mở trang ứng tuyển. Các workflow dùng chung quy tắc URL mà không phụ thuộc vào service crawler của admin.
 
+## Ranh giới giữa service và util
+
+Service giữ thứ tự thực hiện nghiệp vụ, phân quyền theo tài nguyên, transaction, truy cập repository,
+ghi audit và điều phối AI/quota. Các kiểm tra cần đọc database hoặc xác định người dùng hiện tại vẫn
+nằm trong luồng service/repository. Helper kiểm tra giá trị, chuẩn hóa, dựng nội dung và chuyển đổi
+kết quả được đặt trong `util/<role>/<chức năng>`; chúng nhận dữ liệu qua tham số để service gọi trực tiếp.
+
+`util/admin`, `util/candidate` và `util/consultant` chứa helper của từng vai trò. `util/shared/<chức năng>`
+chứa helper dùng chung giữa các vai trò; `Values` và `FlowSupport` vẫn nằm ngay trong `util/shared`
+vì cung cấp thao tác tổng quát. Một số ví dụ trong mã nguồn:
+
+| Nhóm | Helper | Phần xử lý được tách |
+| --- | --- | --- |
+| `admin/jobs` | [CrawlSettingsSupport](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/admin/jobs/CrawlSettingsSupport.java), [JobCollectionSupport](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/admin/jobs/JobCollectionSupport.java) | Kiểm tra thời gian chờ, chuẩn hóa nguồn crawl, dựng response cấu hình và tên lease |
+| `admin/rag` | [RagDocumentSupport](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/admin/rag/RagDocumentSupport.java), [RagCourseSupport](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/admin/rag/RagCourseSupport.java) | Chia chunk, giới hạn thông báo lỗi, kiểm tra kỹ năng và dựng nội dung khóa học |
+| `candidate/resume` | [ResumeInput](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/candidate/resume/ResumeInput.java), [ResumeContent](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/candidate/resume/ResumeContent.java) | Kiểm tra đầu vào, dựng nội dung CV chuẩn, kết quả cơ bản và hash |
+| `candidate/learning` | [AssessmentValidator](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/candidate/learning/AssessmentValidator.java), [RoadmapValidator](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/candidate/learning/RoadmapValidator.java) | Kiểm tra câu hỏi AI, node lộ trình và prerequisite |
+| `consultant/consultation` | [ConsultationEvaluationData](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/consultant/consultation/ConsultationEvaluationData.java) | Kiểm tra phản hồi đánh giá CV/ATS và dựng response cache |
+| `shared/ai`, `shared/identity` | [AiResponseData](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/shared/ai/AiResponseData.java), [AuthValidation](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/shared/identity/AuthValidation.java), [TokenSupport](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/shared/identity/TokenSupport.java) | Schema/validation phản hồi AI, chuẩn hóa email, giới hạn độ dài mật khẩu và thao tác kỹ thuật JWT/hash/token |
+
+Ví dụ, `RagDocumentService.create()` kiểm tra quyền admin, chuẩn bị metadata và lưu document/chunk
+qua repository; phần cắt chuỗi gọi `RagDocumentSupport.split(content)`. `RagDocumentService.index()`
+tiếp tục điều phối embedding, trạng thái indexing và audit. Tương tự, `CrawlSettingsService.update()`
+kết hợp kiểm tra/chuẩn hóa từ `CrawlSettingsSupport` với kiểm tra actor, lưu cấu hình và ghi audit trong service.
+
+Các helper mới được tách không truy cập repository hoặc lấy `CurrentUser`. Thư mục `util` còn chứa
+tiện ích kỹ thuật có I/O, chẳng hạn `ResumeFileExtractor` đọc PDF/DOCX/TXT và thực hiện OCR khi bật;
+do đó cần đọc trách nhiệm của từng lớp khi sử dụng. Service vẫn giữ các helper phụ thuộc nghiệp vụ
+hoặc transaction, chẳng hạn kiểm tra sở hữu CV và ghi audit.
+
+Các điểm gọi public static có sẵn như `RagDocumentService.split()` và `TokenService.hash()`/`random()`
+được giữ dưới dạng delegate tới util để tương thích với caller cũ. Xem
+[hướng dẫn từng service và helper](service-code-guide.md) để lần theo đầy đủ các phương thức.
+
 ## Luồng xử lý
 
-Controller nhận request DTO và gọi service. Service quyết định nghiệp vụ, sau đó gọi repository phù hợp. DTO là dữ liệu đi vào/ra của API; entity mô tả dữ liệu lưu trong database.
+Controller nhận request DTO và gọi service. Service quyết định nghiệp vụ, gọi util cho phần xử lý dữ liệu
+và repository cho phần truy xuất database. DTO là dữ liệu đi vào/ra của API; entity mô tả dữ liệu lưu trong database.
 
 ```mermaid
 flowchart LR
     HTTP[HTTP request] --> C[Controller]
     D[Request DTO và validation] -.-> C
     C --> S[Service]
+    S --> U[Util theo vai trò và chức năng]
     S --> W[Workflow repository]
     W --> J[SqlStore / JDBC]
     W --> R[Typed JPA repository]

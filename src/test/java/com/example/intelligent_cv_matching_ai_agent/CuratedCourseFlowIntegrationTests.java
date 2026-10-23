@@ -103,6 +103,34 @@ class CuratedCourseFlowIntegrationTests {
         assertEquals(approved.get("learning_resource_id"), approvedAgain.get("learning_resource_id"));
         assertEquals(approved.get("rag_document_id"), approvedAgain.get("rag_document_id"));
 
+        UUID selectedJob = db.insert(
+            "market_job_posts",
+            Map.of(
+                "source_site",
+                "TEST",
+                "raw_content_hash",
+                UUID.randomUUID().toString(),
+                "job_title",
+                skill + " Developer",
+                "role_category",
+                "TEST",
+                "raw_content",
+                "Requires " + skill
+            )
+        );
+        db.insert(
+            "market_job_skills",
+            Map.of(
+                "market_job_id",
+                selectedJob,
+                "skill_name",
+                skill,
+                "normalized_skill",
+                skill.toLowerCase(java.util.Locale.ROOT),
+                "is_required",
+                true
+            )
+        );
         when(ai.generate(eq("ROADMAP_GENERATE"), anyMap())).thenReturn(
             Map.of(
                 "title",
@@ -110,7 +138,7 @@ class CuratedCourseFlowIntegrationTests {
                 "summary",
                 Map.of("overview", "A curated learning plan"),
                 "skill_gaps",
-                List.of(),
+                List.of(Map.of("skill_name", skill, "gap_status", "MISSING_EVIDENCE", "urgency_score", 80)),
                 "nodes",
                 List.of(
                     Map.of(
@@ -126,7 +154,7 @@ class CuratedCourseFlowIntegrationTests {
                 )
             )
         );
-        var roadmap = post("/api/v1/roadmaps", candidate, Map.of("targetJobTitle", skill + " Developer"));
+        var roadmap = post("/api/v1/roadmaps", candidate, Map.of("jobId", selectedJob));
         String roadmapId = roadmap.get("id").toString();
         assertTrue(json(roadmap.get("nodes")).contains(canonicalUrl));
         assertTrue(json(roadmap.get("learning_recommendations")).contains(canonicalUrl));

@@ -67,6 +67,16 @@ public class ResumeAnalysis {
     @Column(name = "issues_json", nullable = true, columnDefinition = "jsonb")
     private Object issuesJson;
 
+    @JsonProperty("writing_quality_json")
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "writing_quality_json", nullable = true, columnDefinition = "jsonb")
+    private Object writingQualityJson;
+
+    @JsonProperty("content_quality_json")
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "content_quality_json", nullable = true, columnDefinition = "jsonb")
+    private Object contentQualityJson;
+
     @JsonProperty("model_name")
     @Column(name = "model_name", nullable = true, length = 150)
     private String modelName;

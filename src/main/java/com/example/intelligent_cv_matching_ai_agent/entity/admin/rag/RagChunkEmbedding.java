@@ -51,8 +51,13 @@ public class RagChunkEmbedding {
 
     @JsonProperty("embedding")
     @ColumnTransformer(read = "embedding::text", write = "?::vector")
-    @Column(name = "embedding", nullable = false, columnDefinition = "vector(1536)")
+    @Column(name = "embedding", nullable = true, columnDefinition = "vector(1024)")
     private String embedding;
+
+    @JsonIgnore
+    @ColumnTransformer(read = "embedding_legacy_1536::text", write = "?::vector")
+    @Column(name = "embedding_legacy_1536", insertable = false, updatable = false, columnDefinition = "vector(1536)")
+    private String embeddingLegacy1536;
 
     @JsonProperty("created_at")
     @Column(name = "created_at", nullable = false, columnDefinition = "timestamptz")

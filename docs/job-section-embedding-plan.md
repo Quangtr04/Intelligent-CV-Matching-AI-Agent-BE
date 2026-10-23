@@ -8,8 +8,10 @@ Mục tiêu là tìm job phù hợp hơn và giải thích được ứng viên 
 thiếu bằng chứng ở đâu. Việc tạo thêm vector là một phương án cần đo lường, không tự
 bảo đảm điểm matching hoặc ATS chính xác hơn.
 
-Hiện `JobService.embeddingText()` ghép `job_title`, `raw_content`, `parsed_requirements`,
-`parsed_responsibilities`, `employment_type` thành một đoạn text để tạo một vector job.
+Hiện `util/shared/jobs/JobEmbeddingSupport.embeddingText()` ghép `job_title`, `raw_content`,
+`parsed_requirements`, `parsed_responsibilities`, `employment_type` thành một đoạn text để tạo
+một vector job. `JobService.embeddingText()` được giữ làm delegate; worker `JobEmbeddingService`
+gọi trực tiếp hàm trong util.
 `MatchingService` tạo một vector từ CV hoặc career profile, tìm job theo cosine similarity,
 rồi gọi `JOB_MATCH_RERANK` để chấm lại và trả lý do/skill gaps.
 
@@ -131,7 +133,8 @@ những vector đánh giá năng lực mới. `FULL` cũ được giữ nguyên 
    không tách được thì đánh dấu section không có dữ liệu và dùng các nhánh còn lại.
 4. Section rỗng không tạo vector, không ghi vector toàn số 0 và không coi là điểm 0.
 5. CV `READY` dùng nội dung đã được người dùng xác nhận; giữ nguyên ưu tiên
-   `structured_data` so với raw extraction trong `ResumeService.canonicalText()`.
+   `structured_data` so với raw extraction trong `util/candidate/resume/ResumeContent.canonicalText()`;
+   `ResumeService.canonicalText()` giữ public API và chuyển tiếp cùng `ObjectMapper` sang util.
 6. Mỗi đoạn lưu nguồn field hoặc vị trí câu làm bằng chứng. Có thể dùng AI hỗ trợ
    trích xuất khi cần, nhưng chỉ chấp nhận nội dung có đối chiếu được với nguồn.
 7. Tạo text ổn định, không kèm timestamp/ID vận hành không liên quan; hash có phiên bản
@@ -240,8 +243,9 @@ Không so vector từ các model/không gian embedding khác nhau.
 | 5. Đánh giá và mở dần | So sánh trên tập giữ riêng; bật bằng cấu hình, có đường quay về FULL | Có bằng chứng chất lượng đủ tốt trong ngân sách độ trễ/token/storage |
 | 6. Thử thêm REQUIREMENTS | Đo mức cải thiện bổ sung và độ trùng lặp tín hiệu | Chỉ giữ nếu có ích so với hai vector mới |
 
-Những điểm chạm chính trong code: `JobService.embeddingText`, `JobEmbeddingService`,
-`JobEmbeddingRepository`, `MatchingService`, `MatchingRepository` và phần dựng/cache
+Những điểm chạm chính trong code: `util/shared/jobs/JobEmbeddingSupport.embeddingText`,
+delegate `JobService.embeddingText`, `JobEmbeddingService`, `JobEmbeddingRepository`,
+`MatchingService`, `MatchingRepository`, `util/candidate/resume/ResumeContent` và phần dựng/cache
 đầu vào CV/profile. Bộ so sánh kỹ năng và tiêu chí nên dùng chung cho matching/ATS
 khi phù hợp, giữ riêng kiểm tra quyền và cách tính quota của từng workflow.
 

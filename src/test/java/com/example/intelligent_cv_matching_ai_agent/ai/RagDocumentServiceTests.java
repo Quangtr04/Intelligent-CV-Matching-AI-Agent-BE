@@ -90,7 +90,8 @@ class RagDocumentServiceTests {
             .thenReturn(List.of(Map.of("id", first, "content", "cached"), Map.of("id", second, "content", "Java")));
         when(
             db.optional(
-                "SELECT id FROM rag_chunk_embeddings WHERE chunk_id=? AND provider=? AND model=?",
+                "SELECT id FROM rag_chunk_embeddings WHERE chunk_id=? AND provider=? AND model=? "
+                    + "AND embedding IS NOT NULL",
                 first,
                 "openai",
                 "embedding-v1"
@@ -99,12 +100,12 @@ class RagDocumentServiceTests {
         when(db.insert(eq("vector_indexing_jobs"), anyMap())).thenReturn(job);
         when(
             db.scalar(
-                "SELECT count(*) FROM rag_chunk_embeddings WHERE provider=? AND model=?",
+                "SELECT count(*) FROM rag_chunk_embeddings WHERE provider=? AND model=? AND embedding IS NOT NULL",
                 "openai",
                 "embedding-v1"
             )
         ).thenReturn(2L);
-        when(ai.embed("Java")).thenThrow(new ApiException(502, "Provider failed")).thenReturn(new float[1536]);
+        when(ai.embed("Java")).thenThrow(new ApiException(502, "Provider failed")).thenReturn(new float[1024]);
         assertThrows(ApiException.class, () -> service.index(id));
         verify(db).update("UPDATE rag_documents SET embedding_status='FAILED' WHERE id=?", id);
         verify(db).update(

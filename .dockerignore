@@ -1,6 +1,8 @@
 .git
 .idea
 .mvn
+.env
+.env.*
 # Include the packaged JAR while excluding other Maven output.
 target/*
 !target/*.jar

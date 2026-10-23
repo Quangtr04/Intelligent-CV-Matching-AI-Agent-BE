@@ -1,6 +1,7 @@
 package com.example.intelligent_cv_matching_ai_agent.config.shared;
 
 import com.example.intelligent_cv_matching_ai_agent.security.shared.BearerFilter;
+import jakarta.servlet.DispatcherType;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -37,6 +38,8 @@ public class SecurityConfig {
         }).sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(
                 auth -> auth
+                    // Preserve the original HTTP error when the container dispatches to /error.
+                    .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                     .requestMatchers(
                         "/api/v1/auth/register",
                         "/api/v1/auth/verify-email",

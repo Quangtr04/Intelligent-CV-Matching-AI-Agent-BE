@@ -8,6 +8,8 @@ import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiService;
 import com.example.intelligent_cv_matching_ai_agent.security.shared.CurrentUser;
 import com.example.intelligent_cv_matching_ai_agent.repository.shared.SqlStore;
 import com.example.intelligent_cv_matching_ai_agent.service.candidate.resume.ResumeService;
+import com.example.intelligent_cv_matching_ai_agent.service.shared.jobs.MatchingSalaryPolicyService;
+import com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.MatchingSalaryPolicy;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
@@ -88,7 +90,9 @@ class MatchingServiceCacheTests {
 
         @SuppressWarnings("unchecked")
         ObjectProvider<StringRedisTemplate> redis = mock(ObjectProvider.class);
-        MatchingService service = new MatchingService(new MatchingRepository(db), user, ai, resumes, redis);
+        MatchingSalaryPolicyService policies = mock(MatchingSalaryPolicyService.class);
+        when(policies.effective()).thenReturn(MatchingSalaryPolicy.legacyDefault());
+        MatchingService service = new MatchingService(new MatchingRepository(db), user, ai, resumes, redis, policies);
         List<UUID> firstSelection = basis.equals("SELECTED_CV") ? List.of(firstCv) : null;
         List<UUID> secondSelection = basis.equals("SELECTED_CV") ? List.of(secondCv) : null;
         Map<String, Object> firstRun = service.match(basis, firstSelection, 1);

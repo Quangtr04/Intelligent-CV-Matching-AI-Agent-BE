@@ -20,9 +20,13 @@ import com.example.intelligent_cv_matching_ai_agent.dto.response.candidate.resum
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
-import java.security.MessageDigest;
 import java.time.LocalDate;
 import java.util.*;
+import com.example.intelligent_cv_matching_ai_agent.util.candidate.resume.ResumeContent;
+import com.example.intelligent_cv_matching_ai_agent.util.candidate.resume.ResumeContentQuality;
+import com.example.intelligent_cv_matching_ai_agent.util.candidate.resume.ResumeInput;
+import com.example.intelligent_cv_matching_ai_agent.util.candidate.resume.ResumeWritingQuality;
+import static com.example.intelligent_cv_matching_ai_agent.util.shared.Values.object;
 
 @Service
 public class ResumeService {
@@ -74,6 +78,8 @@ public class ResumeService {
     public Map<String, Object> get(
         UUID id) {
         Map<String, Object> resume = new LinkedHashMap<>(owned(id));
+        UUID template = ResumeInput.optionalUuid(resume.get("template_id"));
+        resume.put("template", template == null ? null : db.findResumeTemplateById(template).orElse(null));
         resume.put("experiences", db.listResumeExperiencesByResumeId(id));
         resume.put("educations", db.listResumeEducationsByResumeId(id));
         resume.put("projects", db.listResumeProjectsByResumeId(id));
@@ -90,7 +96,7 @@ public class ResumeService {
         String title,
         String language) {
         UUID user = current.id();
-        String lang = language(language);
+        String lang = ResumeInput.language(language);
         String requestedTitle = title == null || title.isBlank() ? null : ResumeData.text(title, "title", 255);
 
         ExtractedResume extracted = extractor.extract(file);
@@ -125,7 +131,8 @@ public class ResumeService {
         values.put("file_size_bytes", extracted.bytes().length);
         values.put("raw_content", extracted.text());
         values.put("structured_data", db.json(structured));
-        values.put("content_hash", contentHash(effectiveTitle, lang, extracted.text(), structured));
+        values
+            .put("content_hash", ResumeContent.contentHash(mapper, effectiveTitle, lang, extracted.text(), structured));
 
         UUID id = db.insertResumes(values);
 
@@ -155,10 +162,10 @@ public class ResumeService {
         Map<String, Object> input,
         boolean generated) {
         current.id();
-        String title = requiredTitle(input), lang = language(input.get("language"));
+        String title = ResumeInput.requiredTitle(input), lang = ResumeInput.language(input.get("language"));
         String raw = Optional.ofNullable(input.get("raw_content")).map(v -> ResumeData.text(v, "raw_content", 200_000))
             .orElse("");
-        UUID template = uuid(input.get("template_id"));
+        UUID template = ResumeInput.optionalUuid(input.get("template_id"));
 
         if (template != null)
             db.getResumeTemplatesById(template);
@@ -170,7 +177,7 @@ public class ResumeService {
             safe.put("career_profile", db.findCandidateProfilesByUserId(current.id()).orElse(Map.of()));
             structured = ResumeData.normalize(ai.generate("CV_BUILD", safe));
         } else
-            structured = ResumeData.normalize(document(input));
+            structured = ResumeData.normalize(ResumeInput.document(input));
 
         Map<String, Object> values = new LinkedHashMap<>();
         values.put("user_id", current.id());
@@ -181,7 +188,7 @@ public class ResumeService {
         values.put("language", lang);
         values.put("structured_data", db.json(structured));
         values.put("raw_content", raw);
-        values.put("content_hash", contentHash(title, lang, raw, structured));
+        values.put("content_hash", ResumeContent.contentHash(mapper, title, lang, raw, structured));
 
         return get(db.insertResumes(values));
     }
@@ -190,21 +197,35 @@ public class ResumeService {
     public Map<String, Object> update(
         UUID id,
         Map<String, Object> input) {
-        Map<String, Object> before = owned(id);
+        boolean templateChanged = input.containsKey("template_id");
+        Map<String, Object> before = templateChanged ? db.getResumesByIdForUpdate(id) : owned(id);
+        if (templateChanged)
+            current.owns(before, "user_id");
         if ("ARCHIVED".equals(before.get("status").toString()))
             throw ApiException.conflict("Archived CV cannot be edited");
 
+        UUID template = templateChanged ? ResumeInput.optionalUuid(input.get("template_id")) : null;
+        if (template != null)
+            db.getResumeTemplatesById(template);
+
+        boolean contentProvided = input.containsKey("title") || input.containsKey("language")
+            || input.containsKey("raw_content") || input.containsKey("structured_data");
+        if (templateChanged && !contentProvided) {
+            db.updateResumeTemplateById(template, id);
+            return get(id);
+        }
+
         Map<String, Object> data = input.containsKey("structured_data")
-            ? ResumeData.normalize(document(input))
-            : ResumeData.normalize(asMap(before.get("structured_data")));
+            ? ResumeData.normalize(ResumeInput.document(input))
+            : ResumeData.normalize(object(before.get("structured_data")));
         String raw = input.containsKey("raw_content")
             ? ResumeData.text(input.get("raw_content"), "raw_content", 200_000)
             : Objects.toString(before.get("raw_content"), "");
-        String title = input.containsKey("title") ? requiredTitle(input) : before.get("title").toString();
+        String title = input.containsKey("title") ? ResumeInput.requiredTitle(input) : before.get("title").toString();
         String lang = input.containsKey("language")
-            ? language(input.get("language"))
+            ? ResumeInput.language(input.get("language"))
             : Objects.toString(before.get("language"), "vi");
-        String newHash = contentHash(title, lang, raw, data);
+        String newHash = ResumeContent.contentHash(mapper, title, lang, raw, data);
         boolean changed = !Objects.equals(before.get("content_hash"), newHash);
 
         db.updateResumesById(
@@ -217,6 +238,9 @@ public class ResumeService {
             changed,
             id
         );
+
+        if (templateChanged)
+            db.updateResumeTemplateById(template, id);
 
         if (changed)
             invalidate(id);
@@ -233,8 +257,9 @@ public class ResumeService {
         if ("ARCHIVED".equals(before.get("status").toString()))
             throw ApiException.conflict("Archived CV cannot be confirmed");
 
-        Map<String, Object> data = ResumeData
-            .normalize(input.containsKey("structured_data") ? document(input) : asMap(before.get("structured_data")));
+        Map<String, Object> data = ResumeData.normalize(
+            input.containsKey("structured_data") ? ResumeInput.document(input) : object(before.get("structured_data"))
+        );
         String raw = input.containsKey("raw_content")
             ? ResumeData.text(input.get("raw_content"), "raw_content", 200_000)
             : Objects.toString(before.get("raw_content"), "");
@@ -244,8 +269,13 @@ public class ResumeService {
         if (!hasContent)
             throw ApiException.badRequest("Review and complete CV content before confirmation");
 
-        String newHash =
-            contentHash(before.get("title").toString(), Objects.toString(before.get("language"), "vi"), raw, data);
+        String newHash = ResumeContent.contentHash(
+            mapper,
+            before.get("title").toString(),
+            Objects.toString(before.get("language"), "vi"),
+            raw,
+            data
+        );
         replaceSections(id, data);
 
         if (!Objects.equals(newHash, before.get("content_hash")))
@@ -287,14 +317,41 @@ public class ResumeService {
     @Transactional
     public Map<String, Object> analyze(
         UUID id) {
+
         Map<String, Object> resume = owned(id);
+
         if (!"READY".equals(resume.get("status").toString()))
             throw ApiException.conflict("Confirm the CV before analysis");
 
-        Map<String, Object> result = ai.enabled()
-            ? ai.generate("CV_ANALYZE", Map.of("resume", resume, "resume_text", canonicalText(resume)))
-            : baseline(resume);
-        String mode = ai.enabled() ? "AI_QUALITY" : "RULE_BASED";
+        boolean useAi = ai.enabled();
+
+        Map<String, Object> result;
+        if (useAi) {
+            Map<String, Object> generated = ai.generate(
+                "CV_ANALYZE",
+                Map.of(
+                    "resume",
+                    ResumeWritingQuality.source(resume),
+                    "resume_text",
+                    canonicalText(resume),
+                    "language",
+                    Objects.toString(resume.get("language"), "vi")
+                )
+            );
+            Map<String, Object> contentResult = ResumeContentQuality.normalize(generated, resume);
+
+            Map<String, Object> merged = new LinkedHashMap<>(generated);
+
+            merged.put("content_score", contentResult.get("score"));
+
+            result = ResumeWritingQuality.normalize(merged, resume);
+
+            result.put("content_quality", contentResult);
+
+        } else {
+            result = ResumeContent.baseline(resume);
+        }
+        String mode = useAi ? "AI_QUALITY" : "RULE_BASED";
         Map<String, Object> fields = new LinkedHashMap<>();
         fields.put("resume_id", id);
         fields.put("analysis_type", mode);
@@ -303,7 +360,11 @@ public class ResumeService {
         fields.put("summary", result.get("summary"));
         fields.put("strengths_json", db.json(result.getOrDefault("strengths", List.of())));
         fields.put("issues_json", db.json(result.getOrDefault("issues", List.of())));
-        fields.put("model_name", ai.enabled() ? result.get("_model") : "rules-v1");
+        if (useAi) {
+            fields.put("writing_quality_json", db.json(result.get("writing_quality")));
+            fields.put("content_quality_json", db.json(result.get("content_quality")));
+        } ;
+        fields.put("model_name", useAi ? result.get("_model") : "rules-v1");
 
         UUID analysis = db.insertResumeAnalyses(fields);
 
@@ -330,14 +391,14 @@ public class ResumeService {
         UUID id) {
         owned(id);
 
-        return db.listResumeAnalysesByResumeId(id);
+        return db.listResumeAnalysesByResumeId(id).stream().map(ResumeWritingQuality::expose).toList();
     }
 
     public Map<String, Object> analysis(
         UUID analysisId,
         UUID resumeId) {
         owned(resumeId);
-        Map<String, Object> result = new LinkedHashMap<>(db.getResumeAnalysesById(analysisId, resumeId));
+        Map<String, Object> result = ResumeWritingQuality.expose(db.getResumeAnalysesById(analysisId, resumeId));
         result.put("suggestions", db.listResumeAnalysisSuggestionsByAnalysisId(analysisId));
 
         return result;
@@ -404,15 +465,7 @@ public class ResumeService {
 
     public String canonicalText(
         Map<String, Object> resume) {
-        // Reviewed structured content is authoritative; raw extraction is only used
-        // before review or when no structure exists.
-        Map<String, Object> data = asMap(resume.get("structured_data"));
-        boolean reviewed = !Objects.toString(data.get("summary"), "").isBlank()
-            || List.of("experience", "education", "projects", "certifications", "skills").stream()
-                .anyMatch(k -> data.get(k) instanceof List<?> rows && !rows.isEmpty());
-        String text = reviewed ? mapper.writeValueAsString(data) : Objects.toString(resume.get("raw_content"), "");
-
-        return Objects.toString(resume.get("title"), "") + "\n" + text;
+        return ResumeContent.canonicalText(mapper, resume);
     }
 
     public ResumeDownloadResponse download(
@@ -446,7 +499,7 @@ public class ResumeService {
             db.deleteSection(section, resume);
 
             for (Object item : (List<?>) data.get(section)) {
-                Map<String, Object> values = new LinkedHashMap<>(asMap(item));
+                Map<String, Object> values = new LinkedHashMap<>(object(item));
                 values.put("resume_id", resume);
 
                 for (String col : new ArrayList<>(values.keySet())) {
@@ -465,16 +518,14 @@ public class ResumeService {
         Set<UUID> seen = new HashSet<>();
 
         for (Object item : (List<?>) data.get("skills")) {
-            Map<String, Object> row = asMap(item);
-            UUID skill = uuid(row.get("skill_id"));
+            Map<String, Object> row = object(item);
+            UUID skill = ResumeInput.optionalUuid(row.get("skill_id"));
 
             if (skill != null)
                 db.getSkillsById(skill);
             else {
                 String name = row.get("name").toString();
-                String slug = name.toLowerCase(Locale.ROOT).replaceAll("[^\\p{L}\\p{N}]+", "-").replaceAll("^-|-$", "");
-                if (slug.isBlank())
-                    throw ApiException.badRequest("Invalid skill name");
+                String slug = ResumeInput.skillSlug(name);
 
                 skill = (UUID) db.readSkills(name, slug);
             }
@@ -494,51 +545,6 @@ public class ResumeService {
         UUID id) {
         db.updateResumeEmbeddingsByResumeId(id);
         db.updateRoadmapsByGapAnalysisId(id);
-    }
-
-    private Map<String, Object> baseline(
-        Map<String, Object> resume) {
-        Map<String, Object> data = asMap(resume.get("structured_data"));
-        List<String> strengths = new ArrayList<>(), issues = new ArrayList<>();
-        List<Map<String, Object>> suggestions = new ArrayList<>();
-        int score = 0;
-
-        for (String key : List.of("summary", "experience", "education", "skills", "projects")) {
-            Object value = data.get(key);
-            boolean present =
-                value instanceof List<?> list ? !list.isEmpty() : value instanceof String s && !s.isBlank();
-
-            if (present) {
-                score += 20;
-                strengths.add("Có mục " + key);
-            } else {
-                issues.add("Thiếu mục " + key);
-                suggestions.add(
-                    Map.of(
-                        "category",
-                        key,
-                        "severity",
-                        "MEDIUM",
-                        "explanation",
-                        "Bổ sung thông tin thực tế cho mục " + key
-                    )
-                );
-            }
-        }
-
-        Map<String, Object> result = new LinkedHashMap<>();
-        result.put("overall_score", score);
-        result.put("ats_score", null);
-        result.put(
-            "summary",
-            ("Kiểm tra mức độ đầy đủ của các mục CV bằng quy tắc. Chưa đánh giá ATS,"
-                + " chất lượng nội dung hoặc độ phù hợp với vị trí tuyển dụng.")
-        );
-        result.put("strengths", strengths);
-        result.put("issues", issues);
-        result.put("suggestions", suggestions);
-
-        return result;
     }
 
     private void write(
@@ -581,86 +587,5 @@ public class ResumeService {
             throw ApiException.forbidden("Invalid file path");
 
         return target;
-    }
-
-    private String hash(
-        String value) {
-        try {
-            return HexFormat.of()
-                .formatHex(MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8)));
-        } catch (Exception ex) {
-            throw new IllegalStateException(ex);
-        }
-    }
-
-    private String contentHash(
-        String title,
-        String language,
-        String raw,
-        Map<String, Object> data) {
-        return hash(mapper.writeValueAsString(List.of(title, language, raw, stable(data))));
-    }
-
-    private Object stable(
-        Object value) {
-        if (value instanceof Map<?, ?> map) {
-            Map<String, Object> sorted = new TreeMap<>();
-            map.forEach(
-                (
-                    key,
-                    item) -> sorted.put(key.toString(), stable(item))
-            );
-
-            return sorted;
-        }
-
-        if (value instanceof List<?> list)
-            return list.stream().map(this::stable).toList();
-
-        return value;
-    }
-
-    private UUID uuid(
-        Object value) {
-        if (value == null)
-            return null;
-
-        try {
-            return UUID.fromString(value.toString());
-        } catch (Exception ex) {
-            throw ApiException.badRequest("Invalid UUID");
-        }
-    }
-
-    private String requiredTitle(
-        Map<String, Object> input) {
-        String title = ResumeData.text(input.get("title"), "title", 255);
-        if (title.isBlank())
-            throw ApiException.badRequest("title is required");
-
-        return title;
-    }
-
-    private String language(
-        Object value) {
-        String lang = value == null ? "vi" : value.toString();
-        if (!Set.of("vi", "en", "VI", "EN").contains(lang))
-            throw ApiException.badRequest("language must be vi or en");
-
-        return lang.toLowerCase(Locale.ROOT);
-    }
-
-    private Map<String, Object> document(
-        Map<String, Object> input) {
-        if (!(input.get("structured_data") instanceof Map<?, ?>))
-            throw ApiException.badRequest("structured_data must be an object");
-
-        return asMap(input.get("structured_data"));
-    }
-
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> asMap(
-        Object value) {
-        return value instanceof Map<?, ?> ? (Map<String, Object>) value : Map.of();
     }
 }

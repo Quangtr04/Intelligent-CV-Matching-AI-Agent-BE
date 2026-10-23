@@ -2,6 +2,11 @@
 
 Tài liệu đối chiếu với repository `INTELLIGENT_CV_MATCHING_AI_AGENT` ngày **13/10/2026**, bao gồm toàn bộ backend: API, bảo mật, database, CV, AI, việc làm, học tập, tư vấn, thanh toán và quản trị. Repository cung cấp Swagger UI; frontend web/mobile cần gọi các API này.
 
+Cấu hình AI runtime được cập nhật ngày **21/10/2026**: Spring AI Ollama native,
+chat `qwen2.5:7b`, embedding `qwen3-embedding:0.6b` 1024 chiều, không cần API key inference.
+Xem [hướng dẫn Ollama](ollama.md) và [schema V10](schema.md). Các số liệu kiểm chứng có mốc cũ
+và mô tả schema V1/V5 là lịch sử, không thay cho kết quả kiểm thử runtime hiện tại.
+
 Ví dụ dùng `http://localhost:8080`. Thay UUID, token, email, mật khẩu và key mẫu bằng dữ liệu của môi trường chạy. Giữ đúng tên trường DTO; dự án dùng cả `camelCase` và `snake_case` tùy API.
 
 ## Mục lục
@@ -33,10 +38,10 @@ EduNexus hỗ trợ chuẩn bị CV, tìm việc phù hợp, đánh giá kỹ n�
 | --- | --- | --- |
 | Java / Maven | Java 25 | Runtime và build |
 | Spring Boot | 4.1.1 | REST, dependency injection, cấu hình, scheduling |
-| Spring AI | 2.0.1 | `ChatModel`/`EmbeddingModel` qua adapter hiện có |
+| Spring AI | 2.0.1, adapter Ollama native | `ChatModel`/`EmbeddingModel` gọi Ollama cục bộ |
 | Spring Security | JWT bearer + kiểm tra database | Xác thực, phân quyền, thu hồi phiên |
-| PostgreSQL / pgvector | Compose PostgreSQL 17, vector 1536 chiều | Dữ liệu nghiệp vụ, semantic matching, RAG |
-| Flyway | V1–V5 | Schema, constraint, seed và ingestion automation |
+| PostgreSQL / pgvector | Compose PostgreSQL 17, embedding hiện tại 1024 chiều | Dữ liệu nghiệp vụ, semantic matching, RAG; V10 giữ vector legacy 1536 |
+| Flyway | V1–V10 | Schema, constraint, seed, ingestion automation và chuyển embedding |
 | JDBC / JPA | Cùng tồn tại | Workflow SQL và truy cập entity có kiểu |
 | Redis | Tùy chọn | Cache ATS/matching, có database fallback |
 | PDFBox / POI / Tesseract | Trích xuất tệp/OCR | Đọc CV và scan khi OCR được cấu hình |
@@ -87,7 +92,7 @@ INTELLIGENT_CV_MATCHING_AI_AGENT/
     │   │   ├── security/shared/
     │   │   ├── config/shared/
     │   │   ├── exception/shared/
-    │   │   └── util/shared/
+    │   │   └── util/<role>/<feature>/
     │   └── resources/
     │       ├── application.yaml
     │       └── db/migration/
@@ -103,8 +108,14 @@ INTELLIGENT_CV_MATCHING_AI_AGENT/
 | `SqlStore` | Bọc `JdbcTemplate`, bind/read JSON và SQL | `repository/shared/SqlStore.java` |
 | Entity/JPA | Mapping bảng và truy cập có kiểu | `User`/`UserJpaRepository` |
 | Response DTO | Chọn dữ liệu công khai | `PersonalProfileResponse` |
-| Util | Xử lý tệp, URL, webhook | `ResumeFileExtractor`/`WebhookVerifier` |
+| Util | Validation, chuẩn hóa, dựng text/hash/projection và xử lý tệp/URL/webhook | `ResumeContent`/`JobEmbeddingSupport`/`WebhookVerifier` |
 | Exception | Lỗi nghiệp vụ và HTTP response | `ApiException`/`ApiExceptionHandler` |
+
+Các hàm hỗ trợ được nhóm trong `util/admin`, `util/candidate`, `util/consultant` và `util/shared`,
+theo feature tương ứng. Service gọi util để kiểm tra hoặc biến đổi dữ liệu; kiểm tra quyền,
+transaction, truy cập repository và điều phối các bước nghiệp vụ vẫn nằm trong service.
+Một số hàm public cũ như `ResumeService.canonicalText`, `JobService.embeddingText`,
+`RagDocumentService.split` và `TokenService.hash` được giữ làm delegate để tương thích với caller hiện có.
 
 Phần lớn workflow dùng JDBC cho `FOR UPDATE`, `ON CONFLICT`, advisory lock, JSON và pgvector. Có JPA repository không có nghĩa tất cả API đều dùng JPA.
 
@@ -174,6 +185,12 @@ rg -n 'registrationVerification' src/test/java
 
 Sau V5 có 78 bảng ứng dụng, ngoài lịch sử Flyway (V1 có74, V3 thêm2, V5 thêm2). UUID dùng `gen_random_uuid()`, JSON dùng `jsonb`, thời gian dùng `timestamptz`, embedding `vector(1536)`. Enum nghiệp vụ thường là varchar có `CHECK`.
 
+Đó là mốc schema V5. Hiện tại V1–V19 có **83 bảng ứng dụng**; V10 giữ vector cũ trong
+`embedding_legacy_1536` và thêm cột `embedding vector(1024)`. Vector cũ không còn current;
+RAG đã hoàn tất với vector cũ chuyển về `PENDING`, cần index lại bằng model Ollama mới.
+V11 từng thêm mô tả và cấu hình trình bày cho mẫu CV; V19 chuyển toàn bộ mẫu sang HTML/CSS trong `html_content`,
+bỏ cấu hình layout JSON và giữ nguyên tham chiếu CV cũ. Chi tiết migration hiện tại nằm ở [schema.md](schema.md).
+
 | Module | Các bảng quan trọng |
 | --- | --- |
 | Identity | `users`, `email_verification_codes`, `refresh_tokens` |
@@ -236,8 +253,9 @@ Dừng backend bằng Ctrl+C. Database/cache là process/container riêng.
 | Security | `CORS_ALLOWED_ORIGINS` | Origin frontend cách nhau bằng dấu phẩy; mẫu localhost 3000/5173 |
 | Identity | `AUTH_EXPOSE_DEV_OTP`, `GOOGLE_CLIENT_ID` | Dev OTP và Google audience |
 | Mail | `MAIL_ENABLED`, `MAIL_FROM`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_SMTP_AUTH`, `MAIL_STARTTLS` | SMTP OTP |
-| AI | `AI_ENABLED`, `AI_PROVIDER`, `AI_CHAT_PROVIDER`, `AI_EMBEDDING_PROVIDER`, `OPENAI_API_KEY` | Bật AI/cấu hình provider |
-| AI | `AI_CHAT_MODEL`, `AI_EMBEDDING_MODEL`, `AI_MAX_OUTPUT_TOKENS` | Model và output limit |
+| AI | `AI_ENABLED`, `AI_PROVIDER`, `AI_CHAT_PROVIDER`, `AI_EMBEDDING_PROVIDER`, `OLLAMA_BASE_URL` | Bật AI/cấu hình provider `ollama` và địa chỉ model server |
+| AI | `AI_CHAT_MODEL`, `AI_EMBEDDING_MODEL`, `AI_EMBEDDING_DIMENSIONS`, `AI_MAX_OUTPUT_TOKENS` | Model, embedding 1024 chiều và output limit |
+| AI | `OLLAMA_KEEP_ALIVE`, `OLLAMA_CONTEXT_LENGTH`, `OLLAMA_EMBEDDING_CONTEXT_LENGTH` | Giữ model trong bộ nhớ và cấu hình context |
 | Guest | `GUEST_TOKEN_LIMIT` | Ngân sách session mới; giá trị mẫu 5000 |
 | Payment | `PAYMENT_PROVIDER`, `PAYMENT_WEBHOOK_SECRET` | Provider generic và HMAC secret |
 | Billing | `BILLING_MAINTENANCE_ENABLED`, `BILLING_MAINTENANCE_BATCH_SIZE` | Bật expiry/reminder job và giới hạn mỗi lượt |
@@ -266,15 +284,22 @@ key trùng. Sửa `.env` rồi restart backend.
 
 ~~~dotenv
 AI_ENABLED=true
-AI_CHAT_PROVIDER=openai
-AI_EMBEDDING_PROVIDER=openai
-OPENAI_API_KEY=your-api-key
-AI_CHAT_MODEL=gpt-4.1-mini
-AI_EMBEDDING_MODEL=text-embedding-3-small
+AI_PROVIDER=ollama
+AI_CHAT_PROVIDER=ollama
+AI_EMBEDDING_PROVIDER=ollama
+AI_CHAT_MODEL=qwen2.5:7b
+AI_EMBEDDING_MODEL=qwen3-embedding:0.6b
+AI_EMBEDDING_DIMENSIONS=1024
+OLLAMA_BASE_URL=http://localhost:11434
 AI_MAX_OUTPUT_TOKENS=2000
 ~~~
 
-`AI_ENABLED=true` vẫn cần bean chat/embedding phù hợp. Lưu config admin không tự tạo provider bean hay đổi API key. Đổi provider/key cần restart; đổi embedding model cần index lại vector tương thích.
+`AI_ENABLED=true` vẫn cần Ollama đang chạy, model đã tải và bean chat/embedding tương ứng.
+Runtime dùng `spring.ai.model.chat=ollama`, `spring.ai.model.embedding=ollama`,
+`spring.ai.ollama.base-url`, `spring.ai.ollama.chat.model` và `spring.ai.ollama.embedding.model`;
+không cần `OPENAI_API_KEY`. Constructor chỉ nhận provider `ollama` và embedding dimension 1024.
+Lưu config admin không khởi động Ollama hoặc tải model. Đổi model embedding cần restart/index lại;
+model có số chiều khác cần migration phù hợp. Xem lệnh Docker/init/smoke tại [ollama.md](ollama.md).
 
 ### 4.4. Redis, container và OCR
 
@@ -454,8 +479,7 @@ SMTP hiện chỉ gửi OTP. Thông báo nghiệp vụ nằm trong database; dra
   "targetJobTitle": "Java Backend Developer",
   "careerGoal": "Phát triển backend bằng Spring Boot",
   "yearsExperience": 1,
-  "expectedSalaryMin": 10000000,
-  "expectedSalaryMax": 20000000,
+  "expectedSalary": 7500000,
   "salaryCurrency": "VND",
   "preferredLocation": "Ho Chi Minh",
   "skills": [
@@ -468,13 +492,15 @@ SMTP hiện chỉ gửi OTP. Thông báo nghiệp vụ nằm trong database; dra
 }
 ~~~
 
-`PUT /me/career-profile` tạo profile nếu thiếu → kiểm tra khoảng lương/skill active và không trùng → ghi scalar → thay skill links nếu có list → invalidate profile embeddings và đánh dấu mọi roadmap user `is_outdated=true`.
+`PUT /me/career-profile` tạo profile nếu thiếu → kiểm tra một mức lương kỳ vọng theo tháng/skill active và không trùng → ghi scalar → thay skill links nếu có list → invalidate profile embeddings và đánh dấu mọi roadmap user `is_outdated=true`.
 
 Đây là PUT: cần gửi đủ scalar muốn giữ vì field bỏ qua thường được ghi null. `skills` bỏ qua/null giữ links cũ; `skills: []` xóa links. Currency VND/USD/EUR, experience0–99.9, tối đa100 skill. GET trả SQL fields snake_case. Không có API profile embedding riêng; matching xử lý vector từ input profile.
 
 ### 6.2. Ba đường tạo CV
 
-Luồng chung: `ResumeController → ResumeService → ResumeRepository`; normalize/canonical qua `ResumeData`, extraction qua `ResumeFileExtractor`.
+Luồng chung: `ResumeController → ResumeService → ResumeRepository`. `ResumeData` chuẩn hóa JSON CV;
+`ResumeInput` kiểm tra đầu vào; `ResumeContent` dựng nội dung chuẩn, hash và kết quả kiểm tra cơ bản;
+`ResumeFileExtractor` trích xuất tệp. Các helper này nằm trong `util` theo vai trò/chức năng.
 
 | Cách | API | Source/status sau tạo |
 | --- | --- | --- |
@@ -630,7 +656,9 @@ Nếu provider đã trả response, settle usage thực tế không vượt rese
 | CV/job/RAG index, RAG retrieval | Cần embedding provider |
 | Tư vấn người thật/billing/admin/support | Không cần AI |
 
-AI hiện được cấu hình cho OpenAI adapter. Đổi provider tùy ý không chỉ là đổi một biến tên model; cần provider bean/config tương ứng. Embedding luôn phải đúng1536 chiều.
+AI dùng adapter Ollama native; chat mặc định `qwen2.5:7b`, embedding `qwen3-embedding:0.6b`.
+Embedding phải có đúng 1024 giá trị hữu hạn để khớp schema V10; vector legacy 1536 được giữ riêng
+và không dùng trong truy vấn hiện tại. Runtime không nhận provider khác chỉ bằng đổi tên cấu hình.
 
 ## 8. Việc làm, crawling, matching và ứng tuyển
 
@@ -963,8 +991,8 @@ Config input:
 ~~~json
 {
   "configType":"CHAT",
-  "provider":"openai",
-  "modelName":"<MODEL_CUA_MOI_TRUONG>",
+  "provider":"ollama",
+  "modelName":"qwen2.5:7b",
   "configuration": {}
 }
 ~~~
@@ -984,7 +1012,8 @@ Không lưu API key/password/secret vào configuration; code stringify toàn b�
 
 Save/restore lock group, deactivate phiên bản cũ, tạo UUID mới với version=max+1 và active. Restore v1 khi có v2 tạo v3 chứa nội dung v1, không ghi đè v1/v2. oldVersionId là UUID record, không phải số version.
 
-Lưu/restore không gọi model, không bật AI, không đổi key/provider bean. CHAT config đúng provider áp dụng lần chat kế tiếp; prompt active theo feature áp dụng lần sinh tiếp.
+Lưu/restore không gọi model, không bật AI, không khởi động Ollama hay tải model. CHAT config đúng
+provider `ollama` áp dụng lần chat kế tiếp; model phải đã tải. Prompt active theo feature áp dụng lần sinh tiếp.
 
 ### 13.3. Announcement và notification
 
@@ -1087,8 +1116,7 @@ Send-JsonRequest -Method Put -Path '/me/career-profile' -Headers $authHeaders -P
     careerGoal = 'Backend development'
     yearsExperience = 1
     salaryCurrency = 'VND'
-    expectedSalaryMin = 10000000
-    expectedSalaryMax = 20000000
+    expectedSalary = 7500000
     preferredLocation = 'Ho Chi Minh'
 }
 $manualCv = Send-JsonRequest -Method Post -Path '/resumes' -Headers $authHeaders -Payload @{
@@ -1176,6 +1204,15 @@ Admin nên làm theo thứ tự:
 Consultant login bằng account được admin tạo → GET consultations được assign → đọc candidate-profile/candidate-analyses → trao đổi messages/SSE → đóng thread khi hoàn tất. Consultant không tự đọc toàn bộ CV/báo cáo của ứng viên ngoài thread được phân công.
 
 ### 14.6. Kết nối frontend
+
+Chức năng quản trị mẫu CV đã có trang `/admin/resume-templates` gọi backend thật. Đăng nhập ở
+`/login?mode=system`, chọn **Tài khoản hệ thống** bằng tài khoản Admin đã xác minh/cấp quyền.
+Trang hỗ trợ thêm, sửa, bật/tắt và preview HTML/CSS. Nội dung trình bày chỉ lưu trong `html_content`;
+Admin gửi `htmlContent` bắt buộc, FE nhận HTML qua `GET /api/v1/resumes/templates` hoặc `template.html_content`
+trong chi tiết CV và điền dữ liệu vào các slot. Candidate chọn mẫu qua `template_id` như trước.
+Phiên demo có lựa chọn đăng nhập hệ thống riêng; không tự giả lập lưu template thành công.
+Các màn Candidate còn dùng mock không được coi là đã tích hợp cùng thay đổi này. API download CV
+vẫn chưa xuất PDF theo mẫu. Xem [hướng dẫn quản trị mẫu và Postman](admin-resume-templates.md).
 
 Ví dụ helper fetch JSON đọc được cả lỗi ProblemDetail và lỗi filter:
 
@@ -1550,7 +1587,7 @@ Nếu Flyway báo checksum sau thay migration đã áp dụng, kiểm migration 
 | Phần | Giới hạn cần hiểu khi dùng |
 | --- | --- |
 | Frontend | Backend và Swagger có sẵn; web/mobile sản phẩm ngoài repository này |
-| CV template | Có catalog/ID; chưa render PDF/DOCX theo template |
+| CV template | Admin tạo/sửa/bật-tắt và preview cấu hình; chưa render PDF/DOCX từ backend theo template |
 | SMTP | OTP plain text đồng bộ; chưa reset-password email, notification mail, send application draft |
 | Payment | Generic signed webhook; chưa checkout/QR/provider SDK/refund/auto charge |
 | Guest conversion | Chưa có workflow chuyển history trial sang user |
@@ -1608,6 +1645,7 @@ Các file dưới đây dùng link tương đối từ thư mục docs; các l�
 | Tư vấn | [ConsultationService.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/service/shared/consultation/ConsultationService.java), [ConsultationAnalysisService.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/service/consultant/consultation/ConsultationAnalysisService.java) |
 | Billing/webhook | [BillingService.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/service/shared/billing/BillingService.java), [WebhookVerifier.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/shared/billing/WebhookVerifier.java), [SubscriptionMaintenance.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/service/shared/billing/SubscriptionMaintenance.java) |
 | Admin/support | [AdminService.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/service/admin/management/AdminService.java), [SupportService.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/service/shared/support/SupportService.java) |
+| Hàm hỗ trợ của service | [Thư mục util](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util), [hướng dẫn service và util](service-code-guide.md) |
 | SQL nền | [SqlStore.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/repository/shared/SqlStore.java), [migration directory](../src/main/resources/db/migration) |
 | CI/Docker | [ci-cd.yml](../.github/workflows/ci-cd.yml), [Dockerfile](../Dockerfile), [compose.production.yaml](../compose.production.yaml) |
 

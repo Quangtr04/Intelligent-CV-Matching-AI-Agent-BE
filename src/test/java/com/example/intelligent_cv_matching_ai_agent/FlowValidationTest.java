@@ -62,52 +62,41 @@ class FlowValidationTest {
 
     @Test
     void assessmentRejectsAnswerNotAmongChoices() {
-        var foundation = Map.of(
-            "part",
-            1,
-            "question_text",
-            "Foundation?",
-            "options",
-            Map.of("A", "a", "B", "b", "C", "c", "D", "d"),
-            "correct_option",
-            "E"
-        );
-        var technical = Map.of(
-            "part",
-            2,
-            "question_text",
-            "Technical?",
-            "options",
-            Map.of("A", "a", "B", "b", "C", "c", "D", "d"),
-            "correct_option",
-            "A"
-        );
-        assertThrows(ApiException.class, () -> AssessmentService.validateQuestions(List.of(foundation, technical)));
+        var questions = assessmentQuestions();
+        questions.getFirst().put("correct_option", "E");
+        assertThrows(ApiException.class, () -> AssessmentService.validateQuestions(questions));
     }
 
     @Test
     void assessmentRejectsObjectWhereQuestionTextIsRequired() {
-        var invalid = Map.of(
-            "part",
-            1,
-            "question_text",
-            Map.of("unexpected", "object"),
-            "options",
-            Map.of("A", "a", "B", "b", "C", "c", "D", "d"),
-            "correct_option",
-            "A"
-        );
-        var technical = Map.of(
-            "part",
-            2,
-            "question_text",
-            "Technical?",
-            "options",
-            Map.of("A", "a", "B", "b", "C", "c", "D", "d"),
-            "correct_option",
-            "A"
-        );
-        assertThrows(ApiException.class, () -> AssessmentService.validateQuestions(List.of(invalid, technical)));
+        var questions = assessmentQuestions();
+        questions.getFirst().put("question_text", Map.of("unexpected", "object"));
+        assertThrows(ApiException.class, () -> AssessmentService.validateQuestions(questions));
+    }
+
+    private List<Map<String, Object>> assessmentQuestions() {
+        List<Map<String, Object>> questions = new ArrayList<>();
+        for (int index = 0; index < 10; index++) {
+            questions.add(
+                new LinkedHashMap<>(
+                    Map.of(
+                        "part",
+                        index < 5 ? 1 : 2,
+                        "question_text",
+                        "Java question " + index,
+                        "options",
+                        Map.of("A", "a", "B", "b", "C", "c", "D", "d"),
+                        "correct_option",
+                        "A",
+                        "related_skill_name",
+                        "Java",
+                        "explanation",
+                        "Java is required by this job."
+                    )
+                )
+            );
+        }
+        return questions;
     }
 
     @Test

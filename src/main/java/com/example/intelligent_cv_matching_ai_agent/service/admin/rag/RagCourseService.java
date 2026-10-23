@@ -4,8 +4,8 @@ import com.example.intelligent_cv_matching_ai_agent.dto.request.admin.rag.Course
 import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException;
 import com.example.intelligent_cv_matching_ai_agent.repository.admin.rag.RagCourseRepository;
 import com.example.intelligent_cv_matching_ai_agent.security.shared.CurrentUser;
+import com.example.intelligent_cv_matching_ai_agent.util.admin.rag.RagCourseSupport;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.learning.CourseLink;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,12 +48,12 @@ public class RagCourseService {
         CourseLinkRequest request) {
         user.requireRole("ADMIN");
         CourseLink link = CourseLink.parse(request.url());
-        String title = text(request.title(), "title", 255);
-        String description = text(request.description(), "description", 12000);
-        String language = text(request.language(), "language", 10);
+        String title = RagCourseSupport.text(request.title(), "title", 255);
+        String description = RagCourseSupport.text(request.description(), "description", 12000);
+        String language = RagCourseSupport.text(request.language(), "language", 10);
         if (!language.matches("[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,6})?") || request.isFree() == null)
             throw ApiException.badRequest("language and isFree are required and must be valid");
-        List<String> skills = skills(request.skills());
+        List<String> skills = RagCourseSupport.skills(request.skills());
         Map<String, Object> fields = new LinkedHashMap<>();
         fields.put("url", link.url());
         fields.put("provider", link.provider());
@@ -79,7 +79,7 @@ public class RagCourseService {
             throw ApiException.conflict("Only pending course links can be approved");
 
         CourseLink link = CourseLink.parse((String) course.get("url"));
-        List<String> skillNames = skills(course.get("skills"));
+        List<String> skillNames = RagCourseSupport.skills(course.get("skills"));
         List<String> skillSlugs = skillNames.stream().map(CourseLink::skillSlug).distinct().toList();
         Map<String, Object> resource = new LinkedHashMap<>(course);
         resource.put("resource_type", link.resourceType());
@@ -94,7 +94,7 @@ public class RagCourseService {
                 "title",
                 course.get("title"),
                 "content",
-                content(course, skillNames),
+                RagCourseSupport.content(course, skillNames),
                 "metadata",
                 Map.of(
                     "course_id",
@@ -145,41 +145,5 @@ public class RagCourseService {
         Map<String, Object> result = new LinkedHashMap<>(course);
         result.put("rag_document", rag.index((UUID) course.get("rag_document_id")));
         return result;
-    }
-
-    private static String content(
-        Map<String, Object> course,
-        List<String> skills) {
-        return "Admin-reviewed learning resource\nTitle: " + course.get("title") + "\nURL: " + course.get("url")
-            + "\nProvider: " + course.get("provider") + "\nSkills: " + String.join(", ", skills) + "\nLanguage: "
-            + course.get("language") + "\nFree: " + course.get("is_free") + "\nDescription: "
-            + course.get("description");
-    }
-
-    private static List<String> skills(
-        Object input) {
-        if (!(input instanceof List<?> values) || values.isEmpty() || values.size() > 30)
-            throw ApiException.badRequest("skills must contain between 1 and 30 skill names");
-
-        Map<String, String> distinct = new LinkedHashMap<>();
-        for (Object value : values) {
-            if (!(value instanceof String name))
-                throw ApiException.badRequest("Each skill must be a name");
-            String clean = text(name, "skill", 150);
-            String slug = CourseLink.skillSlug(clean);
-            if (slug.isBlank())
-                throw ApiException.badRequest("Each skill must contain letters or numbers");
-            distinct.putIfAbsent(slug, clean);
-        }
-        return new ArrayList<>(distinct.values());
-    }
-
-    private static String text(
-        String value,
-        String name,
-        int maxLength) {
-        if (value == null || value.isBlank() || value.length() > maxLength)
-            throw ApiException.badRequest(name + " is required and must not exceed " + maxLength + " characters");
-        return value.strip();
     }
 }

@@ -5,6 +5,7 @@ import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.profil
 import com.example.intelligent_cv_matching_ai_agent.dto.request.shared.identity.PasswordChangeRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.shared.identity.PersonalProfileRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.response.shared.identity.PersonalProfileResponse;
+import com.example.intelligent_cv_matching_ai_agent.service.candidate.resume.ResumeProfileAlignmentRefreshService;
 
 import org.springframework.stereotype.Service;
 import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException;
@@ -28,15 +29,19 @@ public class ProfileService {
 
     private final PasswordEncoder encoder;
 
+    private final ResumeProfileAlignmentRefreshService alignmentRefresh;
+
     public ProfileService(
         ProfileRepository db,
         CurrentUser user,
         TokenService tokens,
-        PasswordEncoder encoder) {
+        PasswordEncoder encoder,
+        ResumeProfileAlignmentRefreshService alignmentRefresh) {
         this.db = db;
         this.user = user;
         this.tokens = tokens;
         this.encoder = encoder;
+        this.alignmentRefresh = alignmentRefresh;
     }
 
     public PersonalProfileResponse me() {
@@ -59,6 +64,8 @@ public class ProfileService {
     public Map<String, Object> career() {
         Map<String, Object> result =
             new LinkedHashMap<>(db.findCandidateProfilesByUserId(user.id()).orElse(Map.of("user_id", user.id())));
+        result.remove("expected_salary_min");
+        result.remove("expected_salary_max");
         result.put("skills", db.listCandidateProfileSkillsByUserId(user.id()));
 
         return result;
@@ -67,11 +74,10 @@ public class ProfileService {
     @Transactional
     public Map<String, Object> careerUpdate(
         CareerProfileRequest body) {
-        if (body.expectedSalaryMin() != null && body.expectedSalaryMax() != null
-            && body.expectedSalaryMin().compareTo(body.expectedSalaryMax()) > 0)
-            throw ApiException.badRequest("Minimum salary must not exceed maximum salary");
-
         UUID owner = user.id();
+        // Serialize concurrent saves before reading the previous snapshot, including first-profile creation.
+        db.lockCandidateProfileOwner(owner);
+        String previousProfile = alignmentRefresh.profileFingerprint(owner);
 
         db.updateCandidateProfiles(owner);
         db.updateCandidateProfilesByUserId(
@@ -80,8 +86,7 @@ public class ProfileService {
             body.targetJobTitle(),
             body.careerGoal(),
             body.yearsExperience(),
-            body.expectedSalaryMin(),
-            body.expectedSalaryMax(),
+            body.expectedSalary(),
             body.salaryCurrency(),
             body.preferredLocation(),
             body.workplacePreference(),
@@ -111,6 +116,7 @@ public class ProfileService {
 
         db.updateCareerProfileEmbeddingsByUserId(owner);
         db.updateRoadmapsByUserId(owner);
+        alignmentRefresh.profileUpdated(owner, previousProfile);
 
         return career();
     }

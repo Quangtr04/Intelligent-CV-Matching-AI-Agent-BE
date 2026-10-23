@@ -51,24 +51,27 @@ spring:
       mail.smtp.timeout: ${MAIL_TIMEOUT}
   ai:
     model:
-      chat: ${AI_CHAT_PROVIDER}
-      embedding: ${AI_EMBEDDING_PROVIDER}
+      chat: ${AI_CHAT_PROVIDER:ollama}
+      embedding: ${AI_EMBEDDING_PROVIDER:ollama}
       audio:
         speech: ${AI_SPEECH_PROVIDER}
         transcription: ${AI_TRANSCRIPTION_PROVIDER}
       image: ${AI_IMAGE_PROVIDER}
       moderation: ${AI_MODERATION_PROVIDER}
-    openai:
-      api-key: ${OPENAI_API_KEY}
+    ollama:
+      base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+      init:
+        pull-model-strategy: never
       chat:
-        options:
-          model: ${AI_CHAT_MODEL}
-          temperature: ${AI_CHAT_TEMPERATURE}
-          max-tokens: ${AI_MAX_OUTPUT_TOKENS}
+        model: ${AI_CHAT_MODEL:qwen2.5:7b}
+        temperature: ${AI_CHAT_TEMPERATURE:0.2}
+        num-predict: ${AI_MAX_OUTPUT_TOKENS:2000}
+        num-ctx: ${OLLAMA_CONTEXT_LENGTH:8192}
+        keep-alive: ${OLLAMA_KEEP_ALIVE:5m}
       embedding:
-        options:
-          model: ${AI_EMBEDDING_MODEL}
-          dimensions: ${AI_EMBEDDING_DIMENSIONS}
+        model: ${AI_EMBEDDING_MODEL:qwen3-embedding:0.6b}
+        keep-alive: ${OLLAMA_KEEP_ALIVE:5m}
+        truncate: false
     vectorstore:
       qdrant:
         enabled: ${QDRANT_VECTORSTORE_ENABLED}
@@ -108,8 +111,15 @@ app:
       retry-seconds: ${JOB_EMBEDDING_RETRY_SECONDS}
   ai:
     enabled: ${AI_ENABLED}
-    provider: ${AI_PROVIDER}
+    provider: ${AI_PROVIDER:ollama}
+    embedding-dimensions: ${AI_EMBEDDING_DIMENSIONS:1024}
+    embedding-context-length: ${OLLAMA_EMBEDDING_CONTEXT_LENGTH:8192}
     max-output-tokens: ${AI_MAX_OUTPUT_TOKENS}
+    assessment-max-output-tokens: ${AI_ASSESSMENT_MAX_OUTPUT_TOKENS:12000}
+    assessment-context-length: ${AI_ASSESSMENT_CONTEXT_LENGTH:16384}
+    assessment-model: ${AI_ASSESSMENT_MODEL:qwen3.5:4b}
+    assessment-think: ${AI_ASSESSMENT_THINK:true}
+    learning-max-output-tokens: ${AI_LEARNING_MAX_OUTPUT_TOKENS:4000}
   ocr:
     enabled: ${APP_OCR_ENABLED}
     tessdata: ${APP_OCR_TESSDATA}

@@ -20,6 +20,7 @@ import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiService;
 
 import com.example.intelligent_cv_matching_ai_agent.service.candidate.resume.ResumeService;
 import java.util.*;
+import com.example.intelligent_cv_matching_ai_agent.util.candidate.jobs.CareerToolsSupport;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.transaction.annotation.Transactional;
@@ -116,14 +117,14 @@ public class CareerToolsService {
                     inputHash
                 );
                 if (row.isPresent())
-                    return analysisResponse(row.get(), true);
+                    return CareerToolsSupport.analysisResponse(row.get(), true);
             }
         } catch (org.springframework.data.redis.RedisConnectionFailureException | IllegalArgumentException ex) {
 
             /* Database cache remains available. */ }
         var cached = db.findJobResumeAnalysesByUserId(user.id(), request.resumeId(), jobId, inputHash);
         if (cached.isPresent())
-            return analysisResponse(cached.get(), true);
+            return CareerToolsSupport.analysisResponse(cached.get(), true);
 
         Map<String, Object> generated = ai.generate(
             "JOB_ATS",
@@ -135,7 +136,7 @@ public class CareerToolsService {
                 "job",
                 job,
                 "language",
-                languageOf(cv.get("language"))
+                CareerToolsSupport.languageOf(cv.get("language"))
             )
         );
         double score = FlowSupport.score(generated.get("ats_score"), 100, "ATS score");
@@ -169,17 +170,7 @@ public class CareerToolsService {
         } catch (org.springframework.data.redis.RedisConnectionFailureException ex) {
         }
 
-        return analysisResponse(db.getJobResumeAnalysesById(id), false);
-    }
-
-    private Map<String, Object> analysisResponse(
-        Map<String, Object> row,
-        boolean cached) {
-        var metadata = object(row.get("improvement_suggestions_json"));
-        row.put("improvement_suggestions_json", array(metadata.get("items")));
-        row.put("cached", cached);
-
-        return row;
+        return CareerToolsSupport.analysisResponse(db.getJobResumeAnalysesById(id), false);
     }
 
     public Map<String, Object> targetedResume(
@@ -192,7 +183,7 @@ public class CareerToolsService {
         request.putIfAbsent("title", "CV - " + text(job.get("job_title")));
         request.put("target_job", job);
         request.put("job_requirements", db.listMarketJobSkillsByMarketJobId(jobId));
-        request.putIfAbsent("language", languageOf(input.get("language")));
+        request.putIfAbsent("language", CareerToolsSupport.languageOf(input.get("language")));
         request.put(
             "accuracy_requirement",
             ("Tailor wording to this job using only supplied candidate facts; leave "
@@ -223,7 +214,8 @@ public class CareerToolsService {
                 request.language() == null ? "vi" : request.language()
             )
         );
-        String email = requiredAi(generated, "email"), letter = requiredAi(generated, "cover_letter");
+        String email = CareerToolsSupport.requiredAi(generated, "email"),
+            letter = CareerToolsSupport.requiredAi(generated, "cover_letter");
         String subject = text(generated.get("subject"));
 
         UUID emailId = db.insertApplicationDrafts(
@@ -319,16 +311,14 @@ public class CareerToolsService {
 
         var profile = db.getCandidateProfilesByUserId(user.id());
         var job = activeJob(id);
-        var generated =
-            ai.generate("SALARY_ESTIMATE", fields("profile", profile, "job", job, "language", languageOf(null)));
+        var generated = ai.generate(
+            "SALARY_ESTIMATE",
+            fields("profile", profile, "job", job, "language", CareerToolsSupport.languageOf(null))
+        );
         double min = FlowSupport.score(generated.get("estimated_min"), 999999999999d, "minimum salary"),
             max = FlowSupport.score(generated.get("estimated_max"), 999999999999d, "maximum salary");
-        if (max < min)
-            throw new ApiException(502, "Invalid salary interval");
-
-        String currency = text(generated.get("currency"));
-        if (!Set.of("VND", "USD", "EUR").contains(currency))
-            throw new ApiException(502, "Unsupported salary currency");
+        CareerToolsSupport.validateSalaryInterval(min, max);
+        String currency = CareerToolsSupport.salaryCurrency(generated.get("currency"));
 
         UUID estimate = db.insertSalaryEstimations(
             fields(
@@ -369,16 +359,19 @@ public class CareerToolsService {
         );
         var generated = ai.generate(
             "SALARY_ESTIMATE",
-            fields("profile", profile, "career_position", target, "language", languageOf(request.language()))
+            fields(
+                "profile",
+                profile,
+                "career_position",
+                target,
+                "language",
+                CareerToolsSupport.languageOf(request.language())
+            )
         );
         double min = FlowSupport.score(generated.get("estimated_min"), 999999999999d, "minimum salary"),
             max = FlowSupport.score(generated.get("estimated_max"), 999999999999d, "maximum salary");
-        if (max < min)
-            throw new ApiException(502, "Invalid salary interval");
-
-        String currency = text(generated.get("currency"));
-        if (!Set.of("VND", "USD", "EUR").contains(currency))
-            throw new ApiException(502, "Unsupported salary currency");
+        CareerToolsSupport.validateSalaryInterval(min, max);
+        String currency = CareerToolsSupport.salaryCurrency(generated.get("currency"));
 
         UUID estimate = db.insertSalaryEstimations(
             fields(
@@ -414,22 +407,5 @@ public class CareerToolsService {
     private Map<String, Object> activeJob(
         UUID id) {
         return db.getMarketJobPostsById(id);
-    }
-
-    private static String requiredAi(
-        Map<String, Object> result,
-        String key) {
-        String value = text(result.get(key));
-        if (value.isBlank() || value.length() > 30000)
-            throw new ApiException(502, "AI returned invalid " + key);
-
-        return value;
-    }
-
-    private static String languageOf(
-        Object value) {
-        String language = value == null ? "" : text(value).toLowerCase(Locale.ROOT);
-
-        return Set.of("vi", "en").contains(language) ? language : "vi";
     }
 }

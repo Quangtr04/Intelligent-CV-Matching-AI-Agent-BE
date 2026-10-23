@@ -13,7 +13,7 @@ Backend dùng cùng một JAR với ba Spring profile. `application.yaml` chứa
 
 `prod` vẫn cần username/password database, `APP_JWT_SECRET` và các giá trị bắt buộc trong cấu hình chung. Redis là cache tùy chọn trong nghiệp vụ: yêu cầu cấu hình địa chỉ Redis trong `prod` không biến Redis thành kho dữ liệu bắt buộc để lưu CV/matching/ATS. Backend vẫn có các đường fallback database khi cache không kết nối được.
 
-Profile `docker` dành cho mạng nội bộ Compose local. Chạy bằng container ở production dùng `prod` với endpoint của các dịch vụ ngoài được cấp lúc triển khai. Không bật cả ba profile cùng lúc; chọn một profile phù hợp.
+Profile `docker` dành cho mạng nội bộ Compose local. Chạy bằng container ở production dùng `prod` với endpoint PostgreSQL/Redis được cấp lúc triển khai và Ollama nội bộ. Không bật cả ba profile cùng lúc; chọn một profile phù hợp.
 
 ## Nguồn giá trị và thứ tự ưu tiên
 
@@ -40,7 +40,7 @@ File `.env` dùng UTF-8, các dòng `KEY=value` không bọc nháy và không c�
 Riêng Docker Compose, hai bước đọc cấu hình khác nhau:
 
 - `.env` hỗ trợ thay `${VAR}` trong Compose; `env_file: .env` cấp các biến cho container.
-- Các key trong `environment` của service ghi đè key trùng tên từ `env_file`. Compose local gán profile `docker`, URL PostgreSQL trên host, Redis nội bộ và upload `/app/uploads`; Compose production gán profile `prod` và upload `/app/uploads`.
+- Các key trong `environment` của service ghi đè key trùng tên từ `env_file`. Compose local gán profile `docker`, URL PostgreSQL trên host, Redis nội bộ và upload `/app/uploads`; Compose production gán profile `prod` và upload `/app/uploads`. Cả hai cố định provider chat/embedding `ollama`, URL `http://ollama:11434` và vector 1024 chiều.
 
 Trong container app, `localhost` chỉ container app. Compose local hiện kết nối PostgreSQL trên host qua `host.docker.internal:5432/edunexus`, thay cho `localhost` dùng khi backend chạy trực tiếp trên host.
 
@@ -59,6 +59,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-local.ps1 -WithI
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-local.ps1 -RuntimeProfile dev -WithInfrastructure
 ```
+
+Backend host dùng `OLLAMA_BASE_URL=http://localhost:11434`. Khởi động Ollama trước bằng
+`scripts/start-ollama.ps1 -ExposeToHost -SmokeTest`; script local PostgreSQL không tự khởi động model.
+Xem [Ollama](ollama.md) để chọn model và kiểm tra chat/embedding.
 
 `-RuntimeProfile` nhận `dev`, `prod` hoặc `docker`. Khi truyền, script đặt `SPRING_PROFILES_ACTIVE` cho tiến trình chạy backend, ghi đè lựa chọn từ môi trường/file. Khi bỏ, script giữ biến môi trường hiện có, hoặc đọc lựa chọn từ `.env`; cuối cùng Spring mặc định `dev` nếu chưa có lựa chọn. Script không sửa file `.env`. `-EnvFile` tiếp tục chọn file cấu hình local khác.
 
@@ -92,7 +96,7 @@ mvn verify
 docker compose --profile app --profile optional up -d --build app
 ```
 
-Lệnh chỉ định app và khởi động Redis phụ thuộc; app chờ Redis healthy. Redis nằm trong Compose profile `optional`, nên lệnh bật cả `app` và `optional` nhưng chỉ target `app`, không khởi động Qdrant/RabbitMQ. PostgreSQL container thuộc profile `database`, không tự khởi động cùng app.
+Lệnh chỉ định app và khởi động Redis/Ollama phụ thuộc; app chờ hai server healthy và `ollama-init` tải đủ model. Redis nằm trong Compose profile `optional`; Ollama/init dùng profile `app` hoặc `ai`. Lệnh chỉ target `app`, không khởi động Qdrant/RabbitMQ. PostgreSQL container thuộc profile `database`, không tự khởi động cùng app. Lần tải model đầu tiên cần mạng và có thể kéo dài; `docker compose logs -f ollama-init` cho biết tiến độ.
 
 Service `app` có Compose profile `app`; bên trong container được cấp Spring profile `docker`. Đây là hai loại profile khác nhau: một loại chọn service của Compose, loại còn lại chọn cấu hình Spring.
 
@@ -103,6 +107,9 @@ Service `app` có Compose profile `app`; bên trong container được cấp Spr
 | `REDIS_HOST` / `REDIS_PORT` | `redis` / `6379` |
 | `REDIS_USERNAME` / `REDIS_PASSWORD` | Trống, Redis local không bật AUTH |
 | `UPLOAD_DIR` | `/app/uploads`, lưu trong volume `resume_uploads` |
+| `OLLAMA_BASE_URL` | `http://ollama:11434`; mặc định không publish ra host |
+| Provider chat / embedding | `ollama` / `ollama` |
+| `AI_EMBEDDING_DIMENSIONS` | `1024`, theo schema mới |
 | Port truy cập từ host | `APP_PORT`, mặc định `8080`; port bên trong lấy `SERVER_PORT`, mặc định `8080` |
 
 Các giá trị này được khai báo trực tiếp trong Compose `environment` và ghi đè các key cùng tên ở `.env`. Đổi `DATABASE_URL`, `POSTGRES_DB` hay `POSTGRES_PORT` trong `.env` không đổi URL database của app Compose hiện tại; Redis của app vẫn dùng port nội bộ 6379 dù đổi port publish trên host. Credential PostgreSQL tiếp tục lấy từ `POSTGRES_USER`/`POSTGRES_PASSWORD` trong `.env` và phải khớp database trên host. Topology Compose local không có các biến override riêng cho URL database/host Redis; deployment với dịch vụ ngoài dùng file Compose production riêng.
@@ -118,7 +125,7 @@ Lệnh PostgreSQL không khởi động app vì app thuộc profile `app`. Dùng
 
 ## Compose production
 
-`compose.production.yaml` chỉ chạy app từ image đã build/publish, chọn Spring profile `prod`, lấy biến runtime từ `.env` và kết nối PostgreSQL/Redis bên ngoài. Container cố định `UPLOAD_DIR=/app/uploads`, gắn volume `resume_uploads` để CV tồn tại qua lần tạo lại container.
+`compose.production.yaml` chạy app từ image đã build/publish cùng Ollama và bước tải model. App chọn Spring profile `prod`, lấy biến runtime từ `.env` và kết nối PostgreSQL/Redis bên ngoài. Container cố định `UPLOAD_DIR=/app/uploads`, gắn volume `resume_uploads` để CV tồn tại qua lần tạo lại container. Ollama giữ weights trong `ollama_models`, không publish cổng và tắt cloud features; app dùng `http://ollama:11434` cho cả chat và embedding. `ollama-init` phải hoàn tất trước khi app khởi động.
 
 Sau khi chuẩn bị `.env` production và cấp `IMAGE` phù hợp, khởi động bằng:
 
@@ -127,6 +134,10 @@ docker compose -f compose.production.yaml up -d
 ```
 
 Không ghép file này với `compose.yaml` để dùng topology production đã mô tả. `APP_PORT` chọn port public trên host, `SERVER_PORT` là port ứng dụng trong container. Các endpoint dịch vụ phải truy cập được từ container production; không dùng hostname `postgres`/`redis` của Compose local khi những service đó không tồn tại trong mạng deployment.
+
+Chọn model trong `.env` production, đặt `AI_ENABLED=true` và bảo đảm đủ tài nguyên cho inference.
+Pin `OLLAMA_IMAGE` theo tag/digest đã kiểm tra trước khi triển khai; fallback `latest` dành cho thiết lập ban đầu.
+Lần đầu cần tải model, còn inference dùng weights cục bộ. Xem [hướng dẫn Ollama](ollama.md).
 
 ## Kiểm tra sau khi đổi cấu hình
 

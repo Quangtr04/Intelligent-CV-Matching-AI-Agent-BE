@@ -89,7 +89,17 @@ public class ResumeRepository {
 
     public Map<String, Object> getResumeTemplatesById(
         Object... args) {
-        return db.one("SELECT id FROM resume_templates WHERE id=? AND is_active=true", args);
+        return db.one("SELECT id FROM resume_templates WHERE id=? AND is_active=true FOR SHARE", args);
+    }
+
+    public Optional<Map<String, Object>> findResumeTemplateById(
+        Object... args) {
+        return db.optional("SELECT * FROM resume_templates WHERE id=?", args);
+    }
+
+    public int updateResumeTemplateById(
+        Object... args) {
+        return db.update("UPDATE resumes SET template_id=?,updated_at=now() WHERE id=?", args);
     }
 
     public Optional<Map<String, Object>> findCandidateProfilesByUserId(
@@ -174,7 +184,7 @@ public class ResumeRepository {
         return db.optional(
             ("SELECT id,resume_id,provider,model,content_hash,is_current,created_at "
                 + "FROM resume_embeddings WHERE resume_id=? AND provider=? AND model=? "
-                + "AND content_hash=? AND is_current=true"),
+                + "AND content_hash=? AND is_current=true AND embedding IS NOT NULL"),
             args
         );
     }

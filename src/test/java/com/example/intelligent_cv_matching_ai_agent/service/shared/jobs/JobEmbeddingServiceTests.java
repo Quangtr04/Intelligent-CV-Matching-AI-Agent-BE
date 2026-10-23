@@ -124,7 +124,7 @@ class JobEmbeddingServiceTests {
     void embeddingOnlyConfigurationDoesNotRequireAChatProvider() {
         ready(1);
         when(ai.enabled()).thenReturn(false);
-        when(ai.embedForUser(eq(actor), anyString())).thenReturn(new float[1536]);
+        when(ai.embedForUser(eq(actor), anyString())).thenReturn(new float[1024]);
 
         service(true, 1).processPending();
 
@@ -137,7 +137,7 @@ class JobEmbeddingServiceTests {
         ready(1);
         when(ai.embedForUser(eq(actor), anyString())).thenAnswer(invocation -> {
             assertFalse(transactionOpen.get());
-            return new float[1536];
+            return new float[1024];
         });
         doAnswer(invocation -> {
             assertTrue(transactionOpen.get(), "Vector publication must be atomic with queue completion");
@@ -184,7 +184,7 @@ class JobEmbeddingServiceTests {
         Map<String, Object> changed = job();
         changed.put("raw_content_hash", "b".repeat(64));
         when(db.findJobForUpdate(jobId)).thenReturn(Optional.of(job()), Optional.of(changed));
-        when(ai.embedForUser(eq(actor), anyString())).thenReturn(new float[1536]);
+        when(ai.embedForUser(eq(actor), anyString())).thenReturn(new float[1024]);
 
         service(true, 1).processPending();
 
@@ -197,7 +197,7 @@ class JobEmbeddingServiceTests {
     void lostLeaseCannotOverwriteAnotherWorkersVectorOrQueueState() {
         ready(1);
         when(db.findLeaseForUpdate(taskId, lease)).thenReturn(Optional.of(task(1)), Optional.empty());
-        when(ai.embedForUser(eq(actor), anyString())).thenReturn(new float[1536]);
+        when(ai.embedForUser(eq(actor), anyString())).thenReturn(new float[1024]);
 
         service(true, 1).processPending();
 

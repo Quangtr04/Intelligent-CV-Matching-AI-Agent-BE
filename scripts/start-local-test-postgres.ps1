@@ -49,12 +49,12 @@ $schemaExists = & $psql @connectionArgs '-d' 'edunexus_test' '-Atc' "SELECT to_r
 if ($LASTEXITCODE -ne 0) { throw 'Could not inspect the isolated test database' }
 if ($schemaExists -ne 't') {
     $migrationPath = Join-Path $projectRoot 'src\main\resources\db\migration'
-    $schemaParts = Get-ChildItem -LiteralPath $migrationPath -Filter 'V*__*.sql' | Sort-Object Name | ForEach-Object { Get-Content -Raw -LiteralPath $_.FullName }
+    $schemaParts = Get-ChildItem -LiteralPath $migrationPath -Filter 'V*__*.sql' | Sort-Object { [int]($_.Name -replace '^V(\d+)__.*$', '$1') } | ForEach-Object { Get-Content -Raw -LiteralPath $_.FullName }
     $testSql = $schemaParts -join "`n"
     # The locally installed PostgreSQL lacks pgvector. Only this generated test
     # copy uses arrays and omits vector indexes; production migrations are intact.
     $testSql = $testSql -replace 'CREATE EXTENSION IF NOT EXISTS vector;', '-- pgvector unavailable in local schema smoke test.'
-    $testSql = $testSql -replace 'vector\(1536\)', 'real[]'
+    $testSql = $testSql -replace 'vector\((1024|1536)\)', 'real[]'
     $testSql = $testSql -replace '(?s)CREATE INDEX \w+ ON \w+\s+USING hnsw \([^;]+;', '-- HNSW index omitted in local schema smoke test.'
     $schemaFile = Join-Path (Split-Path -Parent $testRoot) 'local-pg-schema.sql'
     [IO.File]::WriteAllText($schemaFile, $testSql, (New-Object Text.UTF8Encoding($false)))

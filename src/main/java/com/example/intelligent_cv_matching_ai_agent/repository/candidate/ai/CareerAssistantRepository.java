@@ -74,7 +74,7 @@ public class CareerAssistantRepository {
                 + "e.chunk_id=c.id LEFT JOIN users uploader ON uploader.id=d.uploaded_by "
                 + "LEFT JOIN rag_course_links course ON course.rag_document_id=d.id "
                 + "LEFT JOIN learning_resources resource ON resource.id=course.learning_resource_id "
-                + "WHERE e.provider=? AND e.model=? AND d.embedding_status='COMPLETED' "
+                + "WHERE e.provider=? AND e.model=? AND e.embedding IS NOT NULL AND d.embedding_status='COMPLETED' "
                 + "AND COALESCE(d.metadata->>'disabled','false')<>'true' AND "
                 + "(course.id IS NULL OR (course.status='APPROVED' AND resource.is_active=true)) AND "
                 + "(d.uploaded_by=? OR uploader.role='ADMIN') AND 1-(e.embedding <=> "

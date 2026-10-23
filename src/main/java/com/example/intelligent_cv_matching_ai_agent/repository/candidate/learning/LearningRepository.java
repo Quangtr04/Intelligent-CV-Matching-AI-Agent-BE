@@ -44,7 +44,11 @@ public class LearningRepository {
 
     public Map<String, Object> getMarketJobPostsById(
         Object... args) {
-        return db.one("SELECT * FROM market_job_posts WHERE id=? AND status='ACTIVE'", args);
+        return db.one(
+            "SELECT * FROM market_job_posts WHERE id=? AND status='ACTIVE' "
+                + "AND (valid_through IS NULL OR valid_through>now())",
+            args
+        );
     }
 
     public Map<String, Object> getAssessmentSessionsById(
@@ -58,6 +62,25 @@ public class LearningRepository {
             ("SELECT * FROM assessment_sessions WHERE user_id=? AND "
                 + "target_job_title=? AND status='completed' AND is_current ORDER BY " + "submitted_at DESC LIMIT 1"),
             args
+        );
+    }
+
+    public Optional<Map<String, Object>> findCompletedAssessmentForJob(
+        UUID userId,
+        UUID jobId) {
+        return db.optional(
+            "SELECT * FROM assessment_sessions WHERE user_id=? AND market_job_id=? "
+                + "AND status='completed' ORDER BY submitted_at DESC,created_at DESC LIMIT 1",
+            userId,
+            jobId
+        );
+    }
+
+    public List<Map<String, Object>> listResumeSkillsByResumeId(
+        UUID resumeId) {
+        return db.list(
+            "SELECT s.name FROM resume_skills rs JOIN skills s ON s.id=rs.skill_id WHERE rs.resume_id=?",
+            resumeId
         );
     }
 
@@ -83,14 +106,14 @@ public class LearningRepository {
     public Object readGapAnalysesByUserId(
         Object... args) {
         return db.scalar(
-            ("SELECT COALESCE(max(version),0)+1 FROM gap_analyses WHERE user_id=? " + "AND target_job_title=?"),
+            ("SELECT COALESCE(max(version),0)+1 FROM gap_analyses WHERE user_id=? " + "AND market_job_id=?"),
             args
         );
     }
 
     public int updateGapAnalysesByUserId(
         Object... args) {
-        return db.update("UPDATE gap_analyses SET is_latest=false WHERE user_id=? AND target_job_title=?", args);
+        return db.update("UPDATE gap_analyses SET is_latest=false WHERE user_id=? AND market_job_id=?", args);
     }
 
     public UUID insertGapAnalyses(

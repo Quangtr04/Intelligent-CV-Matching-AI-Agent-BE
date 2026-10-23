@@ -7,13 +7,14 @@ import com.example.intelligent_cv_matching_ai_agent.security.shared.CurrentUser;
 import com.example.intelligent_cv_matching_ai_agent.service.candidate.resume.ResumeService;
 import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiService;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.FlowSupport;
-import java.util.LinkedHashMap;
+import com.example.intelligent_cv_matching_ai_agent.util.consultant.consultation.ConsultationEvaluationData;
+import com.example.intelligent_cv_matching_ai_agent.util.candidate.resume.ResumeWritingQuality;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import static com.example.intelligent_cv_matching_ai_agent.util.consultant.consultation.ConsultationEvaluationData.*;
 import static com.example.intelligent_cv_matching_ai_agent.util.shared.Values.fields;
 import static com.example.intelligent_cv_matching_ai_agent.util.shared.Values.text;
 
@@ -56,20 +57,23 @@ public class ConsultantEvaluationService {
         Map<String, Object> resume = repository.readyResume(resumeId, candidateId);
         requireAi();
 
-        Map<String, Object> generated = ai.generate(
-            "CV_ANALYZE",
-            fields(
-                "resume",
-                resume.get("structured_data"),
-                "resume_text",
-                resumes.canonicalText(resume),
-                "language",
-                languageOf(resume),
-                "evaluation_guidance",
-                "Evaluate CV clarity, completeness, evidence of achievements and improvement opportunities. "
-                    + "This is a general CV quality review without a target job. Do not infer job suitability. "
-                    + "Base suggestions on reviewed CV facts; never invent candidate qualifications."
-            )
+        Map<String, Object> generated = ResumeWritingQuality.normalize(
+            ai.generate(
+                "CV_ANALYZE",
+                fields(
+                    "resume",
+                    ResumeWritingQuality.source(resume),
+                    "resume_text",
+                    resumes.canonicalText(resume),
+                    "language",
+                    languageOf(resume),
+                    "evaluation_guidance",
+                    "Evaluate CV clarity, completeness, evidence of achievements and improvement opportunities. "
+                        + "This is a general CV quality review without a target job. Do not infer job suitability. "
+                        + "Base suggestions on reviewed CV facts; never invent candidate qualifications."
+                )
+            ),
+            resume
         );
         double overall = FlowSupport.score(generated.get("overall_score"), 100, "CV overall score");
         double ats = FlowSupport.score(generated.get("ats_score"), 100, "CV ATS score");
@@ -77,7 +81,8 @@ public class ConsultantEvaluationService {
         List<String> strengths = aiStrings(generated, "strengths");
         List<String> issues = aiStrings(generated, "issues");
         List<?> suggestions = aiArray(generated, "suggestions");
-        List<Map<String, Object>> checkedSuggestions = suggestions.stream().map(this::suggestion).toList();
+        List<Map<String, Object>> checkedSuggestions =
+            suggestions.stream().map(ConsultationEvaluationData::suggestion).toList();
 
         UUID analysisId = repository.insertResumeAnalysis(
             fields(
@@ -95,6 +100,8 @@ public class ConsultantEvaluationService {
                 repository.json(strengths),
                 "issues_json",
                 repository.json(issues),
+                "writing_quality_json",
+                repository.json(generated.get("writing_quality")),
                 "model_name",
                 modelOf(generated)
             )
@@ -104,7 +111,7 @@ public class ConsultantEvaluationService {
             repository.insertSuggestion(item);
         }
         audit(consultationId, candidateId, resumeId, null, analysisId, "CONSULTATION_CV_ANALYZE");
-        return repository.resumeAnalysis(analysisId, resumeId);
+        return ResumeWritingQuality.expose(repository.resumeAnalysis(analysisId, resumeId));
     }
 
     @Transactional
@@ -194,65 +201,10 @@ public class ConsultantEvaluationService {
         }
     }
 
-    private Map<String, Object> suggestion(
-        Object value) {
-        if (!(value instanceof Map<?, ?> row)) {
-            throw new ApiException(502, "AI returned an invalid CV suggestion");
-        }
-        Map<String, Object> result = new LinkedHashMap<>();
-        for (String key : List.of("category", "severity", "original_content", "suggested_content", "explanation")) {
-            if (row.get(key) != null) {
-                int limit = "category".equals(key) ? 100 : "severity".equals(key) ? 30 : 100000;
-                result.put(key, aiText(row.get(key), "suggestion " + key, limit, false));
-            }
-        }
-        return result;
-    }
-
-    private List<?> aiArray(
-        Map<String, Object> generated,
-        String key) {
-        if (!(generated.get(key) instanceof List<?> rows)) {
-            throw new ApiException(502, "AI returned invalid " + key);
-        }
-        return rows;
-    }
-
-    private List<String> aiStrings(
-        Map<String, Object> generated,
-        String key) {
-        return aiArray(generated, key).stream().map(value -> aiText(value, key, 100000, true)).toList();
-    }
-
-    private String aiText(
-        Object value,
-        String field,
-        int limit,
-        boolean required) {
-        if (!(value instanceof String result) || result.length() > limit || (required && result.isBlank())) {
-            throw new ApiException(502, "AI returned invalid " + field);
-        }
-        return result;
-    }
-
     private String modelOf(
         Map<String, Object> generated) {
         String model = text(generated.get("_model"));
         return model.isBlank() ? ai.model() : model;
-    }
-
-    private String languageOf(
-        Map<String, Object> resume) {
-        String language = text(resume.get("language")).toLowerCase(Locale.ROOT);
-        return List.of("vi", "en").contains(language) ? language : "vi";
-    }
-
-    private Map<String, Object> atsResponse(
-        Map<String, Object> row,
-        boolean cached) {
-        Map<String, Object> result = new LinkedHashMap<>(row);
-        result.put("cached", cached);
-        return result;
     }
 
     private void audit(

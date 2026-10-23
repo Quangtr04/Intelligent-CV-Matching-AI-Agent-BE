@@ -77,10 +77,30 @@ public class MatchingRepository {
         );
     }
 
+    public List<Map<String, Object>> listActiveJobSalaryMetadata() {
+        return db.list(
+            "SELECT id,salary_text FROM market_job_posts WHERE status='ACTIVE' "
+                + "AND (valid_through IS NULL OR valid_through>now()) ORDER BY id"
+        );
+    }
+
+    public List<Map<String, Object>> listMarketJobSkillsByIds(
+        String jobIds) {
+        return db.list(
+            "SELECT j.id,j.salary_text,COALESCE((SELECT "
+                + "jsonb_agg(jsonb_build_object('name',s.normalized_skill,'required',s.is_required) "
+                + "ORDER BY s.normalized_skill) FROM market_job_skills s WHERE s.market_job_id=j.id),'[]'::jsonb) "
+                + "AS skills FROM market_job_posts j WHERE j.status='ACTIVE' "
+                + "AND (j.valid_through IS NULL OR j.valid_through>now()) "
+                + "AND j.id=ANY(CAST(? AS uuid[])) ORDER BY j.id",
+            jobIds
+        );
+    }
+
     public Object readMarketJobPostsByStatus(
         Object... args) {
         return db.scalar(
-            ("SELECT md5(COALESCE(string_agg(id::text||':'||raw_content_hash,',' "
+            ("SELECT md5(COALESCE(string_agg(id::text||':'||raw_content_hash||':'||COALESCE(salary_text,''),',' "
                 + "ORDER BY id),'')) FROM market_job_posts WHERE status='ACTIVE' "
                 + "AND (valid_through IS NULL OR valid_through>now())"),
             args
@@ -94,7 +114,8 @@ public class MatchingRepository {
                 + "d_at::text,',' ORDER BY e.id),'')) FROM market_job_embeddings e JOIN "
                 + "market_job_posts j ON j.id=e.market_job_id WHERE j.status='ACTIVE' "
                 + "AND (j.valid_through IS NULL OR j.valid_through>now()) "
-                + "AND e.is_current AND e.provider=? AND e.model=? AND " + "e.content_hash=j.raw_content_hash"),
+                + "AND e.is_current AND e.embedding IS NOT NULL AND e.provider=? AND e.model=? AND "
+                + "e.content_hash=j.raw_content_hash"),
             args
         );
     }
@@ -129,8 +150,25 @@ public class MatchingRepository {
                 + "FROM market_job_embeddings e JOIN market_job_posts j ON "
                 + "j.id=e.market_job_id WHERE j.status='ACTIVE' "
                 + "AND (j.valid_through IS NULL OR j.valid_through>now()) AND e.is_current AND "
-                + "e.provider=? AND e.model=? AND e.content_hash=j.raw_content_hash "
+                + "e.provider=? AND e.model=? AND e.embedding IS NOT NULL AND e.content_hash=j.raw_content_hash "
                 + "ORDER BY e.embedding <=> CAST(? AS vector) LIMIT ?",
+            args
+        );
+    }
+
+    public List<Map<String, Object>> listMarketJobEmbeddingsByStatusForIds(
+        Object... args) {
+        return db.list(
+            "WITH eligible_embeddings AS MATERIALIZED ("
+                + "SELECT e.market_job_id,e.embedding FROM market_job_embeddings e "
+                + "JOIN market_job_posts j ON j.id=e.market_job_id "
+                + "WHERE j.status='ACTIVE' AND (j.valid_through IS NULL OR j.valid_through>now()) "
+                + "AND e.is_current AND e.provider=? AND e.model=? AND e.embedding IS NOT NULL "
+                + "AND e.content_hash=j.raw_content_hash AND j.id=ANY(CAST(? AS uuid[]))) "
+                + "SELECT j.id,j.job_title,j.company_name,j.location,j.salary_text,"
+                + "j.raw_content,1-(e.embedding <=> CAST(? AS vector)) AS vector_score "
+                + "FROM eligible_embeddings e JOIN market_job_posts j ON j.id=e.market_job_id "
+                + "ORDER BY e.embedding <=> CAST(? AS vector),j.id LIMIT ?",
             args
         );
     }

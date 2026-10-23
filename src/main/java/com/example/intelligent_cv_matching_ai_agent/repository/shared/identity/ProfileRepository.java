@@ -32,6 +32,12 @@ public class ProfileRepository {
         return db.json(value);
     }
 
+    public void lockCandidateProfileOwner(
+        UUID owner) {
+        // Serialize saves while allowing report inserts to take their users FK KEY SHARE lock.
+        db.one("SELECT id FROM users WHERE id=? FOR NO KEY UPDATE", owner);
+    }
+
     public Map<String, Object> getUsersById(
         Object... args) {
         return db.one(
@@ -79,8 +85,7 @@ public class ProfileRepository {
         Object... args) {
         return db.update(
             ("UPDATE candidate_profiles SET current_job_title=?,current_company=?,"
-                + "target_job_title=?,career_goal=?,years_experience=?,"
-                + "expected_salary_min=?,expected_salary_max=?,"
+                + "target_job_title=?,career_goal=?,years_experience=?," + "expected_salary=?,"
                 + "salary_currency=COALESCE(?,'VND'),preferred_location=?,"
                 + "workplace_preference=?,employment_type=?,profile_summary=?,"
                 + "preferences_json=?,updated_at=now() WHERE user_id=?"),

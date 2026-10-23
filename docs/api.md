@@ -29,8 +29,7 @@ Ví dụ profile:
   "careerGoal": "Làm backend với Java và Spring Boot",
   "yearsExperience": 1,
   "salaryCurrency": "VND",
-  "expectedSalaryMin": 15000000,
-  "expectedSalaryMax": 25000000,
+  "expectedSalary": 7500000,
   "preferredLocation": "Ho Chi Minh",
   "skills": [{"skillId": "<id từ GET /skills>", "proficiencyLevel": "intermediate", "yearsExperience": 1}]
 }

@@ -5,6 +5,7 @@ import com.example.intelligent_cv_matching_ai_agent.dto.response.consultant.cons
 import com.example.intelligent_cv_matching_ai_agent.repository.consultant.consultation.ConsultationAnalysisRepository;
 import com.example.intelligent_cv_matching_ai_agent.repository.shared.consultation.ConsultationRepository;
 import com.example.intelligent_cv_matching_ai_agent.security.shared.CurrentUser;
+import com.example.intelligent_cv_matching_ai_agent.util.candidate.resume.ResumeWritingQuality;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,7 +48,8 @@ public class ConsultationAnalysisService {
             jobId,
             limit,
             offset,
-            repository.listResumeAnalyses(candidateId, resumeId, limit, offset),
+            repository.listResumeAnalyses(candidateId, resumeId, limit, offset).stream()
+                .map(ResumeWritingQuality::expose).toList(),
             repository.listAtsAnalyses(candidateId, resumeId, jobId, limit, offset),
             repository.listMatchingResults(candidateId, resumeId, jobId, limit, offset),
             repository.listSalaryEstimations(candidateId, jobId, limit, offset),

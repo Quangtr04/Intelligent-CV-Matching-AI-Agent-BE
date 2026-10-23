@@ -3,9 +3,7 @@ package com.example.intelligent_cv_matching_ai_agent.service.shared.jobs;
 import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException;
 import com.example.intelligent_cv_matching_ai_agent.repository.shared.jobs.JobEmbeddingRepository;
 import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiService;
-import java.sql.Timestamp;
-import java.time.Instant;
-import java.time.OffsetDateTime;
+import com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobEmbeddingSupport;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
@@ -75,7 +73,7 @@ public class JobEmbeddingService {
         Map<String, Object> job = db.findJobForUpdate(jobId).orElseThrow(() -> ApiException.notFound("Job not found"));
         String status = "QUEUED";
         String error = null;
-        if (!usable(job, contentHash)) {
+        if (!JobEmbeddingSupport.usable(job, contentHash)) {
             status = "CANCELLED";
             error = "Job is inactive, expired or its content changed";
         } else if (db.hasCurrentEmbedding(jobId, contentHash, ai.provider(), ai.embeddingModel()))
@@ -122,7 +120,7 @@ public class JobEmbeddingService {
             Map<String, Object> job =
                 db.findJobForUpdate(jobId).orElseThrow(() -> ApiException.notFound("Job not found"));
             String hash = Objects.toString(job.get("raw_content_hash"), "");
-            if (!usable(job, hash))
+            if (!JobEmbeddingSupport.usable(job, hash))
                 throw ApiException.conflict("Only active, unexpired jobs can be indexed");
 
             return enqueue(jobId, hash, requestedBy);
@@ -148,12 +146,12 @@ public class JobEmbeddingService {
             return;
 
         try {
-            float[] vector = ai.embedForUser(work.actor(), JobService.embeddingText(work.job()));
+            float[] vector = ai.embedForUser(work.actor(), JobEmbeddingSupport.embeddingText(work.job()));
             transactions.executeWithoutResult(status -> {
                 Map<String, Object> job = db.findJobForUpdate(work.jobId()).orElse(null);
                 if (db.findLeaseForUpdate(taskId, lease).isEmpty())
                     return;
-                if (job == null || !usable(job, work.hash())) {
+                if (job == null || !JobEmbeddingSupport.usable(job, work.hash())) {
                     db.cancel(taskId, lease, "Job changed or expired during embedding");
                     return;
                 }
@@ -170,7 +168,9 @@ public class JobEmbeddingService {
         } catch (RuntimeException ex) {
             int attempt = ((Number) task.get("attempt_count")).intValue();
             int delay = Math.min(3600, retrySeconds * (1 << Math.min(2, Math.max(0, attempt - 1))));
-            transactions.executeWithoutResult(status -> db.retryOrFail(taskId, lease, safeError(ex), delay));
+            transactions.executeWithoutResult(
+                status -> db.retryOrFail(taskId, lease, JobEmbeddingSupport.safeError(ex), delay)
+            );
         }
     }
 
@@ -184,7 +184,7 @@ public class JobEmbeddingService {
             return null;
 
         String hash = Objects.toString(task.get("content_hash"), "");
-        if (job == null || !usable(job, hash)) {
+        if (job == null || !JobEmbeddingSupport.usable(job, hash)) {
             db.cancel(taskId, lease, "Job is inactive, expired or its content changed");
             return null;
         }
@@ -200,35 +200,6 @@ public class JobEmbeddingService {
         }
 
         return new Work(jobId, actor, hash, job);
-    }
-
-    private boolean usable(
-        Map<String, Object> job,
-        String hash) {
-        if (!"ACTIVE".equals(job.get("status")) || !Objects.equals(hash, job.get("raw_content_hash")))
-            return false;
-
-        Object expiry = job.get("valid_through");
-        if (expiry == null)
-            return true;
-        Instant deadline = expiry instanceof Instant instant
-            ? instant
-            : expiry instanceof OffsetDateTime date
-                ? date.toInstant()
-                : expiry instanceof Timestamp timestamp
-                    ? timestamp.toInstant()
-                    : OffsetDateTime.parse(expiry.toString()).toInstant();
-
-        return deadline.isAfter(Instant.now());
-    }
-
-    private String safeError(
-        RuntimeException ex) {
-        String message = ex instanceof ApiException ? ex.getMessage() : "Embedding provider or publication failed";
-        if (message == null)
-            return "Embedding failed";
-
-        return message.substring(0, Math.min(message.length(), 1000));
     }
 
     private record Work(

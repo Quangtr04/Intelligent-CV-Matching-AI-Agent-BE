@@ -1,55 +1,104 @@
 # Giải thích code trong từng service của backend EduNexus
 
-Đối chiếu mã nguồn ngày **13/10/2026** tại repository `INTELLIGENT_CV_MATCHING_AI_AGENT`. Tài liệu dành cho việc đọc code và học cách từng service hoạt động: dependency, hàm public/helper, dữ liệu vào/ra, thứ tự xử lý, quyền, transaction, trạng thái và cách gọi chức năng.
+Đối chiếu mã nguồn ngày **20/10/2026** tại repository `INTELLIGENT_CV_MATCHING_AI_AGENT`. Tài liệu giải thích dependency, API, dữ liệu, quyền, transaction và trạng thái theo code hiện tại.
 
-Phạm vi: **31 file service**, **277 khai báo phương thức ngoài constructor**, và **33 constructor** trong các file này. Số phương thức tính cả overload và callback khai báo trong lớp; accessor tự sinh của record không tính thành method body viết tay. Nội dung phản ánh cả pipeline crawl/normalization/dedup/scheduling/embedding vừa bổ sung và JWT dùng Nimbus.
+Phần AI runtime được cập nhật ngày **21/10/2026** theo adapter Ollama native: chat `qwen2.5:7b`,
+embedding `qwen3-embedding:0.6b` 1024 chiều và không cần API key inference. Thiết lập Docker/model
+ở [ollama.md](ollama.md); cách giữ vector legacy 1536 của V1 ở [schema.md](schema.md).
+Các kết quả kiểm chứng mang mốc cũ chỉ áp dụng cho lượt chạy được ghi nhận.
+
+Phạm vi: **35 file Java trong thư mục service**. Lần refactor helper tác động **17 service** và thêm **17 util**. Không thống kê số method vì overload, callback và delegate dễ khiến con số nhanh lỗi thời.
 
 Các bảng/SQL được diễn giải từ repository mà service thực sự gọi; không suy hoạt động chỉ từ tên lớp hoặc package. Liên kết nguồn mở đúng file Java để bạn đối chiếu khi đọc. Đây là giải thích logic hiện có, không phải bản sao toàn bộ source.
 
 ## Mục lục theo service
 
-| STT | Service | Package dưới service/ | Số method | Nội dung |
-| --- | --- | --- | --- | --- |
-| 1 | [AuthFlowService](#svc-authflowservice) | shared/identity | 7 | Điều phối auth và throttle |
-| 2 | [AuthService](#svc-authservice) | shared/identity | 7 | Đăng ký, OTP, login |
-| 3 | [TokenService](#svc-tokenservice) | shared/identity | 11 | JWT, session, rotation |
-| 4 | [GoogleLoginService](#svc-googleloginservice) | shared/identity | 1 | Google ID token |
-| 5 | [ProfileService](#svc-profileservice) | shared/identity | 8 | Tài khoản/career profile |
-| 6 | [GuestSessionService](#svc-guestsessionservice) | guest/identity | 4 | Phiên và dữ liệu demo |
-| 7 | [GuestAccess](#svc-guestaccess) | guest/identity | 6 | Quyền và token budget guest |
-| 8 | [GuestTrialService](#svc-guesttrialservice) | guest/ai | 3 | Builder/recommendation thử |
-| 9 | [AiService](#svc-aiservice) | shared/ai | 19 | Model, schema và usage/quota |
-| 10 | [AiUsageRecorder](#svc-aiusagerecorder) | shared/ai | 1 | Persist AI telemetry |
-| 11 | [ResumeService](#svc-resumeservice) | candidate/resume | 30 | Vòng đời CV, extraction và xác nhận |
-| 12 | [MatchingService](#svc-matchingservice) | candidate/jobs | 5 | Ranking, vectors và cache |
-| 13 | [CareerToolsService](#svc-careertoolsservice) | candidate/jobs | 18 | ATS, draft, apply và salary |
-| 14 | [CareerAssistantService](#svc-careerassistantservice) | candidate/ai | 16 | Conversation, RAG và chat |
-| 15 | [AssessmentService](#svc-assessmentservice) | candidate/learning | 5 | Question/answer/submit assessment |
-| 16 | [LearningService](#svc-learningservice) | candidate/learning | 12 | Gap, assessment và roadmap |
-| 17 | [BillingService](#svc-billingservice) | shared/billing | 3 | Order/webhook và activation |
-| 18 | [BillingQueryService](#svc-billingqueryservice) | shared/billing | 12 | Billing HTTP facade và ownership |
-| 19 | [EntitlementService](#svc-entitlementservice) | shared/billing | 7 | Tier, quota và reservation |
-| 20 | [SubscriptionMaintenance](#svc-subscriptionmaintenance) | shared/billing | 2 | Subscription expiry và notifications |
-| 21 | [ConsultationService](#svc-consultationservice) | shared/consultation | 15 | Threads, messages, assignment và SSE |
-| 22 | [ConsultationAnalysisService](#svc-consultationanalysisservice) | consultant/consultation | 1 | Báo cáo candidate trong consultation |
-| 23 | [JobService](#svc-jobservice) | shared/jobs | 14 | Catalog, import, dedup và trạng thái |
-| 24 | [JobCrawlService](#svc-jobcrawlservice) | admin/jobs | 11 | Discovery/fetch/parse/import |
-| 25 | [JobCollectionScheduler](#svc-jobcollectionscheduler) | admin/jobs | 4 | Collection/expiry có lease |
-| 26 | [JobEmbeddingService](#svc-jobembeddingservice) | shared/jobs | 7 | Queue, retry và vector publishing |
-| 27 | [RagDocumentService](#svc-ragdocumentservice) | admin/rag | 8 | Tài liệu tham khảo và chunk indexing |
-| 28 | [AdminService](#svc-adminservice) | admin/management | 21 | User/tier/AI/prompt/monitoring |
-| 29 | [AuditService](#svc-auditservice) | admin/monitoring | 1 | Audit và admin actions |
-| 30 | [AnnouncementService](#svc-announcementservice) | shared/announcement | 11 | Thông báo/audience/notifications |
-| 31 | [SupportService](#svc-supportservice) | shared/support | 7 | Support ticket và trao đổi |
+| STT | Service | Package dưới service/ | Nội dung |
+| --- | --- | --- | --- |
+| 1 | [AuthFlowService](#svc-authflowservice) | shared/identity | Điều phối auth và throttle |
+| 2 | [AuthService](#svc-authservice) | shared/identity | Đăng ký, OTP, login |
+| 3 | [TokenService](#svc-tokenservice) | shared/identity | JWT, session, rotation |
+| 4 | [GoogleLoginService](#svc-googleloginservice) | shared/identity | Google ID token |
+| 5 | [ProfileService](#svc-profileservice) | shared/identity | Tài khoản/career profile |
+| 6 | [GuestSessionService](#svc-guestsessionservice) | guest/identity | Phiên và dữ liệu demo |
+| 7 | [GuestAccess](#svc-guestaccess) | guest/identity | Quyền và token budget guest |
+| 8 | [GuestTrialService](#svc-guesttrialservice) | guest/ai | Builder/recommendation thử |
+| 9 | [AiService](#svc-aiservice) | shared/ai | Model, schema và usage/quota |
+| 10 | [AiUsageRecorder](#svc-aiusagerecorder) | shared/ai | Persist AI telemetry |
+| 11 | [ResumeService](#svc-resumeservice) | candidate/resume | Vòng đời CV, extraction và xác nhận |
+| 12 | [MatchingService](#svc-matchingservice) | candidate/jobs | Ranking, vectors và cache |
+| 13 | [CareerToolsService](#svc-careertoolsservice) | candidate/jobs | ATS, draft, apply và salary |
+| 14 | [CareerAssistantService](#svc-careerassistantservice) | candidate/ai | Conversation, RAG và chat |
+| 15 | [AssessmentService](#svc-assessmentservice) | candidate/learning | Question/answer/submit assessment |
+| 16 | [LearningService](#svc-learningservice) | candidate/learning | Gap, assessment và roadmap |
+| 17 | [BillingService](#svc-billingservice) | shared/billing | Order/webhook và activation |
+| 18 | [BillingQueryService](#svc-billingqueryservice) | shared/billing | Billing HTTP facade và ownership |
+| 19 | [EntitlementService](#svc-entitlementservice) | shared/billing | Tier, quota và reservation |
+| 20 | [SubscriptionMaintenance](#svc-subscriptionmaintenance) | shared/billing | Subscription expiry và notifications |
+| 21 | [ConsultationService](#svc-consultationservice) | shared/consultation | Threads, messages, assignment và SSE |
+| 22 | [ConsultationAnalysisService](#svc-consultationanalysisservice) | consultant/consultation | Báo cáo candidate trong consultation |
+| 23 | [JobService](#svc-jobservice) | shared/jobs | Catalog, import, dedup và trạng thái |
+| 24 | [JobCrawlService](#svc-jobcrawlservice) | admin/jobs | Discovery/fetch/parse/import |
+| 25 | [JobCollectionScheduler](#svc-jobcollectionscheduler) | admin/jobs | Collection/expiry có lease |
+| 26 | [JobEmbeddingService](#svc-jobembeddingservice) | shared/jobs | Queue, retry và vector publishing |
+| 27 | [RagDocumentService](#svc-ragdocumentservice) | admin/rag | Tài liệu tham khảo và chunk indexing |
+| 28 | [AdminService](#svc-adminservice) | admin/management | User/tier/AI/prompt/monitoring |
+| 29 | [AuditService](#svc-auditservice) | admin/monitoring | Audit và admin actions |
+| 30 | [AnnouncementService](#svc-announcementservice) | shared/announcement | Thông báo/audience/notifications |
+| 31 | [SupportService](#svc-supportservice) | shared/support | Support ticket và trao đổi |
+| 32 | [LearningReferenceService](#svc-learningreferenceservice) | shared/learning | Nguồn học từ catalog |
+| 33 | [ConsultantEvaluationService](#svc-consultantevaluationservice) | consultant/consultation | Consultant phân tích CV và ATS |
+| 34 | [CrawlSettingsService](#svc-crawlsettingsservice) | admin/jobs | Cấu hình crawl trong DB |
+| 35 | [RagCourseService](#svc-ragcourseservice) | admin/rag | Duyệt khóa học cho catalog và RAG |
 
 Các phần đọc chung:
 
+- [Ranh giới service/util và các hàm đã tách](#doc-utils).
 - [Cách đọc tài liệu và lần theo code](#doc-reading).
 - [Các cú pháp/thành phần dùng chung](#doc-language).
 - [Transaction, quyền và lỗi](#doc-boundaries).
 - [Luồng liên kết giữa các service](#doc-flows).
 - [Cách chạy và kiểm tra chức năng](#doc-usage).
 - [Các giới hạn cần hiểu đúng](#doc-limits).
+
+<a id="doc-utils"></a>
+
+## Ranh giới service/util và các hàm đã tách
+
+Service giữ **luồng nghiệp vụ**: quyền/ownership/assignment, repository, trạng thái, transaction/lock, AI/provider, Redis, mail, file I/O, audit, scheduling và retry. Util giữ **kiểm tra và biến đổi dữ liệu**: kiểu/độ dài/schema, chuỗi/UUID, map/list/DTO, hash/nội dung, chia chunk và thuật toán so kỹ năng. Không chuyển một hàm chỉ vì nó là private hoặc nằm cuối file.
+
+Các util mới là lớp final với constructor private và hàm static. Chúng không tự đọc repository hoặc phiên người dùng. Service truyền dữ liệu cần xử lý vào util rồi quyết định hành động tiếp theo. `ResumeContent.canonicalText/contentHash` nhận thêm `ObjectMapper`; `TokenSupport.encodeAccessToken` nhận `JwtEncoder` và `decodeAccessToken` nhận `JwtDecoder`. Service vẫn tạo/giữ các dependency này. Một số util dùng giờ hiện tại hoặc sinh số ngẫu nhiên nên không hoàn toàn là hàm thuần.
+
+Thư mục `util` còn có tiện ích kỹ thuật với I/O như `ResumeFileExtractor` để đọc tệp và OCR.
+Khi lần theo luồng, đọc trách nhiệm của từng lớp; phần refactor này giữ truy cập database và ranh giới transaction ở service/repository.
+
+`replaceSections`, `invalidate`, `owned`, `verifyContext`, `assignedCandidate`, cache và callback dọn file vẫn nằm trong service. `AuditService.record` giữ nguyên vì nó ghi DB. Package ở cột util dưới đây tính từ `com.example.intelligent_cv_matching_ai_agent.util`; mỗi liên kết mở file nguồn.
+
+| Service | Util hiện tại | Hàm/nhóm logic |
+| --- | --- | --- |
+| [AuthService](../src/main/java/com/example/intelligent_cv_matching_ai_agent/service/shared/identity/AuthService.java) | [`shared.identity.AuthValidation`](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/shared/identity/AuthValidation.java) | email, passwordLength |
+| [TokenService](../src/main/java/com/example/intelligent_cv_matching_ai_agent/service/shared/identity/TokenService.java) | [`shared.identity.TokenSupport`](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/shared/identity/TokenSupport.java) | signingKey, random/hash, encodeAccessToken/decodeAccessToken |
+| [AiService](../src/main/java/com/example/intelligent_cv_matching_ai_agent/service/shared/ai/AiService.java) | [`shared.ai.AiResponseData`](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/shared/ai/AiResponseData.java) | schema, requestedLanguage, validate; array/string/score nội bộ |
+| [ResumeService](../src/main/java/com/example/intelligent_cv_matching_ai_agent/service/candidate/resume/ResumeService.java) | [`candidate.resume.ResumeContent`](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/candidate/resume/ResumeContent.java)<br>[`candidate.resume.ResumeInput`](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/candidate/resume/ResumeInput.java) | canonicalText, contentHash, baseline; title/language/document/UUID/skillSlug |
+| [MatchingService](../src/main/java/com/example/intelligent_cv_matching_ai_agent/service/candidate/jobs/MatchingService.java) | [`candidate.jobs.JobSkillOverlap`](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/candidate/jobs/JobSkillOverlap.java) | overlap |
+| [CareerToolsService](../src/main/java/com/example/intelligent_cv_matching_ai_agent/service/candidate/jobs/CareerToolsService.java) | [`candidate.jobs.CareerToolsSupport`](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/candidate/jobs/CareerToolsSupport.java) | analysisResponse, requiredAi, languageOf, salary interval/currency |
+| [CareerAssistantService](../src/main/java/com/example/intelligent_cv_matching_ai_agent/service/candidate/ai/CareerAssistantService.java) | [`candidate.ai.CareerAssistantData`](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/candidate/ai/CareerAssistantData.java) | message, feedbackRating/feedbackHelpful, citation, contextUuid |
+| [AssessmentService](../src/main/java/com/example/intelligent_cv_matching_ai_agent/service/candidate/learning/AssessmentService.java) | [`candidate.learning.AssessmentValidator`](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/candidate/learning/AssessmentValidator.java) | validateQuestions |
+| [LearningService](../src/main/java/com/example/intelligent_cv_matching_ai_agent/service/candidate/learning/LearningService.java) | [`candidate.learning.RoadmapValidator`](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/candidate/learning/RoadmapValidator.java) | validateNodes, validateGaps; optionalText nội bộ |
+| [LearningReferenceService](../src/main/java/com/example/intelligent_cv_matching_ai_agent/service/shared/learning/LearningReferenceService.java) | [`shared.learning.LearningReferenceData`](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/shared/learning/LearningReferenceData.java) | focusSkills, assessmentFocus, skillPattern, trustedResources |
+| [ConsultantEvaluationService](../src/main/java/com/example/intelligent_cv_matching_ai_agent/service/consultant/consultation/ConsultantEvaluationService.java) | [`consultant.consultation.ConsultationEvaluationData`](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/consultant/consultation/ConsultationEvaluationData.java) | suggestion, aiArray/aiStrings/aiText, languageOf, atsResponse |
+| [JobService](../src/main/java/com/example/intelligent_cv_matching_ai_agent/service/shared/jobs/JobService.java) | [`shared.jobs.JobEmbeddingSupport`](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/shared/jobs/JobEmbeddingSupport.java) | embeddingText |
+| [JobEmbeddingService](../src/main/java/com/example/intelligent_cv_matching_ai_agent/service/shared/jobs/JobEmbeddingService.java) | [`shared.jobs.JobEmbeddingSupport`](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/shared/jobs/JobEmbeddingSupport.java) | embeddingText, usable, safeError |
+| [CrawlSettingsService](../src/main/java/com/example/intelligent_cv_matching_ai_agent/service/admin/jobs/CrawlSettingsService.java) | [`admin.jobs.CrawlSettingsSupport`](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/admin/jobs/CrawlSettingsSupport.java) | fromEnvironment/fromDatabase, fixedDelay, normalize; bounded/instant nội bộ |
+| [JobCollectionScheduler](../src/main/java/com/example/intelligent_cv_matching_ai_agent/service/admin/jobs/JobCollectionScheduler.java) | [`admin.jobs.JobCollectionSupport`](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/admin/jobs/JobCollectionSupport.java) | leaseName |
+| [RagDocumentService](../src/main/java/com/example/intelligent_cv_matching_ai_agent/service/admin/rag/RagDocumentService.java) | [`admin.rag.RagDocumentSupport`](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/admin/rag/RagDocumentSupport.java) | split, safeError |
+| [RagCourseService](../src/main/java/com/example/intelligent_cv_matching_ai_agent/service/admin/rag/RagCourseService.java) | [`admin.rag.RagCourseSupport`](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/admin/rag/RagCourseSupport.java) | content, skills, text |
+
+**Delegate giữ tương thích:** `AuthService.email`; `TokenService.random/hash`; `ResumeService.canonicalText`; `MatchingService.overlap`; `AssessmentService.validateQuestions`; `LearningService.validateNodes/validateGaps`; `JobService.embeddingText`; `RagDocumentService.split`. `JobCollectionScheduler.leaseName` giữ delegate phạm vi package. Logic thực nằm trong util; caller/test cũ vẫn gọi được entry trước đây. Helper private đã chuyển không còn thuộc service.
+
+Ví dụ: `ResumeService.create` gọi `ResumeInput.requiredTitle/language/optionalUuid`, chuẩn hóa qua `ResumeData.normalize`, tính `ResumeContent.contentHash(mapper, title, language, raw, data)` rồi mới ghi repository.
+
+Giữ nguyên khác biệt validation: `ResumeInput.language` dùng vi khi giá trị null, nhận vi/en/VI/EN và từ chối giá trị khác; `CareerToolsSupport.languageOf` mặc định vi khi giá trị không phù hợp. Không gộp hai quy tắc này thành một hàm chung.
 
 <a id="doc-reading"></a>
 
@@ -70,7 +119,7 @@ Khi đọc một phương thức:
 ~~~text
 Controller route + request DTO
     → method service
-    → helper/service con
+    → util kiểm tra/biến đổi dữ liệu hoặc service chuyên trách
     → repository method và SQL
     → constraint/migration
     → response hoặc exception
@@ -189,7 +238,7 @@ Request HTTP qua [SecurityConfig.java](../src/main/java/com/example/intelligent_
 | 502 | Provider/output AI không đáp ứng contract |
 | 503 | Provider/mail/database/cấu hình phụ thuộc chưa sẵn sàng |
 
-Một lỗi RuntimeException chưa được advice map có thể vẫn là500. Không nên suy mọi lỗi service đều được đổi thành400/409.
+Một lỗi RuntimeException chưa được advice map có thể vẫn là 500. Không nên suy mọi lỗi service đều được đổi thành 400/409.
 
 Ví dụ service owner thường trả404 khi tài nguyên của người khác, thay vì xác nhận tài nguyên tồn tại rồi trả403. Với async/index/crawl, HTTP200 có thể chứa FAILED/PARTIAL/QUEUED, cần đọc state trong body.
 
@@ -350,6 +399,8 @@ Các DTO chứa password/token/OTP override `toString()` bằng chuỗi đã che
 
 Nguồn: [AuthService.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/service/shared/identity/AuthService.java).
 
+Util đã tách: [AuthValidation.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/shared/identity/AuthValidation.java). Xem [ranh giới service/util](#doc-utils).
+
 ### Vai trò, phụ thuộc và dữ liệu
 
 [AuthFlowService](#svc-authflowservice) gọi lớp này cho tài khoản email/password.
@@ -372,7 +423,9 @@ Constructor tạo `dummyHash = encoder.encode(TokenService.random(""))` một l�
 Hash này dùng khi email không tồn tại để login vẫn thực hiện BCrypt.
 Nhờ đó nhánh email lạ không bỏ qua công việc kiểm tra password.
 
-### email(String email) — helper public static
+### `AuthService.email(String email)` → `AuthValidation.email(String email)`
+
+Method public static của service là delegate. Logic nằm ở `com.example.intelligent_cv_matching_ai_agent.util.shared.identity.AuthValidation.email`.
 
 Đầu vào là email; đầu ra là `trim().toLowerCase(Locale.ROOT)`.
 
@@ -383,7 +436,9 @@ Helper không tự xác minh cú pháp email hoặc xử lý `null`; DTO chịu 
 Ví dụ `" Reader@Example.com "` trở thành `"reader@example.com"`.
 Nó không thay đổi dấu chấm hoặc phần `+tag` của địa chỉ email.
 
-### passwordLength(String password) — helper private
+### `AuthValidation.passwordLength(String password)` — util public static
+
+Hàm thuộc `com.example.intelligent_cv_matching_ai_agent.util.shared.identity.AuthValidation`; register/login gọi trực tiếp.
 
 Nhận password; không trả dữ liệu.
 
@@ -525,6 +580,8 @@ Chi tiết API/body nằm ở [AuthFlowService](#svc-authflowservice).
 
 Nguồn: [TokenService.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/service/shared/identity/TokenService.java).
 
+Util đã tách: [TokenSupport.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/shared/identity/TokenSupport.java). Xem [ranh giới service/util](#doc-utils).
+
 ### Vai trò, phụ thuộc và mô hình token
 
 Các service auth gọi lớp này để cấp hoặc thu hồi session.
@@ -551,13 +608,17 @@ Tên bảng `refresh_tokens` có thể gây hiểu nhầm khi đọc:
 Access là JWT HS256; refresh là chuỗi ngẫu nhiên `r_...`.
 Cả hai cần bản ghi session database còn hiệu lực.
 
-### signingKey(String secret) — private static
+Các method `TokenSupport` dưới đây thuộc `com.example.intelligent_cv_matching_ai_agent.util.shared.identity.TokenSupport`; chỉ random/hash giữ entry tương thích trong service.
+
+### `TokenSupport.signingKey(String secret)` — util
 
 Kiểm secret bắt buộc, không trống, có ít nhất 32 byte UTF-8 và không trùng placeholder đã biết.
 Trả `SecretKeySpec` dùng cho HS256; cấu hình không hợp lệ gây lỗi khi khởi tạo service.
 Helper kiểm độ dài/cấu hình, không xác minh độ ngẫu nhiên của secret.
 
-### random(String prefix) — public static
+### `TokenService.random(String prefix)` → `TokenSupport.random(String prefix)`
+
+Service giữ delegate public static.
 
 Đầu vào là tiền tố; đầu ra là tiền tố nối chuỗi Base64 URL-safe của 32 byte ngẫu nhiên.
 
@@ -570,7 +631,9 @@ Phần ngẫu nhiên có 43 ký tự.
 Tiền tố `r_` hoặc `g_` làm chuỗi có tổng độ dài 45.
 [GuestSessionService](#svc-guestsessionservice) tái sử dụng helper để sinh guest key.
 
-### hash(String value) — public static
+### `TokenService.hash(String value)` → `TokenSupport.hash(String value)`
+
+Service giữ delegate public static.
 
 Nhận chuỗi token/key; trả SHA-256 dạng hexadecimal.
 
@@ -673,7 +736,9 @@ Có `@Transactional`; không trả dữ liệu.
 Điểm này cho phép `deleteAccount` thu hồi token sau khi đã chuyển user sang `DELETED`.
 Lock vẫn tồn tại đến cuối transaction gọi bên ngoài nếu cùng tham gia transaction.
 
-### encodeAccessToken(UUID userId, Instant issuedAt, Instant expiresAt) — private
+### `TokenSupport.encodeAccessToken(JwtEncoder encoder, UUID userId, Instant issuedAt, Instant expiresAt)`
+
+Hàm public static nhận encoder từ service.
 
 Nhận ID user, thời điểm phát hành và deadline; trả chuỗi JWT ba phần.
 
@@ -686,7 +751,9 @@ Nhận ID user, thời điểm phát hành và deadline; trả chuỗi JWT ba ph
 Claims được server tạo; client không điều khiển payload tại bước phát hành.
 Role không nằm trong payload; role được lấy từ database khi authenticate.
 
-### decodeAccessToken(String token) — private
+### `TokenSupport.decodeAccessToken(JwtDecoder decoder, String token)`
+
+Hàm public static nhận decoder đã cấu hình từ service.
 
 Đầu ra là UUID user hoặc HTTP 401.
 
@@ -847,8 +914,8 @@ Các skill trả kèm `skill_id`, tên, slug, trình độ và số năm kinh ng
 Có `@Transactional`.
 Đầu ra là `career()` sau cập nhật.
 
-1. Nếu có cả hai mức lương, kiểm `expectedSalaryMin <= expectedSalaryMax`.
-2. Vi phạm trả HTTP 400.
+1. DTO kiểm một `expectedSalary` tùy chọn, lớn hơn 0 và tối đa 12 chữ số nguyên/2 thập phân; đơn vị theo tháng.
+2. Vi phạm hoặc còn gửi trường lương min/max cũ trả HTTP 400.
 3. Upsert bản ghi profile tối thiểu theo user ID.
 4. Cập nhật job hiện tại, mục tiêu, kinh nghiệm, lương, địa điểm, workplace/employment type và summary.
 5. Serialize `preferences` thành JSON để ghi `preferences_json`.
@@ -964,8 +1031,7 @@ Sửa nghề nghiệp, dùng ID skill đã có trong danh mục:
 {
   "targetJobTitle": "Java Backend Developer",
   "yearsExperience": 1.5,
-  "expectedSalaryMin": 15000000,
-  "expectedSalaryMax": 25000000,
+  "expectedSalary": 7500000,
   "salaryCurrency": "VND",
   "preferredLocation": "Hồ Chí Minh",
   "workplacePreference": "HYBRID",
@@ -1695,6 +1761,8 @@ Category hiện tại là chuỗi có giới hạn độ dài, không có enum T
 
 Nguồn: [ResumeService.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/service/candidate/resume/ResumeService.java).
 
+Util đã tách: [ResumeContent.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/candidate/resume/ResumeContent.java), [ResumeInput.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/candidate/resume/ResumeInput.java). Xem [ranh giới service/util](#doc-utils).
+
 ### Vai trò, nơi gọi và dữ liệu
 
 Service quản lý vòng đời CV của người đăng nhập: tạo, upload, sửa, xác nhận, chọn CV chính,
@@ -1895,10 +1963,12 @@ Annotation là `@Transactional(noRollbackFor = ApiException.class)` để giữ 
    đặt task `COMPLETED` và trả metadata embedding.
 
 `Arrays.toString(float[])` tạo literal dạng `[0.1, ...]` để SQL cast sang pgvector.
-Vector 1536 chiều và giá trị hữu hạn được [AiService](#svc-aiservice) kiểm tra.
+Vector 1024 chiều và giá trị hữu hạn được [AiService](#svc-aiservice) kiểm tra qua `FlowSupport.vector`.
 Output repository không trả toàn bộ vector; chỉ ID/model/hash/current/timestamp.
 
-### `canonicalText(Map<String,Object> resume)`
+### `ResumeService.canonicalText(Map<String,Object> resume)` → `ResumeContent.canonicalText(ObjectMapper mapper, Map<String,Object> resume)`
+
+Service giữ API public cũ và truyền mapper vào `com.example.intelligent_cv_matching_ai_agent.util.candidate.resume.ResumeContent.canonicalText`.
 
 Đây là nguồn text chung cho phân tích, matching, ATS, chat context và embedding.
 Nếu JSON có summary hoặc có dữ liệu trong experience/education/projects/certifications/skills,
@@ -1919,24 +1989,25 @@ Các CV không có file, hoặc `text=true`, được xuất thành canonical te
 filename là title đã thay ký tự không phù hợp thành `_` cộng `.txt`.
 Controller đặt Content-Disposition attachment và `X-Content-Type-Options: nosniff`.
 
-### Các helper của ResumeService
+### Hàm điều phối của service và helper trong util
 
 | Phương thức | Input/output | Giải thích code và tác động |
 | --- | --- | --- |
 | `replaceSections(UUID,Map)` | JSON chuẩn hóa → ghi nhiều bảng | Xóa rồi insert lại experience/education/projects/certifications; đổi cột ngày thành `LocalDate`, technologies thành JSON. Xây lại resume skills, kiểm tra skill ID active hoặc tạo/đọc skill theo slug, dùng `Set<UUID> seen` loại trùng, gắn source `REVIEWED`. |
 | `invalidate(UUID)` | CV ID → void | Tắt `is_current` của resume embeddings; đặt `roadmaps.is_outdated=true` đối với gap analysis dùng CV này. |
-| `baseline(Map)` | CV → map analysis | Duyệt summary/experience/education/skills/projects; mỗi mục hiện diện +20, tổng tối đa 100. Ghi strengths/issues/suggestions tương ứng; ATS để null. |
+| `ResumeContent.baseline(Map)` | CV → map analysis | Duyệt summary/experience/education/skills/projects; mỗi mục hiện diện +20, tổng tối đa 100. Ghi strengths/issues/suggestions tương ứng; ATS để null. |
 | `write(String,byte[])` | Key/bytes → file | Tạo thư mục, kiểm tra safe path, ghi `CREATE_NEW` để không ghi đè; đăng ký transaction callback xóa file khi DB rollback. Storage lỗi trả 503. |
 | `afterCompletion(int status)` | Trạng thái transaction → void | Callback public trong anonymous `TransactionSynchronization` được tạo ở `write`; chỉ khi `STATUS_ROLLED_BACK` thì `Files.deleteIfExists(file)`, bỏ qua IOException khi dọn file. Commit thành công giữ file. |
 | `safeFile(String)` | Key → `Path` | Chỉ nhận UUID-like key với đuôi pdf/docx/txt/png/jpg/jpeg; dùng root real path, resolve/normalize, yêu cầu nằm trong root, từ chối symbolic link. |
-| `hash(String)` | Text → hex SHA-256 | Băm UTF-8 qua `MessageDigest`; lỗi tạo digest chuyển thành `IllegalStateException`. |
-| `contentHash(String,String,String,Map)` | title/language/raw/data → hash | Serialize list bốn thành phần, ổn định key JSON bằng `stable`, rồi SHA-256. |
-| `stable(Object)` | JSON bất kỳ → JSON có key ổn định | Map được chuyển thành `TreeMap` và xử lý đệ quy; list giữ thứ tự nhưng normalize từng item bằng stream. Đổi thứ tự key object không làm hash thay đổi; đổi thứ tự list vẫn có thể làm đổi hash. |
-| `uuid(Object)` | null/text → null/UUID | Null nghĩa không có ID; UUID sai trả 400. |
-| `requiredTitle(Map)` | input → title | Dùng `ResumeData.text` giới hạn 255 rồi yêu cầu không rỗng. |
-| `language(Object)` | giá trị → vi/en | Null mặc định vi; nhận vi/en/VI/EN rồi lower case; giá trị khác trả 400. |
-| `document(Map)` | input → structured map | Yêu cầu `structured_data` là object, khác loại trả 400. |
-| `asMap(Object)` | object → map | Pattern check/cast map; thiếu hoặc khác loại trả `Map.of()`. |
+| `ResumeContent.hash(String) (private util)` | Text → hex SHA-256 | Băm UTF-8 qua `MessageDigest`; lỗi tạo digest chuyển thành `IllegalStateException`. |
+| `ResumeContent.contentHash(ObjectMapper,String,String,String,Map)` | title/language/raw/data → hash | Serialize list bốn thành phần, ổn định key JSON bằng `stable`, rồi SHA-256. |
+| `ResumeContent.stable(Object) (private util)` | JSON bất kỳ → JSON có key ổn định | Map được chuyển thành `TreeMap` và xử lý đệ quy; list giữ thứ tự nhưng normalize từng item bằng stream. Đổi thứ tự key object không làm hash thay đổi; đổi thứ tự list vẫn có thể làm đổi hash. |
+| `ResumeInput.optionalUuid(Object)` | null/text → null/UUID | Null nghĩa không có ID; UUID sai trả 400. |
+| `ResumeInput.requiredTitle(Map)` | input → title | Dùng `ResumeData.text` giới hạn 255 rồi yêu cầu không rỗng. |
+| `ResumeInput.language(Object)` | giá trị → vi/en | Null mặc định vi; nhận vi/en/VI/EN rồi lower case; giá trị khác trả 400. |
+| `ResumeInput.skillSlug(String)` | Tên skill → slug | Chuẩn hóa chữ thường, thay ký tự ngoài chữ/số bằng gạch và bỏ gạch đầu/cuối; trống trả 400. Việc đọc/tạo skill vẫn ở service. |
+| `ResumeInput.document(Map)` | input → structured map | Yêu cầu `structured_data` là object, khác loại trả 400. |
+| `Values.object(Object)` | object → map | Pattern check/cast map; thiếu hoặc khác loại trả `Map.of()`. |
 
 Đoạn tiêu biểu cho invalidation:
 
@@ -1955,6 +2026,8 @@ Các field hash hiện có là title, language, raw content và structured data.
 ## MatchingService
 
 Nguồn: [MatchingService.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/service/candidate/jobs/MatchingService.java).
+
+Util đã tách: [JobSkillOverlap.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/candidate/jobs/JobSkillOverlap.java). Xem [ranh giới service/util](#doc-utils).
 
 ### Vai trò, phụ thuộc và dữ liệu
 
@@ -2056,7 +2129,9 @@ Ví dụ input DTO:
 `{{resumeId}}` phải thay bằng UUID của CV `READY`. Với profile có thể gửi
 `{"basis":"CAREER_PROFILE","resumeIds":[],"limit":10}`.
 
-### `overlap(String candidate, Map<String,Object> job)`
+### `MatchingService.overlap(String candidate, Map<String,Object> job)` → `JobSkillOverlap.overlap`
+
+Service giữ delegate public static; thuật toán thuộc `com.example.intelligent_cv_matching_ai_agent.util.candidate.jobs.JobSkillOverlap.overlap(String,Map)`.
 
 Public static helper dùng được trực tiếp trong test.
 Đổi candidate và skill name sang lowercase `Locale.ROOT`.
@@ -2098,6 +2173,8 @@ là map thay vì object.
 ## CareerToolsService
 
 Nguồn: [CareerToolsService.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/service/candidate/jobs/CareerToolsService.java).
+
+Util đã tách: [CareerToolsSupport.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/candidate/jobs/CareerToolsSupport.java). Xem [ranh giới service/util](#doc-utils).
 
 ### Vai trò, constructor và dữ liệu
 
@@ -2162,7 +2239,9 @@ DB lookup ATS không giới hạn thời gian theo `created_at`. TTL 24 giờ ch
 nếu input hash không đổi, DB vẫn có thể tái sử dụng analysis lâu hơn 24 giờ.
 Redis fail không làm ATS fail.
 
-### `analysisResponse(Map row, boolean cached)`
+### `CareerToolsSupport.analysisResponse(Map<String,Object> row, boolean cached)`
+
+Hàm static thuộc `com.example.intelligent_cv_matching_ai_agent.util.candidate.jobs.CareerToolsSupport`, không còn là method của service; nó sửa và trả map đầu vào.
 
 Private helper bóc `improvement_suggestions_json.items` ra array,
 thay field response bằng array đó và thêm cờ `cached`.
@@ -2258,14 +2337,16 @@ Ví dụ:
 }
 ```
 
-### Helper của CareerToolsService
+### Helper điều phối và util của CareerToolsService
 
 | Phương thức | Input/output | Vai trò và lỗi |
 | --- | --- | --- |
 | `confirmed(UUID)` | CV ID → row CV | Gọi `resumes.owned` rồi yêu cầu status READY; chưa confirm trả 409. |
 | `activeJob(UUID)` | Job ID → row job | Repository lọc ACTIVE và deadline; chiếu nguồn active. Không tìm thấy trả 404 qua SqlStore. |
-| `requiredAi(Map,String)` | AI result/key → text | Giá trị trống hoặc dài hơn 30.000 trả 502; dùng cho email/cover letter. |
-| `languageOf(Object)` | giá trị → vi/en | Lowercase với Locale.ROOT; giá trị ngoài vi/en hoặc null mặc định vi. |
+| `CareerToolsSupport.requiredAi(Map,String)` | AI result/key → text | Giá trị trống hoặc dài hơn 30.000 trả 502; dùng cho email/cover letter. |
+| `CareerToolsSupport.languageOf(Object)` | giá trị → vi/en | Lowercase với Locale.ROOT; giá trị ngoài vi/en hoặc null mặc định vi. |
+
+`CareerToolsSupport.validateSalaryInterval(min,max)` kiểm max ≥ min; `salaryCurrency(Object)` kiểm VND/USD/EUR. Service vẫn dùng `FlowSupport.score` cho từng mức lương trước khi gọi util và lưu DB.
 
 Điểm đọc code: `putIfAbsent` chỉ thêm mặc định nếu chưa có giá trị hữu dụng theo quy tắc Map,
 trong khi `put` luôn ghi đè bằng dữ liệu job được server chọn.
@@ -2276,6 +2357,8 @@ Dữ kiện `target_job` và `job_requirements` vì vậy được service bổ 
 ## CareerAssistantService
 
 Nguồn: [CareerAssistantService.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/service/candidate/ai/CareerAssistantService.java).
+
+Util đã tách: [CareerAssistantData.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/candidate/ai/CareerAssistantData.java). Xem [ranh giới service/util](#doc-utils).
 
 ### Vai trò, dependency và dữ liệu
 
@@ -2402,14 +2485,16 @@ Insert row feedback mới và trả row.
 Code dùng insert, không dùng upsert như feedback matching;
 không nên coi hai API có cùng cơ chế ghi đè.
 
-### Helper quyền sở hữu và context
+### Helper quyền sở hữu và dữ liệu context
 
 | Phương thức | Input/output | Chi tiết |
 | --- | --- | --- |
 | `owned(UUID,UUID)` | Thread ID/guest ID → row | User dùng `current.owns(...,"user_id")`; guest UUID phải bằng guest_session_id. Không khớp trả 404. |
 | `verifyContext(String,UUID)` | Tên field/ID → void | Switch cố định: CV thuộc user, job active, gap/roadmap thuộc user; field ngoài whitelist trả 400. |
 | `context(Map,UUID)` | Thread/guest → map context | Guest chỉ `{"trial":true}`. User lấy profile và những resume/job/gap/roadmap được liên kết; roadmap thêm nodes. |
-| `uuid(Object)` | null/text → null/UUID | ID không hợp lệ trả 400; null nghĩa chưa liên kết. |
+| `CareerAssistantData.contextUuid(Object)` | null/text → null/UUID | ID không hợp lệ trả 400; null nghĩa chưa liên kết. |
+
+`com.example.intelligent_cv_matching_ai_agent.util.candidate.ai.CareerAssistantData` còn chứa `message(Map)`, `feedbackRating(Object)`, `feedbackHelpful(Object)` và `citation(UUID,Map)`. Service giữ kiểm quyền/context, retrieval/AI và ghi message/citation; util chỉ kiểm dữ liệu hoặc dựng map gồm chunk/document, nhãn, similarity, URL và provider nguồn.
 
 Trong `context`, CV dùng canonical text nhưng không kiểm tra `READY` trong method này.
 Job context được đọc theo ID để giữ context hội thoại, không kiểm tra lại deadline ở query đó.
@@ -2432,12 +2517,14 @@ Row lock bảo vệ giai đoạn ghi kết quả và phối hợp với UPDATE a
 
 Nguồn: [LearningService.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/service/candidate/learning/LearningService.java).
 
+Util đã tách: [RoadmapValidator.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/candidate/learning/RoadmapValidator.java). Xem [ranh giới service/util](#doc-utils).
+
 ### Vai trò, constructor và dữ liệu
 
 Service làm façade cho assessment và trực tiếp xây roadmap từ job/profile/CV/assessment.
 `LearningController` gọi service dưới prefix `/api/v1`.
 Constructor nhận `LearningRepository`, `CurrentUser`, [AiService](#svc-aiservice),
-[AssessmentService](#svc-assessmentservice), [ResumeService](#svc-resumeservice).
+[AssessmentService](#svc-assessmentservice), [ResumeService](#svc-resumeservice), [LearningReferenceService](#svc-learningreferenceservice).
 
 Đọc profile/skills/job/CV/assessment và catalog `learning_resources`;
 ghi `gap_analyses`, `gap_analysis_skills`, `roadmaps`, `roadmap_nodes`,
@@ -2498,7 +2585,7 @@ Mỗi gap ghi skill name/status/current level/target level/urgency/reasoning san
 
 Tổng giờ được tính từ `estimated_hours` của từng node bằng `stream().mapToInt(...).sum()`,
 thay vì tin trường `estimated_total_hours` do AI trả.
-Roadmap lưu `status=ready`, liên kết gap analysis, target/job/title.
+Roadmap lưu `status=ready`, liên kết gap analysis, target/job/title và `learning_recommendations_snapshot` từ `references.recommend`.
 
 Vòng lặp đầu tạo node theo thứ tự 1..N:
 
@@ -2506,8 +2593,7 @@ Vòng lặp đầu tạo node theo thứ tự 1..N:
   skill ID null.
 - Insert node với description/giờ/thứ tự.
 - Lưu node UUID vào `nodeIds` để vòng sau chuyển sequence sang UUID.
-- Lấy tối đa 3 learning resources active có title ILIKE skill; ưu tiên tài nguyên miễn phí.
-  Gắn tài nguyên có sẵn trong catalog. Service không tạo resource URL từ AI.
+- Gọi `references.resourcesForSkill(skill)`, bỏ ID thiếu/trùng rồi gắn tài nguyên có sẵn trong catalog; không tạo resource URL từ AI.
 
 Vòng lặp sau đọc prerequisite của mỗi node, đổi số thứ tự `sequence-1` thành node UUID,
 insert quan hệ và đánh dấu node được tham chiếu `is_prerequisite=true`.
@@ -2527,7 +2613,9 @@ Ví dụ request:
 Các biến ID phải là UUID hợp lệ. Có thể bỏ các ID không dùng;
 assessment chỉ rõ phải đã hoàn thành và tương ứng target.
 
-### `validateNodes(List<?> nodes)`
+### `LearningService.validateNodes(List<?> nodes)` → `RoadmapValidator.validateNodes(List<?> nodes)`
+
+Service giữ delegate public static; thuật toán nằm ở `com.example.intelligent_cv_matching_ai_agent.util.candidate.learning.RoadmapValidator`.
 
 Public static validator, thường được gọi trong unit test.
 Yêu cầu 1..50 nodes.
@@ -2553,7 +2641,9 @@ Ví dụ hợp lệ của output AI:
 Đây là hình dạng nodes AI trả, không phải body `RoadmapRequest`.
 Prerequisite `[2]` ở node thứ hai bị từ chối vì tự tham chiếu.
 
-### `validateGaps(List<?> gaps)` và `optionalText(Map,String,int)`
+### `RoadmapValidator.validateGaps(List<?> gaps)` và `RoadmapValidator.optionalText(Map,String,int)`
+
+Service giữ delegate validateGaps; optionalText là private static trong util.
 
 `validateGaps` giới hạn 100 gap.
 Mỗi gap có skill name không rỗng tối đa 150 và gap status không rỗng tối đa 20.
@@ -2567,6 +2657,8 @@ và nằm trong chiều dài cho phép không; field thiếu/null được chấ
 Các output AI sai shape/giới hạn trả 502.
 
 ### `roadmaps()` và `roadmap(UUID id)`
+
+List bỏ snapshot nội bộ khỏi từng row. Detail trả snapshot dưới key `learning_recommendations`; dữ liệu cũ thiếu snapshot được bổ sung qua `references.recommend` từ target và skill nodes. `withAssessmentRecommendations` bổ sung gợi ý học khi lấy/chấm assessment.
 
 `roadmaps` đọc tối đa 100 roadmap của user theo thời gian tạo mới nhất.
 HTTP `GET /api/v1/roadmaps`.
@@ -2603,11 +2695,32 @@ db.updateRoadmapNodePrerequisites(nodeIds.get(i), nodeIds.get(sequence - 1));
 `sequence-1` là bước chuyển từ numbering 1-based của AI sang index 0-based Java.
 Validator chạy trước nên index tham chiếu luôn tồn tại và nằm trước node hiện tại.
 
+<a id="svc-learningreferenceservice"></a>
+
+## LearningReferenceService
+
+Nguồn: [LearningReferenceService.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/service/shared/learning/LearningReferenceService.java). Util: [LearningReferenceData.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/shared/learning/LearningReferenceData.java).
+
+Service được LearningService gọi khi trả assessment hoặc tạo/đọc roadmap. Constructor nhận LearningRepository và RoadmapReferenceCatalog. Không có endpoint riêng; không gọi website hoặc AI để tạo gợi ý. Nó đọc catalog đã có và chọn link hợp lệ.
+
+| Method | Luồng và dữ liệu trả về |
+| --- | --- |
+| `recommend(String target, Collection<String> skills)` | Lọc tối đa 20 focus skills; chọn roadmap từ catalog; gom resource khóa học đã duyệt, resource theo URL roadmap và từng skill; trả provider, source_catalog_url, focus_skills, roadmaps và tối đa 15 resources. |
+| `forAssessment(Map session)` | Session chưa completed trả map rỗng. Session hoàn thành lấy skill score hữu hạn trong 0..<70, ưu tiên điểm thấp, bỏ General rồi recommend theo target. |
+| `resourcesForSkill(String skill)` | Null/trống trả list rỗng; tìm resource theo slug/pattern và roadmap URL rồi lọc còn tối đa 8 resources. |
+| `skillSlugs(String)` (private service) | Hợp nhất alias catalog và slug fallback từ CourseLink; vẫn ở service vì cần catalog. |
+
+`com.example.intelligent_cv_matching_ai_agent.util.shared.learning.LearningReferenceData` chứa `focusSkills`, `assessmentFocus`, `skillPattern` và `trustedResources`. Pattern escape các ký tự đặc biệt của LIKE. Resource được ưu tiên khi metadata có course_id, cần ID và URL HTTPS có host, không user-info; URL trùng chỉ giữ một. Việc đã qua bộ lọc URL không đồng nghĩa service đã fetch hoặc xác nhận nội dung hiện tại của trang.
+
+Luồng liên quan: [RagCourseService](#svc-ragcourseservice) approve khóa học → learning_resources → recommend/resourcesForSkill → gợi ý học trong assessment/roadmap.
+
 <a id="svc-assessmentservice"></a>
 
 ## AssessmentService
 
 Nguồn: [AssessmentService.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/service/candidate/learning/AssessmentService.java).
+
+Util đã tách: [AssessmentValidator.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/candidate/learning/AssessmentValidator.java). Xem [ranh giới service/util](#doc-utils).
 
 ### Vai trò, dependency và trạng thái
 
@@ -2643,7 +2756,9 @@ Session mới dựa vào default database cho trạng thái bắt đầu/current
 Trả `get(id)` nên correct answers vẫn bị ẩn ngay khi tạo đề.
 AI generation lỗi làm transaction không tạo một bộ câu hỏi chưa đầy đủ.
 
-### `validateQuestions(List<?> questions)`
+### `AssessmentService.validateQuestions(List<?> questions)` → `AssessmentValidator.validateQuestions`
+
+Service giữ delegate public static; logic nằm ở `com.example.intelligent_cv_matching_ai_agent.util.candidate.learning.AssessmentValidator.validateQuestions(List<?>)`.
 
 Public static validator kiểm tra output provider trước khi ghi DB:
 
@@ -2700,6 +2815,8 @@ Khóa session phối hợp answer/submit để tránh ghi đáp án trong khi b�
 
 Nguồn: [AiService.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/service/shared/ai/AiService.java).
 
+Util đã tách: [AiResponseData.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/shared/ai/AiResponseData.java). Xem [ranh giới service/util](#doc-utils).
+
 ### Vai trò và constructor
 
 Đây là ranh giới tập trung gọi provider model thật của dự án.
@@ -2720,12 +2837,14 @@ Constructor `AiService(...)` nhận:
 | [GuestAccess](#svc-guestaccess) | Reserve/settle quota guest |
 | [AiUsageRecorder](#svc-aiusagerecorder) | Ghi model usage trong transaction riêng |
 | `app.ai.enabled`, `app.ai.provider` | Bật khả năng gọi và tên provider |
-| Chat/embedding model properties | Model mặc định hoặc model embedding đã cấu hình |
+| `spring.ai.ollama.chat.model`, `spring.ai.ollama.embedding.model` | Model chat mặc định và model embedding đã cấu hình |
+| `app.ai.embedding-dimensions`, `app.ai.embedding-context-length` | Bắt buộc 1024 chiều; context embedding mặc định 8192 |
 | `app.ai.max-output-tokens` | Giới hạn output; clamp vào 256..16.000 |
 
-Các giá trị mặc định đọc từ annotation trong code là chat `gpt-4.1-mini`,
-embedding `text-embedding-3-small` và max output 2.000.
-Đây là mặc định của ứng dụng, không phải khuyến nghị chọn model hay giá provider hiện tại.
+Các giá trị mặc định đọc từ annotation trong code là provider `ollama`, chat `qwen2.5:7b`,
+embedding `qwen3-embedding:0.6b` và max output 2.000. Constructor từ chối provider khác `ollama`
+hoặc embedding dimension khác 1024 để khớp schema V10. Model server lấy địa chỉ từ
+`spring.ai.ollama.base-url`; không cần OpenAI API key. Xem [cấu hình Ollama](ollama.md).
 
 Service đọc `ai_configurations` và `ai_prompt_templates`.
 Quota đi qua service tương ứng; log ghi `ai_usage_logs`.
@@ -2736,7 +2855,7 @@ reservation/log được quản lý bởi những service được inject.
 
 `enabled` trả `configured && chatModels.getIfAvailable()!=null`.
 `embeddingsEnabled` trả `configured && embeddingModels.getIfAvailable()!=null`.
-Đây là kiểm tra cấu hình/bean, không thực hiện một request thử để chứng minh API key còn đúng.
+Đây là kiểm tra cấu hình/bean, không gửi request thử để chứng minh Ollama/model đang nhận inference.
 
 Có thể chat bật nhưng embedding không có hoặc ngược lại.
 Các service khác phải kiểm tra khả năng thích hợp: analyze CV dùng chat,
@@ -2783,7 +2902,7 @@ của một template engine.
 Jackson serialize toàn bộ input thành user JSON.
 Input JSON dài hơn 250.000 ký tự trả 400.
 Hai message system/user được tách qua Spring AI `SystemMessage` và `UserMessage`;
-`ChatOptions` chọn effective model cùng max output token.
+`OllamaChatOptions` chọn effective model, `numPredict(maxOutputTokens)` và `format("json")`.
 
 ### `generateForGuest`: reservation và provider call
 
@@ -2842,7 +2961,7 @@ Entry point này phục vụ job indexing worker khi không có HTTP SecurityCon
 caller nội bộ phải xác thực chủ usage/job task và attribution trước khi gọi.
 Không có API public cho client tùy ý chọn một user khác để bị trừ quota.
 
-Output là `float[]` có 1536 phần tử, không phải row embedding database.
+Output là `float[]` có 1024 phần tử, không phải row embedding database.
 Caller chịu trách nhiệm kiểm tra hash/status mới nhất trước khi publish và lưu vector.
 
 ### `embedForActor(UUID requestedActor,String text)`
@@ -2852,28 +2971,24 @@ Private helper dùng chung cho hai entry point:
 1. Embedding phải enabled; text bắt buộc không rỗng, tối đa 200.000.
 2. Actor là requested actor hoặc `current.id()`.
 3. Reserve quota `EMBEDDING` với `UTF8 bytes(text)+128`.
-4. Gọi `embedForResponse(List.of(text))`.
+4. Gọi `EmbeddingModel.call(new EmbeddingRequest(...))` với `OllamaEmbeddingOptions`: model đã cấu hình, `numCtx(embeddingContextLength)` và `truncate(false)`.
 5. Lấy total tokens từ metadata nếu có; yêu cầu response/result/output tồn tại.
-6. Vector phải đúng 1536 chiều, mọi giá trị `Float.isFinite`.
+6. `FlowSupport.vector` yêu cầu vector đúng 1024 chiều, mọi giá trị `Float.isFinite`.
 7. Settle và ghi usage success với actor/model embedding; trả vector.
 
 Exception trong provider/result/validation: settle, ghi failure với actor,
-trả 502 vector không tương thích `vector(1536)`.
+trả 502 nếu Ollama lỗi hoặc vector không tương thích `vector(1024)`.
 Reserve thực hiện trước khối try provider, nên lỗi entitlement được trả theo lỗi gốc.
 Embedding API không lưu job/CV vector; nó chỉ tạo vector và quản lý usage.
 
 Đoạn kiểm tra:
 
 ```java
-if (vector.length != 1536)
-    throw new IllegalStateException("Expected 1536 embedding dimensions; configure the model accordingly");
-
-for (float value : vector)
-    if (!Float.isFinite(value))
-        throw new IllegalStateException("Non-finite embedding value");
+float[] vector = response.getResult().getOutput();
+FlowSupport.vector(vector);
 ```
 
-Chỉ chiều vector bằng 1536 chưa đủ: NaN/Infinity vẫn bị chặn trước SQL cast.
+Chỉ chiều vector bằng 1024 chưa đủ: NaN/Infinity vẫn bị chặn trước SQL cast.
 `Float.isFinite` là kiểm tra từng phần tử, không phải một điều kiện cho cả mảng.
 
 ### `settle(UUID reservation, UUID guestReservation, int budget, int actual, boolean responded, boolean success)`
@@ -2907,9 +3022,9 @@ Không ghi raw CV, toàn prompt hay API key trong map log này.
 Job worker gọi logForUser với actor rõ ràng nên model usage có người sở hữu
 ngay cả khi không có tài khoản trong SecurityContext của thread nền.
 
-### `schema(String feature)`
+### `AiResponseData.schema(String feature)` — util
 
-Private switch trả chuỗi mô tả schema prompt, không phải Java record hay JSON Schema validator.
+Public static switch ở `com.example.intelligent_cv_matching_ai_agent.util.shared.ai.AiResponseData` trả chuỗi mô tả schema prompt, không phải Java record hay JSON Schema validator.
 Các feature được hỗ trợ:
 
 | Feature | Dữ liệu chính yêu cầu AI trả |
@@ -2928,14 +3043,16 @@ Feature không có trong switch trả 400.
 Các service nghiệp vụ dùng validator riêng để kiểm tra sâu theo domain
 như prerequisite roadmap, số chiều vector hoặc job IDs trong rerank.
 
-### `requestedLanguage(Map input)`
+### `AiResponseData.requestedLanguage(Map<String,Object> input)` — util
 
-Private static helper: null input/field → vi;
+Public static helper trong util: null input/field → vi;
 toString/lowercase với Locale.ROOT; chỉ en/vi được dùng, giá trị khác → vi.
 Service caller không thêm language thì prompt mặc định tiếng Việt.
 Ví dụ MatchingService/AssessmentService hiện không đưa language vào map AI.
 
-### `validate(String feature,Map result)`
+### `AiResponseData.validate(String feature, Map<String,Object> result)` — util
+
+Service vẫn quản lý provider call, catch, reservation và usage; util chỉ kiểm output đã parse.
 
 Từ chối result null/rỗng.
 Switch kiểm tra những field cơ bản theo feature:
@@ -2955,7 +3072,9 @@ Các helper validation ném `IllegalArgumentException`;
 generate catch chuyển thành 502 và xử lý reservation/log.
 Việc kiểm shape tại AiService không thay thế việc kiểm nghiệp vụ ở caller.
 
-### `array(Map result,String key)`, `string(Map result,String key)`, `score(Map result,String key,double max)`
+### Helper private của `AiResponseData`: `array(Map,String)`, `string(Map,String)`, `score(Map,String,double)`
+
+Ba helper thuộc util, không còn là method của AiService.
 
 | Helper | Điều kiện hợp lệ | Điểm đọc code |
 | --- | --- | --- |
@@ -3989,11 +4108,33 @@ Nếu assignment đổi sau response hoàn tất, request tiếp theo phải qua
 
 
 
+<a id="svc-consultantevaluationservice"></a>
+
+## ConsultantEvaluationService
+
+Nguồn: [ConsultantEvaluationService.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/service/consultant/consultation/ConsultantEvaluationService.java). Controller: [ConsultantEvaluationController.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/controller/consultant/consultation/ConsultantEvaluationController.java). Util: [ConsultationEvaluationData.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/consultant/consultation/ConsultationEvaluationData.java).
+
+Cho CAREER_CONSULTANT xem CV READY và tạo báo cáo cho candidate được gán trong consultation. Constructor nhận ConsultationEvaluationRepository, CurrentUser, AiService và ResumeService. Cả ba entry public có `@Transactional`. Candidate sở hữu báo cáo; người gọi consultant là actor của AI usage và audit.
+
+| Method/API dưới `/api/v1/consultations` | Luồng |
+| --- | --- |
+| `candidateResumes(id)`; GET `/{id}/candidate-resumes` | assignedCandidate kiểm role/assignment; trả CV READY của candidate. Entry này không bắt consultation còn OPEN. |
+| `analyzeResume(id,resumeId)`; POST `/{id}/resumes/{resumeId}/analyze` | Yêu cầu consultation OPEN và CV READY đúng candidate; requireAi; gọi CV_ANALYZE bằng structured/canonical text, kiểm score/text/arrays/suggestion, ghi resume analysis/suggestions và audit. |
+| `ats(id,jobId,request)`; POST `/{id}/jobs/{jobId}/ats` | Kiểm consultation OPEN, CV READY và job active; lấy skills, tính hash gồm version, canonical text/language, job/skills/provider/model; đọc cache DB trước khi requireAi. Cache miss gọi JOB_ATS, validate, ghi báo cáo và audit. Body chứa resumeId. |
+
+Provider tắt khiến lượt phân tích mới trả 503; cache ATS phù hợp vẫn có thể trả trước guard này. Không dùng rule fallback cho lượt đánh giá mới. General CV analysis không suy độ phù hợp với một JD; ATS sử dụng yêu cầu rõ ràng của job và coi điểm là tư vấn.
+
+`com.example.intelligent_cv_matching_ai_agent.util.consultant.consultation.ConsultationEvaluationData` kiểm `aiArray/aiStrings/aiText/suggestion` và dựng `languageOf/atsResponse`. Output AI sai trả 502. `assignedCandidate`, `requireAi`, `modelOf` và `audit` vẫn trong service vì liên quan quyền, provider hoặc lưu dữ liệu. atsResponse copy row và thêm cached; cơ chế này khác CareerToolsSupport.analysisResponse.
+
+Report được lưu cho candidate nhưng quyền tạo bắt buộc consultant đang được gán; không dùng ResumeService.owned vì CV không thuộc người gọi.
+
 <a id="svc-jobservice"></a>
 
 ## JobService
 
 **Code:** [JobService.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/service/shared/jobs/JobService.java).
+
+Util đã tách: [JobEmbeddingSupport.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/shared/jobs/JobEmbeddingSupport.java). Xem [ranh giới service/util](#doc-utils).
 
 Lớp này là cửa vào đọc và nhập tin tuyển dụng. Public controller dùng nó để đọc job/skill; admin controller dùng để import, đổi trạng thái và thao tác indexing. Crawl cũng đi qua cùng pipeline import nên dữ liệu được chuẩn hóa và dedup theo cùng một cách.
 
@@ -4102,7 +4243,9 @@ Fallback khi embeddings=null: đọc job, gọi `ai.embed`, invalidate vector c�
 
 `index` không có transaction dài bao quanh provider; đường worker tự chia transaction ngắn trước/sau network.
 
-### embeddingText(job): nội dung đem tạo vector
+### `JobService.embeddingText(Map job)` → `JobEmbeddingSupport.embeddingText(Map job)`
+
+Service giữ delegate public static; thuật toán dùng chung với worker nằm ở `com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobEmbeddingSupport`.
 
 Hàm static ghép title, raw_content, parsed_requirements, parsed_responsibilities, employment_type bằng newline. `Values.text` đổi null thành chuỗi rỗng nên không có chữ "null" giả trong embedding input.
 
@@ -4171,6 +4314,8 @@ Import → lấy job UUID → đọc indexStatus → khi COMPLETED với đúng 
 ## JobEmbeddingService
 
 **Code:** [JobEmbeddingService.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/service/shared/jobs/JobEmbeddingService.java).
+
+Util đã tách: [JobEmbeddingSupport.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/shared/jobs/JobEmbeddingSupport.java). Xem [ranh giới service/util](#doc-utils).
 
 Đây là worker tạo vector cho job đã import và đường index thủ công dùng cùng queue. Nó giữ task trong PostgreSQL, phối hợp giữa nhiều instance và tránh ghi vector từ nội dung/lease đã cũ.
 
@@ -4262,13 +4407,15 @@ int delay = Math.min(3600,
 
 Toán tử bit shift `1 << n` cho hệ số1/2/4, nên default backoff là30/60/120 giây; repository dừng sau tối đa3 attempt. Mỗi update gắn lease token nên worker cũ không ghi đè task đã được instance khác reclaim.
 
-### usable(job, hash)
+### `JobEmbeddingSupport.usable(Map<String,Object> job, String hash)` — util
 
 Trả boolean; không ghi DB. Phải ACTIVE và raw_content_hash khớp hash. Không có deadline coi là còn hợp lệ; nếu có, chuyển Instant/OffsetDateTime/Timestamp/chuỗi về Instant và so với now.
 
 Việc hỗ trợ Timestamp cần thiết vì SQL map đọc từ JDBC có thể không trả OffsetDateTime.
 
-### safeError(ex)
+### `JobEmbeddingSupport.safeError(RuntimeException ex)` — util
+
+Cả hai method public static thuộc `com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobEmbeddingSupport`.
 
 Giữ message của ApiException để admin thấy lỗi quota/config hợp lệ; lỗi runtime khác dùng thông điệp chung. Message null có fallback và bị cắt tối đa1000 ký tự, tránh đưa lỗi provider nội bộ dài vào queue.
 
@@ -4285,7 +4432,10 @@ stateDiagram-v2
     PROCESSING --> PROCESSING: lease reclaimed
 ~~~
 
-Cấu hình `AI_ENABLED`, `AI_EMBEDDING_PROVIDER` và API key provider; model phải trả1536 chiều. Các biến `JOB_EMBEDDING_ENABLED/BATCH_SIZE/FIXED_DELAY_MS/INITIAL_DELAY_MS/LEASE_SECONDS/RETRY_SECONDS` ánh xạ ở application.yaml.
+Cấu hình `AI_ENABLED=true`, `AI_PROVIDER=ollama`, `AI_EMBEDDING_PROVIDER=ollama` và `OLLAMA_BASE_URL`;
+khởi động Ollama và tải `qwen3-embedding:0.6b`, model phải trả 1024 chiều. Không cần API key inference.
+Các biến `JOB_EMBEDDING_ENABLED/BATCH_SIZE/FIXED_DELAY_MS/INITIAL_DELAY_MS/LEASE_SECONDS/RETRY_SECONDS`
+ánh xạ ở application.yaml; lệnh chuẩn bị model ở [ollama.md](ollama.md).
 
 Dùng `GET /api/v1/admin/jobs/{jobId}/index` để xem queue. Sau khi sửa provider/quota, `POST` cùng path retry/reuse task. Không dùng task UUID thay job UUID.
 
@@ -4455,17 +4605,37 @@ Không invent company/deadline/salary khi thiếu. Dictionary không hiểu mọ
 
 Bỏ urls/null/[] để discovery. Có list URLs là explicit mode, maxPages không dùng. Đọc `GET /api/v1/admin/jobs/crawl?limit=20&offset=0` hoặc `GET /api/v1/admin/jobs/crawl/{id}`.
 
+<a id="svc-crawlsettingsservice"></a>
+
+## CrawlSettingsService
+
+Nguồn: [CrawlSettingsService.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/service/admin/jobs/CrawlSettingsService.java). Controller: [CrawlSettingsController.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/controller/admin/jobs/CrawlSettingsController.java). Util: [CrawlSettingsSupport.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/admin/jobs/CrawlSettingsSupport.java).
+
+Quản lý snapshot cấu hình collection, tách khỏi lịch expiration. Constructor nhận CrawlSettingsRepository, JobCollectionProperties, JobCollectionRepository và CurrentUser. Repository lưu một row `job_crawl_settings` (id=1), tăng version khi cập nhật và ghi audit CRAWL_SETTINGS_UPDATED.
+
+| Method/API | Luồng |
+| --- | --- |
+| `get()`; GET `/api/v1/admin/crawl-settings` | Kiểm ADMIN rồi trả effective. Controller cũng hỗ trợ prefix /api/admin. |
+| `update(CrawlSettingsRequest)`; PUT cùng route | Transaction; kiểm ADMIN, enabled/sources bắt buộc, tối đa 20 nguồn; parse fixedDelay; actor mặc định user gọi và phải là admin active. Chuẩn hóa nguồn, từ chối trùng identity hoặc enabled với list rỗng; save và audit rồi trả snapshot DB. |
+| `effective()` | Đọc mới row DB, có thì fromDatabase; chưa có thì fromEnvironment. Entry nền không đòi SecurityContext, được scheduler dùng mỗi lượt. |
+
+`com.example.intelligent_cv_matching_ai_agent.util.admin.jobs.CrawlSettingsSupport` có `fromEnvironment(JobCollectionProperties)`, `fromDatabase(Map)`, `fixedDelay(String)` và `normalize(CrawlSourceSettingsRequest)`. fixedDelay phải ISO-8601 từ PT1M đến P30D, chuẩn hóa tới millisecond. Nguồn chỉ ITVIEC/TOPCV; keyword/roleCategory bắt buộc, location hợp lệ tối đa 120 ký tự, limit 1..20 và maxPages 1..5. bounded/instant là helper private của util.
+
+Snapshot cho biết source ENVIRONMENT/DATABASE, version, actor và thông tin cập nhật. Việc lưu DB ghi đè nguồn fallback cho các lượt đọc sau; thay đổi môi trường không tự thay row DB đã lưu. Scheduler đọc lại enabled/version giữa các nguồn để dừng lượt theo cấu hình mới. GET /api/v1/admin/crawl-history thuộc controller này nhưng ủy quyền JobCrawlService.runs.
+
 <a id="svc-jobcollectionscheduler"></a>
 
 ## JobCollectionScheduler
 
 **Code:** [JobCollectionScheduler.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/service/admin/jobs/JobCollectionScheduler.java).
 
+Util đã tách: [JobCollectionSupport.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/admin/jobs/JobCollectionSupport.java). Xem [ranh giới service/util](#doc-utils).
+
 Hai entry theo lịch: collection tìm/nhập job và expiration kiểm deadline đã lưu. PostgreSQL lease phối hợp nhiều replica theo tên lịch; không lưu token HTTP trong cấu hình.
 
 ### Constructor, dependency và cấu hình
 
-- JobCollectionProperties: enabled mặc địnhfalse, UUID actor, fixedDelay6h, list nguồn.
+- [CrawlSettingsService](#svc-crawlsettingsservice): snapshot cấu hình DB; fallback JobCollectionProperties từ môi trường khi chưa có bản ghi.
 - JobCollectionRepository: kiểm admin, acquire/complete lease, transaction expiration.
 - [JobCrawlService](#svc-jobcrawlservice): pipeline nhập tin.
 - expirationEnabled mặc địnhtrue; expirationDelay15 phút phải dương.
@@ -4476,19 +4646,20 @@ Constructor từ chối expirationDelay null/0/âm. Properties validation kiểm
 
 ### collect(): collection entry
 
-`@Scheduled` đọc property app.jobs.collection.fixed-delay, defaultPT6H. fixedDelay tính từ khi lượt trước kết thúc; không phải cron mốc giờ cố định.
+`@Scheduled(fixedDelay=30000, initialDelay=30000)` kiểm cấu hình hiệu lực mỗi lượt. Khoảng cách collection thực tế của từng nguồn được guard bằng `configuration.fixedDelay` trong lease, không phải chu kỳ 30 giây của polling.
 
 1. Disabled →return.
 2. Kiểm actor ADMIN/ACTIVE/chưa delete; sai thì log warning và return.
-3. List.copyOf(sources) tạo snapshot.
-4. Duyệt từng source, collectSource.
+3. Parse fixedDelay và tạo snapshot nguồn bằng List.copyOf.
+4. Trước các nguồn tiếp theo, đọc lại enabled/version; dừng vòng nếu cấu hình tắt hoặc đổi.
+5. Duyệt source qua collectSource(source, actor, interval).
 
 Actor cấu hình là chủ audit/quota cho job import/embedding; không cần phiên đăng nhập HTTP.
 
-### collectSource(source, actor)
+### collectSource(source, actor, interval)
 
 1. Tạo leaseName, UUID token.
-2. acquireLease TTL15 phút + guard thời gian từ last_started_at theo fixedDelay.
+2. acquireCollectionLease TTL15 phút + guard thời gian từ last_started_at theo fixedDelay.
 3. Không claim được: return.
 4. Tạo CrawlRequest urls=[]/limit/maxPages, gọi crawlAs.
 5. Run FAILED/PARTIAL: last_error chứa run/status.
@@ -4505,15 +4676,17 @@ Disabled thì return; claim lease job-expiration TTL5 phút; gọi expireSources
 
 Repository làm trong một transaction: khóa due jobs bằng SKIP LOCKED, expire aliases quá deadline, chỉ canonical EXPIRED khi không còn ACTIVE alias future/null deadline, tính lại deadline và invalidate current vectors. Không suy expiry từ số ngày kể từ crawl.
 
-### leaseName(source): tạo tên khóa
+### `JobCollectionSupport.leaseName(CrawlSourceSettingsResponse source)`
 
-Ghép sourceSite/keyword/roleCategory/location bằng newline; text strip/lowercase Locale.ROOT, null location thành rỗng. Hash SHA-256 qua TokenService.hash, thêm prefix job-collection:.
+Logic nằm ở `com.example.intelligent_cv_matching_ai_agent.util.admin.jobs.JobCollectionSupport`; service giữ delegate phạm vi package.
+
+Ghép sourceSite viết hoa, keyword/roleCategory viết thường và location chuẩn hóa/fold bằng newline. Băm qua `TokenSupport.hash` rồi thêm prefix `job-collection:`.
 
 Key không chứa limit/maxPages, nên cấu hình cùng source/keyword/category/location chia lease ngay cả khi khác limit.
 
 ### Cách sử dụng
 
-Không có endpoint bật scheduler; cấu hình và restart:
+Có thể cập nhật runtime qua `PUT /api/v1/admin/crawl-settings`. Cấu hình môi trường dưới đây là fallback khi chưa có row DB:
 
 ~~~dotenv
 JOB_COLLECTION_ENABLED=true
@@ -4534,6 +4707,8 @@ Monitoring: crawl-runs API, `GET /api/v1/admin/monitoring/crawl-runs` và job_co
 ## RagDocumentService
 
 **Code:** [RagDocumentService.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/service/admin/rag/RagDocumentService.java).
+
+Util đã tách: [RagDocumentSupport.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/admin/rag/RagDocumentSupport.java). Xem [ranh giới service/util](#doc-utils).
 
 Admin nhập tài liệu tham khảo thành chunks và tạo embeddings để [CareerAssistantService](#svc-careerassistantservice) tìm nội dung liên quan. Đây là tài liệu hệ thống do admin cung cấp; không phải toàn bộ CV của ứng viên được tự đưa vào RAG.
 
@@ -4561,14 +4736,16 @@ Input map từ `CreateRagDocumentRequest.toInputMap`; có title/content/sourceTy
 3. Nếu có sourceType phải ADMIN.
 4. Metadata phải object/map; copy key sang String.
 5. Ghi đè metadata.disabled=false.
-6. Gọi split(content).
+6. Gọi `RagDocumentSupport.split(content)`.
 7. Insert rag_documents với uploaded_by, title, source_type=ADMIN, metadata JSON, chunks_count, embedding_status=PENDING.
 8. Insert từng rag_chunks có chunk_index bắt đầu0 và content.
 9. Audit IMPORT_RAG_DOCUMENT và trả get(id).
 
 `@Transactional` bảo đảm document/chunks/audit đồng bộ. Create chưa gọi AI, chưa sinh vector. Metadata do client gửi không thể tạo document disabled ngay qua nhánh này.
 
-### split(content): chia đoạn có overlap
+### `RagDocumentService.split(String content)` → `RagDocumentSupport.split(String content)`
+
+Service giữ delegate public static; thuật toán nằm ở `com.example.intelligent_cv_matching_ai_agent.util.admin.rag.RagDocumentSupport.split`.
 
 Public static helper, trả List<String>. Đoạn tối đa4000 Java char, overlap300 char.
 
@@ -4618,12 +4795,12 @@ ADMIN, kiểm tồn tại, update metadata.disabled=true và archived_at, embedd
 
 `@Transactional`; không xóa vật lý document/chunks/embeddings. Retrieval RAG phải đọc điều kiện disabled để bỏ tài liệu đã archive.
 
-### audit(action,id,detail) và safeError(ex)
+### `audit(action,id,detail)` trong service và `RagDocumentSupport.safeError(RuntimeException ex)`
 
 | Helper | Tác dụng |
 | --- | --- |
 | `audit` | Insert audit_logs actor/admin, entity_type=RAG_DOCUMENT, entity_id/document và new_value JSON |
-| `safeError` | Giữ ApiException message, lỗi khác dùng thông điệp chung; tối đa1000 ký tự, null có fallback |
+| `RagDocumentSupport.safeError` | Giữ ApiException message, lỗi khác dùng thông điệp chung; tối đa1000 ký tự, null có fallback |
 
 Audit ở đây là helper riêng, không gọi [AuditService](#svc-auditservice), nên không tự tạo thêm admin_actions.
 
@@ -4641,6 +4818,26 @@ Audit ở đây là helper riêng, không gọi [AuditService](#svc-auditservice
 ~~~
 
 Lấy document UUID → POST `/api/v1/admin/rag/documents/{id}/index` → GET cùng document để xem chunks/embedding_status. Archive bằng POST `.../{id}/archive`. Tất cả cần Bearer ADMIN.
+
+<a id="svc-ragcourseservice"></a>
+
+## RagCourseService
+
+Nguồn: [RagCourseService.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/service/admin/rag/RagCourseService.java). Controller: [RagCourseController.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/controller/admin/rag/RagCourseController.java). Util: [RagCourseSupport.java](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/admin/rag/RagCourseSupport.java).
+
+Quản trị link khóa học qua review trước khi dùng trong gợi ý học và RAG. Constructor nhận RagCourseRepository, CurrentUser và RagDocumentService. Các entry đều kiểm ADMIN; route gốc `/api/v1/admin/rag/courses`. Không tự crawl nội dung khóa học.
+
+| Method/API | Trạng thái và tác động |
+| --- | --- |
+| `list/get`; GET gốc hoặc /{id} | List tối đa 200 row mới nhất hoặc đọc một khóa học. |
+| `create(CourseLinkRequest)`; POST gốc | Transaction; CourseLink.parse kiểm URL/provider; kiểm title/description/language/isFree và skills; ghi rag_course_links PENDING_REVIEW, URL trùng trả 409; audit CREATE_RAG_COURSE. |
+| `approve(id)`; POST /{id}/approve | Transaction, lock row; APPROVED trả lại idempotent, trạng thái khác PENDING_REVIEW trả 409. Tạo learning_resources ADMIN_CURATED active cùng metadata reviewed/course/skills, tạo rag document từ mô tả quản trị, lưu liên kết/reviewer, chuyển APPROVED và audit. URL resource đã tồn tại trả 409. |
+| `archive(id)`; POST /{id}/archive | Transaction, lock row; ARCHIVED trả lại. Chỉ pending/approved được archive; tắt learning resource liên kết, archive rag document nếu có, cập nhật trạng thái và audit. |
+| `index(id)`; POST /{id}/index | Chỉ APPROVED có rag_document_id; gọi rag.index và trả course kèm rag_document. Không bao transaction dài quanh provider calls; giữ trạng thái retry của RagDocumentService. |
+
+Approve chưa tạo embeddings. Sau approve, resource đã vào catalog; muốn dùng semantic retrieval cho tài liệu cần index thành công. Archive giữ dữ liệu để quản trị nhưng tắt resource và document khỏi các query phù hợp.
+
+`com.example.intelligent_cv_matching_ai_agent.util.admin.rag.RagCourseSupport.content(Map,List<String>)` dựng nội dung tài liệu; `skills(Object)` kiểm/chuẩn hóa danh sách skill; `text(String,String,int)` kiểm text bắt buộc/giới hạn. URL/provider/skill slug dùng CourseLink. Quyền, transition, row lock, repository và audit vẫn thuộc service.
 
 <a id="svc-adminservice"></a>
 
@@ -4831,8 +5028,8 @@ Ví dụ config không chứa credentials:
 ~~~json
 {
   "configType": "CHAT",
-  "provider": "openai",
-  "modelName": "gpt-4.1-mini",
+  "provider": "ollama",
+  "modelName": "qwen2.5:7b",
   "configuration": {"temperature": 0.2}
 }
 ~~~
@@ -4964,7 +5161,7 @@ Không tự tạo IDs giả: jobId, resumeId, taskId, conversationId, paymentOrd
 | --- | --- |
 | Identity/SMTP | MAIL_ENABLED/MAIL_HOST/MAIL_PORT/MAIL_USERNAME/MAIL_PASSWORD/MAIL_SMTP_AUTH/MAIL_STARTTLS/MAIL_FROM, AUTH_EXPOSE_DEV_OTP |
 | Google | GOOGLE_CLIENT_ID và ID token hợp lệ |
-| AI | AI_ENABLED, AI_CHAT_PROVIDER, AI_EMBEDDING_PROVIDER, API key provider, chat/embedding model; embedding1536 chiều |
+| AI | AI_ENABLED, AI_PROVIDER=ollama, AI_CHAT_PROVIDER=ollama, AI_EMBEDDING_PROVIDER=ollama, OLLAMA_BASE_URL; chat qwen2.5:7b, embedding qwen3-embedding:0.6b/1024 chiều; không cần API key inference |
 | Storage | UPLOAD_DIR hoặc app.storage.path; app YAML default ./uploads, annotation ResumeService có fallback ./storage/resumes khi property không có |
 | Guest | Guest token limit và X-Guest-Session |
 | Payment | PAYMENT_PROVIDER, PAYMENT_WEBHOOK_SECRET, signature/timestamp body contract |
@@ -4979,7 +5176,7 @@ Compose local hiện chạy app với PostgreSQL trên host qua `host.docker.int
 
 ### Kiểm thử code hiện có
 
-Các test được đặt theo feature trong [src/test/java](../src/test/java/com/example/intelligent_cv_matching_ai_agent). Tài liệu này không chạy lại toàn bộ test vì chỉ thêm Markdown. Kết quả build/ingestion lần trước xem [job-automation-verification.md](job-automation-verification.md); không coi kết quả đó là đã thử provider/website hôm nay.
+Các test được đặt theo feature trong [src/test/java](../src/test/java/com/example/intelligent_cv_matching_ai_agent). Lần cập nhật Markdown này không chạy lại toàn bộ test; không xem việc sửa tài liệu là một lần kiểm thử mới. Kết quả build/ingestion lần trước xem [job-automation-verification.md](job-automation-verification.md); không coi kết quả đó là đã thử provider/website hôm nay.
 
 <a id="doc-limits"></a>
 
