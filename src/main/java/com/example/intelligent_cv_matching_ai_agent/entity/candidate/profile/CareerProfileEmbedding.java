@@ -54,11 +54,6 @@ public class CareerProfileEmbedding {
     @Column(name = "embedding", nullable = true, columnDefinition = "vector(1024)")
     private String embedding;
 
-    @JsonIgnore
-    @ColumnTransformer(read = "embedding_legacy_1536::text", write = "?::vector")
-    @Column(name = "embedding_legacy_1536", insertable = false, updatable = false, columnDefinition = "vector(1536)")
-    private String embeddingLegacy1536;
-
     @JsonProperty("content_hash")
     @Column(name = "content_hash", nullable = true, length = 64)
     private String contentHash;
