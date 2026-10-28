@@ -11,12 +11,9 @@ public class IntelligentCvMatchingAiAgentApplication {
         SpringApplication.run(IntelligentCvMatchingAiAgentApplication.class, args);
     }
 
-    @EventListener(ApplicationReadyEvent.class)
-    public void onApplicationReady() {
-        System.out.println("\n==================================");
-        System.out.println("SPRING BOOT STARTED SUCCESSFULLY");
-        System.out.println("Swagger UI: http://localhost:8080/swagger-ui/index.html");
-        System.out.println("==================================\n");
-    }
+    System.out.println("\n==================================");
+    System.out.println("SPRING BOOT STARTED SUCCESSFULLY");
+    System.out.println("Swagger UI: http://localhost:8080/swagger-ui/index.html");
+    System.out.println("==================================\n");
 
 }
