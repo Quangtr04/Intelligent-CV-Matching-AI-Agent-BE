@@ -140,16 +140,27 @@ PostgreSQL trong Compose dùng `pgvector/pgvector:0.8.7-pg17-bookworm`, được
 [các tag chính thức của pgvector](https://github.com/pgvector/pgvector#docker). Các dịch vụ Qdrant,
 RabbitMQ và Redis được giữ dưới profile `optional`; bật tất cả bằng `docker compose --profile optional up -d`.
 
-Redis được dùng cho cache ATS và matching, nhưng không thay thế các bảng nghiệp vụ. Để chỉ
+Redis được dùng cho cache kết quả phân tích CV, ATS và matching, nhưng không thay thế các bảng nghiệp vụ. Để chỉ
 khởi động Redis, dùng `docker compose up -d --wait redis`, sau đó
 `docker compose exec redis redis-cli PING` phải trả `PONG`. Cấu hình `REDIS_*` nằm trong
 `.env.example` và `spring.data.redis` trong `application.yaml`; script `run-local.ps1`
 nạp `.env` cho backend nhưng `-WithInfrastructure` chỉ khởi động PostgreSQL.
 
-Key ATS có dạng `edunexus:ats:<userId>:<resumeId>:<jobId>:<inputHash>`, lưu UUID analysis
-với TTL 24 giờ. Nội dung phân tích và kiểm tra quyền/hash vẫn lấy từ PostgreSQL; khi Redis
-không kết nối được, backend tìm cache database. Matching `/api/v1/matching` dùng cache
-database một giờ, và có thêm key Redis `edunexus:matching:<userId>:<requestHash>` TTL 1 giờ.
+Redis lưu JSON envelope `schema_version`, `identity`, `response`, gồm toàn bộ kết quả trả cho FE:
+
+| Luồng | Key Redis | TTL tối đa |
+| --- | --- | --- |
+| ATS CV–job | `edunexus:ats:response:v1:<userId>:<resumeId>:<jobId>:<inputHash>` | 24 giờ |
+| Matching | `edunexus:matching:response:v1:<userId>:<requestHash>` | 1 giờ, không vượt tuổi run hoặc deadline job |
+| Phân tích CV | `edunexus:resume-analysis:response:v1:<userId>:<resumeId>:<inputHash>` | 24 giờ |
+
+Cache hit hợp lệ trả response trực tiếp, không đọc lại các dòng analysis/run/results trong PostgreSQL.
+Backend vẫn đọc dữ liệu hiện tại để kiểm tra owner, trạng thái CV/job và tính hash; thay nội dung,
+ngôn ngữ, model hoặc prompt làm đổi hash tương ứng. Matching còn kiểm tra catalog/vector/chính sách lương.
+ATS và matching tìm lại cache database khi Redis miss/lỗi; DB hit sẽ ghi lại response vào Redis.
+Phân tích CV không có DB lookup theo input hash: Redis miss thì tạo phân tích mới và lưu lịch sử trong DB.
+Các lần ghi Redis được thực hiện sau commit; rollback không publish cache. Key cũ chỉ chứa ID không được đọc
+bằng namespace response mới. PostgreSQL vẫn là nguồn dữ liệu nghiệp vụ và lịch sử.
 Xem [cấu hình Redis local](../README.md#redis-cho-cache-ats-va-matching)
 và [cách kiểm tra key/TTL](swagger-testing.md#redis-ats).
 

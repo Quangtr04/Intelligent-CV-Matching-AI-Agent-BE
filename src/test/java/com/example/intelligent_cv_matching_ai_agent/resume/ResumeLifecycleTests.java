@@ -201,4 +201,97 @@ class ResumeLifecycleTests {
         order.verify(db)
             .update(startsWith("UPDATE resumes SET structured_data="), any(), eq(""), anyString(), eq(false), eq(id));
     }
+
+    @Test
+    void confirmationKeepsEditorPresentationInJsonWithoutInsertingItAsSqlColumnsOrIds() {
+        ready();
+        JsonMapper mapper = JsonMapper.builder().build();
+        when(db.json(any())).thenAnswer(call -> new SqlStore.JsonValue(mapper.writeValueAsString(call.getArgument(0))));
+        Map<String, Object> document = Map.of(
+            "summary",
+            "Reviewed candidate experience",
+            "experience",
+            List.of(
+                Map.of(
+                    "id",
+                    "experience-1",
+                    "company_name",
+                    "Example",
+                    "job_title",
+                    "Developer",
+                    "location",
+                    "Hanoi",
+                    "start_date",
+                    "2024-01-01",
+                    "display_start_date",
+                    "01/2024",
+                    "highlights",
+                    List.of("Built APIs")
+                )
+            ),
+            "education",
+            List.of(
+                Map.of(
+                    "id",
+                    "education-1",
+                    "school_name",
+                    "University",
+                    "gpa",
+                    "3.8/4.0",
+                    "display_start_date",
+                    "2020",
+                    "highlights",
+                    List.of("Graduated")
+                )
+            ),
+            "projects",
+            List.of(Map.of("id", "project-1", "project_name", "Portfolio", "technologies", List.of("Java"))),
+            "certifications",
+            List.of(
+                Map.of(
+                    "id",
+                    "certification-1",
+                    "name",
+                    "Certificate",
+                    "issue_date",
+                    "2025-01-01",
+                    "display_date",
+                    "2025"
+                )
+            )
+        );
+
+        service.confirm(id, Map.of("structured_data", document));
+
+        Set<String> tables =
+            Set.of("resume_experiences", "resume_educations", "resume_projects", "resume_certifications");
+        verify(db, times(4)).insert(
+            argThat(tables::contains),
+            argThat(
+                fields -> id.equals(fields.get("resume_id")) && !fields.containsKey("id")
+                    && !fields.containsKey("location") && !fields.containsKey("gpa")
+                    && !fields.containsKey("highlights")
+                    && fields.keySet().stream().noneMatch(key -> key.startsWith("display_"))
+            )
+        );
+        verify(db).insert(
+            eq("resume_experiences"),
+            argThat(
+                fields -> "Example".equals(fields.get("company_name"))
+                    && LocalDate.of(2024, 1, 1).equals(fields.get("start_date"))
+            )
+        );
+        verify(db).update(
+            startsWith("UPDATE resumes SET structured_data="),
+            argThat(
+                value -> value instanceof SqlStore.JsonValue json
+                    && mapper.readValue(json.content(), Map.class).equals(ResumeData.normalize(document))
+            ),
+            eq(""),
+            anyString(),
+            eq(false),
+            eq(id)
+        );
+        verify(ai, never()).embed(anyString());
+    }
 }

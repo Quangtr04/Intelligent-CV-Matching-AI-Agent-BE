@@ -1929,6 +1929,13 @@ Nó không xóa vật lý file và không xóa toàn bộ lịch sử phân tíc
 HTTP: `POST /api/v1/resumes/{id}/analyses`. Chỉ CV `READY` được phân tích; transaction
 lưu analysis và suggestions cùng nhau.
 
+Sau khi kiểm tra owner/READY, `analyze` tính hash toàn bộ đầu vào CV/ngôn ngữ, mode AI/rule,
+model/prompt và phiên bản rubric. Key `edunexus:resume-analysis:response:v1:{userId}:{resumeId}:{inputHash}`
+lưu JSON envelope `schema_version/identity/response` tối đa 24 giờ. Cache hit hợp lệ trả analysis và
+suggestions trực tiếp với `cached=true`, không đọc các dòng kết quả trong DB. Redis miss/lỗi tạo
+phân tích mới; luồng này không có DB cache lookup theo input hash. Kết quả mới vẫn được lưu lịch sử
+và chỉ ghi Redis sau commit; rollback không publish cache.
+
 Nếu `ai.enabled()`, gọi `CV_ANALYZE` với row CV và `canonicalText`, lưu `AI_QUALITY` và model.
 Nếu chat AI tắt, gọi `baseline`, lưu `RULE_BASED` và `rules-v1`.
 Output luôn là analysis chi tiết, nhưng rule mode chỉ kiểm tra độ đầy đủ section:
@@ -2071,19 +2078,21 @@ Nhánh semantic còn cần embedding provider hoạt động; chỉ bật chat m
 ### Cache nằm trong `match`
 
 Hash cache gồm basis, danh sách resume ID đã sort, candidate text, catalog fingerprint,
-vector fingerprint khi AI bật, mode, provider/chat model/embedding model và limit.
-Catalog fingerprint băm các job active/chưa hết hạn với raw hash; vector fingerprint băm
+vector fingerprint khi AI bật, mode, provider/chat model/embedding model/prompt, limit và chính sách lương/tỷ giá.
+Catalog fingerprint băm các job active/chưa hết hạn với raw hash, metadata hiển thị, deadline và URL/site nguồn active; vector fingerprint băm
 các vector current đúng provider/model và đúng hash job.
 Do đó đổi CV/profile, import job mới, job hết hạn hoặc re-index model có thể làm cache miss.
 
-1. Redis key `edunexus:matching:{userId}:{hash}` lưu run ID.
-2. Nếu có Redis run ID hợp lệ, đọc result thuộc user và trả `cached=true/cache_source=REDIS`.
+1. Redis key `edunexus:matching:response:v1:{userId}:{hash}` lưu JSON toàn bộ response trong envelope `schema_version/identity/response`.
+2. Nếu identity/payload/tuổi run/deadline hợp lệ, trả trực tiếp `cached=true/cache_source=REDIS`, không gọi `result(runId)` hoặc đọc run/results.
 3. Nếu Redis miss, tìm run `COMPLETED` cùng request hash trong 1 giờ ở database.
 4. Có DB cache thì trả `cached=true/cache_source=DATABASE` và nhớ lại Redis.
 5. Cache miss mới tạo run `PROCESSING` và liên kết những CV được sử dụng.
 
-Cache lưu ID của kết quả đã persist, không lưu bản JSON độc lập.
-`cachedRun` chỉ kiểm tra parse UUID/Redis connection; `result` vẫn kiểm tra sở hữu khi đọc run.
+Cache là bản chụp response của kết quả đã persist; việc ghi Redis chỉ diễn ra sau commit.
+Kiểm tra owner, CV/profile, catalog/vector và chính sách lương vẫn chạy trước lookup Redis.
+TTL tối đa một giờ, không vượt thời điểm run hoàn tất + một giờ hoặc deadline gần nhất của job trong response.
+Key ID cũ không được đọc bằng namespace response mới; JSON sai hoặc Redis lỗi được coi là miss.
 
 ### Nhánh semantic trong `match`
 
@@ -2111,7 +2120,8 @@ Cả hai nhánh sort giảm dần theo `final_score`; hòa điểm thì sort the
 Lưu tối đa `limit` result với rank bắt đầu từ 1; vector score, LLM score là các cột riêng.
 Nhánh rule có `llm_rerank_score=null` và reason method `SKILL_OVERLAP`.
 
-Run được cập nhật `COMPLETED`, trả `result(runId)` với `cached=false` rồi ghi Redis một giờ.
+Run được cập nhật `COMPLETED`, lấy `result(runId)` với `cached=false` và chuẩn bị cache response;
+chỉ publish Redis sau commit, với TTL giới hạn theo tuổi run/deadline job.
 Nếu exception làm transaction rollback, các row run/result vừa tạo rollback cùng nhau.
 Quota/model usage đã được [AiService](#svc-aiservice) xử lý riêng, không mặc nhiên được hoàn
 chỉ vì transaction matching sau đó thất bại.
@@ -2151,8 +2161,10 @@ strengths `["java"]` và gaps `["postgresql"]`.
 
 | Phương thức | Input/output | Cách xử lý |
 | --- | --- | --- |
-| `cachedRun(String cacheKey)` | Key → `Optional<UUID>` | Lấy Redis bean nếu có; miss/Redis connection failure/UUID lỗi trả empty. |
-| `remember(String cacheKey, UUID runId)` | Key/ID → void | Lưu run ID với TTL một giờ; bỏ qua lỗi kết nối Redis. |
+| `AiResponseCache.read(key, identity)` | Key/identity → response tùy chọn | Kiểm schema/identity; JSON hoặc Redis lỗi trả empty. |
+| `validCachedResult(result, basis, cacheHash)` | Response → boolean | Kiểm run/user/basis/hash, danh sách result, tuổi run và deadline. |
+| `remember(key, identity, result)` | Response → void | Tính TTL còn lại rồi đăng ký ghi toàn bộ response sau commit. |
+| `cacheLifetime(result)` | Response → Duration | Giới hạn bởi completed_at + một giờ và deadline job gần nhất. |
 
 Đoạn sort cần hiểu:
 
@@ -2223,17 +2235,18 @@ Output là row feedback sau upsert.
 HTTP `POST /api/v1/jobs/{jobId}/ats` với `{"resumeId":"{{resumeId}}"}`.
 Transaction yêu cầu candidate, CV của user ở `READY` và job active/chưa qua deadline.
 
-Tính `inputHash` từ canonical CV text, job raw hash, provider và chat model.
+Tính `inputHash` từ toàn bộ input gửi `JOB_ATS` (structured CV, canonical text, job hiện hành,
+ngôn ngữ), provider/chat model và fingerprint prompt active.
 Key Redis gồm user + CV + job + hash; vì vậy cùng UUID nhưng nội dung đổi sẽ không dùng cache cũ.
 
-1. Redis có thể chứa analysis ID; lookup database vẫn kiểm tra user/CV/job/hash.
-2. Redis miss hoặc lỗi kết nối/UUID thì lookup DB theo cùng bộ giá trị.
-3. Có kết quả thì `analysisResponse(row,true)`, không gọi AI.
+1. Key `edunexus:ats:response:v1:{userId}:{resumeId}:{jobId}:{inputHash}` chứa JSON envelope `schema_version/identity/response`.
+2. Redis response hợp lệ trả trực tiếp `cached=true`, không đọc lại analysis từ DB; kiểm tra owner/READY/job và hash đã chạy trước lookup.
+3. Redis miss/JSON sai/lỗi kết nối thì tìm DB theo user/CV/job/hash; có kết quả thì `analysisResponse(row,true)` và ghi lại response Redis sau commit, không gọi AI.
 4. Miss mới gọi `JOB_ATS` với structured CV, canonical text, job và ngôn ngữ CV.
 5. Kiểm tra score 0..100, lưu strengths/missing skills và suggestions.
 6. Suggestions JSON được lưu dưới object `{"input_hash":...,"items":[...]}`.
    API trả lại items array, không lộ cấu trúc cache nội bộ.
-7. Ghi Redis analysis ID với TTL 24 giờ và trả `cached=false`.
+7. Trả response `cached=false` và chỉ ghi toàn bộ response Redis sau commit, TTL tối đa 24 giờ.
 
 DB lookup ATS không giới hạn thời gian theo `created_at`. TTL 24 giờ chỉ áp dụng Redis;
 nếu input hash không đổi, DB vẫn có thể tái sử dụng analysis lâu hơn 24 giờ.

@@ -43,7 +43,7 @@ EduNexus hỗ trợ chuẩn bị CV, tìm việc phù hợp, đánh giá kỹ n�
 | PostgreSQL / pgvector | Compose PostgreSQL 17, embedding hiện tại 1024 chiều | Dữ liệu nghiệp vụ, semantic matching, RAG; V10 giữ vector legacy 1536 |
 | Flyway | V1–V10 | Schema, constraint, seed, ingestion automation và chuyển embedding |
 | JDBC / JPA | Cùng tồn tại | Workflow SQL và truy cập entity có kiểu |
-| Redis | Tùy chọn | Cache ATS/matching, có database fallback |
+| Redis | Tùy chọn | Cache JSON response ATS/matching/phân tích CV; ATS/matching có database fallback |
 | PDFBox / POI / Tesseract | Trích xuất tệp/OCR | Đọc CV và scan khi OCR được cấu hình |
 | Jsoup | Fetch và parse HTML | Discovery keyword và detail parsing ITviec/TopCV |
 | SMTP | `JavaMailSender` | Gửi OTP; dùng được với Mailtrap |
@@ -310,7 +310,7 @@ docker compose exec redis redis-cli PING
 
 `PONG` xác nhận Redis. Local Redis không auth/TLS; credentials trống, SSL false. Switch `-WithInfrastructure` chỉ chạy PostgreSQL.
 
-ATS cache TTL 24 giờ: `edunexus:ats:<userId>:<resumeId>:<jobId>:<inputHash>`. Matching TTL 1 giờ: `edunexus:matching:<userId>:<requestHash>`. Cache giữ ID kết quả; database kiểm tra quyền/hash. Redis lỗi dùng database fallback; `cached=true` có thể đến từ database.
+Redis giữ JSON envelope `schema_version/identity/response`, gồm toàn bộ kết quả FE. ATS TTL tối đa 24 giờ dùng `edunexus:ats:response:v1:<userId>:<resumeId>:<jobId>:<inputHash>`; matching tối đa 1 giờ dùng `edunexus:matching:response:v1:<userId>:<requestHash>` và không vượt tuổi run/deadline job. Phân tích CV dùng `edunexus:resume-analysis:response:v1:<userId>:<resumeId>:<inputHash>`, tối đa 24 giờ. Cache hit không đọc lại analysis/run/results nhưng vẫn kiểm tra owner, đầu vào và hiệu lực tài nguyên bằng DB. Hash xét nội dung/ngôn ngữ/model/prompt tương ứng; matching còn xét catalog/vector/chính sách lương. ATS/matching Redis miss có DB fallback và DB hit ghi lại cache; phân tích CV Redis miss tạo báo cáo mới, không có DB lookup theo hash. Ghi Redis sau commit, rollback không publish; `cached=true` của ATS/matching có thể đến từ DB.
 
 Trong app container, `localhost` là container app; cần host DB/cache truy cập được. `compose.production.yaml` chỉ tạo app, không tạo PostgreSQL/Redis.
 
@@ -744,13 +744,13 @@ AI tắt: so required-skill keyword overlap, không required skill thì score0; 
 
 AI bật: canonical candidate text → embed → retrieve job ACTIVE/vector current cùng provider/model, top min(100,max(limit,20)) → JOB_MATCH_RERANK → validate/save run/results. Chưa có job indexed phù hợp trả409. Kết quả có score0–1, reason, matched/missing skills.
 
-Lưu job_matching_runs, matching_run_resumes, job_match_results. Hash cache gồm input CV/profile, catalog/vector/provider/model/basis/limit; Redis/DB cache1giờ. GET matching history/detail chỉ user. Feedback PUT LIKE/DISLIKE, rating1–5/comment lưu job_match_feedback.
+Lưu job_matching_runs, matching_run_resumes, job_match_results. Hash cache gồm input CV/profile, metadata/nguồn job hiện hành, catalog/vector/provider/model/prompt/basis/limit và chính sách lương; Redis giữ response tối đa 1 giờ, DB fallback tìm run hoàn tất trong 1 giờ. GET matching history/detail chỉ user. Feedback PUT LIKE/DISLIKE, rating1–5/comment lưu job_match_feedback.
 
 ### 8.5. ATS và công cụ ứng tuyển
 
 | Chức năng | Luồng và output |
 | --- | --- |
-| ATS | READY owned CV + ACTIVE job → hash input/provider/chat model → Redis TTL24h hoặc tái dùng bản ghi DB cùng input hash; DB không có TTL riêng → JOB_ATS khi chưa có kết quả → job_resume_analyses, score0–100/strengths/missing/suggestions |
+| ATS | READY owned CV + ACTIVE job → hash toàn bộ input/ngôn ngữ/provider/model/prompt → Redis response TTL24h hoặc tái dùng DB cùng hash rồi rewarm; DB không có TTL riêng → JOB_ATS khi chưa có kết quả → job_resume_analyses, score0–100/strengths/missing/suggestions |
 | CV hướng job | Job requirements + dữ kiện thật user → AI CV → REVIEW_REQUIRED → review/confirm |
 | Email/cover letter | APPLICATION_EMAIL → hai application_drafts loại APPLICATION_EMAIL và COVER_LETTER |
 | Sửa draft | PATCH content, kiểm tra ownership |

@@ -5,10 +5,14 @@ import com.example.intelligent_cv_matching_ai_agent.util.shared.resume.ResumeFil
 import com.example.intelligent_cv_matching_ai_agent.util.shared.resume.ResumeData;
 
 import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiService;
+import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiResponseCache;
 import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException;
 import com.example.intelligent_cv_matching_ai_agent.security.shared.CurrentUser;
 import com.example.intelligent_cv_matching_ai_agent.repository.candidate.resume.ResumeRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -21,11 +25,13 @@ import com.example.intelligent_cv_matching_ai_agent.dto.response.candidate.resum
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.time.LocalDate;
+import java.time.Duration;
 import java.util.*;
 import com.example.intelligent_cv_matching_ai_agent.util.candidate.resume.ResumeContent;
 import com.example.intelligent_cv_matching_ai_agent.util.candidate.resume.ResumeContentQuality;
 import com.example.intelligent_cv_matching_ai_agent.util.candidate.resume.ResumeInput;
 import com.example.intelligent_cv_matching_ai_agent.util.candidate.resume.ResumeWritingQuality;
+import com.example.intelligent_cv_matching_ai_agent.util.shared.FlowSupport;
 import static com.example.intelligent_cv_matching_ai_agent.util.shared.Values.object;
 
 @Service
@@ -43,6 +49,8 @@ public class ResumeService {
 
     private final Path storage;
 
+    private final AiResponseCache responseCache;
+
     public ResumeService(
         ResumeRepository db,
         CurrentUser current,
@@ -51,12 +59,26 @@ public class ResumeService {
         ObjectMapper mapper,
         @Value("${app.storage.path:./storage/resumes}")
         String storage) {
+        this(db, current, ai, extractor, mapper, storage, null);
+    }
+
+    @Autowired
+    public ResumeService(
+        ResumeRepository db,
+        CurrentUser current,
+        AiService ai,
+        ResumeFileExtractor extractor,
+        ObjectMapper mapper,
+        @Value("${app.storage.path:./storage/resumes}")
+        String storage,
+        ObjectProvider<StringRedisTemplate> redis) {
         this.db = db;
         this.current = current;
         this.ai = ai;
         this.extractor = extractor;
         this.mapper = mapper;
         this.storage = Path.of(storage).toAbsolutePath().normalize();
+        this.responseCache = new AiResponseCache(redis);
     }
 
     public List<Map<String, Object>> templates() {
@@ -324,20 +346,42 @@ public class ResumeService {
             throw ApiException.conflict("Confirm the CV before analysis");
 
         boolean useAi = ai.enabled();
+        String mode = useAi ? "AI_QUALITY" : "RULE_BASED";
+        Map<String, Object> input = Map.of(
+            "resume",
+            ResumeWritingQuality.source(resume),
+            "resume_text",
+            canonicalText(resume),
+            "language",
+            Objects.toString(resume.get("language"), "vi")
+        );
+        String inputHash = FlowSupport.hash(
+            mapper.writeValueAsString(
+                List.of(
+                    mode,
+                    useAi ? Objects.toString(ai.provider(), "") : "rules",
+                    useAi ? Objects.toString(ai.model(), "") : "rules-v1",
+                    useAi ? Objects.toString(ai.cacheFingerprint("CV_ANALYZE"), "") : "",
+                    ResumeWritingQuality.RUBRIC_VERSION,
+                    ResumeContentQuality.RUBRIC_VERSION,
+                    input
+                )
+            )
+        );
+        Map<String, String> cacheIdentity =
+            Map.of("user_id", current.id().toString(), "resume_id", id.toString(), "input_hash", inputHash);
+        String cacheKey = "edunexus:resume-analysis:response:v1:" + current.id() + ":" + id + ":" + inputHash;
+        Optional<Map<String, Object>> cached =
+            responseCache.read(cacheKey, cacheIdentity).filter(row -> validCachedAnalysis(row, id, mode));
+        if (cached.isPresent()) {
+            Map<String, Object> response = new LinkedHashMap<>(cached.get());
+            response.put("cached", true);
+            return response;
+        }
 
         Map<String, Object> result;
         if (useAi) {
-            Map<String, Object> generated = ai.generate(
-                "CV_ANALYZE",
-                Map.of(
-                    "resume",
-                    ResumeWritingQuality.source(resume),
-                    "resume_text",
-                    canonicalText(resume),
-                    "language",
-                    Objects.toString(resume.get("language"), "vi")
-                )
-            );
+            Map<String, Object> generated = ai.generate("CV_ANALYZE", input);
             Map<String, Object> contentResult = ResumeContentQuality.normalize(generated, resume);
 
             Map<String, Object> merged = new LinkedHashMap<>(generated);
@@ -351,7 +395,6 @@ public class ResumeService {
         } else {
             result = ResumeContent.baseline(resume);
         }
-        String mode = useAi ? "AI_QUALITY" : "RULE_BASED";
         Map<String, Object> fields = new LinkedHashMap<>();
         fields.put("resume_id", id);
         fields.put("analysis_type", mode);
@@ -384,7 +427,26 @@ public class ResumeService {
                     db.insertResumeAnalysisSuggestions(suggestion);
                 }
 
-        return analysis(analysis, id);
+        Map<String, Object> response = analysis(analysis, id);
+        response.put("cached", false);
+        responseCache.putAfterCommit(cacheKey, cacheIdentity, response, Duration.ofHours(24));
+        return response;
+    }
+
+    private boolean validCachedAnalysis(
+        Map<String, Object> response,
+        UUID resumeId,
+        String mode) {
+        if (!resumeId.toString().equals(Objects.toString(response.get("resume_id"), ""))
+            || !mode.equals(response.get("analysis_type")) || !(response.get("suggestions") instanceof List<?>)
+            || !(response.get("overall_score") instanceof Number))
+            return false;
+        try {
+            UUID.fromString(Objects.toString(response.get("id"), ""));
+            return true;
+        } catch (IllegalArgumentException ex) {
+            return false;
+        }
     }
 
     public List<Map<String, Object>> analyses(
@@ -497,16 +559,33 @@ public class ResumeService {
         Map<String, Object> data) {
         for (String section : List.of("experience", "education", "projects", "certifications")) {
             db.deleteSection(section, resume);
+            List<String> columns = switch (section) {
+                case "experience" ->
+                    List.of("company_name", "job_title", "start_date", "end_date", "is_current", "description");
+                case "education" -> List.of("school_name", "degree", "major", "start_date", "end_date", "description");
+                case "projects" -> List
+                    .of("project_name", "role", "description", "technologies", "project_url", "start_date", "end_date");
+                case "certifications" -> List.of("name", "issuer", "issue_date", "expiry_date", "credential_url");
+                default -> throw new IllegalArgumentException("Unsupported CV section: " + section);
+            };
 
             for (Object item : (List<?>) data.get(section)) {
-                Map<String, Object> values = new LinkedHashMap<>(object(item));
+                Map<String, Object> source = object(item);
+                Map<String, Object> values = new LinkedHashMap<>();
                 values.put("resume_id", resume);
 
-                for (String col : new ArrayList<>(values.keySet())) {
-                    if (col.endsWith("_date") && values.get(col) != null)
-                        values.put(col, LocalDate.parse(values.get(col).toString()));
+                // Editor IDs and presentation-only fields remain in structured_data,
+                // while relational rows receive generated UUIDs and real table columns.
+                for (String col : columns) {
+                    Object value = source.get(col);
+                    if (value == null)
+                        continue;
+                    if (col.endsWith("_date"))
+                        values.put(col, LocalDate.parse(value.toString()));
                     else if (col.equals("technologies"))
-                        values.put(col, db.json(values.get(col)));
+                        values.put(col, db.json(value));
+                    else
+                        values.put(col, value);
                 }
 
                 db.insertSection(section, values);

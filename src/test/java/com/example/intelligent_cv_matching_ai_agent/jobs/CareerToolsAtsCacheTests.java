@@ -1,31 +1,28 @@
 package com.example.intelligent_cv_matching_ai_agent.jobs;
 
 import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.jobs.CvRequest;
-
+import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException;
 import com.example.intelligent_cv_matching_ai_agent.repository.candidate.jobs.CareerToolsRepository;
-
-import com.example.intelligent_cv_matching_ai_agent.util.shared.FlowSupport;
-
-import com.example.intelligent_cv_matching_ai_agent.service.candidate.jobs.MatchingService;
-
-import com.example.intelligent_cv_matching_ai_agent.service.candidate.jobs.CareerToolsService;
-
-import com.example.intelligent_cv_matching_ai_agent.security.shared.CurrentUser;
-
 import com.example.intelligent_cv_matching_ai_agent.repository.shared.SqlStore;
-
-import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiService;
-
+import com.example.intelligent_cv_matching_ai_agent.security.shared.CurrentUser;
+import com.example.intelligent_cv_matching_ai_agent.service.candidate.jobs.CareerToolsService;
+import com.example.intelligent_cv_matching_ai_agent.service.candidate.jobs.MatchingService;
 import com.example.intelligent_cv_matching_ai_agent.service.candidate.resume.ResumeService;
+import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiService;
+import java.time.Duration;
+import java.time.OffsetDateTime;
+import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.dao.QueryTimeoutException;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
-import java.util.*;
+import tools.jackson.databind.json.JsonMapper;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -50,125 +47,287 @@ class CareerToolsAtsCacheTests {
     private final CareerToolsService service =
         new CareerToolsService(new CareerToolsRepository(db), user, mock(MatchingService.class), resumes, ai, redis);
 
+    private final JsonMapper json = JsonMapper.builder().build();
+
     private final UUID actor = UUID.randomUUID(), firstCv = UUID.randomUUID(), secondCv = UUID.randomUUID(),
         job = UUID.randomUUID();
 
-    private final String canonical = "Identical reviewed Java developer CV";
+    private final Map<String, Object> cv = new LinkedHashMap<>();
 
-    private String inputHash;
+    private final Map<String, Object> target = new LinkedHashMap<>();
+
+    private final Map<String, String> memory = new LinkedHashMap<>();
+
+    private final Map<UUID, Map<String, Object>> saved = new LinkedHashMap<>();
 
     @BeforeEach
     void configure() {
         when(user.id()).thenReturn(actor);
-        when(resumes.owned(firstCv))
-            .thenReturn(Map.of("id", firstCv, "status", "READY", "structured_data", Map.of("summary", canonical)));
-        when(resumes.owned(secondCv))
-            .thenReturn(Map.of("id", secondCv, "status", "READY", "structured_data", Map.of("summary", canonical)));
-        when(resumes.canonicalText(anyMap())).thenReturn(canonical);
-        when(db.one(contains("FROM market_job_posts j WHERE j.id=? AND j.status='ACTIVE'"), eq(job)))
-            .thenReturn(Map.of("id", job, "raw_content_hash", "job-content-hash"));
-        when(ai.provider()).thenReturn("openai");
-        when(ai.model()).thenReturn("test-model");
-        when(ai.generate(eq("JOB_ATS"), anyMap())).thenReturn(
+        cv.putAll(
             Map.of(
-                "ats_score",
-                80,
-                "strengths",
-                List.of("Java"),
-                "missing_skills",
-                List.of(),
-                "improvement_suggestions",
-                List.of("Describe the project")
+                "id",
+                firstCv,
+                "status",
+                "READY",
+                "language",
+                "vi",
+                "structured_data",
+                Map.of("summary", "Java developer")
             )
         );
+        target.putAll(Map.of("id", job, "raw_content_hash", "job-content-hash", "job_title", "Java developer"));
+        when(resumes.owned(firstCv)).thenAnswer(call -> new LinkedHashMap<>(cv));
+        when(resumes.owned(secondCv)).thenAnswer(call -> {
+            Map<String, Object> another = new LinkedHashMap<>(cv);
+            another.put("id", secondCv);
+            return another;
+        });
+        when(resumes.canonicalText(anyMap())).thenReturn("Reviewed Java developer CV");
+        when(db.one(contains("FROM market_job_posts j WHERE j.id=? AND j.status='ACTIVE'"), eq(job)))
+            .thenAnswer(call -> new LinkedHashMap<>(target));
+        when(ai.provider()).thenReturn("ollama");
+        when(ai.model()).thenReturn("test-model");
+        when(ai.cacheFingerprint("JOB_ATS")).thenReturn("prompt-v1");
+        when(ai.generate(eq("JOB_ATS"), anyMap())).thenReturn(generated());
         when(db.json(any())).thenAnswer(call -> call.getArgument(0));
+        when(db.insert(eq("job_resume_analyses"), anyMap())).thenAnswer(call -> {
+            UUID id = UUID.randomUUID();
+            Map<String, Object> row = new LinkedHashMap<>((Map<String, Object>) call.getArgument(1));
+            row.put("id", id);
+            row.put("created_at", OffsetDateTime.parse("2026-10-28T08:00:00+07:00"));
+            saved.put(id, row);
+            return id;
+        });
+        when(db.one(eq("SELECT * FROM job_resume_analyses WHERE id=?"), any(UUID.class)))
+            .thenAnswer(call -> new LinkedHashMap<>(saved.get(call.getArgument(1))));
         when(redis.getIfAvailable()).thenReturn(client);
         when(client.opsForValue()).thenReturn(values);
-        inputHash = FlowSupport.hash(canonical + "\njob-content-hash\nopenai\ntest-model");
+        when(values.get(anyString())).thenAnswer(call -> memory.get(call.getArgument(0)));
+        doAnswer(call -> {
+            memory.put(call.getArgument(0), call.getArgument(1));
+            return null;
+        }).when(values).set(anyString(), anyString(), any(Duration.class));
     }
 
     @Test
-    void identicalCvContentsWithDifferentIdsUseSeparateRedisKeys() {
-        UUID firstAnalysis = UUID.randomUUID(), secondAnalysis = UUID.randomUUID();
-        when(db.insert(eq("job_resume_analyses"), anyMap())).thenReturn(firstAnalysis, secondAnalysis);
-        when(db.one("SELECT * FROM job_resume_analyses WHERE id=?", firstAnalysis))
-            .thenReturn(analysis(firstAnalysis, firstCv, job));
-        when(db.one("SELECT * FROM job_resume_analyses WHERE id=?", secondAnalysis))
-            .thenReturn(analysis(secondAnalysis, secondCv, job));
-
-        assertEquals(firstCv, service.ats(job, new CvRequest(firstCv)).get("resume_id"));
-        assertEquals(secondCv, service.ats(job, new CvRequest(secondCv)).get("resume_id"));
-
-        ArgumentCaptor<String> keys = ArgumentCaptor.forClass(String.class);
-        verify(values, times(2)).get(keys.capture());
-        assertNotEquals(
-            keys.getAllValues().get(0),
-            keys.getAllValues().get(1),
-            ("Redis identity must include the selected CV even when its reviewed " + "contents are identical")
+    void fullResponseHitDoesNotReadAnalysisRowsOrCallAiAgain() {
+        Map<String, Object> first = service.ats(job, new CvRequest(firstCv));
+        assertEquals(false, first.get("cached"));
+        String key = onlyKey();
+        assertTrue(key.startsWith("edunexus:ats:response:v1:" + actor + ":" + firstCv + ":" + job + ":"));
+        Map<String, Object> envelope = json.readValue(memory.get(key), Map.class);
+        assertEquals(first.get("id").toString(), ((Map<?, ?>) envelope.get("response")).get("id"));
+        assertEquals(List.of("Java"), ((Map<?, ?>) envelope.get("response")).get("strengths_json"));
+        verify(values).set(
+            eq(key),
+            anyString(),
+            argThat(
+                (
+                    Duration ttl) -> !ttl.isNegative() && !ttl.isZero() && ttl.compareTo(Duration.ofHours(24)) <= 0
+            )
         );
-        verify(values)
-            .set(eq(keys.getAllValues().get(0)), eq(firstAnalysis.toString()), eq(java.time.Duration.ofHours(24)));
-        verify(values)
-            .set(eq(keys.getAllValues().get(1)), eq(secondAnalysis.toString()), eq(java.time.Duration.ofHours(24)));
+        clearInvocations(db, ai, values, resumes, user);
+
+        Map<String, Object> cached = service.ats(job, new CvRequest(firstCv));
+
+        assertEquals(true, cached.get("cached"));
+        Map<String, Object> expected = new LinkedHashMap<>(first);
+        expected.put("cached", true);
+        assertEquals(json.readTree(json.writeValueAsString(expected)), json.valueToTree(cached));
+        assertNoAnalysisReads();
+        verify(db, never()).insert(eq("job_resume_analyses"), anyMap());
+        verify(ai, never()).generate(eq("JOB_ATS"), anyMap());
+        verify(resumes).owned(firstCv);
+        verify(user).requireRole("CANDIDATE");
+        verify(db).one(contains("FROM market_job_posts j WHERE j.id=? AND j.status='ACTIVE'"), eq(job));
+    }
+
+    @Test
+    void identicalCvContentsWithDifferentIdsUseSeparateFullResponseKeys() {
+        Map<String, Object> first = service.ats(job, new CvRequest(firstCv));
+        Map<String, Object> second = service.ats(job, new CvRequest(secondCv));
+        assertEquals(firstCv, first.get("resume_id"));
+        assertEquals(secondCv, second.get("resume_id"));
+        assertEquals(2, memory.size());
+        assertNotEquals(first.get("id"), second.get("id"));
+        clearInvocations(ai, db);
+        assertEquals(firstCv.toString(), service.ats(job, new CvRequest(firstCv)).get("resume_id"));
+        assertEquals(secondCv.toString(), service.ats(job, new CvRequest(secondCv)).get("resume_id"));
+        assertNoAnalysisReads();
+        verify(ai, never()).generate(eq("JOB_ATS"), anyMap());
     }
 
     @ParameterizedTest
-    @ValueSource(booleans = {true, false})
-    void aRedisAnalysisForAnotherCvOrJobCannotBeReturned(
-        boolean anotherCv) {
-        UUID staleId = UUID.randomUUID(), freshId = UUID.randomUUID();
-        Map<String, Object> stale =
-            analysis(staleId, anotherCv ? secondCv : firstCv, anotherCv ? job : UUID.randomUUID());
-        when(values.get(anyString())).thenReturn(staleId.toString());
-        // The old lookup by only ID and owner would expose this wrong CV/job result.
-        // The constrained lookup must miss even though owner and input hash are
-        // identical.
-        when(db.optional(startsWith("SELECT * FROM job_resume_analyses WHERE id=?"), eq(staleId), eq(actor)))
-            .thenReturn(Optional.of(stale));
-        when(db.insert(eq("job_resume_analyses"), anyMap())).thenReturn(freshId);
-        when(db.one("SELECT * FROM job_resume_analyses WHERE id=?", freshId))
-            .thenReturn(analysis(freshId, firstCv, job));
+    @ValueSource(
+        strings = {
+            "invalid-json",
+            "legacy-id",
+            "wrong-version",
+            "wrong-owner",
+            "wrong-cv",
+            "wrong-job",
+            "wrong-hash",
+            "missing-score",
+            "invalid-score",
+            "missing-suggestions"}
+    )
+    void corruptOrMismatchedResponsesAreMisses(
+        String kind) {
+        Map<String, Object> first = service.ats(job, new CvRequest(firstCv));
+        String key = onlyKey();
+        Map<String, Object> envelope = json.readValue(memory.get(key), Map.class);
+        Map<String, Object> response = (Map<String, Object>) envelope.get("response");
+        switch (kind) {
+            case "wrong-version" -> envelope.put("schema_version", 99);
+            case "wrong-owner" -> response.put("user_id", UUID.randomUUID().toString());
+            case "wrong-cv" -> response.put("resume_id", secondCv.toString());
+            case "wrong-job" -> response.put("market_job_id", UUID.randomUUID().toString());
+            case "wrong-hash" -> ((Map<String, Object>) envelope.get("identity")).put("input_hash", "stale-hash");
+            case "missing-score" -> response.remove("ats_score");
+            case "invalid-score" -> response.put("ats_score", 101);
+            case "missing-suggestions" -> response.remove("improvement_suggestions_json");
+            default -> {
+            }
+        }
+        memory.put(key, switch (kind) {
+            case "invalid-json" -> "not-json";
+            case "legacy-id" -> first.get("id").toString();
+            default -> json.writeValueAsString(envelope);
+        });
+        clearInvocations(db, ai);
 
-        Map<String, Object> result = service.ats(job, new CvRequest(firstCv));
+        Map<String, Object> fresh = service.ats(job, new CvRequest(firstCv));
 
-        assertEquals(freshId, result.get("id"));
-        assertEquals(firstCv, result.get("resume_id"));
-        assertEquals(job, result.get("market_job_id"));
-        assertEquals(false, result.get("cached"));
+        assertEquals(false, fresh.get("cached"));
+        assertNotEquals(first.get("id").toString(), fresh.get("id").toString());
+        assertEquals(firstCv, fresh.get("resume_id"));
+        assertEquals(job, fresh.get("market_job_id"));
         verify(ai).generate(eq("JOB_ATS"), anyMap());
-        verify(db).optional(
-            argThat(
-                sql -> sql.contains("id=?") && sql.contains("user_id=?") && sql.contains("resume_id=?")
-                    && sql.contains("market_job_id=?") && sql.contains("input_hash")
-            ),
-            eq(staleId),
-            eq(actor),
-            eq(firstCv),
-            eq(job),
-            eq(inputHash)
-        );
     }
 
-    private Map<String, Object> analysis(
-        UUID id,
-        UUID cv,
-        UUID targetJob) {
-        return new LinkedHashMap<>(
-            Map.of(
-                "id",
-                id,
-                "user_id",
-                actor,
-                "resume_id",
-                cv,
-                "market_job_id",
-                targetJob,
-                "ats_score",
-                80,
-                "improvement_suggestions_json",
-                Map.of("input_hash", inputHash, "items", List.of("Describe the project"))
-            )
-        );
+    @Test
+    void legacyIdNamespaceIsNotReadAsAResponseCache() {
+        Map<String, Object> first = service.ats(job, new CvRequest(firstCv));
+        String responseKey = onlyKey();
+        memory.clear();
+        String legacyKey = responseKey.replace("edunexus:ats:response:v1:", "edunexus:ats:");
+        memory.put(legacyKey, first.get("id").toString());
+        clearInvocations(values, ai);
+
+        Map<String, Object> fresh = service.ats(job, new CvRequest(firstCv));
+
+        assertEquals(false, fresh.get("cached"));
+        verify(values).get(responseKey);
+        verify(values, never()).get(legacyKey);
+        verify(ai).generate(eq("JOB_ATS"), anyMap());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"cv-content", "cv-text", "language", "job-content", "job-metadata", "model", "prompt"})
+    void changesToEffectiveInputsUseAnotherCacheEntry(
+        String change) {
+        Map<String, Object> first = service.ats(job, new CvRequest(firstCv));
+        String oldKey = onlyKey();
+        switch (change) {
+            case "cv-content" -> cv.put("structured_data", Map.of("summary", "Java and Spring Boot developer"));
+            case "cv-text" -> when(resumes.canonicalText(anyMap())).thenReturn("New reviewed CV text");
+            case "language" -> cv.put("language", "en");
+            case "job-content" -> target.put("raw_content_hash", "new-job-content-hash");
+            case "job-metadata" -> target.put("job_title", "Senior Java developer");
+            case "model" -> when(ai.model()).thenReturn("new-model");
+            case "prompt" -> when(ai.cacheFingerprint("JOB_ATS")).thenReturn("prompt-v2");
+            default -> fail("Unhandled test input");
+        }
+        clearInvocations(ai, values);
+
+        Map<String, Object> fresh = service.ats(job, new CvRequest(firstCv));
+
+        assertEquals(false, fresh.get("cached"));
+        assertNotEquals(first.get("id"), fresh.get("id"));
+        assertEquals(2, memory.size());
+        ArgumentCaptor<String> requestedKey = ArgumentCaptor.forClass(String.class);
+        verify(values).get(requestedKey.capture());
+        assertNotEquals(oldKey, requestedKey.getValue());
+        verify(ai).generate(eq("JOB_ATS"), anyMap());
+    }
+
+    @Test
+    void aDatabaseHitRewarmsRedisWithTheFullResponse() {
+        UUID existing = (UUID) service.ats(job, new CvRequest(firstCv)).get("id");
+        memory.clear();
+        stubDatabaseHit(existing);
+        clearInvocations(ai, db, values);
+
+        Map<String, Object> databaseHit = service.ats(job, new CvRequest(firstCv));
+
+        assertEquals(existing, databaseHit.get("id"));
+        assertEquals(true, databaseHit.get("cached"));
+        assertEquals(1, memory.size());
+        verify(ai, never()).generate(eq("JOB_ATS"), anyMap());
+        clearInvocations(ai, db);
+        assertEquals(existing.toString(), service.ats(job, new CvRequest(firstCv)).get("id"));
+        assertNoAnalysisReads();
+        verify(ai, never()).generate(eq("JOB_ATS"), anyMap());
+    }
+
+    @Test
+    void redisReadAndWriteFailuresStillAllowTheDatabaseCacheToReturn() {
+        UUID existing = (UUID) service.ats(job, new CvRequest(firstCv)).get("id");
+        stubDatabaseHit(existing);
+        doThrow(new RedisConnectionFailureException("unavailable")).when(values).get(anyString());
+        doThrow(new QueryTimeoutException("cache command timed out")).when(values)
+            .set(anyString(), anyString(), any(Duration.class));
+        clearInvocations(ai, db);
+
+        Map<String, Object> result = assertDoesNotThrow(() -> service.ats(job, new CvRequest(firstCv)));
+
+        assertEquals(existing, result.get("id"));
+        assertEquals(true, result.get("cached"));
+        verify(ai, never()).generate(eq("JOB_ATS"), anyMap());
+        verify(db, never()).insert(eq("job_resume_analyses"), anyMap());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"role", "owner", "review-required", "inactive-job"})
+    void authorizationAndCurrentResourceChecksRunBeforeAWarmCache(
+        String invalid) {
+        service.ats(job, new CvRequest(firstCv));
+        switch (invalid) {
+            case "role" -> doThrow(ApiException.forbidden("Candidate required")).when(user).requireRole("CANDIDATE");
+            case "owner" -> doThrow(ApiException.notFound("Resource not found")).when(resumes).owned(firstCv);
+            case "review-required" -> cv.put("status", "REVIEW_REQUIRED");
+            case "inactive-job" -> doThrow(ApiException.notFound("Resource not found")).when(db)
+                .one(contains("FROM market_job_posts j WHERE j.id=? AND j.status='ACTIVE'"), eq(job));
+            default -> fail("Unhandled guard");
+        }
+        clearInvocations(values, ai);
+
+        assertThrows(ApiException.class, () -> service.ats(job, new CvRequest(firstCv)));
+
+        verifyNoInteractions(values);
+        verify(ai, never()).generate(eq("JOB_ATS"), anyMap());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"provider-error", "invalid-score", "missing-score"})
+    void aiErrorsAndInvalidScoresDoNotPersistOrCacheAnAnalysis(
+        String failure) {
+        if ("provider-error".equals(failure)) {
+            when(ai.generate(eq("JOB_ATS"), anyMap())).thenThrow(new ApiException(503, "AI unavailable"));
+        } else {
+            Map<String, Object> invalid = new LinkedHashMap<>(generated());
+            if ("invalid-score".equals(failure))
+                invalid.put("ats_score", 101);
+            else
+                invalid.remove("ats_score");
+            when(ai.generate(eq("JOB_ATS"), anyMap())).thenReturn(invalid);
+        }
+
+        assertThrows(ApiException.class, () -> service.ats(job, new CvRequest(firstCv)));
+
+        verify(db, never()).insert(eq("job_resume_analyses"), anyMap());
+        verify(values, never()).set(anyString(), anyString(), any(Duration.class));
+        assertTrue(memory.isEmpty());
     }
 
     @Test
@@ -187,8 +346,8 @@ class CareerToolsAtsCacheTests {
         verify(db).insert(
             eq("external_apply_events"),
             argThat(
-                values -> active.equals(values.get("target_url")) && actor.equals(values.get("user_id"))
-                    && job.equals(values.get("market_job_id"))
+                fields -> active.equals(fields.get("target_url")) && actor.equals(fields.get("user_id"))
+                    && job.equals(fields.get("market_job_id"))
             )
         );
     }
@@ -197,13 +356,41 @@ class CareerToolsAtsCacheTests {
     void externalApplyDoesNotReviveAnExpiredKnownSource() {
         when(db.one(contains("FROM market_job_posts j WHERE j.id=? AND j.status='ACTIVE'"), eq(job)))
             .thenReturn(Map.of("id", job, "original_source_url", "https://itviec.com/it-jobs/expired-primary"));
-
-        var error = assertThrows(
-            com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException.class,
-            () -> service.apply(job, null)
-        );
-
+        ApiException error = assertThrows(ApiException.class, () -> service.apply(job, null));
         assertEquals(409, error.status());
         verify(db, never()).insert(eq("external_apply_events"), anyMap());
+    }
+
+    private Map<String, Object> generated() {
+        return Map.of(
+            "ats_score",
+            80,
+            "strengths",
+            List.of("Java"),
+            "missing_skills",
+            List.of("Cloud deployment"),
+            "improvement_suggestions",
+            List.of("Describe the project")
+        );
+    }
+
+    private String onlyKey() {
+        assertEquals(1, memory.size());
+        return memory.keySet().iterator().next();
+    }
+
+    private void stubDatabaseHit(
+        UUID id) {
+        when(db.optional(contains("FROM job_resume_analyses WHERE user_id=?"), any(), any(), any(), any()))
+            .thenAnswer(call -> Optional.of(new LinkedHashMap<>(saved.get(id))));
+    }
+
+    private void assertNoAnalysisReads() {
+        assertTrue(mockingDetails(db).getInvocations().stream().noneMatch(call -> {
+            String method = call.getMethod().getName();
+            Object[] args = call.getArguments();
+            return Set.of("one", "optional", "list").contains(method) && args.length > 0
+                && args[0] instanceof String sql && sql.contains("job_resume_analyses");
+        }), "A valid Redis response must not query PostgreSQL analysis rows");
     }
 }

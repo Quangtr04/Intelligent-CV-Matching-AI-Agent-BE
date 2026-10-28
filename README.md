@@ -186,17 +186,20 @@ nên để username/password trống và SSL false. Redis ngoài cần thông ti
 theo server. Khi backend chạy trong container, dùng host Redis mà container truy cập được
 (chẳng hạn `redis` trong cùng mạng Compose), cùng port nội bộ; `localhost` khi đó chỉ là container backend.
 
-Cache ATS dùng key `edunexus:ats:<userId>:<resumeId>:<jobId>:<inputHash>`, giá trị là UUID
-`job_resume_analyses`, TTL 24 giờ. Backend vẫn kiểm tra bản ghi database theo người dùng, CV,
-job và hash trước khi trả kết quả; database cung cấp cache khi Redis không kết nối được.
-`cached=true` có thể đến từ Redis hoặc database, nên cần kiểm tra key/TTL để xác minh Redis
-đã lưu cache. `/actuator/health` UP không xác nhận Redis vì Redis health indicator đang tắt.
-`POST /api/v1/matching` dùng thêm key Redis `edunexus:matching:<userId>:<requestHash>` với TTL 1 giờ,
-và vẫn fallback về cache database một giờ khi Redis không khả dụng.
+Redis lưu toàn bộ response trong JSON envelope `schema_version/identity/response`, thay cho chỉ lưu ID.
+ATS dùng key `edunexus:ats:response:v1:<userId>:<resumeId>:<jobId>:<inputHash>`, TTL tối đa 24 giờ;
+phân tích CV dùng `edunexus:resume-analysis:response:v1:<userId>:<resumeId>:<inputHash>`, tối đa 24 giờ.
+Matching dùng `edunexus:matching:response:v1:<userId>:<requestHash>`, tối đa 1 giờ và không vượt
+tuổi run hoặc hạn tuyển dụng. Cache hit không đọc lại các bảng kết quả; backend vẫn kiểm tra
+quyền, CV/JD hiện tại và fingerprint model/prompt để tránh dùng kết quả sai đầu vào.
+ATS/matching có DB fallback và ghi lại Redis khi tìm được kết quả DB; CV analysis Redis miss
+tạo phân tích mới. Cache chỉ được ghi sau commit. Namespace mới không đọc các key UUID cũ.
+`cached=true` có thể đến từ Redis hoặc database; GET key/TTL xác nhận Redis đã lưu response.
+`/actuator/health` UP không xác nhận Redis vì Redis health indicator đang tắt.
 Xem [các bước kiểm thử Redis/ATS trên Swagger](docs/swagger-testing.md#redis-ats).
 
 Qdrant, RabbitMQ và Redis nằm trong profile `optional`; luồng hiện tại lưu vector trong
-PostgreSQL và dùng SSE cho tư vấn. Redis là dịch vụ tùy chọn để tăng tốc ATS và matching.
+PostgreSQL và dùng SSE cho tư vấn. Redis là dịch vụ tùy chọn để cache kết quả CV, ATS và matching.
 
 ### Thanh toán và tích hợp khác
 
