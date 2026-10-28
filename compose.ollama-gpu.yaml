@@ -1,0 +1,5 @@
+# Optional NVIDIA GPU access; the base manifests remain usable on CPU-only hosts.
+# Requires Docker Compose 2.30+ and a Docker engine with NVIDIA GPU support.
+services:
+  ollama:
+    gpus: all

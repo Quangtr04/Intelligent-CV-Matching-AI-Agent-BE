@@ -1,4 +1,9 @@
-param([string]$EnvFile = '.env', [switch]$WithInfrastructure)
+param(
+    [string]$EnvFile = '.env',
+    [switch]$WithInfrastructure,
+    [ValidateSet('dev', 'prod', 'docker')]
+    [string]$RuntimeProfile
+)
 $ErrorActionPreference = 'Stop'
 $projectDirectory = Split-Path -Parent $PSScriptRoot
 Push-Location -LiteralPath $projectDirectory
@@ -17,6 +22,9 @@ try {
         }
     }
     [Environment]::SetEnvironmentVariable('APP_ENV_FILE', $resolvedEnvFile.Replace('\', '/'), 'Process')
+    if ($RuntimeProfile) {
+        [Environment]::SetEnvironmentVariable('SPRING_PROFILES_ACTIVE', $RuntimeProfile, 'Process')
+    }
     if (!$env:POSTGRES_PASSWORD -or $env:POSTGRES_PASSWORD.StartsWith('replace-')) { throw 'Set POSTGRES_PASSWORD in .env before starting' }
     if ($WithInfrastructure) {
         & docker compose --env-file $resolvedEnvFile up -d --wait --wait-timeout 60 postgres

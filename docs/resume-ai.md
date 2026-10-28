@@ -4,21 +4,33 @@ Các API dưới đây dùng tiền tố `/api/v1`. API riêng của ứng viên
 
 ## Cấu hình AI
 
-Mặc định AI tắt. Xuất các biến môi trường trước khi chạy ứng dụng; Spring Boot không tự đọc `.env`:
+Backend hiện dùng adapter Ollama native cho model local trong Docker. `.env.example` bật AI; có thể
+tắt bằng `AI_ENABLED=false`. Ứng dụng import `.env` qua `spring.config.import`; biến môi trường của process
+có thể ghi đè giá trị file. Cấu hình backend host:
 
 ```powershell
 $env:AI_ENABLED = 'true'
-$env:AI_CHAT_PROVIDER = 'openai'
-$env:AI_EMBEDDING_PROVIDER = 'openai'
-$env:OPENAI_API_KEY = '<API key>'
-$env:AI_CHAT_MODEL = 'gpt-4.1-mini'
-$env:AI_EMBEDDING_MODEL = 'text-embedding-3-small'
+$env:AI_PROVIDER = 'ollama'
+$env:AI_CHAT_PROVIDER = 'ollama'
+$env:AI_EMBEDDING_PROVIDER = 'ollama'
+$env:OLLAMA_BASE_URL = 'http://localhost:11434'
+$env:AI_CHAT_MODEL = 'qwen2.5:7b'
+$env:AI_EMBEDDING_MODEL = 'qwen3-embedding:0.6b'
+$env:AI_EMBEDDING_DIMENSIONS = '1024'
 $env:AI_MAX_OUTPUT_TOKENS = '2000'
 ```
 
-Ứng dụng gọi `ChatModel` và `EmbeddingModel` thật của Spring AI. Embedding được lưu trong PostgreSQL với pgvector, kích thước `vector(1536)`; vector sai kích thước hoặc có giá trị không hữu hạn bị từ chối. Qdrant không nằm trong luồng hiện tại.
+Không cần API key thương mại. App trong Compose dùng URL nội bộ `http://ollama:11434`.
+Khởi động model theo [hướng dẫn Ollama](ollama.md); test từng request theo
+[dữ liệu và thứ tự Postman](postman-test-order.md). Backend gọi `ChatModel` và `EmbeddingModel` của
+Spring AI qua adapter Ollama. Vector mới trong PostgreSQL/pgvector có **1024 chiều**; V10 giữ vector
+1536 cũ ở cột legacy riêng và yêu cầu reindex khi có dữ liệu cũ. Vector sai kích thước/không hữu hạn bị từ chối.
+Qdrant không nằm trong luồng hiện tại.
 
-Admin có thể thay model chat bằng bản ghi `ai_configurations` loại `CHAT`, đang hoạt động và có `provider` trùng với provider đã cấu hình. Model này được đọc cho mỗi lời gọi. Prompt đang hoạt động trong `ai_prompt_templates` cũng được đọc cho mỗi lời gọi. Thay provider, API key hoặc model embedding cần sửa cấu hình môi trường và khởi động lại ứng dụng. Các vector của provider/model khác được giữ lại nhưng không dùng cho truy xuất hiện tại; cần tạo lại embedding tương ứng.
+Admin có thể thay model chat bằng bản ghi `ai_configurations` loại `CHAT`, đang hoạt động và có provider
+`ollama`; model phải có sẵn trên server local. Model này và prompt active được đọc cho mỗi lời gọi.
+Thay URL/model embedding cần sửa cấu hình triển khai và khởi động lại backend; model embedding phải khớp
+schema 1024 và dữ liệu cần index lại. Backend không có fallback sang API thương mại.
 
 Khi AI tắt, upload vẫn trích xuất văn bản và yêu cầu người dùng nhập/review dữ liệu. Phân tích CV trả chế độ `RULE_BASED`, chấm độ đầy đủ của các mục, với `ats_score: null`. Tạo CV bằng AI, chat và embedding trả HTTP 503 khi provider tương ứng chưa bật.
 
@@ -50,6 +62,13 @@ Token khách mặc định là 5.000. Đây là giới hạn do máy chủ thi�
 | `POST /resumes/{id}/embedding` | Tạo hoặc dùng lại embedding khớp provider/model/content hash |
 | `GET /resumes/{id}/download` | File upload gốc, hoặc văn bản CV nếu không có file |
 | `GET /resumes/{id}/download?text=true` | Văn bản dữ liệu CV đã review |
+
+Phân tích AI gồm điểm nội dung và rubric cách viết `cv-writing-v1`: bullet, dấu câu nhất quán,
+ngôn từ chuyên nghiệp, độ cô đọng và đóng góp rõ ràng. `writing_quality` trả điểm/nhận xét/bằng chứng
+của năm tiêu chí; điểm tổng hợp gồm 80% nội dung và 20% cách viết khi có tiêu chí đánh giá được.
+Tiêu chí không áp dụng hoặc thiếu bằng chứng có điểm null; nếu không có tiêu chí nào đánh giá được,
+điểm tổng hợp dùng 100% điểm nội dung. AI tắt hoặc báo cáo cũ chưa có
+rubric thì điểm cách viết chưa khả dụng. Xem [hợp đồng, giới hạn và hai mẫu Postman so sánh](cv-writing-quality.md).
 
 Body tạo thủ công mẫu:
 
@@ -127,4 +146,8 @@ Index chuyển `PROCESSING`, tạo embedding thật và ghi `vector_indexing_job
 
 ## Kiểm tra
 
-35 unit test của các package CV/AI chạy với `mvn '-Dtest=AiServiceTests,RagDocumentServiceTests,ResumeLifecycleTests,ResumeOwnershipTests,ResumeFileExtractorTests,CareerAssistantOwnershipTests,GuestTrialTests' test`. Chúng kiểm tra file PDF/DOCX thật, dữ liệu UTF-8/MIME/signature, quyền sở hữu, invalidation CV, lỗi/tái thử embedding, chunk RAG, quota AI và giới hạn trial. Model trong test được mock; cần API key hợp lệ và PostgreSQL có pgvector để kiểm tra lời gọi provider và semantic retrieval thực tế.
+Các suite CV/AI có thể chạy bằng `mvn '-Dtest=AiServiceTests,RagDocumentServiceTests,ResumeLifecycleTests,ResumeOwnershipTests,ResumeFileExtractorTests,CareerAssistantOwnershipTests,GuestTrialTests' test`.
+Chúng kiểm tra file, dữ liệu, quyền sở hữu, invalidation, retry embedding, chunk RAG và quota; model trong
+các suite này được mock. Test adapter và migration riêng không thay đánh giá chất lượng CV.
+Để kiểm thử inference/semantic retrieval thật, cần Ollama local đã tải model và PostgreSQL có pgvector;
+không cần API key. Xem [luồng Postman](postman-test-order.md) và [các smoke test Ollama](ollama.md).

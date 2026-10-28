@@ -1,0 +1,57 @@
+classDiagram
+    direction TB
+    class CareerAssistantController {
+        <<controller>>
+        +create(CreateAssistantConversationRequest body) Object
+        +send() Object
+    }
+    class CareerAssistantService {
+        <<service>>
+        +create() Map
+        +send() Map
+    }
+    class CareerAssistantRepository {
+        <<repository>>
+        +insertCareerAssistantConversations() UUID
+        +insertCareerAssistantMessages() UUID
+    }
+    class CareerToolsController {
+        <<controller>>
+        +createDraft() List
+        +drafts() List
+        +editDraft() Map
+    }
+    class CareerToolsService {
+        <<service>>
+        +createDraft(UUID jobId, DraftRequest request) List
+        +drafts(UUID jobId) List
+        +editDraft() Map
+    }
+    class CareerToolsRepository {
+        <<repository>>
+        +insertApplicationDrafts() UUID
+        +listApplicationDraftsById() List
+    }
+    class AiService {
+        <<service>>
+        +generate(String feature, Map input) Map
+    }
+    class ResumeService {
+        <<service>>
+        +owned(UUID id) Map
+        +canonicalText(Map resume) String
+    }
+    class CurrentUser {
+        +id() UUID
+        +requireRole(String role)
+    }
+    CareerAssistantController --> CareerAssistantService : A assistant API
+    CareerAssistantService --> CareerAssistantRepository : db
+    CareerAssistantService --> AiService : CAREER_CHAT
+    CareerAssistantService --> ResumeService : resumes
+    CareerAssistantService --> CurrentUser : current
+    CareerToolsController --> CareerToolsService : B drafts API
+    CareerToolsService --> CareerToolsRepository : db
+    CareerToolsService --> AiService : APPLICATION_EMAIL
+    CareerToolsService --> ResumeService : resumes
+    CareerToolsService --> CurrentUser : user

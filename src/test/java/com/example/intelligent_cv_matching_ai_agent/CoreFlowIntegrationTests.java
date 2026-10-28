@@ -305,56 +305,41 @@ class CoreFlowIntegrationTests {
 
     @Test
     void assessmentHidesAnswersRequiresCompletionAndPersistsScores() throws Exception {
-        when(ai.generate(eq("ASSESSMENT_GENERATE"), anyMap())).thenReturn(
-            Map.of(
-                "questions",
-                List.of(
-                    Map.of(
-                        "part",
-                        1,
-                        "question_text",
-                        "Foundation",
-                        "options",
-                        Map.of("A", "Correct", "B", "B", "C", "C", "D", "D"),
-                        "correct_option",
-                        "A",
-                        "related_skill_name",
-                        "General"
-                    ),
-                    Map.of(
-                        "part",
-                        2,
-                        "question_text",
-                        "Java",
-                        "options",
-                        Map.of("A", "A", "B", "Correct", "C", "C", "D", "D"),
-                        "correct_option",
-                        "B",
-                        "related_skill_name",
-                        "Java"
-                    )
+        UUID jobId = importedJob();
+        List<Map<String, Object>> generated = new ArrayList<>();
+        for (int index = 0; index < 10; index++) {
+            generated.add(
+                Map.of(
+                    "part",
+                    index < 5 ? 1 : 2,
+                    "question_text",
+                    "Job-specific question " + index,
+                    "options",
+                    Map.of("A", "Correct", "B", "B", "C", "C", "D", "D"),
+                    "correct_option",
+                    "A",
+                    "related_skill_name",
+                    index < 5 ? "Java" : "SQL",
+                    "jd_evidence",
+                    "Java developer with SQL database experience",
+                    "explanation",
+                    "The selected JD requires Java and SQL backend experience."
                 )
-            )
-        );
-        var assessment = postJson("/api/v1/assessments", candidate, Map.of("targetJobTitle", "Java Developer"));
+            );
+        }
+        when(ai.generate(eq("ASSESSMENT_GENERATE"), anyMap())).thenReturn(Map.of("questions", generated));
+        var assessment = postJson("/api/v1/assessments", candidate, Map.of("jobId", jobId));
         UUID id = UUID.fromString(assessment.get("id").toString());
         var questions = (List<?>) assessment.get("questions");
         assertFalse(((Map<?, ?>) questions.getFirst()).containsKey("correct_option"));
         mvc.perform(post("/api/v1/assessments/" + id + "/submit").header("Authorization", "Bearer " + candidate))
             .andExpect(status().isBadRequest());
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < questions.size(); i++)
             response(
                 mvc.perform(
                     put("/api/v1/assessments/" + id + "/answers").header("Authorization", "Bearer " + candidate)
                         .contentType(MediaType.APPLICATION_JSON).content(
-                            json(
-                                Map.of(
-                                    "questionId",
-                                    ((Map<?, ?>) questions.get(i)).get("id"),
-                                    "selectedOption",
-                                    i == 0 ? "A" : "B"
-                                )
-                            )
+                            json(Map.of("questionId", ((Map<?, ?>) questions.get(i)).get("id"), "selectedOption", "A"))
                         )
                 )
             );
@@ -372,12 +357,13 @@ class CoreFlowIntegrationTests {
 
     @Test
     void roadmapEnforcesPrerequisitesAndComputesProgress() throws Exception {
+        UUID selectedJob = importedJob();
         when(ai.generate(eq("ROADMAP_GENERATE"), anyMap())).thenReturn(
             Map.of(
                 "title",
                 "Backend learning",
                 "summary",
-                "Learn Java then Spring",
+                "Learn Java then SQL",
                 "skill_gaps",
                 List.of(
                     Map.of(
@@ -393,7 +379,8 @@ class CoreFlowIntegrationTests {
                         80,
                         "reasoning",
                         "Target role requires Java"
-                    )
+                    ),
+                    Map.of("skill_name", "SQL", "gap_status", "MISSING_EVIDENCE", "urgency_score", 70)
                 ),
                 "nodes",
                 List.of(
@@ -409,7 +396,7 @@ class CoreFlowIntegrationTests {
                     ),
                     Map.of(
                         "skill_name",
-                        "Spring Boot",
+                        "SQL",
                         "description",
                         "Build an API",
                         "estimated_hours",
@@ -420,7 +407,7 @@ class CoreFlowIntegrationTests {
                 )
             )
         );
-        var roadmap = postJson("/api/v1/roadmaps", candidate, Map.of("targetJobTitle", "Java Developer"));
+        var roadmap = postJson("/api/v1/roadmaps", candidate, Map.of("jobId", selectedJob));
         String id = roadmap.get("id").toString();
         var nodes = (List<?>) roadmap.get("nodes");
         String first = ((Map<?, ?>) nodes.getFirst()).get("id").toString(),
@@ -816,7 +803,7 @@ class CoreFlowIntegrationTests {
                 "modelName",
                 "other-model",
                 "configuration",
-                Map.of("dimensions", 1536)
+                Map.of("dimensions", 1024)
             )
         );
         UUID unrelatedId = UUID.fromString(unrelated.get("id").toString());
@@ -1512,8 +1499,10 @@ class CoreFlowIntegrationTests {
         stubConsultantEvaluationAi();
         String base = "/api/v1/consultations/" + threadId;
         var invalidQuality = fields(
-            "overall_score",
+            "content_score",
             80,
+            "writing_quality",
+            com.example.intelligent_cv_matching_ai_agent.resume.ResumeWritingTestData.writing(),
             "ats_score",
             70,
             "summary",
@@ -1529,10 +1518,10 @@ class CoreFlowIntegrationTests {
         mvc.perform(post(base + "/resumes/" + resumeId + "/analyze").header("Authorization", "Bearer " + consultant))
             .andExpect(status().isBadGateway());
         invalidQuality.put("suggestions", List.of());
-        invalidQuality.put("overall_score", 101);
+        invalidQuality.put("content_score", 101);
         mvc.perform(post(base + "/resumes/" + resumeId + "/analyze").header("Authorization", "Bearer " + consultant))
             .andExpect(status().isBadGateway());
-        invalidQuality.put("overall_score", 80);
+        invalidQuality.put("content_score", 80);
         invalidQuality.put("strengths", List.of(Map.of("_internal", "PRIVATE_MODEL_TRACE")));
         mvc.perform(post(base + "/resumes/" + resumeId + "/analyze").header("Authorization", "Bearer " + consultant))
             .andExpect(status().isBadGateway());
@@ -1586,8 +1575,10 @@ class CoreFlowIntegrationTests {
         when(ai.enabled()).thenReturn(true);
         when(ai.generate(eq("CV_ANALYZE"), anyMap())).thenReturn(
             fields(
-                "overall_score",
-                84,
+                "content_score",
+                85,
+                "writing_quality",
+                com.example.intelligent_cv_matching_ai_agent.resume.ResumeWritingTestData.writing(),
                 "ats_score",
                 82,
                 "summary",

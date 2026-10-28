@@ -7,6 +7,9 @@ public class GenerateEntities {
 
     static final String BASE = "com.example.intelligent_cv_matching_ai_agent";
 
+    static final Set<String> VECTOR_TABLES =
+        Set.of("career_profile_embeddings", "resume_embeddings", "market_job_embeddings", "rag_chunk_embeddings");
+
     static final Map<String, String> SPECIAL = Map.ofEntries(
         Map.entry("ai_token_reservations", "AiTokenReservation"),
         Map.entry("ai_usage_logs", "AiUsageLog"),
@@ -146,10 +149,27 @@ public class GenerateEntities {
                     .matcher(line);
                 if (col.find()) {
                     Column c = new Column(col.group(1), col.group(2), col.group(3));
-                    columns.add(c);
+                    // V10 retains the V1 vector as a read-only legacy column and
+                    // gives current embeddings their own 1024-dimensional column.
+                    if (VECTOR_TABLES.contains(table) && c.sqlName().equals("embedding")) {
+                        columns.add(new Column("embedding", "vector(1024)", ""));
+                        columns.add(new Column("embedding_legacy_1536", "vector(1536)", ""));
+                    } else {
+                        columns.add(c);
+                    }
                     if (c.definition().contains("PRIMARY KEY"))
                         primary.add(c.sqlName());
                 }
+            }
+            if (table.equals("resume_templates")) {
+                columns.add(new Column("description", "varchar(2000)", " NOT NULL DEFAULT ''"));
+                columns.add(new Column("html_content", "text", " NOT NULL"));
+            }
+            if (table.equals("candidate_profiles")) {
+                columns.add(new Column("expected_salary", "numeric(14,2)", ""));
+            }
+            if (table.equals("resume_analyses")) {
+                columns.add(new Column("writing_quality_json", "jsonb", ""));
             }
             Matcher composite = Pattern.compile("PRIMARY KEY \\(([^)]+)\\)").matcher(body);
             if (composite.find())
@@ -161,7 +181,7 @@ public class GenerateEntities {
             tableCount++;
             columnCount += columns.size();
         }
-        if (tableCount != 76 || columnCount != 705)
+        if (tableCount != 76 || columnCount != 713)
             throw new IllegalStateException(
                 "Unexpected model coverage: " + tableCount + " tables, " + columnCount + " columns"
             );
@@ -205,7 +225,9 @@ public class GenerateEntities {
             for (Column c : columns) {
                 boolean pk = primary.contains(c.sqlName());
                 entity.append("    @JsonProperty(\"").append(c.sqlName()).append("\")\n");
-                if (c.sqlName().matches(".*(?:password_hash|token_hash|code_hash|session_key|api_key|secret).*"))
+                if (c.sqlName().matches(".*(?:password_hash|token_hash|code_hash|session_key|api_key|secret).*")
+                    || c.sqlName().equals("embedding_legacy_1536") || table.equals("candidate_profiles")
+                        && Set.of("expected_salary_min", "expected_salary_max").contains(c.sqlName()))
                     entity.append("    @JsonIgnore\n");
                 if (pk) {
                     entity.append("    @Id\n");
@@ -224,6 +246,9 @@ public class GenerateEntities {
                         .append("::text\", write = \"?::inet\")\n");
                 entity.append("    @Column(name = \"").append(c.sqlName()).append("\", nullable = ")
                     .append(!(pk || c.definition().contains("NOT NULL")));
+                if (c.sqlName().equals("embedding_legacy_1536") || table.equals("candidate_profiles")
+                    && Set.of("expected_salary_min", "expected_salary_max").contains(c.sqlName()))
+                    entity.append(", insertable = false, updatable = false");
                 Matcher length = Pattern.compile("(?:varchar|char)\\((\\d+)\\)").matcher(c.sqlType());
                 if (length.matches())
                     entity.append(", length = ").append(length.group(1));

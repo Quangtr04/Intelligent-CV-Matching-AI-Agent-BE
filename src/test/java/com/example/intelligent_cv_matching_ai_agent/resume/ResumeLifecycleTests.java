@@ -122,7 +122,7 @@ class ResumeLifecycleTests {
         when(ai.provider()).thenReturn("openai");
         when(ai.embeddingModel()).thenReturn("embedding-v1");
         when(db.insert(eq("vector_indexing_jobs"), anyMap())).thenReturn(job);
-        when(ai.embed(anyString())).thenReturn(new float[1536]);
+        when(ai.embed(anyString())).thenReturn(new float[1024]);
         when(db.one("SELECT * FROM resumes WHERE id=? FOR UPDATE", id))
             .thenReturn(Map.of("status", "REVIEW_REQUIRED", "content_hash", "newer"));
         assertThrows(ApiException.class, () -> service.embedding(id));

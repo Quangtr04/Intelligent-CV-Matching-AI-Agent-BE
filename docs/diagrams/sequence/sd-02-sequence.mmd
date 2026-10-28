@@ -1,0 +1,40 @@
+sequenceDiagram
+    autonumber
+    actor U as Người dùng đã đăng nhập
+    participant FE as apiClient / authStore
+    participant Filter as BearerFilter
+    participant Token as TokenService
+    participant API as API nghiệp vụ
+    participant DB as PostgreSQL
+
+    U->>FE: Thực hiện chức năng
+    FE->>Filter: Request kèm Bearer accessToken
+    Filter->>Token: authenticate(accessToken)
+    Token->>DB: Đối chiếu hash token, hạn, thu hồi và account
+    alt Token hợp lệ
+        Token-->>Filter: Actor và role
+        Filter->>API: Tiếp tục request
+        API->>API: Kiểm tra role và ownership của resource
+        API-->>FE: Kết quả hoặc lỗi quyền
+    else Token không hợp lệ hoặc hết hạn
+        Filter-->>FE: 401
+        alt Phiên FE còn refreshToken và chưa retry
+            FE->>FE: Dùng chung một refresh đang chạy
+            FE->>Token: POST /auth/refresh qua AuthController
+            Token->>DB: Khóa account và refresh token
+            Token->>DB: Thu hồi token cũ, lưu hash cặp mới
+            Token-->>FE: Cặp token mới
+            FE->>Filter: Retry request một lần với accessToken mới
+        else Refresh không còn hợp lệ
+            FE->>FE: Xóa phiên và query cache
+        end
+    end
+
+    opt Logout chủ động
+        U->>FE: Bấm đăng xuất
+        FE->>API: POST /auth/logout
+        API->>Token: revokeAll(userId)
+        Token->>DB: Thu hồi tất cả phiên token của user
+        FE->>FE: Xóa session, query cache và timer
+    end
+    Note over FE: sessionVersion loại phản hồi từ account cũ, late 401 có thể dùng token đã refresh

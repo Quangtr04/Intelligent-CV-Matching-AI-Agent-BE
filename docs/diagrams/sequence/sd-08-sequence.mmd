@@ -1,0 +1,70 @@
+sequenceDiagram
+    autonumber
+    actor C as Candidate
+    participant FE as FE SkillAssessment
+    participant API as LearningController
+    participant Assess as AssessmentService
+    participant Learn as LearningService
+    participant Rules as MissingSkillAnalysis / References
+    participant AI as AiService
+    participant DB as PostgreSQL
+
+    C->>FE: Chọn các đáp án
+    loop Từng câu khi lưu bài
+        FE->>API: PUT /assessments/{id}/answers
+        API->>Assess: answer(sessionId, questionId, selected)
+        Assess->>DB: Khóa session, kiểm tra owner và question thuộc session
+        Assess->>DB: UPSERT selected_option nếu đang in_progress
+    end
+    FE->>API: POST /assessments/{id}/submit
+    API->>Assess: submit(id)
+    Assess->>DB: Khóa session theo owner
+    alt Đã completed
+        Assess->>DB: Đọc kết quả đã chấm
+        Assess-->>FE: Kết quả server đã lưu
+    else Còn câu chưa trả lời
+        Assess-->>FE: 400, yêu cầu hoàn thành bài
+    else Đủ đáp án
+        Assess->>DB: So đáp án, tổng hợp correct/total/score theo skill
+        Assess->>DB: UPDATE completed, submitted_at, skill_scores
+        Assess->>DB: Đánh roadmaps cũ cùng user/JD là outdated
+        Assess-->>FE: Kết quả server vừa chấm
+    end
+    Note over API,FE: Đáp án và giải thích chỉ được trả khi completed
+    Note over Assess,DB: Chấm trắc nghiệm không gọi AI
+
+    C->>FE: Phân tích gap và tạo lộ trình
+    FE->>API: POST /roadmaps
+    API->>Learn: createRoadmap(jobId, assessmentId?, resumeId?)
+    Learn->>DB: Đọc JD, profile, optional CV READY và assessment cùng owner/JD
+    Learn->>Rules: Xác định whitelist kỹ năng thiếu từ bằng chứng
+    Rules->>DB: Chọn tài nguyên học từ catalog được phép
+    Rules-->>Learn: Missing skills và resources
+    alt Không có kỹ năng thiếu
+        Learn->>Learn: Không gọi model, roadmap completed với progress 100
+    else Có kỹ năng thiếu
+        Learn->>AI: generate(ROADMAP_GENERATE, whitelist, evidence, references)
+        AI-->>Learn: JSON gap và learning nodes
+        Learn->>Rules: Constrain output theo đúng whitelist
+        Rules-->>Learn: Hợp lệ hoặc lỗi 502
+    end
+    Learn->>DB: Lưu version gap, roadmap, nodes, catalog resources, prerequisites
+    Learn-->>FE: Roadmap detail
+
+    C->>FE: Đánh dấu một bước học
+    FE->>API: PATCH /roadmaps/{id}/nodes/{nodeId}
+    API->>Learn: node(id, nodeId, status)
+    Learn->>DB: Khóa roadmap theo owner, kiểm tra node và dependencies
+    alt Prerequisite chưa xong hoặc reset còn dependent active
+        Learn-->>FE: 409, không đổi progress
+    else Chuyển trạng thái hợp lệ
+        Learn->>DB: UPDATE node và tính lại status/progress_percent
+        Learn-->>FE: Tiến độ mới đã lưu
+    end
+
+    opt Mở lại ở phiên trình duyệt mới
+        FE->>API: GET /assessments và GET /roadmaps
+        FE->>API: GET /roadmaps/{currentRoadmapId}
+        API->>DB: Đọc nodes, prerequisites và resources của owner
+        API-->>FE: Tiến độ hiện hành
+    end

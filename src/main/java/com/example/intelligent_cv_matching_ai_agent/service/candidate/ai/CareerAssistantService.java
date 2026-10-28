@@ -7,6 +7,7 @@ import com.example.intelligent_cv_matching_ai_agent.security.shared.CurrentUser;
 import com.example.intelligent_cv_matching_ai_agent.repository.candidate.ai.CareerAssistantRepository;
 import com.example.intelligent_cv_matching_ai_agent.service.guest.identity.GuestAccess;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.resume.ResumeData;
+import com.example.intelligent_cv_matching_ai_agent.util.candidate.ai.CareerAssistantData;
 import com.example.intelligent_cv_matching_ai_agent.service.candidate.resume.ResumeService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -70,7 +71,7 @@ public class CareerAssistantService {
         if (guest == null) {
             for (String field : List
                 .of("related_job_id", "related_resume_id", "related_gap_analysis_id", "related_roadmap_id")) {
-                UUID id = uuid(body.get(field));
+                UUID id = CareerAssistantData.contextUuid(body.get(field));
 
                 if (id == null)
                     continue;
@@ -130,16 +131,24 @@ public class CareerAssistantService {
         if (!"ACTIVE".equals(thread.get("status")))
             throw ApiException.conflict("Conversation is not active");
 
-        String message = ResumeData.text(body.get("message"), "message", 8000);
-        if (message.isBlank())
-            throw ApiException.badRequest("message is required");
-        if (body.containsKey("retrieve") && !(body.get("retrieve") instanceof Boolean))
-            throw ApiException.badRequest("retrieve must be boolean");
+        String message = CareerAssistantData.message(body);
+        String language = CareerAssistantData.language(body);
 
         Map<String, Object> input = new LinkedHashMap<>();
         input.put("message", message);
+        if (language != null)
+            input.put("language", language);
         input.put("history", db.listCareerAssistantMessagesByConversationId2(id));
         input.put("context", context(thread, guestId));
+        if ("application".equals(thread.get("context_type"))) {
+            input.put(
+                "writing_rule",
+                "Write or revise the requested finished application document using only the supplied candidate facts. "
+                    + "Place the complete document in the CAREER_CHAT answer string. Do not replace the answer field "
+                    + "with content, subject or reviewScore fields. Respect the requested language and do not invent "
+                    + "experience, achievements or contact details."
+            );
+        }
         List<Map<String, Object>> sources = List.of();
 
         if (guestId == null && Boolean.TRUE.equals(body.get("retrieve"))) {
@@ -210,14 +219,7 @@ public class CareerAssistantService {
         );
 
         for (Map<String, Object> source : sources) {
-            Map<String, Object> citation = new LinkedHashMap<>();
-            citation.put("message_id", reply);
-            citation.put("rag_chunk_id", source.get("chunk_id"));
-            citation.put("rag_document_id", source.get("document_id"));
-            citation.put("source_label", source.get("title"));
-            citation.put("similarity_score", source.get("similarity"));
-            citation.put("source_url", source.get("source_url"));
-            citation.put("source_provider", source.get("source_provider"));
+            Map<String, Object> citation = CareerAssistantData.citation(reply, source);
             db.insertCareerAssistantMessageSources(citation);
         }
 
@@ -241,14 +243,9 @@ public class CareerAssistantService {
         Map<String, Object> body) {
         Map<String, Object> row = db.getCareerAssistantMessagesById2(message);
         current.owns(row, "user_id");
-        Object rating = body.get("rating");
-        if (rating != null && (!(rating instanceof Number n) || !Double.isFinite(n.doubleValue())
-            || n.doubleValue() != n.intValue() || n.intValue() < 1 || n.intValue() > 5))
-            throw ApiException.badRequest("rating must be an integer from 1 to 5");
+        Object rating = CareerAssistantData.feedbackRating(body.get("rating"));
 
-        Object helpful = body.get("is_helpful");
-        if (helpful != null && !(helpful instanceof Boolean))
-            throw ApiException.badRequest("is_helpful must be boolean");
+        Object helpful = CareerAssistantData.feedbackHelpful(body.get("is_helpful"));
 
         Map<String, Object> fields = new LinkedHashMap<>();
         fields.put("message_id", message);
@@ -317,17 +314,5 @@ public class CareerAssistantService {
         }
 
         return context;
-    }
-
-    private UUID uuid(
-        Object raw) {
-        if (raw == null)
-            return null;
-
-        try {
-            return UUID.fromString(raw.toString());
-        } catch (Exception ex) {
-            throw ApiException.badRequest("Invalid context UUID");
-        }
     }
 }

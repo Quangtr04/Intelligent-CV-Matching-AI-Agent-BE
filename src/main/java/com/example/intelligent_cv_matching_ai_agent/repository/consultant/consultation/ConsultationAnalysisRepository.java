@@ -51,7 +51,7 @@ public class ConsultationAnalysisRepository {
             )
             SELECT a.id, a.resume_id, cv.title AS resume_title, a.analysis_type,
                    a.overall_score, a.ats_score, a.summary, a.strengths_json,
-                   a.issues_json, a.model_name, a.created_at,
+                   a.issues_json, a.writing_quality_json, a.model_name, a.created_at,
                    COALESCE((
                        SELECT jsonb_agg(to_jsonb(s) ORDER BY s.created_at DESC, s.id DESC)
                        FROM resume_analysis_suggestions s

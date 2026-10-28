@@ -45,6 +45,14 @@ public class ResumeTemplate {
     @Column(name = "career_path", nullable = true, length = 150)
     private String careerPath;
 
+    @JsonProperty("description")
+    @Column(name = "description", nullable = false, length = 2000)
+    private String description;
+
+    @JsonProperty("html_content")
+    @Column(name = "html_content", nullable = false, columnDefinition = "text")
+    private String htmlContent;
+
     @JsonProperty("language")
     @Column(name = "language", nullable = true, length = 20)
     private String language;

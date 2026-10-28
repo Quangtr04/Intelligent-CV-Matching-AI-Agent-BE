@@ -1,0 +1,51 @@
+classDiagram
+    direction TB
+    class AdminJobController {
+        +importJob(input)
+        +index(id)
+        +indexStatus(id)
+    }
+    class JobService {
+        +importJob(input)
+        +index(id)
+        +indexStatus(id)
+    }
+    class JobEmbeddingService {
+        +enqueue(jobId, contentHash, requestedBy)
+        +processPending()
+        +indexNow(jobId, requestedBy)
+    }
+    class JobRepository {
+        +insertMarketJobPosts(fields)
+        +indexingJobs(id)
+    }
+    class JobEmbeddingRepository {
+        +task(id)
+        +complete(id, lease)
+        +findLeaseForUpdate(id, lease)
+    }
+    class JobNormalizer {
+        <<utility>>
+        +normalize(input)$
+        +contentHash(input)$
+    }
+    class AiService {
+        +embedForUser(actor, text)
+    }
+    class CurrentUser {
+        +id()
+        +requireRole(role)
+    }
+    class SqlStore {
+        +insert(table, fields)
+        +update(sql, args)
+    }
+    AdminJobController --> JobService : service
+    JobService --> JobRepository : db
+    JobService --> JobEmbeddingService : embeddings
+    JobService --> CurrentUser : user
+    JobService ..> JobNormalizer : normalize and hash
+    JobEmbeddingService --> JobEmbeddingRepository : db
+    JobEmbeddingService --> AiService : ai
+    JobRepository --> SqlStore : db
+    JobEmbeddingRepository --> SqlStore : db

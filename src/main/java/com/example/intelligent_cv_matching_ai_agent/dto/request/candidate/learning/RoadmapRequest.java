@@ -8,6 +8,7 @@ import java.util.UUID;
 public record RoadmapRequest(
     @Size(max = 255)
     String targetJobTitle,
+    @NotNull
     UUID jobId,
     UUID resumeId,
     UUID assessmentId

@@ -6,6 +6,7 @@ import com.example.intelligent_cv_matching_ai_agent.repository.shared.identity.j
 import com.example.intelligent_cv_matching_ai_agent.service.shared.identity.TokenService;
 
 import com.example.intelligent_cv_matching_ai_agent.service.shared.identity.ProfileService;
+import com.example.intelligent_cv_matching_ai_agent.service.candidate.resume.ResumeProfileAlignmentRefreshService;
 
 import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException;
 import com.example.intelligent_cv_matching_ai_agent.security.shared.CurrentUser;
@@ -35,7 +36,8 @@ class ProfileAdminGuardTest {
             new ProfileRepository(db, mock(UserJpaRepository.class)),
             current,
             tokens,
-            mock(PasswordEncoder.class)
+            mock(PasswordEncoder.class),
+            mock(ResumeProfileAlignmentRefreshService.class)
         );
         assertEquals(409, assertThrows(ApiException.class, service::deleteAccount).status());
         var order = inOrder(db);

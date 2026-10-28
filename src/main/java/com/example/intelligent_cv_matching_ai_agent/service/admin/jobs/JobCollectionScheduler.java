@@ -3,8 +3,7 @@ package com.example.intelligent_cv_matching_ai_agent.service.admin.jobs;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.admin.jobs.CrawlRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.response.admin.jobs.CrawlSourceSettingsResponse;
 import com.example.intelligent_cv_matching_ai_agent.repository.admin.jobs.JobCollectionRepository;
-import com.example.intelligent_cv_matching_ai_agent.service.shared.identity.TokenService;
-import com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobNormalizer;
+import com.example.intelligent_cv_matching_ai_agent.util.admin.jobs.JobCollectionSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -88,7 +86,7 @@ public class JobCollectionScheduler {
         CrawlSourceSettingsResponse source,
         UUID actor,
         Duration interval) {
-        String name = leaseName(source);
+        String name = JobCollectionSupport.leaseName(source);
         UUID token = UUID.randomUUID();
         if (!db.acquireCollectionLease(name, token, COLLECTION_LEASE, interval)) {
             return;
@@ -150,13 +148,6 @@ public class JobCollectionScheduler {
 
     static String leaseName(
         CrawlSourceSettingsResponse source) {
-        String identity = String.join(
-            "\n",
-            source.sourceSite().strip().toUpperCase(Locale.ROOT),
-            source.keyword().strip().toLowerCase(Locale.ROOT),
-            source.roleCategory().strip().toLowerCase(Locale.ROOT),
-            JobNormalizer.fold(JobNormalizer.normalizeLocationFilter(source.location()))
-        );
-        return "job-collection:" + TokenService.hash(identity);
+        return JobCollectionSupport.leaseName(source);
     }
 }

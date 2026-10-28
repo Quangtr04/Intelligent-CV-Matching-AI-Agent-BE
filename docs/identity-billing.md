@@ -22,6 +22,8 @@ Ví dụ đăng ký:
 
 Tài khoản email bắt đầu ở trạng thái `PENDING`; xác minh email chuyển sang `ACTIVE` và tạo career profile. OTP hết hạn sau 10 phút, cho phép tối đa 5 lần kiểm tra, gửi lại cách nhau ít nhất 60 giây. Mật khẩu tối thiểu 10 ký tự và tối đa 72 byte UTF-8, lưu bằng BCrypt. Các request chứa mật khẩu, OTP và token có `toString()` che dữ liệu để hạn chế lộ thông tin khi MVC ghi debug.
 
+Email OTP sử dụng tên người gửi `EduNexus`, nội dung tiếng Việt UTF-8 và hai phiên bản HTML/văn bản thuần trong cùng email. Mẫu HTML nằm ở `src/main/resources/templates/mail/email-verification.html`; mã xác minh được chèn vào vị trí `{{verificationCode}}` khi gửi. Cả đăng ký và gửi lại mã đều dùng mẫu này.
+
 Đăng nhập trả `accessToken`, `refreshToken`, `tokenType=Bearer`, `expiresIn=900`. Access token sống 15 phút; refresh token sống 30 ngày. Token là chuỗi ngẫu nhiên, chỉ hash SHA-256 được lưu trong `refresh_tokens`; refresh token không dùng được làm access token. Refresh đổi refresh token một lần; access token trước đó còn hiệu lực đến khi hết hạn hoặc bị thu hồi. Các thao tác phát hành, đổi và thu hồi token khóa tài khoản trước, cùng thứ tự với thay đổi mật khẩu và đình chỉ tài khoản. Tài khoản bị đình chỉ hoặc xóa không được xác thực.
 
 Google sign-in kiểm tra chữ ký, issuer, audience, thời hạn và email đã xác minh. Hệ thống tìm tài khoản theo Google `sub`; cùng email với một tài khoản đã có **không tự động liên kết**. Google Gmail hoặc Workspace được tạo tài khoản đã xác minh; email bên thứ ba phải xác minh thêm bằng OTP của hệ thống. Không cấu hình `GOOGLE_CLIENT_ID` thì API trả 503.

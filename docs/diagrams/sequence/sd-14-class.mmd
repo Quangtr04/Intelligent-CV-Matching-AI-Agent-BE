@@ -1,0 +1,55 @@
+classDiagram
+    direction TB
+    class ResumeController {
+        <<controller>>
+        +embed(UUID id) Object
+    }
+    class ResumeService {
+        <<service>>
+        +owned(UUID id) Map
+        +embedding(UUID id) Map
+        +canonicalText(Map resume) String
+    }
+    class ResumeRepository {
+        <<repository>>
+        +findResumeEmbeddingsByResumeId() Optional
+        +insertVectorIndexingJobs() UUID
+        +getResumesByIdForUpdate(UUID id) Map
+        +readResumeEmbeddings() Object
+    }
+    class ResumeContent {
+        <<utility>>
+        +canonicalText(ObjectMapper mapper, Map resume) String$
+    }
+    class AiService {
+        <<service>>
+        +embeddingsEnabled() boolean
+        +embed(String text) float[]
+        +embeddingModel() String
+    }
+    class EntitlementService {
+        <<service>>
+        +reserve() UUID
+        +complete(UUID reservation, int actualTokens)
+        +cancel(UUID reservation)
+    }
+    class AiUsageRecorder {
+        <<service>>
+        +record()
+    }
+    class FlowSupport {
+        <<utility>>
+        +vector(float[] values) String$
+    }
+    class EmbeddingModel {
+        <<interface>>
+        +call(EmbeddingRequest request) EmbeddingResponse
+    }
+    ResumeController --> ResumeService : service
+    ResumeService --> ResumeRepository : db
+    ResumeService --> AiService : ai
+    ResumeService ..> ResumeContent : canonicalText
+    AiService --> EntitlementService : entitlement
+    AiService --> AiUsageRecorder : usageRecorder
+    AiService ..> FlowSupport : validate vector1024
+    AiService --> EmbeddingModel : embeddingModels via ObjectProvider

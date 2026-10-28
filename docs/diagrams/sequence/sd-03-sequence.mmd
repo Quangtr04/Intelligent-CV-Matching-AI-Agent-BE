@@ -1,0 +1,67 @@
+sequenceDiagram
+    autonumber
+    actor C as Candidate
+    participant FE as FE CV
+    participant API as ResumeController
+    participant Resume as ResumeService
+    participant File as File extractor / storage
+    participant AI as AiService
+    participant DB as PostgreSQL
+
+    alt Upload CV
+        C->>FE: Chọn PDF hoặc DOCX thật
+        FE->>API: POST /resumes/upload multipart
+        API->>Resume: upload(file, title, language)
+        Resume->>File: Validate, trích xuất text và lưu file UUID
+        File-->>Resume: File bytes, MIME, text và metadata
+        opt AI bật và có nội dung để trích xuất
+            Resume->>AI: generate(CV_PARSE, text, language)
+            alt AI parse thành công
+                AI-->>Resume: Structured CV
+                Resume->>Resume: Normalize dữ liệu
+            else AI parse trả ApiException
+                AI-->>Resume: Lỗi parse
+                Resume->>Resume: Giữ file/text, đánh parse FAILED
+            end
+        end
+        Resume->>DB: INSERT resumes REVIEW_REQUIRED và resume_parse_results
+    else Tạo CV bằng AI
+        C->>FE: Chọn hướng nghề, level, ngôn ngữ, tone
+        FE->>API: POST /resumes/build
+        API->>Resume: create(input, true)
+        Resume->>DB: Đọc career profile và dữ kiện ứng viên
+        Resume->>AI: generate(CV_BUILD, input)
+        AI-->>Resume: Structured CV
+        Resume->>DB: INSERT CV AI_BUILDER / REVIEW_REQUIRED
+    else Tạo CV thủ công
+        FE->>API: POST /resumes
+        API->>Resume: create(input, false)
+        Resume->>DB: INSERT CV MANUAL / DRAFT
+    end
+    Resume-->>FE: CV với resumeId đã được tạo
+    FE-->>C: Review và chỉnh sửa nội dung
+
+    C->>FE: Lưu CV đã kiểm tra
+    FE->>API: PATCH /resumes/{id}
+    API->>Resume: update(id, input)
+    Resume->>DB: Kiểm tra owner, cập nhật content/hash
+    opt Nội dung đã thay đổi
+        Resume->>DB: Invalidate embedding và yêu cầu review lại
+    end
+    FE->>API: POST /resumes/{id}/confirm
+    API->>Resume: confirm(id, input)
+    Resume->>DB: Kiểm tra owner, nội dung hợp lệ, replace section rows
+    Resume->>DB: UPDATE status READY và primary nếu được yêu cầu
+    Resume-->>FE: CV READY cùng ID
+
+    C->>FE: Yêu cầu phân tích CV
+    FE->>API: POST /resumes/{id}/analyses
+    API->>Resume: analyze(id), yêu cầu CV READY
+    alt AI bật
+        Resume->>AI: generate(CV_ANALYZE, dữ liệu CV)
+        AI-->>Resume: Điểm, criteria và suggestions
+    else AI tắt
+        Resume->>Resume: Tạo baseline rule-based
+    end
+    Resume->>DB: INSERT resume_analyses và suggestions
+    Resume-->>FE: Analysis detail

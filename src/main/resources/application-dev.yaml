@@ -1,0 +1,47 @@
+# Local JVM (IDE, Maven or JAR). Existing environment values override these defaults.
+spring:
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:${POSTGRES_PORT:5432}/${POSTGRES_DB:edunexus}}
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  docker:
+    compose:
+      enabled: ${DOCKER_COMPOSE_ENABLED:false}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: ${MANAGEMENT_ENDPOINTS_EXPOSURE:health,info}
+  endpoint:
+    health:
+      show-details: ${HEALTH_SHOW_DETAILS:never}
+      probes:
+        enabled: ${HEALTH_PROBES_ENABLED:true}
+  health:
+    redis:
+      enabled: ${HEALTH_REDIS_ENABLED:false}
+    rabbit:
+      enabled: ${HEALTH_RABBIT_ENABLED:false}
+    mail:
+      enabled: ${HEALTH_MAIL_ENABLED:false}
+
+server:
+  error:
+    include-message: ${SERVER_ERROR_INCLUDE_MESSAGE:always}
+    include-stacktrace: ${SERVER_ERROR_INCLUDE_STACKTRACE:on_param}
+
+logging:
+  level:
+    web: ${LOG_WEB_LEVEL:DEBUG}
+    sql: ${LOG_SQL_LEVEL:INFO}
+    org.springframework.web: ${LOG_SPRING_WEB_LEVEL:DEBUG}
+    org.springframework.jdbc: ${LOG_SPRING_JDBC_LEVEL:DEBUG}
+
+app:
+  storage:
+    path: ${UPLOAD_DIR:./uploads}
+  auth:
+    expose-development-code: ${AUTH_EXPOSE_DEV_OTP:false}

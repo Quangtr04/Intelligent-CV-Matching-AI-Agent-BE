@@ -1,0 +1,48 @@
+classDiagram
+    direction TB
+    class AssessmentGenerationController {
+        +start(input)
+        +latest(jobId)
+        +status(id)
+    }
+    class AssessmentGenerationService {
+        +start(input)
+        +latest(job)
+        +status(id)
+        +processPending()
+        +processNext()
+    }
+    class AssessmentGenerationRepository {
+        +lockQueue()
+        +enqueue(owner, job, target)
+        +claimNext(token, leaseSeconds)
+        +complete(id, token, assessmentId)
+        +fail(id, token, code, message)
+    }
+    class AssessmentService {
+        +prepareForOwner(owner, target, jobId)
+        +generate(prepared)
+        +persist(prepared, generated)
+    }
+    class AssessmentRepository {
+        +getMarketJobPostsById(args)
+        +insertAssessmentSessions(fields)
+        +insertAssessmentQuestions(fields)
+    }
+    class AiService {
+        +generateForUser(userId, feature, input)
+    }
+    class CurrentUser {
+        +id()
+        +requireRole(role)
+    }
+    class SqlStore
+    AssessmentGenerationController --> AssessmentGenerationService : delegates
+    AssessmentGenerationService --> AssessmentGenerationRepository : queue and lease
+    AssessmentGenerationService --> AssessmentService : prepare generate persist
+    AssessmentGenerationService --> CurrentUser : authorize request
+    AssessmentService --> AssessmentRepository : read JD and save assessment
+    AssessmentService --> AiService : generate questions
+    AssessmentService --> CurrentUser : request identity
+    AssessmentGenerationRepository --> SqlStore : SQL
+    AssessmentRepository --> SqlStore : SQL

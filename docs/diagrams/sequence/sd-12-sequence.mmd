@@ -1,0 +1,35 @@
+sequenceDiagram
+    autonumber
+    actor A as Admin
+    participant Client as API client hoặc form API hiện có
+    participant API as AdminController
+    participant Admin as AdminService
+    participant DB as PostgreSQL
+    participant AI as AiService ở lần gọi tiếp theo
+
+    A->>Client: Lưu config hoặc prompt
+    Client->>API: POST /admin/ai/configurations hoặc /admin/ai/prompts
+    API->>Admin: configure(body) hoặc prompt(body)
+    Admin->>Admin: Kiểm tra ADMIN, DTO và credential bị cấm trong config JSON
+    Admin->>DB: Advisory lock theo config_type hoặc feature_code
+    Admin->>DB: Tính max(version) + 1
+    Admin->>DB: Tắt active các bản cùng nhóm
+    Admin->>DB: INSERT version mới, is_active=true, updated_by_user_id
+    Admin->>DB: Audit CONFIGURE_AI hoặc UPDATE_PROMPT
+    Admin-->>Client: Bản mới và version
+
+    opt Restore một bản cũ
+        Client->>API: POST cấu hình hoặc prompt /{oldVersionId}/restore
+        API->>Admin: restoreConfiguration hoặc restorePrompt
+        Admin->>DB: Đọc bản cũ, lock nhóm, tính version mới
+        Admin->>DB: Tắt active hiện tại, INSERT bản mới copy nội dung cũ
+        Admin->>DB: Audit hành động restore
+        Admin-->>Client: Bản restore có ID và version mới
+    end
+
+    Note over AI,DB: Lần gọi AI sau đó, không phải lúc lưu config
+    AI->>DB: Đọc CHAT active mới nhất khớp provider
+    DB-->>AI: model_name nếu có
+    AI->>DB: Đọc prompt active theo feature_code
+    DB-->>AI: system_prompt và user_prompt_template
+    AI->>AI: Ghép guidance với luật bắt buộc và dữ liệu nghiệp vụ

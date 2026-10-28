@@ -32,6 +32,18 @@ public final class JobPostingParser {
 
     private static final int MAX_HTML_CHARACTERS = 2 * 1024 * 1024;
 
+    private static final Pattern NUMERIC_SALARY = Pattern.compile(
+        "\\d+(?:[.,]\\d+)*\\s*(?:million|m|billion|thousand|k)?"
+            + "(?:\\s*[-\u2013\u2014]\\s*\\d+(?:[.,]\\d+)*\\s*(?:million|m|billion|thousand|k)?)?",
+        Pattern.CASE_INSENSITIVE
+    );
+
+    private static final Pattern SALARY_PERIOD = Pattern.compile(
+        "\\b(?:month|monthly|thang|tháng|year|yearly|annual|annually|annum|nam|năm|day|daily|ngay|ngày|"
+            + "hour|hourly|gio|giờ|week|weekly|tuan|tuần|quarter|quy|quý)\\b|/\\s*[hdwmy]\\b",
+        Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE
+    );
+
     private static final List<SkillAlias> SKILLS = List.of(
         skill("Java", "java"),
         skill("JavaScript", "javascript", "java script"),
@@ -516,9 +528,15 @@ public final class JobPostingParser {
         }
         if (number.isBlank())
             return "";
+        // Some boards put display text in QuantitativeValue.value and supply a default currency.
+        // Preserve explicit currencies, Vietnamese units and undisclosed salary text verbatim;
+        // appending that default can turn "35tr" into a contradictory "35tr USD".
+        String period = textValue(range.get("unitText"));
+        String periodSuffix = period.isBlank() || SALARY_PERIOD.matcher(number).find() ? "" : " / " + period;
+        if (!NUMERIC_SALARY.matcher(number.strip()).matches())
+            return optionalText(number + (number.codePoints().anyMatch(Character::isDigit) ? periodSuffix : ""), 255);
         return optionalText(
-            number + " " + textValue(amount.getOrDefault("currency", posting.get("salaryCurrency")))
-                + (textValue(range.get("unitText")).isBlank() ? "" : " / " + textValue(range.get("unitText"))),
+            number + " " + textValue(amount.getOrDefault("currency", posting.get("salaryCurrency"))) + periodSuffix,
             255
         );
     }

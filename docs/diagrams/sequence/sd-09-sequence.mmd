@@ -1,0 +1,44 @@
+sequenceDiagram
+    autonumber
+    actor C as Candidate
+    participant FE as FE Assistant
+    participant API as CareerAssistantController
+    participant Chat as CareerAssistantService
+    participant AI as AiService
+    participant DB as PostgreSQL pgvector
+
+    C->>FE: Chọn CV/JD và mở cuộc trò chuyện
+    FE->>API: POST /assistant/conversations
+    API->>Chat: create(context)
+    Chat->>DB: Kiểm tra quyền CV/gap/roadmap và job hợp lệ
+    Chat->>DB: INSERT conversation ACTIVE
+    Chat-->>FE: conversationId
+
+    C->>FE: Gửi câu hỏi
+    FE->>API: POST /assistant/conversations/{id}/messages
+    API->>Chat: send(id, message, retrieve)
+    Chat->>DB: Kiểm tra owner và ACTIVE, đọc history/context
+    Chat->>Chat: Validate message
+    opt User đăng nhập và retrieve=true
+        Chat->>AI: embed(message)
+        AI-->>Chat: Query vector
+        Chat->>DB: Tìm RAG chunks cùng provider/model và đúng quyền nguồn
+        DB-->>Chat: Sources liên quan
+    end
+    Chat->>AI: generate(CAREER_CHAT, message, history, context, sources)
+    Note over Chat,AI: Thêm citation rule, dùng SD-13
+    alt AI lỗi
+        AI-->>Chat: ApiException
+        Chat-->>FE: Lỗi, không lưu cặp tin nhắn thành công
+    else AI trả answer hợp schema
+        AI-->>Chat: answer và usage
+        Chat->>DB: Khóa conversation, kiểm tra lại ACTIVE
+        alt Cuộc trò chuyện đã đóng trong lúc chờ
+            Chat-->>FE: Conflict
+        else Vẫn hoạt động
+            Chat->>DB: INSERT USER và ASSISTANT messages, sources nếu có
+            Chat->>DB: UPDATE last_message_at
+            Chat-->>FE: Assistant message
+            FE-->>C: Câu trả lời, dừng timer
+        end
+    end

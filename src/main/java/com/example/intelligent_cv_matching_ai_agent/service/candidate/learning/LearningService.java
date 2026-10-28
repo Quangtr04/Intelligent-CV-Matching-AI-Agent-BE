@@ -5,7 +5,9 @@ import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.learni
 import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.learning.RoadmapNodeStatusRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.learning.RoadmapRequest;
 
-import com.example.intelligent_cv_matching_ai_agent.util.shared.FlowSupport;
+import com.example.intelligent_cv_matching_ai_agent.util.candidate.learning.RoadmapValidator;
+import com.example.intelligent_cv_matching_ai_agent.util.candidate.learning.MissingSkillAnalysis;
+import com.example.intelligent_cv_matching_ai_agent.util.candidate.learning.SkillNames;
 
 import com.example.intelligent_cv_matching_ai_agent.security.shared.CurrentUser;
 
@@ -19,7 +21,10 @@ import com.example.intelligent_cv_matching_ai_agent.service.candidate.resume.Res
 import com.example.intelligent_cv_matching_ai_agent.service.shared.learning.LearningReferenceService;
 import java.time.OffsetDateTime;
 import java.util.*;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.stereotype.Service;
 import static com.example.intelligent_cv_matching_ai_agent.util.shared.Values.*;
 
@@ -38,19 +43,27 @@ public class LearningService {
 
     private final LearningReferenceService references;
 
+    private final TransactionTemplate transactions;
+
+    private final TransactionTemplate modelCalls;
+
     public LearningService(
         LearningRepository db,
         CurrentUser user,
         AiService ai,
         AssessmentService assessments,
         ResumeService resumes,
-        LearningReferenceService references) {
+        LearningReferenceService references,
+        PlatformTransactionManager transactionManager) {
         this.db = db;
         this.user = user;
         this.ai = ai;
         this.assessments = assessments;
         this.resumes = resumes;
         this.references = references;
+        this.transactions = new TransactionTemplate(transactionManager);
+        this.modelCalls = new TransactionTemplate(transactionManager);
+        this.modelCalls.setPropagationBehavior(TransactionDefinition.PROPAGATION_NOT_SUPPORTED);
     }
 
     public Map<String, Object> assess(
@@ -69,7 +82,7 @@ public class LearningService {
         if (names.size() > 50 || names.stream().anyMatch(s -> s == null || s.isBlank() || s.length() > 150)) {
             throw ApiException.badRequest("Provide up to 50 valid skill names");
         }
-        return references.recommend(target.strip(), names);
+        return references.recommendSkills(names);
     }
 
     public List<Map<String, Object>> assessments() {
@@ -102,24 +115,38 @@ public class LearningService {
         return result;
     }
 
-    @Transactional
     public Map<String, Object> createRoadmap(
         RoadmapRequest request) {
         user.requireRole("CANDIDATE");
+        PreparedRoadmap prepared = transactions.execute(status -> prepareRoadmap(request));
+        Map<String, Object> generated = prepared.missing().isEmpty()
+            ? fields(
+                "title",
+                "Missing JD skills",
+                "summary",
+                fields("overview", "No missing required skills were identified from the available evidence."),
+                "skill_gaps",
+                List.of(),
+                "nodes",
+                List.of()
+            )
+            : new LinkedHashMap<>(modelCalls.execute(status -> ai.generate("ROADMAP_GENERATE", prepared.input())));
+        return transactions.execute(status -> publishRoadmap(prepared, generated));
+    }
 
+    private PreparedRoadmap prepareRoadmap(
+        RoadmapRequest request) {
+
+        if (request.jobId() == null) {
+            throw ApiException.badRequest("Select a JD to identify its missing skills");
+        }
         var profile = db.findCandidateProfilesByUserId(user.id()).orElse(Map.of());
-        var job = request.jobId() == null ? Map.<String, Object>of() : db.getMarketJobPostsById(request.jobId());
+        var job = db.getMarketJobPostsById(request.jobId());
         var cv = request.resumeId() == null ? Map.<String, Object>of() : resumes.owned(request.resumeId());
         if (!cv.isEmpty() && !"READY".equals(cv.get("status")))
             throw ApiException.conflict("Confirm CV data first");
 
-        String target = request.targetJobTitle();
-
-        if (target == null || target.isBlank())
-            target = text(job.get("job_title"));
-
-        if (target.isBlank())
-            target = text(profile.get("target_job_title"));
+        String target = text(job.get("job_title"));
 
         if (target.isBlank())
             throw ApiException.badRequest("Select a target career");
@@ -128,60 +155,79 @@ public class LearningService {
 
         if (request.assessmentId() != null) {
             assessment = db.getAssessmentSessionsById(request.assessmentId(), user.id());
-            if (!target.equalsIgnoreCase(text(assessment.get("target_job_title"))))
-                throw ApiException.badRequest("Assessment must correspond to the target career");
+            if (!request.jobId().toString().equals(text(assessment.get("market_job_id")))) {
+                throw ApiException.badRequest("Assessment must be completed for the same selected JD");
+            }
         } else
-            assessment = db.findAssessmentSessionsByUserId(user.id(), target).orElse(Map.of());
+            assessment = db.findCompletedAssessmentForJob(user.id(), request.jobId()).orElse(Map.of());
 
         var profileSkills = db.listCandidateProfileSkillsByUserId(user.id());
-        List<Map<String, Object>> requirements =
-            request.jobId() == null ? List.of() : db.listMarketJobSkillsByMarketJobId(request.jobId());
-        Set<String> referenceSkills = new LinkedHashSet<>();
-        if (!assessment.isEmpty()) {
-            for (Object skill : array(references.forAssessment(assessment).get("focus_skills"))) {
-                if (skill instanceof String name && !name.isBlank()) {
-                    referenceSkills.add(name);
-                }
-            }
-        }
-        for (var requirement : requirements) {
-            String skill = text(requirement.get("skill_name"));
-            if (!skill.isBlank()) {
-                referenceSkills.add(skill);
-            }
-        }
-        for (var profileSkill : profileSkills) {
-            String skill = text(profileSkill.get("name"));
-            if (!skill.isBlank()) {
-                referenceSkills.add(skill);
-            }
-        }
-        var learningReferences = references.recommend(target, referenceSkills.stream().limit(50).toList());
-        var generated = ai.generate(
-            "ROADMAP_GENERATE",
-            fields(
-                "target_job_title",
-                target,
-                "job",
-                job,
-                "required_skills",
-                requirements,
-                "profile",
-                profile,
-                "profile_skills",
-                profileSkills,
-                "resume",
-                cv,
-                "assessment",
-                assessment,
-                "learning_references",
-                learningReferences,
-                "prerequisite_numbering",
-                ("1-based sequence, prerequisites must precede their node; do not " + "invent resource URLs")
-            )
+        List<Map<String, Object>> requirements = db.listMarketJobSkillsByMarketJobId(request.jobId());
+        var resumeSkills = request.resumeId() == null
+            ? List.<Map<String, Object>>of()
+            : db.listResumeSkillsByResumeId(request.resumeId());
+        var missing = MissingSkillAnalysis.find(requirements, profileSkills, resumeSkills, assessment);
+        var recommendationSnapshot = missingSkillReferences(missing);
+        Map<String, Object> input = fields(
+            "learning_scope",
+            MissingSkillAnalysis.SCOPE,
+            "allowed_missing_skills",
+            missing,
+            "target_job_title",
+            target,
+            "jd_text",
+            compactRoadmapJd(job),
+            "profile",
+            fields("years_experience", profile.get("years_experience")),
+            "prerequisite_numbering",
+            "1-based sequence; prerequisites must precede their node. Resource URLs are attached by the server."
         );
+        return new PreparedRoadmap(
+            user.id(),
+            request,
+            target,
+            assessment,
+            !assessment.isEmpty() ? "ASSESSMENT" : !cv.isEmpty() ? "RESUME" : "JOB",
+            missing,
+            recommendationSnapshot,
+            input
+        );
+    }
+
+    private String compactRoadmapJd(
+        Map<String, Object> job) {
+        StringBuilder result = new StringBuilder();
+        for (String key : List
+            .of("parsed_requirements", "parsed_responsibilities", "parsed_description", "raw_content")) {
+            String source = text(job.get(key)).strip();
+            if (!source.isBlank() && result.indexOf(source) < 0) {
+                int available = Math.min(1200, 4800 - result.length());
+                if (available <= 0) {
+                    break;
+                }
+                if (!result.isEmpty()) {
+                    result.append('\n');
+                    available--;
+                }
+                result.append(source, 0, Math.min(source.length(), available));
+            }
+        }
+        return result.toString();
+    }
+
+    private Map<String, Object> publishRoadmap(
+        PreparedRoadmap prepared,
+        Map<String, Object> generated) {
+        RoadmapRequest request = prepared.request();
+        UUID owner = prepared.owner();
+        String target = prepared.target();
+        Map<String, Object> assessment = prepared.assessment();
+        List<Map<String, Object>> missing = prepared.missing();
+        Map<String, Object> recommendationSnapshot = prepared.recommendations();
+        if (!missing.isEmpty()) {
+            MissingSkillAnalysis.constrainGenerated(generated, missing);
+        }
         List<?> nodes = array(generated.get("nodes"));
-        validateNodes(nodes);
 
         String title = text(generated.get("title"));
         if (!(generated.get("title") instanceof String) || title.isBlank() || title.length() > 255)
@@ -191,17 +237,23 @@ public class LearningService {
 
         List<?> gaps = array(generated.get("skill_gaps"));
         validateGaps(gaps);
-        var recommendationSnapshot =
-            references.recommend(target, nodes.stream().map(node -> text(object(node).get("skill_name"))).toList());
 
-        db.getUsersByIdForUpdate(user.id());
-        int version = ((Number) db.readGapAnalysesByUserId(user.id(), target)).intValue();
+        db.getUsersByIdForUpdate(owner);
+        // Inference can take minutes. Do not publish against a JD/CV/assessment that became unavailable meanwhile.
+        db.getMarketJobPostsById(request.jobId());
+        if (request.resumeId() != null && !"READY".equals(resumes.owned(request.resumeId()).get("status"))) {
+            throw ApiException.conflict("Confirm CV data first");
+        }
+        if (assessment.get("id") != null) {
+            db.getAssessmentSessionsById(assessment.get("id"), owner);
+        }
+        int version = ((Number) db.readGapAnalysesByUserId(owner, request.jobId())).intValue();
 
-        db.updateGapAnalysesByUserId(user.id(), target);
+        db.updateGapAnalysesByUserId(owner, request.jobId());
         UUID gapId = db.insertGapAnalyses(
             fields(
                 "user_id",
-                user.id(),
+                owner,
                 "market_job_id",
                 request.jobId(),
                 "resume_id",
@@ -211,7 +263,7 @@ public class LearningService {
                 "target_job_title",
                 target,
                 "input_source",
-                !assessment.isEmpty() ? "ASSESSMENT" : !cv.isEmpty() ? "RESUME" : !job.isEmpty() ? "JOB" : "PROFILE",
+                prepared.inputSource(),
                 "version",
                 version,
                 "summary",
@@ -251,7 +303,7 @@ public class LearningService {
         UUID roadmapId = db.insertRoadmaps(
             fields(
                 "user_id",
-                user.id(),
+                owner,
                 "market_job_id",
                 request.jobId(),
                 "gap_analysis_id",
@@ -263,7 +315,9 @@ public class LearningService {
                 "estimated_total_hours",
                 hours,
                 "status",
-                "ready",
+                missing.isEmpty() ? "completed" : "ready",
+                "progress_percent",
+                missing.isEmpty() ? 100 : 0,
                 "learning_recommendations_snapshot",
                 db.json(recommendationSnapshot)
             )
@@ -297,7 +351,7 @@ public class LearningService {
 
             int resourceOrder = 1;
             Set<UUID> attachedResources = new HashSet<>();
-            for (var resource : references.resourcesForSkill(skill)) {
+            for (var resource : resourcesForMissingSkill(recommendationSnapshot, skill)) {
                 if (!(resource.get("id") instanceof UUID resourceId) || !attachedResources.add(resourceId)) {
                     continue;
                 }
@@ -322,64 +376,39 @@ public class LearningService {
         return roadmap(roadmapId);
     }
 
+    private record PreparedRoadmap(
+        UUID owner,
+        RoadmapRequest request,
+        String target,
+        Map<String, Object> assessment,
+        String inputSource,
+        List<Map<String, Object>> missing,
+        Map<String, Object> recommendations,
+        Map<String, Object> input
+    ) {
+    }
+
     public static void validateNodes(
         List<?> nodes) {
-        if (nodes.isEmpty() || nodes.size() > 50)
-            throw new ApiException(502, "Roadmap must have 1..50 nodes");
-
-        for (int i = 0; i < nodes.size(); i++) {
-            var node = object(nodes.get(i));
-            String name = text(node.get("skill_name"));
-            double hours = number(node.get("estimated_hours"), -1);
-            if (!(node.get("skill_name") instanceof String) || name.isBlank() || name.length() > 150
-                || !Double.isFinite(hours) || hours < 1 || hours > 1000 || hours != Math.floor(hours))
-                throw new ApiException(502, "Invalid roadmap node");
-
-            optionalText(node, "description", 30000);
-            if (node.get("prerequisites") != null && !(node.get("prerequisites") instanceof List<?>))
-                throw new ApiException(502, "Prerequisites must be an array");
-
-            Set<Integer> seen = new HashSet<>();
-
-            for (Object raw : array(node.get("prerequisites"))) {
-                if (!(raw instanceof Number n) || n.doubleValue() != n.intValue() || n.intValue() < 1
-                    || n.intValue() > i || !seen.add(n.intValue()))
-                    throw new ApiException(502, "Prerequisites must reference unique earlier nodes");
-            }
-        }
+        RoadmapValidator.validateNodes(nodes);
     }
 
     public static void validateGaps(
         List<?> gaps) {
-        if (gaps.size() > 100)
-            throw new ApiException(502, "Too many skill gaps");
-
-        for (Object raw : gaps) {
-            var gap = object(raw);
-            if (!(gap.get("skill_name") instanceof String) || text(gap.get("skill_name")).isBlank()
-                || text(gap.get("skill_name")).length() > 150 || !(gap.get("gap_status") instanceof String)
-                || text(gap.get("gap_status")).isBlank() || text(gap.get("gap_status")).length() > 20)
-                throw new ApiException(502, "Invalid skill gap");
-
-            optionalText(gap, "current_level", 20);
-            optionalText(gap, "target_level", 20);
-            optionalText(gap, "reasoning", 30000);
-            FlowSupport.score(gap.get("urgency_score"), 100, "gap urgency");
-        }
-    }
-
-    private static void optionalText(
-        Map<String, Object> value,
-        String key,
-        int max) {
-        Object field = value.get(key);
-        if (field != null && (!(field instanceof String) || text(field).length() > max))
-            throw new ApiException(502, "Invalid roadmap " + key);
+        RoadmapValidator.validateGaps(gaps);
     }
 
     public List<Map<String, Object>> roadmaps() {
         List<Map<String, Object>> roadmaps = db.listRoadmapsByUserId(user.id());
-        roadmaps.forEach(roadmap -> roadmap.remove("learning_recommendations_snapshot"));
+        roadmaps.forEach(roadmap -> {
+            var snapshot = object(roadmap.remove("learning_recommendations_snapshot"));
+            roadmap.put(
+                "learning_scope",
+                MissingSkillAnalysis.SCOPE.equals(snapshot.get("learning_scope"))
+                    ? MissingSkillAnalysis.SCOPE
+                    : "LEGACY_FULL_ROADMAP"
+            );
+        });
         return roadmaps;
     }
 
@@ -394,8 +423,25 @@ public class LearningService {
         }
 
         roadmap.put("nodes", nodes);
-        roadmap.put("skill_gaps", db.listGapAnalysisSkillsByGapAnalysisId(roadmap.get("gap_analysis_id")));
+        var gaps = db.listGapAnalysisSkillsByGapAnalysisId(roadmap.get("gap_analysis_id"));
+        roadmap.put("skill_gaps", gaps);
         Object snapshot = roadmap.remove("learning_recommendations_snapshot");
+        boolean targeted = MissingSkillAnalysis.SCOPE.equals(object(snapshot).get("learning_scope"));
+        roadmap.put("learning_scope", targeted ? MissingSkillAnalysis.SCOPE : "LEGACY_FULL_ROADMAP");
+        if (targeted) {
+            List<Map<String, Object>> missing = new ArrayList<>();
+            for (Object raw : array(object(snapshot).get("missing_skills"))) {
+                var gap = new LinkedHashMap<>(object(raw));
+                String name = SkillNames.normalize(text(gap.get("skill_name")));
+                gap.put(
+                    "nodes",
+                    nodes.stream().filter(node -> name.equals(SkillNames.normalize(text(node.get("skill_name")))))
+                        .toList()
+                );
+                missing.add(gap);
+            }
+            roadmap.put("missing_skills", missing);
+        }
         roadmap.put(
             "learning_recommendations",
             snapshot instanceof Map<?, ?>
@@ -407,6 +453,45 @@ public class LearningService {
         );
 
         return roadmap;
+    }
+
+    private Map<String, Object> missingSkillReferences(
+        List<Map<String, Object>> missing) {
+        List<Map<String, Object>> bySkill = new ArrayList<>();
+        Map<String, Map<String, Object>> resources = new LinkedHashMap<>();
+        for (var gap : missing) {
+            String name = text(gap.get("skill_name"));
+            var selected = references.resourcesForSkill(name);
+            bySkill.add(fields("skill_name", name, "resources", selected));
+            selected.forEach(resource -> resources.putIfAbsent(text(resource.get("url")), resource));
+        }
+        return fields(
+            "learning_scope",
+            MissingSkillAnalysis.SCOPE,
+            "focus_skills",
+            missing.stream().map(gap -> gap.get("skill_name")).toList(),
+            "missing_skills",
+            missing,
+            "skills",
+            bySkill,
+            "roadmaps",
+            List.of(),
+            "resources",
+            new ArrayList<>(resources.values())
+        );
+    }
+
+    private List<Map<String, Object>> resourcesForMissingSkill(
+        Map<String, Object> snapshot,
+        String skill) {
+        String name = SkillNames.normalize(skill);
+        for (Object raw : array(snapshot.get("skills"))) {
+            var row = object(raw);
+            if (name.equals(SkillNames.normalize(text(row.get("skill_name"))))) {
+                return array(row.get("resources")).stream().map(resource -> object(resource)).toList();
+            }
+        }
+        return List.of();
     }
 
     @Transactional

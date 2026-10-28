@@ -24,6 +24,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ApplicationEnvironmentTest {
 
+    private static final List<String> CONFIG_FILES =
+        List.of("application.yaml", "application-dev.yaml", "application-prod.yaml", "application-docker.yaml");
+
     private static final String ENV_IMPORT =
         "optional:file:${APP_ENV_FILE:.env}[extension=.properties][encoding=utf-8]";
 
@@ -84,6 +87,138 @@ class ApplicationEnvironmentTest {
         assertEquals(6391, environment.getRequiredProperty("spring.data.redis.port", Integer.class));
     }
 
+    @Test
+    void defaultDevProfileUsesLocalServicesAndDevelopmentDefaults() throws IOException {
+        StandardEnvironment environment = loadEnvironment("", Map.of(), Map.of());
+        assertArrayEquals(new String[]{"dev"}, environment.getDefaultProfiles());
+        assertEquals(
+            "jdbc:postgresql://localhost:5432/edunexus",
+            environment.getRequiredProperty("spring.datasource.url")
+        );
+        assertEquals("localhost", environment.getRequiredProperty("spring.data.redis.host"));
+        assertEquals(6379, environment.getRequiredProperty("spring.data.redis.port", Integer.class));
+        assertEquals("./uploads", environment.getRequiredProperty("app.storage.path"));
+        assertEquals("DEBUG", environment.getRequiredProperty("logging.level.web"));
+        assertEquals("INFO", environment.getRequiredProperty("logging.level.sql"));
+        assertEquals("DEBUG", environment.getRequiredProperty("logging.level.org.springframework.web"));
+        assertEquals("DEBUG", environment.getRequiredProperty("logging.level.org.springframework.jdbc"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"dev", "prod", "docker"})
+    void explicitProfilesPreserveImportedConnectionAndStorageOverrides(
+        String profile)
+        throws IOException {
+        String fixture = """
+            DATABASE_URL=jdbc:postgresql://external-db.invalid:5542/custom_database
+            REDIS_HOST=external-redis.invalid
+            REDIS_PORT=6388
+            UPLOAD_DIR=./custom-uploads
+            LOG_WEB_LEVEL=WARN
+            """;
+        StandardEnvironment environment =
+            loadEnvironment(fixture, Map.of(), Map.of(), "--spring.profiles.active=" + profile);
+        assertArrayEquals(new String[]{profile}, environment.getActiveProfiles());
+        assertEquals(
+            "jdbc:postgresql://external-db.invalid:5542/custom_database",
+            environment.getRequiredProperty("spring.datasource.url")
+        );
+        assertEquals("external-redis.invalid", environment.getRequiredProperty("spring.data.redis.host"));
+        assertEquals(6388, environment.getRequiredProperty("spring.data.redis.port", Integer.class));
+        assertEquals("./custom-uploads", environment.getRequiredProperty("app.storage.path"));
+        assertEquals("WARN", environment.getRequiredProperty("logging.level.web"));
+    }
+
+    @Test
+    void processEnvironmentCanSelectDockerProfileAndOverrideFileProfile() throws IOException {
+        StandardEnvironment environment =
+            loadEnvironment("SPRING_PROFILES_ACTIVE=dev\n", Map.of("SPRING_PROFILES_ACTIVE", "docker"), Map.of());
+        assertArrayEquals(new String[]{"docker"}, environment.getActiveProfiles());
+        assertEquals(
+            "jdbc:postgresql://postgres:5432/edunexus",
+            environment.getRequiredProperty("spring.datasource.url")
+        );
+        assertEquals("redis", environment.getRequiredProperty("spring.data.redis.host"));
+    }
+
+    @Test
+    void importedFileCanSelectDockerProfile() throws IOException {
+        StandardEnvironment environment = loadEnvironment("SPRING_PROFILES_ACTIVE=docker\n", Map.of(), Map.of());
+        assertArrayEquals(new String[]{"docker"}, environment.getActiveProfiles());
+        assertEquals("redis", environment.getRequiredProperty("spring.data.redis.host"));
+        assertEquals("/app/uploads", environment.getRequiredProperty("app.storage.path"));
+    }
+
+    @Test
+    void commandLineProfileOverridesProcessAndImportedFileProfiles() throws IOException {
+        StandardEnvironment environment = loadEnvironment(
+            "SPRING_PROFILES_ACTIVE=prod\n",
+            Map.of("SPRING_PROFILES_ACTIVE", "dev"),
+            Map.of(),
+            "--spring.profiles.active=docker"
+        );
+        assertArrayEquals(new String[]{"docker"}, environment.getActiveProfiles());
+        assertEquals("redis", environment.getRequiredProperty("spring.data.redis.host"));
+    }
+
+    @Test
+    void devDatabaseDefaultsRespectPostgresDatabaseAndPortSettings() throws IOException {
+        StandardEnvironment environment = loadEnvironment(
+            "POSTGRES_PORT=5545\nPOSTGRES_DB=custom_dev\n",
+            Map.of(),
+            Map.of(),
+            "--spring.profiles.active=dev"
+        );
+        assertEquals(
+            "jdbc:postgresql://localhost:5545/custom_dev",
+            environment.getRequiredProperty("spring.datasource.url")
+        );
+    }
+
+    @Test
+    void dockerProfileUsesServicePortsAndContainerStorageWithoutLocalSettings() throws IOException {
+        StandardEnvironment environment = loadEnvironment(
+            "POSTGRES_PORT=5545\nPOSTGRES_DB=custom_docker\n",
+            Map.of(),
+            Map.of(),
+            "--spring.profiles.active=docker"
+        );
+        assertEquals(
+            "jdbc:postgresql://postgres:5432/custom_docker",
+            environment.getRequiredProperty("spring.datasource.url")
+        );
+        assertEquals("redis", environment.getRequiredProperty("spring.data.redis.host"));
+        assertEquals(6379, environment.getRequiredProperty("spring.data.redis.port", Integer.class));
+        assertEquals("/app/uploads", environment.getRequiredProperty("app.storage.path"));
+        assertFalse(environment.getRequiredProperty("spring.docker.compose.enabled", Boolean.class));
+        assertFalse(environment.getRequiredProperty("app.auth.expose-development-code", Boolean.class));
+        assertEquals("INFO", environment.getRequiredProperty("logging.level.web"));
+        assertEquals("never", environment.getRequiredProperty("server.error.include-message"));
+        assertEquals("never", environment.getRequiredProperty("server.error.include-stacktrace"));
+    }
+
+    @Test
+    void productionRequiresExternalConnectionsAndBlocksDevelopmentSettingsFromImportedFile() throws IOException {
+        String fixture = """
+            DOCKER_COMPOSE_ENABLED=true
+            AUTH_EXPOSE_DEV_OTP=true
+            SERVER_ERROR_INCLUDE_MESSAGE=always
+            SERVER_ERROR_INCLUDE_STACKTRACE=always
+            HEALTH_SHOW_DETAILS=always
+            """;
+        StandardEnvironment environment = loadEnvironment(fixture, Map.of(), Map.of(), "--spring.profiles.active=prod");
+        for (String property : List.of("spring.datasource.url", "spring.data.redis.host", "spring.data.redis.port")) {
+            assertThrows(IllegalArgumentException.class, () -> environment.getRequiredProperty(property), property);
+        }
+        assertFalse(environment.getRequiredProperty("spring.docker.compose.enabled", Boolean.class));
+        assertFalse(environment.getRequiredProperty("spring.devtools.restart.enabled", Boolean.class));
+        assertFalse(environment.getRequiredProperty("spring.devtools.add-properties", Boolean.class));
+        assertFalse(environment.getRequiredProperty("app.auth.expose-development-code", Boolean.class));
+        assertEquals("never", environment.getRequiredProperty("server.error.include-message"));
+        assertEquals("never", environment.getRequiredProperty("server.error.include-stacktrace"));
+        assertEquals("never", environment.getRequiredProperty("management.endpoint.health.show-details"));
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"app.security.jwt-secret", "app.guest.token-limit", "spring.task.scheduling.pool.size"})
     void missingConfigurationHasNoRuntimeFallback(
@@ -91,18 +226,47 @@ class ApplicationEnvironmentTest {
         throws IOException {
         StandardEnvironment environment = loadEnvironment(Map.of(), Map.of());
         assertThrows(IllegalArgumentException.class, () -> environment.getRequiredProperty(property));
+        for (String profile : List.of("dev", "prod", "docker")) {
+            StandardEnvironment selected =
+                loadEnvironment(FIXTURE_ENV, Map.of(), Map.of(), "--spring.profiles.active=" + profile);
+            assertThrows(IllegalArgumentException.class, () -> selected.getRequiredProperty(property), profile);
+        }
     }
 
     @Test
     void completeIntegrationFixtureResolvesAllApplicationPropertiesAndDisablesExternalWork() throws IOException {
-        String fixture;
+        assertCompleteIntegrationFixture(loadEnvironment(integrationFixture(), Map.of(), Map.of()));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"dev", "prod", "docker"})
+    void completeIntegrationFixtureResolvesCommonAndProfileProperties(
+        String profile)
+        throws IOException {
+        StandardEnvironment environment =
+            loadEnvironment(integrationFixture(), Map.of(), Map.of(), "--spring.profiles.active=" + profile);
+        assertCompleteIntegrationFixture(environment);
+        assertEquals(5000, environment.getRequiredProperty("app.guest.token-limit", Integer.class));
+        assertEquals(3, environment.getRequiredProperty("spring.task.scheduling.pool.size", Integer.class));
+        assertEquals("fixture-database-password", environment.getRequiredProperty("spring.datasource.password"));
+        assertEquals(
+            "fixture-payment-secret-used-only-by-tests",
+            environment.getRequiredProperty("app.payment.webhook-secret")
+        );
+    }
+
+    private String integrationFixture() throws IOException {
         try (var input = new ClassPathResource("test.env").getInputStream()) {
-            fixture = new String(input.readAllBytes(), StandardCharsets.UTF_8);
+            return new String(input.readAllBytes(), StandardCharsets.UTF_8);
         }
-        StandardEnvironment environment = loadEnvironment(fixture, Map.of(), Map.of());
+    }
+
+    private void assertCompleteIntegrationFixture(
+        StandardEnvironment environment) {
         List<String> properties = new ArrayList<>();
         for (var source : environment.getPropertySources()) {
-            if (source.getName().contains("application.yaml") && source instanceof EnumerablePropertySource<?> yaml) {
+            if (CONFIG_FILES.stream().anyMatch(file -> source.getName().contains(file))
+                && source instanceof EnumerablePropertySource<?> yaml) {
                 properties.addAll(List.of(yaml.getPropertyNames()));
             }
         }
@@ -153,13 +317,20 @@ class ApplicationEnvironmentTest {
         throws IOException {
         Path fixtureEnv = directory.resolve("settings with spaces.env");
         Files.writeString(fixtureEnv, fixtureContents, StandardCharsets.UTF_8);
-        String yaml;
-        try (var input = new ClassPathResource("application.yaml").getInputStream()) {
-            yaml = new String(input.readAllBytes(), StandardCharsets.UTF_8);
+        for (String configFile : CONFIG_FILES) {
+            String yaml;
+            try (var input = new ClassPathResource(configFile).getInputStream()) {
+                yaml = new String(input.readAllBytes(), StandardCharsets.UTF_8);
+            }
+            if (configFile.equals("application.yaml")) {
+                assertTrue(
+                    yaml.contains(ENV_IMPORT),
+                    "application.yaml must import the UTF-8 .env using native Boot config"
+                );
+            }
+            Files.writeString(directory.resolve(configFile), yaml, StandardCharsets.UTF_8);
         }
-        assertTrue(yaml.contains(ENV_IMPORT), "application.yaml must import the UTF-8 .env using native Boot config");
         Path fixtureYaml = directory.resolve("application.yaml");
-        Files.writeString(fixtureYaml, yaml, StandardCharsets.UTF_8);
 
         StandardEnvironment environment = new StandardEnvironment();
         environment.getPropertySources().replace(

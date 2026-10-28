@@ -55,7 +55,7 @@ public class ConsultationEvaluationRepository {
         UUID resumeId,
         UUID candidateId) {
         return db.one("""
-            SELECT cv.id, cv.user_id, cv.title, cv.language, cv.status,
+            SELECT cv.id, cv.user_id, cv.title, cv.language, cv.status, cv.source,
                    cv.raw_content, cv.structured_data, cv.updated_at
             FROM resumes cv
             WHERE cv.id = ?::uuid AND cv.user_id = ?::uuid AND cv.status = 'READY'
@@ -129,7 +129,7 @@ public class ConsultationEvaluationRepository {
         UUID resumeId) {
         return db.one("""
             SELECT a.id, a.resume_id, a.analysis_type, a.overall_score, a.ats_score,
-                   a.summary, a.strengths_json, a.issues_json, a.model_name, a.created_at,
+                   a.summary, a.strengths_json, a.issues_json, a.writing_quality_json, a.model_name, a.created_at,
                    COALESCE((
                        SELECT jsonb_agg(to_jsonb(s) ORDER BY s.created_at, s.id)
                        FROM resume_analysis_suggestions s

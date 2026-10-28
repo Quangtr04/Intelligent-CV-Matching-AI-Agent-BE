@@ -34,8 +34,8 @@ public final class FlowSupport {
 
     public static String vector(
         float[] values) {
-        if (values.length != 1536)
-            throw new ApiException(502, "Embedding model must return 1536 dimensions");
+        if (values == null || values.length != 1024)
+            throw new ApiException(502, "Embedding model must return 1024 dimensions");
 
         StringJoiner joiner = new StringJoiner(",", "[", "]");
 

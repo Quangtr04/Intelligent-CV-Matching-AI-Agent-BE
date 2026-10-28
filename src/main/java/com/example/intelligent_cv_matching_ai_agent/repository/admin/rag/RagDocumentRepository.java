@@ -34,7 +34,7 @@ public class RagDocumentRepository {
         Object... args) {
         return db.list(
             ("SELECT c.*,e.provider,e.model,e.created_at AS indexed_at FROM "
-                + "rag_chunks c LEFT JOIN rag_chunk_embeddings e ON e.chunk_id=c.id "
+                + "rag_chunks c LEFT JOIN rag_chunk_embeddings e ON e.chunk_id=c.id AND e.embedding IS NOT NULL "
                 + "WHERE c.document_id=? ORDER BY c.chunk_index,e.provider,e.model"),
             args
         );
@@ -67,7 +67,11 @@ public class RagDocumentRepository {
 
     public Optional<Map<String, Object>> findRagChunkEmbeddingsByChunkId(
         Object... args) {
-        return db.optional("SELECT id FROM rag_chunk_embeddings WHERE chunk_id=? AND provider=? AND model=?", args);
+        return db.optional(
+            ("SELECT id FROM rag_chunk_embeddings WHERE chunk_id=? AND provider=? AND model=? "
+                + "AND embedding IS NOT NULL"),
+            args
+        );
     }
 
     public UUID insertVectorIndexingJobs(
@@ -119,7 +123,10 @@ public class RagDocumentRepository {
 
     public Object countRagChunkEmbeddingsByProvider(
         Object... args) {
-        return db.scalar("SELECT count(*) FROM rag_chunk_embeddings WHERE provider=? AND model=?", args);
+        return db.scalar(
+            "SELECT count(*) FROM rag_chunk_embeddings WHERE provider=? AND model=? AND embedding IS NOT NULL",
+            args
+        );
     }
 
     public int updateRagDocumentsById3(

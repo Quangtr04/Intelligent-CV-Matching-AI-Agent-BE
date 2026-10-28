@@ -1,0 +1,53 @@
+sequenceDiagram
+    autonumber
+    actor C as Candidate
+    actor A as Admin
+    actor T as Consultant được giao
+    participant API as Consultation APIs
+    participant Consult as ConsultationService
+    participant DB as PostgreSQL
+    participant SSE as SSE subscribers nếu có
+
+    C->>API: POST /consultations với subject, requestType, description
+    API->>Consult: create(input), yêu cầu CANDIDATE
+    Consult->>DB: INSERT consultation_threads OPEN, priority NORMAL
+    Consult-->>C: Thread mới chưa tự phân công
+
+    A->>API: PUT /consultations/{id}/consultant
+    API->>Consult: assign(id, consultantId), yêu cầu ADMIN
+    Consult->>DB: Lock thread OPEN, kiểm tra Consultant ACTIVE
+    Consult->>DB: UPDATE consultant_user_id và INSERT audit_logs
+    Consult-->>SSE: Sau commit, ngắt subscriber cũ để tải lại quyền
+    Consult-->>A: Thread đã phân công
+
+    T->>API: GET /consultations/{id}/candidate-profile
+    API->>Consult: candidateProfile(id, resumeId?)
+    Consult->>DB: Kiểm tra owner, assigned Consultant hoặc Admin
+    alt Không có quyền truy cập ca
+        Consult-->>T: 404
+    else Có quyền
+        Consult->>DB: Đọc user, career profile, skills và CV READY đúng owner
+        Consult-->>T: Candidate profile và CV
+    end
+
+    loop Mỗi tin nhắn từ người có quyền
+        C->>API: POST /consultations/{id}/messages
+        API->>Consult: send(id, content)
+        Consult->>DB: Lock thread, kiểm tra access và OPEN
+        alt Ca đã đóng
+            Consult-->>C: 409
+        else Ca còn OPEN
+            Consult->>DB: INSERT consultation_messages
+            Consult-->>C: Tin nhắn đã lưu
+            opt Có subscriber events
+                Consult->>DB: Sau commit kiểm tra lại quyền subscriber
+                Consult-->>SSE: Publish message hoặc đóng stream mất quyền
+            end
+        end
+    end
+
+    C->>API: POST /consultations/{id}/close
+    API->>Consult: close(id), kiểm tra access
+    Consult->>DB: UPDATE CLOSED và closed_at
+    Consult-->>SSE: Đóng stream sau commit
+    Consult-->>C: Thread CLOSED

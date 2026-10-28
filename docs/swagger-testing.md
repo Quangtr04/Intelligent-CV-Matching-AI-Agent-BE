@@ -338,8 +338,7 @@ Kỳ vọng **200**, `status = ACTIVE`; lưu `id` thành `<JOB_ID>`. Nếu datab
   "targetJobTitle": "Java Backend Developer",
   "careerGoal": "Phát triển API với Java và Spring Boot",
   "yearsExperience": 1.0,
-  "expectedSalaryMin": 10000000,
-  "expectedSalaryMax": 18000000,
+  "expectedSalary": 7500000,
   "salaryCurrency": "VND",
   "preferredLocation": "Ho Chi Minh",
   "workplacePreference": "HYBRID",
@@ -1165,7 +1164,7 @@ Chạy trên dữ liệu test; dùng tài khoản Candidate B để kiểm tra q
 
 | Tình huống | Cách thử | Kỳ vọng |
 | --- | --- | --- |
-| Lương không hợp lệ | Hồ sơ: `expectedSalaryMin > expectedSalaryMax` | `400` |
+| Lương không hợp lệ | Hồ sơ: `expectedSalary: 0`, số âm, quá 2 số lẻ hoặc còn gửi trường min/max cũ | `400` |
 | Kỹ năng lặp | Hồ sơ: hai entry cùng `skillId` | `400` |
 | UUID sai cú pháp | Path/body UUID thành `abc` | `400` |
 | CV rỗng | Tạo CV `structured_data={}`, raw rỗng; confirm | `400` |

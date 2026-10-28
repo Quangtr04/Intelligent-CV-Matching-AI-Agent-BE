@@ -82,6 +82,40 @@ class CareerAssistantOwnershipTests {
     }
 
     @Test
+    void applicationWritingForwardsTheRequestedLanguageAndKeepsTheChatAnswerContract() {
+        when(db.one("SELECT * FROM career_assistant_conversations WHERE id=?", conversation)).thenReturn(
+            Map.of("id", conversation, "user_id", actor, "status", "ACTIVE", "context_type", "application")
+        );
+        when(ai.generate(eq("CAREER_CHAT"), anyMap())).thenThrow(new ApiException(502, "Synthetic provider failure"));
+
+        assertThrows(
+            ApiException.class,
+            () -> service.send(conversation, Map.of("message", "Write my application letter", "language", "EN"))
+        );
+
+        verify(ai).generate(
+            eq("CAREER_CHAT"),
+            argThat(
+                input -> "en".equals(input.get("language"))
+                    && input.get("writing_rule").toString().contains("CAREER_CHAT answer string")
+            )
+        );
+        verify(db, never()).insert(anyString(), anyMap());
+    }
+
+    @Test
+    void anInvalidAssistantLanguageIsRejectedBeforeCallingAi() {
+        when(db.one("SELECT * FROM career_assistant_conversations WHERE id=?", conversation))
+            .thenReturn(Map.of("id", conversation, "user_id", actor, "status", "ACTIVE"));
+
+        assertThrows(
+            ApiException.class,
+            () -> service.send(conversation, Map.of("message", "Write my application letter", "language", "xx"))
+        );
+        verifyNoInteractions(ai);
+    }
+
+    @Test
     void fractionalFeedbackRatingsCannotBeRoundedIntoValidVotes() {
         UUID reply = UUID.randomUUID();
         when(db.one(contains("FROM career_assistant_messages m"), eq(reply))).thenReturn(Map.of("user_id", actor));

@@ -1,0 +1,38 @@
+sequenceDiagram
+    autonumber
+    participant Service as Service nghiệp vụ hoặc worker
+    participant AI as AiService
+    participant Quota as EntitlementService / GuestAccess
+    participant DB as PostgreSQL
+    participant Model as Ollama ChatModel
+
+    Service->>AI: generate, generateForUser hoặc generateForGuest
+    AI->>AI: Kiểm tra AI được bật và schema của feature
+    AI->>DB: Đọc CHAT model active theo provider nếu cần
+    AI->>AI: Chọn effectiveModel và giới hạn output theo feature
+    Note over AI: Assessment ưu tiên model riêng từ môi trường nếu đã cấu hình
+    AI->>DB: Đọc prompt active theo feature_code
+    DB-->>AI: Hướng dẫn tùy chỉnh nếu có
+    AI->>AI: Ghép schema JSON, factuality, language, guidance và input JSON
+    AI->>Quota: Reserve ngân sách token cho actor hoặc guest
+    Quota->>DB: Kiểm tra ngân sách actor hoặc guest, ghi reservation tương ứng
+    alt Không đủ quota hoặc feature không được dùng
+        Quota-->>AI: 429 hoặc 403, không gọi model
+        AI-->>Service: ApiException
+    else Reservation hợp lệ
+        Quota-->>AI: reservationId
+        AI->>Model: Prompt gồm system + input JSON, effective model/options
+        Model-->>AI: Output và token usage hoặc lỗi
+        alt Output là JSON đúng schema
+            AI->>AI: Validate dữ liệu và bổ sung model/usage metadata
+            AI->>Quota: Settle số token thực tế theo response
+            Quota->>DB: Hoàn tất reservation trong transaction riêng
+            AI->>DB: AiUsageRecorder ghi ai_usage_logs success
+            AI-->>Service: Kết quả có cấu trúc
+        else Provider lỗi, timeout hoặc output không hợp lệ
+            AI->>Quota: Finalize/cancel reservation theo việc nhận response và usage
+            Quota->>DB: Ghi kết quả quota thực tế
+            AI->>DB: Ghi telemetry lỗi phù hợp
+            AI-->>Service: Lỗi provider/timeout/output
+        end
+    end

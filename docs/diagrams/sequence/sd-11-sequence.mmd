@@ -1,0 +1,54 @@
+sequenceDiagram
+    autonumber
+    actor C as Candidate
+    participant FE as FE Subscription
+    participant API as Payment APIs
+    participant SePay as SePayPaymentService
+    participant Billing as BillingService
+    participant DB as PostgreSQL
+    participant Gateway as SePay Gateway
+
+    C->>FE: Bấm thanh toán
+    FE->>API: POST /payments/sepay/checkout
+    API->>SePay: createCheckout(tierId, durationMonths)
+    SePay->>SePay: Kiểm tra cấu hình và HTTPS return URL
+    SePay->>Billing: sepayOrder(userId, tierId, months, provider)
+    Billing->>DB: Đọc tier ACTIVE, tính amount từ giá BE
+    Billing->>DB: INSERT payment_orders PENDING và provider_order_id
+    Billing-->>SePay: Order
+    SePay->>SePay: Tạo ordered fields và signature
+    SePay-->>FE: Order, checkoutUrl, POST, signed formFields
+    FE->>FE: Validate amount, invoice, customer, environment và field order
+    FE->>Gateway: Browser native form POST từ thao tác click
+    C->>Gateway: Thực hiện thanh toán
+
+    par Browser trở về
+        Gateway-->>FE: Redirect payment=success, error hoặc cancel
+        Note over FE,DB: Redirect không phải bằng chứng settlement
+    and IPN độc lập từ gateway
+        Gateway->>API: POST /payments/sepay/ipn, X-Secret-Key và JSON
+        API->>SePay: ipn(secret, body)
+        SePay->>SePay: Validate secret, event, trạng thái, amount và VND
+        alt Secret hoặc payload sai
+            SePay-->>Gateway: 401 hoặc 400
+        else ORDER_PAID và giao dịch confirmed hợp lệ
+            SePay->>Billing: confirmSePay(event COMPLETED, provider)
+            Billing->>DB: Lock order FOR UPDATE, kiểm tra invoice/provider/amount
+            Billing->>DB: Dedupe payment_webhook_events theo provider và event_id
+            alt Event trùng hoặc settlement cùng trạng thái đã xử lý
+                Billing-->>SePay: accepted=true, duplicate=true
+            else Order PENDING hợp lệ
+                Billing->>DB: Lock user, hủy subscription ACTIVE cũ
+                Billing->>DB: INSERT user_subscriptions ACTIVE
+                Billing->>DB: UPDATE order COMPLETED, completed_at, subscription_id
+                Billing->>DB: INSERT invoice PAID và notification PAYMENT_SUCCESS
+                Note over Billing,DB: Các thay đổi settlement cùng transaction
+                Billing-->>SePay: accepted=true
+            end
+            SePay-->>Gateway: success=true
+        end
+    end
+
+    FE->>API: GET /payments/orders/{id}
+    API->>DB: BillingQueryService đọc order theo user
+    DB-->>FE: Trạng thái order do server xác nhận

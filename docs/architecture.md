@@ -11,7 +11,8 @@ repository/<role>/<chức năng>/       Truy vấn JDBC của từng workflow
 repository/<role>/<chức năng>/jpa/   Spring Data JPA repository có kiểu entity/khóa
 repository/shared/SqlStore.java     Prepared statement, bind tham số, đọc JDBC
 entity/<role>/<chức năng>/           Entity và lớp khóa ghép
-util/shared/                        Tiện ích dùng chung, xử lý tệp và dữ liệu
+util/<role>/<chức năng>/             Helper kiểm tra, chuyển đổi dữ liệu và xử lý kỹ thuật
+util/shared/                        Tiện ích tổng quát Values, FlowSupport
 config/shared/                      Cấu hình Spring, Security, OpenAPI, lịch tác vụ
 security/shared/                    Bearer filter, CurrentUser, giới hạn xác thực
 exception/shared/                   Lỗi nghiệp vụ và phản hồi HTTP
@@ -53,15 +54,51 @@ và response DTO cho bảy nhóm kết quả. Repository khóa chia sẻ hội t
 
 `util/shared/jobs/JobSourceValidator` kiểm tra URL nguồn cho import, crawling và mở trang ứng tuyển. Các workflow dùng chung quy tắc URL mà không phụ thuộc vào service crawler của admin.
 
+## Ranh giới giữa service và util
+
+Service giữ thứ tự thực hiện nghiệp vụ, phân quyền theo tài nguyên, transaction, truy cập repository,
+ghi audit và điều phối AI/quota. Các kiểm tra cần đọc database hoặc xác định người dùng hiện tại vẫn
+nằm trong luồng service/repository. Helper kiểm tra giá trị, chuẩn hóa, dựng nội dung và chuyển đổi
+kết quả được đặt trong `util/<role>/<chức năng>`; chúng nhận dữ liệu qua tham số để service gọi trực tiếp.
+
+`util/admin`, `util/candidate` và `util/consultant` chứa helper của từng vai trò. `util/shared/<chức năng>`
+chứa helper dùng chung giữa các vai trò; `Values` và `FlowSupport` vẫn nằm ngay trong `util/shared`
+vì cung cấp thao tác tổng quát. Một số ví dụ trong mã nguồn:
+
+| Nhóm | Helper | Phần xử lý được tách |
+| --- | --- | --- |
+| `admin/jobs` | [CrawlSettingsSupport](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/admin/jobs/CrawlSettingsSupport.java), [JobCollectionSupport](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/admin/jobs/JobCollectionSupport.java) | Kiểm tra thời gian chờ, chuẩn hóa nguồn crawl, dựng response cấu hình và tên lease |
+| `admin/rag` | [RagDocumentSupport](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/admin/rag/RagDocumentSupport.java), [RagCourseSupport](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/admin/rag/RagCourseSupport.java) | Chia chunk, giới hạn thông báo lỗi, kiểm tra kỹ năng và dựng nội dung khóa học |
+| `candidate/resume` | [ResumeInput](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/candidate/resume/ResumeInput.java), [ResumeContent](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/candidate/resume/ResumeContent.java) | Kiểm tra đầu vào, dựng nội dung CV chuẩn, kết quả cơ bản và hash |
+| `candidate/learning` | [AssessmentValidator](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/candidate/learning/AssessmentValidator.java), [RoadmapValidator](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/candidate/learning/RoadmapValidator.java) | Kiểm tra câu hỏi AI, node lộ trình và prerequisite |
+| `consultant/consultation` | [ConsultationEvaluationData](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/consultant/consultation/ConsultationEvaluationData.java) | Kiểm tra phản hồi đánh giá CV/ATS và dựng response cache |
+| `shared/ai`, `shared/identity` | [AiResponseData](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/shared/ai/AiResponseData.java), [AuthValidation](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/shared/identity/AuthValidation.java), [TokenSupport](../src/main/java/com/example/intelligent_cv_matching_ai_agent/util/shared/identity/TokenSupport.java) | Schema/validation phản hồi AI, chuẩn hóa email, giới hạn độ dài mật khẩu và thao tác kỹ thuật JWT/hash/token |
+
+Ví dụ, `RagDocumentService.create()` kiểm tra quyền admin, chuẩn bị metadata và lưu document/chunk
+qua repository; phần cắt chuỗi gọi `RagDocumentSupport.split(content)`. `RagDocumentService.index()`
+tiếp tục điều phối embedding, trạng thái indexing và audit. Tương tự, `CrawlSettingsService.update()`
+kết hợp kiểm tra/chuẩn hóa từ `CrawlSettingsSupport` với kiểm tra actor, lưu cấu hình và ghi audit trong service.
+
+Các helper mới được tách không truy cập repository hoặc lấy `CurrentUser`. Thư mục `util` còn chứa
+tiện ích kỹ thuật có I/O, chẳng hạn `ResumeFileExtractor` đọc PDF/DOCX/TXT và thực hiện OCR khi bật;
+do đó cần đọc trách nhiệm của từng lớp khi sử dụng. Service vẫn giữ các helper phụ thuộc nghiệp vụ
+hoặc transaction, chẳng hạn kiểm tra sở hữu CV và ghi audit.
+
+Các điểm gọi public static có sẵn như `RagDocumentService.split()` và `TokenService.hash()`/`random()`
+được giữ dưới dạng delegate tới util để tương thích với caller cũ. Xem
+[hướng dẫn từng service và helper](service-code-guide.md) để lần theo đầy đủ các phương thức.
+
 ## Luồng xử lý
 
-Controller nhận request DTO và gọi service. Service quyết định nghiệp vụ, sau đó gọi repository phù hợp. DTO là dữ liệu đi vào/ra của API; entity mô tả dữ liệu lưu trong database.
+Controller nhận request DTO và gọi service. Service quyết định nghiệp vụ, gọi util cho phần xử lý dữ liệu
+và repository cho phần truy xuất database. DTO là dữ liệu đi vào/ra của API; entity mô tả dữ liệu lưu trong database.
 
 ```mermaid
 flowchart LR
     HTTP[HTTP request] --> C[Controller]
     D[Request DTO và validation] -.-> C
     C --> S[Service]
+    S --> U[Util theo vai trò và chức năng]
     S --> W[Workflow repository]
     W --> J[SqlStore / JDBC]
     W --> R[Typed JPA repository]
@@ -149,7 +186,8 @@ dưới dạng UTF-8, không giải mã Base64, và phải giống nhau giữa c
 
 ## Cấu hình runtime
 
-`application.yaml` giữ cấu trúc Spring/app và ánh xạ các giá trị runtime bằng `${VAR}`.
+`application.yaml` giữ cấu hình dùng chung, import `.env` và `spring.profiles.default=dev`.
+Ba file `application-dev.yaml`, `application-prod.yaml`, `application-docker.yaml` chỉ bổ sung các thiết lập theo môi trường; cấu hình chung tiếp tục được ánh xạ bằng `${VAR}`.
 Ứng dụng nạp `.env` UTF-8 từ working directory qua
 `spring.config.import=optional:file:${APP_ENV_FILE:.env}[extension=.properties][encoding=utf-8]` của Spring Boot.
 Chạy IDE, Maven hoặc JAR từ thư mục dự án chứa `.env`; các key và giá trị mẫu nằm trong
@@ -159,6 +197,18 @@ import optional cho phép triển khai chỉ bằng biến môi trường nếu 
 
 File `.env` dùng `KEY=value` không bọc nháy, không có `export` hoặc comment cuối dòng.
 Comment đặt trên dòng riêng; đường dẫn Windows dùng `/`. Sau khi sửa cấu hình, khởi động lại ứng dụng.
+
+| Profile | Trách nhiệm cấu hình |
+| --- | --- |
+| `dev` | Mặc định kết nối `localhost` cho PostgreSQL/Redis, upload `./uploads`, logging tùy chỉnh qua biến môi trường |
+| `docker` | Fallback YAML: PostgreSQL `postgres:5432`, Redis `redis:6379`, upload `/app/uploads`; Compose hiện ghi đè database sang host `host.docker.internal:5432/edunexus`; tắt Spring tự khởi động Compose |
+| `prod` | Bắt buộc URL database và host/port Redis từ môi trường; tắt Compose tự động, devtools, development OTP, chi tiết lỗi và health |
+
+Chọn một profile qua `SPRING_PROFILES_ACTIVE`, tham số `--spring.profiles.active` của JAR hoặc cấu hình Maven/IDE. Script `run-local.ps1 -RuntimeProfile` chỉ thay lựa chọn profile khi truyền tham số; nếu bỏ thì giữ môi trường hiện có và mặc định `dev` của Spring. File `.env.example` không bật sẵn một active profile để tránh áp dụng nhầm sang container.
+
+Dockerfile đóng gói cùng một JAR cho mọi môi trường và không gán profile. `compose.yaml` đặt app trong Compose profile `app`, gán Spring profile `docker`, kết nối PostgreSQL trên host qua `host.docker.internal:5432/edunexus` và chờ Redis healthy. Redis thuộc profile `optional`; PostgreSQL container riêng thuộc profile `database`, không phải dependency của app. `compose.production.yaml` chỉ chạy app với Spring profile `prod` và dịch vụ ngoài. Cả hai cách chạy container gắn volume `resume_uploads` vào `/app/uploads`.
+
+Compose `environment` có ưu tiên hơn `env_file`; Spring ưu tiên tham số command line và biến môi trường hơn file import. Compose local gán rõ URL database trên host, Redis `redis:6379` với username/password trống và upload `/app/uploads`, nên các key cùng tên trong `.env` không thay các giá trị đó. Lệnh chạy app là `docker compose --profile app --profile optional up -d --build app`; chi tiết và phân biệt Compose profile với Spring profile ở [runtime-profiles.md](runtime-profiles.md).
 
 ## Sinh lại entity và JPA repository
 

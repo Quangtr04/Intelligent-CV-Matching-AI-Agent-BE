@@ -8,6 +8,7 @@ import com.example.intelligent_cv_matching_ai_agent.security.shared.CurrentUser;
 import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiService;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.FlowSupport;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobNormalizer;
+import com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobEmbeddingSupport;
 import java.time.OffsetDateTime;
 import java.util.*;
 import org.jsoup.Jsoup;
@@ -255,7 +256,7 @@ public class JobService {
         if (embeddings != null)
             return embeddings.indexNow(id, user.id());
         var job = job(id);
-        float[] embedding = ai.embed(embeddingText(job));
+        float[] embedding = ai.embed(JobEmbeddingSupport.embeddingText(job));
         db.updateMarketJobEmbeddingsByMarketJobId2(id);
         db.updateMarketJobEmbeddings(
             id,
@@ -291,14 +292,7 @@ public class JobService {
 
     public static String embeddingText(
         Map<String, Object> job) {
-        return String.join(
-            "\n",
-            text(job.get("job_title")),
-            text(job.get("raw_content")),
-            text(job.get("parsed_requirements")),
-            text(job.get("parsed_responsibilities")),
-            text(job.get("employment_type"))
-        );
+        return JobEmbeddingSupport.embeddingText(job);
     }
 
     public Map<String, Object> indexStatus(

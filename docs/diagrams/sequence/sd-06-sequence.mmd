@@ -1,0 +1,51 @@
+sequenceDiagram
+    autonumber
+    actor C as Candidate
+    participant FE as FE CV Job Fit
+    participant API as CareerToolsController
+    participant Tools as CareerToolsService
+    participant Resume as ResumeService
+    participant Cache as Redis tùy chọn
+    participant AI as AiService
+    participant DB as PostgreSQL
+
+    C->>FE: Chọn đúng CV và JD
+    FE->>FE: Bắt đầu timer request AI
+    FE->>API: POST /jobs/{jobId}/ats với resumeId
+    API->>Tools: ats(jobId, request)
+    Tools->>Tools: requireRole CANDIDATE
+    Tools->>Tools: confirmed(resumeId)
+    Tools->>Resume: owned(resumeId), kiểm tra owner
+    Resume->>DB: Đọc CV thuộc owner
+    Resume-->>Tools: CV thuộc owner
+    Tools->>Tools: Kiểm tra status READY
+    Tools->>DB: Đọc JD ACTIVE, chưa hết hạn
+    alt CV hoặc JD không hợp lệ
+        Tools-->>FE: Lỗi quyền, trạng thái hoặc dữ liệu
+    else Cặp CV/JD hợp lệ
+        Tools->>Tools: Hash canonical CV, job content hash, provider và chat model
+        Tools->>Cache: GET cache key theo user, CV, JD và inputHash
+        opt Redis có analysisId
+            Tools->>DB: Kiểm tra analysisId đúng owner, CV, JD và hash
+        end
+        opt Chưa có analysis hợp lệ từ Redis
+            Tools->>DB: Tìm analysis theo user, CV, JD và hash
+        end
+        alt Có analysis hợp lệ
+            Tools-->>FE: Analysis detail, cached=true
+        else Chưa có analysis
+            Tools->>AI: generate(JOB_ATS, structured CV, canonical text, JD, language)
+            Note over Tools,AI: Xem SD-13: prompt theo JOB_ATS, quota và JSON validation
+            alt AI thất bại hoặc score không hợp lệ
+                AI-->>Tools: Lỗi
+                Tools-->>FE: Không trả kết quả ATS thành công giả
+            else JSON và ats_score hợp lệ
+                AI-->>Tools: ats_score, strengths, missing_skills, improvement_suggestions
+                Tools->>DB: INSERT job_resume_analyses và input_hash
+                Tools->>Cache: SET analysisId với TTL 24 giờ nếu Redis dùng được
+                Tools-->>FE: Analysis detail, cached=false
+            end
+        end
+    end
+    FE->>FE: Dừng timer khi request hoàn tất hoặc lỗi
+    FE-->>C: Điểm và giải thích hoặc thông báo lỗi

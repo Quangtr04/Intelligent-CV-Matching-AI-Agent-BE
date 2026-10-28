@@ -1,9 +1,18 @@
 # Hướng dẫn kiểm thử API EduNexus bằng Postman
 
-Đối chiếu controller, request DTO và service ngày **15/10/2026**. Tài liệu bao phủ **148 cặp method/path
-nghiệp vụ của 25 controller** theo đường dẫn chuẩn `/api/v1`, gồm quản lý khóa học YouTube/Coursera,
-RAG, gợi ý học tập và cấu hình thu thập việc làm. Ba route crawl settings còn có alias `/api/admin`.
+Đã bổ sung đối chiếu CV–hồ sơ nghề nghiệp và đánh giá lại khi hồ sơ thay đổi ngày **24/10/2026**. Tài liệu tra cứu các API
+theo đường dẫn chuẩn `/api/v1`, gồm xác thực, CV, matching, tư vấn, billing, khóa học, RAG và quản trị.
+Ba route crawl settings còn có alias `/api/admin`.
 Health, Swagger và OpenAPI được ghi riêng ở cuối tài liệu.
+
+**Bắt đầu tại [Dữ liệu mẫu và thứ tự test Postman](postman-test-order.md).** Tài liệu đó hướng dẫn từng
+request đăng ký → đăng nhập → tạo CV bằng Ollama → review → confirm → embedding → phân tích, kèm JSON,
+script lưu token/ID và các nhánh test mở rộng. Dùng tài liệu này để tra body và quyền của các API còn lại.
+
+Muốn đánh giá CV có thể hiện đúng mục tiêu trong hồ sơ cá nhân, dùng
+[dữ liệu mẫu và thứ tự đối chiếu CV–hồ sơ](cv-profile-alignment.md): lưu hồ sơ → tạo/review CV → confirm READY
+→ chủ động tạo báo cáo lần đầu → sửa hồ sơ → theo dõi đánh giá lại trong nền. Độc lập với ATS;
+điểm lương cần dữ liệu mức trả của job, không được suy ra từ CV.
 
 Mỗi ví dụ dùng dữ liệu thử. Thay các biến bằng giá trị thực từ response; phần hướng dẫn không tự tạo tài khoản,
 gọi AI, crawl website hay thực hiện thanh toán. Đây là hướng dẫn gửi request, không phải báo cáo rằng mọi tích hợp
@@ -36,25 +45,34 @@ bên ngoài đã được kiểm thử thành công.
 
 ### 1.1. Chạy backend
 
-Chạy tại thư mục chứa `pom.xml`. Chuẩn bị `.env` từ `.env.example`, điền cấu hình database và JWT,
-sau đó dùng script hiện có:
+Chạy tại thư mục chứa `pom.xml`. Nếu backend đang chạy, kiểm tra `GET http://localhost:8080/actuator/health`
+trước; không khởi động thêm process cùng port. Khi cài mới, chuẩn bị `.env` từ `.env.example`, điền database
+và JWT; giữ nguyên file `.env` đã có. AI hiện dùng **Ollama native**, chat `qwen2.5:7b`, embedding
+`qwen3-embedding:0.6b` **1024 chiều**, không cần API key thương mại.
+
+Với backend chạy trên Windows/IDE, khởi động model trước, rồi chạy backend:
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/run-local.ps1 -WithInfrastructure
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/start-ollama.ps1 -ExposeToHost -Gpu -SmokeTest
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/run-local.ps1 -RuntimeProfile dev
 ```
 
-`-WithInfrastructure` khởi động PostgreSQL của Compose; bỏ switch này nếu dùng database đã chạy.
-Backend cần Java 25, Maven và PostgreSQL có pgvector. Flyway áp dụng các migration hiện có, gồm V8/V9
-cho khóa học được duyệt và lịch sử link. Hướng dẫn môi trường đầy đủ: [README](../README.md)
-và [cài đặt dự án](project-guide.md).
+`-Gpu` chỉ dùng khi Docker có NVIDIA runtime; bỏ switch trên máy CPU. `run-local.ps1 -WithInfrastructure`
+chỉ thêm PostgreSQL Compose, không khởi động Ollama/Redis. Không dùng switch đó khi database host đang chiếm
+cùng port. Backend host dùng `OLLAMA_BASE_URL=http://localhost:11434`; app trong Compose dùng
+`http://ollama:11434`. Cách chạy cả backend trong Docker và điều kiện GPU xem [Ollama](ollama.md).
+
+Backend cần Java 25, Maven và PostgreSQL có pgvector. Flyway áp dụng **V1–V19**; V10 giữ vector 1536 cũ
+riêng và thêm cột 1024. Database có embedding cũ phải index lại bằng model mới trước khi test semantic
+matching/RAG. Hướng dẫn môi trường: [README](../README.md) và [cài đặt dự án](project-guide.md).
 
 | Nhóm cần thử | Điều kiện |
 | --- | --- |
 | API dữ liệu và quản trị | Backend/database hoạt động; tài khoản có vai trò phù hợp. |
-| Đăng ký/OTP cục bộ | `AUTH_EXPOSE_DEV_OTP=true` để nhận `developmentCode` trong response. Chế độ này không gửi mail. |
+| Đăng ký/OTP cục bộ | Profile `dev` hoặc `docker`, `AUTH_EXPOSE_DEV_OTP=true` để nhận `developmentCode`; không gửi mail. Profile `prod` luôn tắt việc lộ mã. |
 | OTP qua email | `AUTH_EXPOSE_DEV_OTP=false`, `MAIL_ENABLED=true` và SMTP được cấu hình. |
-| Sinh CV, assessment, roadmap, chat AI | `AI_ENABLED=true`, chat provider/model/key hợp lệ và quota đủ. |
-| Index CV/job/RAG, semantic matching | Embedding provider hoạt động, vector 1536 chiều và pgvector. |
+| Sinh CV, assessment, roadmap, chat AI | `AI_ENABLED=true`, provider `ollama`, model chat đã tải trong Docker, quota đủ. |
+| Index CV/job/RAG, semantic matching | Model `qwen3-embedding:0.6b` đã tải, vector 1024 chiều và schema V10/pgvector. |
 | Gợi ý link học tập | Không cần gọi AI; khóa đã được Admin duyệt mới tham gia gợi ý. |
 | Khóa học xuất hiện trong chat RAG | Khóa đã duyệt, đã index và chat Candidate gửi `retrieve: true`. |
 | Webhook thanh toán thử | Secret test khớp server, ít nhất 32 byte UTF-8; xem [script ký](#webhook-thanh-toan). |
@@ -71,6 +89,13 @@ AI tắt vẫn thử được các thao tác CRUD, chat tư vấn người thậ
 5. Nhập query ở **Params**; bỏ hẳn tham số tùy chọn chưa dùng thay vì gửi chuỗi rỗng cho UUID.
 6. Thêm script lưu token/ID trong **Scripts → Post-response** của request tương ứng.
 
+Tạo assessment qua `/assessments/generations` dùng request ngắn và đọc trạng thái; không giữ POST mở để đợi AI.
+Với các API inference đồng bộ hoặc endpoint assessment cũ, client/proxy cần timeout phù hợp ngân sách model
+đã cấu hình (`AI_REQUEST_TIMEOUT` mặc định 15 phút), có thêm thời gian cho xử lý ứng dụng; lần load đầu có thể lâu.
+Gửi tuần tự từng request AI, không chạy load test trong lượt kiểm tra chức năng này. Test JSON/assertion
+được viết trong [Post-response](https://learning.postman.com/docs/tests-and-scripts/write-scripts/test-scripts/).
+Đổi `.env` chỉ có hiệu lực sau khi process/container backend nạp lại cấu hình; đổi biến Postman không đổi model server.
+
 Postman cung cấp `pm.environment` để đọc/lưu biến Environment; `pm.variables` dùng được cho biến tạm
 của lần gửi request. Tham khảo [biến trong Postman scripts](https://learning.postman.com/docs/tests-and-scripts/write-scripts/postman-sandbox-reference/pm-variables/).
 
@@ -86,7 +111,7 @@ Sau khi nhập, kiểm tra lại Authorization, ví dụ body và các biến ID
 | Biến | Giá trị/cách lấy |
 | --- | --- |
 | `baseUrl` | `http://localhost:8080/api/v1`; đổi port theo `SERVER_PORT`. |
-| `candidateEmail` | `candidate.20261015.01@example.com`; đổi email khi tạo lượt test mới. |
+| `candidateEmail` | `candidate.20261022.01@example.com`; đổi email khi tạo lượt test mới; chỉ dùng địa chỉ này với OTP dev. |
 | `candidatePassword` | Mật khẩu tài khoản test, ví dụ `PostmanDemo2026!`. |
 | `candidateNewPassword` | Mật khẩu mới để thử đổi mật khẩu; cập nhật biến cũ sau khi đổi thành công. |
 | `adminEmail`, `adminPassword` | Tài khoản Admin thực sự đã được tạo; không có mật khẩu Admin mặc định. |
@@ -100,8 +125,8 @@ Sau khi nhập, kiểm tra lại Authorization, ví dụ body và các biến ID
 | `googleIdToken` | Google ID token thật, phù hợp `GOOGLE_CLIENT_ID` của backend. |
 | `guestSession` | Giá trị **`sessionKey`** từ `POST /guest/sessions`, dùng trong `X-Guest-Session`. |
 | `guestSessionId` | UUID `id` của Guest; không dùng thay cho `sessionKey`. |
-| `aiProvider` | Provider đang cấu hình trong process, ví dụ `openai`. |
-| `aiChatModel`, `aiEmbeddingModel` | Tên model lấy từ cấu hình backend đang dùng. |
+| `aiProvider` | `ollama`. Đây là biến đối chiếu kết quả, không thay provider backend. |
+| `aiChatModel`, `aiEmbeddingModel` | Mặc định `qwen2.5:7b`, `qwen3-embedding:0.6b`; khớp runtime thực tế. |
 | `sourceJobUrl` | URL HTTPS thật của trang chi tiết việc làm ITviec/TopCV khi thử crawl/import. |
 | `courseUrl` | Link YouTube/Coursera thực tế đã được Admin kiểm tra. |
 | `monitoringCategory` | Ví dụ `audit`; danh sách hợp lệ ở mục 12. |
@@ -151,7 +176,7 @@ Các biến riêng cho webhook:
 | --- | --- |
 | `paymentWebhookSecret` | Secret môi trường test khớp `PAYMENT_WEBHOOK_SECRET` server. |
 | `paymentAmount`, `paymentCurrency` | Giá trị `amount`, `currency` chính xác của order. |
-| `paymentEventId` | ID riêng cho mỗi sự kiện, ví dụ `postman-20261015-001`. Giữ nguyên khi thử lặp event. |
+| `paymentEventId` | ID riêng cho mỗi sự kiện, ví dụ `postman-20261022-001`. Giữ nguyên khi thử lặp event. |
 | `paymentStatus` | `COMPLETED`, `FAILED` hoặc `CANCELLED`. |
 | `paymentTimestamp`, `paymentSignature`, `paymentWebhookBody` | Script mục 15 tạo; không nhập chữ ký giả. |
 
@@ -391,8 +416,7 @@ Lấy `skillId` thật, đang active từ `GET {{baseUrl}}/skills` trước khi 
   "targetJobTitle": "Java Backend Developer",
   "careerGoal": "Phát triển kỹ năng Java và Spring Boot",
   "yearsExperience": 0.5,
-  "expectedSalaryMin": 10000000,
-  "expectedSalaryMax": 15000000,
+  "expectedSalary": 7500000,
   "salaryCurrency": "VND",
   "preferredLocation": "Ho Chi Minh City",
   "workplacePreference": "HYBRID",
@@ -413,12 +437,16 @@ Lấy `skillId` thật, đang active từ `GET {{baseUrl}}/skills` trước khi 
 
 Tất cả trường cấp hồ sơ đều tùy chọn, nhưng endpoint ghi lại toàn bộ các trường hồ sơ trong DTO: trường bỏ qua có thể bị xóa về `null`; `salaryCurrency` bỏ qua trở về `VND`. Gửi lại các giá trị cần giữ.
 
+Chỉ gửi một `expectedSalary` theo tháng. Ví dụ kỳ vọng 7,5 triệu VND gửi `7500000` cùng `salaryCurrency: "VND"`;
+không gửi chuỗi `"7tr5"` vào API. Response dùng `expected_salary`. Các trường `expectedSalaryMin`/`expectedSalaryMax`
+cũ bị từ chối với `400`, không còn là tiêu chí nhập liệu.
+
 | Trường | Ràng buộc |
 | --- | --- |
 | `currentJobTitle`, `currentCompany`, `targetJobTitle`, `preferredLocation` | Tối đa 255 ký tự mỗi trường. |
 | `careerGoal`, `profileSummary` | Tối đa 10.000 ký tự mỗi trường. |
 | `yearsExperience` ở hồ sơ và từng skill | Từ 0 đến 99,9; tối đa 1 chữ số thập phân. |
-| `expectedSalaryMin`, `expectedSalaryMax` | Không âm, tối đa 12 chữ số phần nguyên và 2 chữ số thập phân; min không vượt max. |
+| `expectedSalary` | Một mức lương kỳ vọng mỗi tháng, lớn hơn 0; tối đa 12 chữ số phần nguyên và 2 chữ số thập phân. `null`/bỏ qua xóa kỳ vọng lương. Ví dụ 7,5 triệu VND gửi `7500000`. |
 | `salaryCurrency` | `VND`, `USD` hoặc `EUR`. |
 | `workplacePreference`, `employmentType` | Chuỗi tối đa 50 ký tự; ví dụ trên là giá trị mô tả, DTO chưa giới hạn enum. |
 | `preferences` | JSON object tùy chọn; response lưu dưới `preferences_json`. |
@@ -554,7 +582,14 @@ Conversation phải thuộc đúng guest session và còn `ACTIVE`; dùng key gu
 
 ## 5. Gói cước và thanh toán
 
-Trong nhóm này, chỉ `GET /subscriptions/tiers` và `POST /payments/webhook` là public. Các API còn lại cần **Bearer `{{candidateAccessToken}}`** hoặc token user đang test; backend ràng buộc dữ liệu theo người mang token. Thành công trả HTTP `200`.
+`GET /subscriptions/tiers` là public. `POST /payments/webhook` và `POST /payments/sepay/ipn` không dùng Bearer,
+nhưng phải có thông tin xác thực riêng của từng gateway. Các API còn lại cần **Bearer `{{candidateAccessToken}}`**
+hoặc token user đang test; backend ràng buộc dữ liệu theo người mang token. Thành công trả HTTP `200`.
+
+**SePay Payment Gateway:** dùng `POST /payments/sepay/checkout` với `tierId`, `durationMonths` để nhận đơn và
+form đã ký; FE gửi `formFields` theo thứ tự sang `checkoutUrl`. IPN nhận tại `/payments/sepay/ipn`, xác thực
+`X-Secret-Key`; đơn SePay không được xác nhận bằng custom webhook cũ. Xem
+[cấu hình sandbox, Postman và form FE đầy đủ](sepay-payment-gateway.md).
 
 ### 5.1. Xem gói, quota và lịch sử
 
@@ -825,6 +860,10 @@ Ràng buộc section:
 
 Response `source: "AI_BUILDER"`, `status: "REVIEW_REQUIRED"`; lưu `id` vào `resumeId`, xem lại dữ kiện và confirm. AI builder không tự xác nhận nội dung.
 
+Luồng này gọi `ResumeService.create(..., true)` → `AiService.generate("CV_BUILD", ...)` → Ollama chat.
+Để gửi một bộ dữ liệu nhất quán từ đầu đến cuối, dùng [luồng test CV bằng Ollama](postman-test-order.md#tao-cv-ollama).
+Không dùng điểm ATS/nội dung cố định từ frontend mock làm kết quả model; màn hình AI Resume Builder hiện chưa nối API này.
+
 ### 6.4. Upload và bóc tách CV
 
 `POST {{baseUrl}}/resumes/upload` — USER, **Body → form-data**, `200`.
@@ -881,6 +920,48 @@ Nếu đã sửa xong bằng PATCH, chọn Body none. Hoặc gửi JSON để đ
 Confirm xử lý `structured_data`, `raw_content`, `is_primary`; muốn đổi `title`/`language`, dùng PATCH trước. Nội dung phải có raw text, summary hoặc ít nhất một section có phần tử; CV trống trả `400`.
 
 Thành công chuyển sang `READY`, lưu các section/skill đã review để dùng cho matching, ATS và roadmap. `is_primary: false` không gỡ cờ chính nếu CV vốn đang là CV chính; dùng endpoint primary để chọn CV khác. CV archive trả `409`.
+
+### 6.7. Đối chiếu CV với hồ sơ nghề nghiệp cá nhân
+
+Dành cho **CANDIDATE**, Bearer `{{candidateAccessToken}}`, đúng CV của người gọi. Chức năng độc lập với
+`/resumes/{id}/analyses` chấm CV và `/jobs/{jobId}/ats` đối chiếu JD. Hồ sơ nghề nghiệp phải có dữ kiện nghề nghiệp để đối chiếu;
+chỉ đặt lương chưa đủ. CV phải `READY`, Ollama bật và quota đủ. Không cần embedding.
+
+| Method | URL | Body và kết quả |
+| --- | --- | --- |
+| POST | `{{baseUrl}}/resumes/{{resumeId}}/profile-alignments` | **none**; đọc hồ sơ/CV trên server, trả báo cáo mới và lưu `id` thành `alignmentId`. |
+| GET | `{{baseUrl}}/resumes/{{resumeId}}/profile-alignments?limit=20&offset=0` | **none**; mảng báo cáo, mới nhất trước. `limit` mặc định 20, từ 1–100; `offset` mặc định 0, từ 0–100000. |
+| GET | `{{baseUrl}}/resumes/{{resumeId}}/profile-alignments/{{alignmentId}}` | **none**; đọc báo cáo thuộc đúng CV và tài khoản. |
+| GET | `{{baseUrl}}/resumes/{{resumeId}}/profile-alignments/refresh-status` | **none**; trạng thái `NONE`, `QUEUED`, `RUNNING`, `SUCCEEDED`, `FAILED` hoặc `CANCELLED`; không gọi AI. |
+
+Lần đầu vẫn cần POST chủ động. PUT hồ sơ thay đổi dữ kiện chuẩn hóa sẽ ghi yêu cầu đánh giá lại cho các CV
+`READY` đã có báo cáo, trong cùng transaction lưu hồ sơ. Worker chỉ gọi AI sau commit; PUT vẫn trả `200`
+khi hồ sơ được lưu, không chờ model và không rollback khi AI/quota lỗi. Gửi lại cùng nội dung hoặc chỉ đổi
+thông tin liên hệ không yêu cầu AI. Báo cáo ATS/chất lượng và matching JD không được chạy lại hoặc ghi đè.
+
+Status có thêm `requested_at`, `started_at`, `completed_at`, `alignment_id`, `error_code`, `message` khi có yêu cầu;
+`NONE` có thể chỉ có field `status`. Worker riêng kiểm tra hàng đợi mỗi 5 giây, xử lý một CV/lượt; nhiều lần sửa
+được gộp, kết quả lỗi thời bị loại. `SUCCEEDED` thì đọc báo cáo mới qua `alignment_id`; báo cáo cũ vẫn nguyên vẹn.
+`FAILED` do quota/AI không tự retry; sau khi khắc phục, POST thủ công để thử lại. POST khi `QUEUED`/`RUNNING`
+trả `409`. Lease gián đoạn mặc định 900 giây kết thúc `FAILED`/`INTERRUPTED`, không âm thầm gọi model lại.
+Lượt nền dùng `CV_PROFILE_ALIGNMENT` và `AI_TOTAL_TOKENS`; GET lịch sử/trạng thái không tiêu quota model.
+
+`result_json` có bảy tiêu chí nghề nghiệp, điểm trung bình các tiêu chí `ASSESSED`, `coverage_percent`
+và tiêu chí lương do server bổ sung. Model có thể chấm vị trí, mục tiêu, kỹ năng và kinh nghiệm khi đủ bằng chứng.
+CV hiện chưa có trường riêng cho địa điểm/hình thức/loại công việc mong muốn, nên ba tiêu chí này luôn giữ
+`MISSING_CV_EVIDENCE`/`null` nếu hồ sơ đã đặt, `NOT_APPLICABLE`/`null` nếu chưa đặt. Backend không suy chúng
+từ địa chỉ, công việc cũ hoặc summary; cần đối chiếu với job/JD. Nếu cả bảy tiêu chí đã đặt và bốn tiêu chí
+được chấm, coverage là 57,14%, độc lập với điểm phù hợp trung bình.
+
+Khi có vị trí mong muốn trong hồ sơ và job title ở experience của CV đã review, `TARGET_ROLE` được chấm
+với trích dẫn hai phía, kể cả hai nghề khác nhau. Điểm thiếu bằng chứng là `null`; lương luôn có `score: null`,
+cần mức trả job để kết luận phù hợp. Phần trăm là suy luận theo rubric, chưa phải xác suất tuyển dụng hoặc
+độ chính xác AI. Schema native giới hạn cấu trúc/trích đoạn nguồn, không bảo đảm mọi nhận xét ngữ nghĩa đúng.
+
+Hai snapshot và điểm lịch sử được giữ nguyên. `resume_changed`, `profile_changed`, `is_stale` cho biết dữ liệu
+hiện tại khác đầu vào đã dùng; GET không gọi lại model. Nguồn thay đổi khi inference trả `409`; evidence
+không đúng trích dẫn hoặc output sai trả `502`, không tạo báo cáo. Đầu vào vượt budget bảo thủ trả `400`
+trước khi giữ chỗ quota; không tự cắt dữ kiện. Xem [payload, quota V17, hàng đợi V18 và ca lỗi](cv-profile-alignment.md).
 
 <a id="section-7"></a>
 
@@ -939,6 +1020,12 @@ Theo toàn bộ CV đã confirm:
 | `limit` | Bắt buộc nhập số nguyên từ 1 đến 100; bỏ field dẫn đến giá trị 0 và lỗi validation. |
 
 `CAREER_PROFILE` cần hồ sơ nghề nghiệp; `ALL_CVS` cần ít nhất một CV `READY`, tối đa 100 CV xác nhận mỗi lượt. Cần có job active trong catalog.
+
+Matching theo hồ sơ cần một `expectedSalary` dương. Khi có lương kỳ vọng, ngưỡng job là
+`expectedSalary × (1 − tolerancePercent / 100)`; tỷ lệ do Admin cấu hình, mặc định 10%.
+Job lương cao hơn vẫn được xét. Candidate đọc chính sách hiện tại bằng `GET {{baseUrl}}/matching/salary-policy`.
+Response matching có `salary_filter` lưu biên độ, ngưỡng và `settings_version` đã áp dụng cho chính lượt đó.
+Xem [Admin chỉnh biên độ lương và thứ tự kiểm tra đổi cache](admin-salary-policy.md).
 
 Response gồm matching run và `results`; lưu `id` ngoài cùng vào `matchingRunId`, từng `results[].id` vào `matchResultId`. `matchResultId` khác `jobId`. Có thể có `cached: true` và `cache_source: "REDIS"`/`"DATABASE"` khi tái dùng kết quả cùng đầu vào.
 
@@ -1074,17 +1161,26 @@ Response lưu `estimated_min`, `estimated_max`, `currency`, `reasoning`, `model_
 
 Dùng Bearer `{{candidateAccessToken}}`; tạo assessment, tạo roadmap và xem recommendations yêu cầu CANDIDATE. Đọc/lưu đáp án/submit/cập nhật node kiểm tra tài nguyên thuộc người đăng nhập. JSON request của nhóm này dùng **camelCase**, còn nhiều field response dùng **snake_case**.
 
+Luồng hiện tại là **chọn JD → đọc kỹ năng/tài liệu chuẩn bị → làm bài theo JD → học từng skill cần bổ sung**.
+Xem [ví dụ và thứ tự kiểm thử đầy đủ](jd-assessment-missing-skills.md). Kết quả mới có
+`learning_scope: "MISSING_SKILLS_ONLY"`; bản lịch sử chương trình đầy đủ giữ nhãn `LEGACY_FULL_ROADMAP`.
+
+Trước khi tạo bài: `GET {{baseUrl}}/assessments/preparation?jobId={{jobId}}` — CANDIDATE, Body none.
+Trả `job_id`, `job_title`, `skills[]` gồm `skill_name`, `is_required`, `resources` từ catalog.
+Endpoint này chưa đánh giá người dùng và không gọi AI; resource có thể rỗng khi chưa có tài liệu phù hợp.
+
 ### 8.1. Tạo bài đánh giá
 
+**Luồng dùng trên FE:** `POST {{baseUrl}}/assessments/generations` — CANDIDATE, JSON body như dưới,
+trả `202` với `id` tác vụ và trạng thái `QUEUED`/`RUNNING`. Đọc
+`GET {{baseUrl}}/assessments/generations/{{generationId}}` mỗi 2–3 giây; khi `SUCCEEDED`, lấy
+`assessment_id` rồi đọc bài. `GET {{baseUrl}}/assessments/generations?jobId={{jobId}}` trả mảng tác vụ
+gần nhất của đúng chủ sở hữu để tiếp tục sau khi tải lại trang. Cùng user/JD đang chạy chỉ có một tác vụ.
+`FAILED` trả `error_code`/`message`, không tự gọi lại model. Xem [đầy đủ trạng thái và giới hạn hàng đợi](jd-assessment-missing-skills.md#3-sinh-bài-đánh-giá-từ-jd-đã-chọn).
+
+**Endpoint đồng bộ tương thích cũ:**
+
 `POST {{baseUrl}}/assessments` — CANDIDATE, JSON, `200`.
-
-```json
-{
-  "targetJobTitle": "Java Backend Developer"
-}
-```
-
-Hoặc đánh giá dựa trên job:
 
 ```json
 {
@@ -1092,9 +1188,14 @@ Hoặc đánh giá dựa trên job:
 }
 ```
 
-`targetJobTitle` tùy chọn, tối đa 255 ký tự; `jobId` tùy chọn, UUID job active. Có thể gửi cả hai. Mục tiêu được chọn theo thứ tự `targetJobTitle` không trắng → tên job → `target_job_title` trong career profile; không có mục tiêu trả `400`.
+`jobId` bắt buộc, UUID job active/chưa hết hạn, có nội dung JD và kỹ năng đã trích xuất.
+`targetJobTitle` tùy chọn, tối đa 255 ký tự; nếu gửi thì phải khớp tên JD đã chọn.
+Không còn tạo bài theo `targetJobTitle` hoặc nghề trong hồ sơ khi chưa chọn JD.
 
-Cần AI generation. Prompt yêu cầu 5 câu nền tảng + 5 câu theo nghề; validator chấp nhận 2..30 câu và phải có cả phần 1/phần 2. Không nên hardcode FE luôn nhận đúng 10 câu.
+Cần AI generation. Backend yêu cầu đúng **5 câu nền tảng + 5 câu kỹ thuật theo JD**; mỗi câu gắn với
+skill trong JD và có trích dẫn JD được kiểm tra nội bộ trước khi lưu. Kết quả sai số lượng, phần hoặc
+skill/trích dẫn bị từ chối `502`; không lưu bài không hợp lệ. Trích dẫn kiểm tra không phải field được
+đảm bảo trả về trong câu hỏi.
 
 Response gồm session, `questions`, `answers`; lưu `id` vào `assessmentId`, một `questions[].id` vào `questionId`. Session mới là `in_progress`; đáp án đúng và giải thích bị ẩn cho đến khi hoàn tất.
 
@@ -1108,7 +1209,7 @@ Các route Body none, quyền USER với session thuộc token.
 | GET | `{{baseUrl}}/assessments/{{assessmentId}}` | `200` session, câu hỏi, đáp án đã chọn; session completed có `learning_recommendations`. |
 | POST | `{{baseUrl}}/assessments/{{assessmentId}}/submit` | `200`; phải trả lời mọi câu; tính `skill_scores`, chuyển `completed`, bổ sung nguồn học. |
 
-Submit thiếu câu trả lời trả `400`. Submit lại session `completed` trả kết quả hiện có. Hoàn tất assessment mới đánh dấu các lộ trình cũ cùng nghề là `is_outdated: true`; không tự tạo roadmap mới.
+Submit thiếu câu trả lời trả `400`. Submit lại session `completed` trả kết quả hiện có. Hoàn tất assessment mới đánh dấu các lộ trình cũ cùng JD là `is_outdated: true`; không tự tạo roadmap mới.
 
 ### 8.3. Lưu một câu trả lời
 
@@ -1125,15 +1226,15 @@ Submit thiếu câu trả lời trả `400`. Submit lại session `completed` tr
 
 Response có `question_id`, `selected_option`; không lộ đáp án đúng. Chỉ lưu được khi session `in_progress`, nếu đã submit trả `409`.
 
-### 8.4. Tạo lộ trình
+### 8.4. Tạo hướng dẫn học từng skill cần bổ sung
 
 `POST {{baseUrl}}/roadmaps` — CANDIDATE, JSON, `200`.
 
-Payload tối thiểu theo nghề:
+Payload tối thiểu theo JD:
 
 ```json
 {
-  "targetJobTitle": "Java Backend Developer"
+  "jobId": "{{jobId}}"
 }
 ```
 
@@ -1141,25 +1242,34 @@ Payload kết hợp job, CV và bài đánh giá đã hoàn tất:
 
 ```json
 {
-  "targetJobTitle": "Java Backend Developer",
   "jobId": "{{jobId}}",
   "resumeId": "{{resumeId}}",
   "assessmentId": "{{assessmentId}}"
 }
 ```
 
-Các field đều tùy chọn ở DTO; bỏ field chưa có UUID, không để placeholder chưa resolve. Service vẫn cần tìm được nghề đích và kiểm tra dữ liệu liên kết:
+`jobId` bắt buộc. Bỏ field tùy chọn chưa có UUID, không để placeholder chưa resolve.
 
 | Field | Điều kiện |
 | --- | --- |
-| `targetJobTitle` | Tối đa 255 ký tự; fallback tên job rồi nghề trong profile nếu bỏ/trắng. |
-| `jobId` | UUID job active nếu gửi. |
+| `targetJobTitle` | Tối đa 255 ký tự nếu gửi; không thay thế JD. Nên bỏ field này; tên mục tiêu lấy từ job đã chọn. |
+| `jobId` | Bắt buộc, UUID job active/chưa hết hạn có kỹ năng bắt buộc đã trích xuất. |
 | `resumeId` | UUID CV của user, phải `READY` nếu gửi. |
-| `assessmentId` | UUID assessment của user đã `completed`, cùng nghề đích không phân biệt hoa thường; nếu bỏ, tìm bản completed/current gần nhất của nghề. |
+| `assessmentId` | UUID assessment của user đã `completed`, cùng `jobId`; nếu bỏ, tìm bản completed gần nhất cho đúng JD đó, không ghép theo tên nghề. |
 
-Cần AI generation. Service dùng skill profile/CV/job/assessment và nguồn học đã duyệt để sinh gap analysis và các node; AI không được tự bịa resource URL. Kết quả hợp lệ có 1..50 node, mỗi node 1..1.000 giờ.
+Backend so sánh kỹ năng bắt buộc của JD với skill hồ sơ/CV và điểm bài đánh giá cùng JD.
+Điểm dưới 70 là `NEEDS_PRACTICE`; không có điểm và chưa khai báo là `MISSING_EVIDENCE`,
+không đồng nghĩa xác nhận người dùng không biết. Điểm từ 70 hoặc đã khai báo khi chưa có điểm thì
+không bắt học bù skill đó. AI chỉ được viết hướng dẫn cho danh sách skill backend xác định;
+không được thêm chương trình học nghề đầy đủ hay tự bịa URL resource.
 
-Response chứa `nodes`, `skill_gaps`, `learning_recommendations`, `gap_analysis_id`. Lưu `id` vào `roadmapId`, `gap_analysis_id` vào `gapAnalysisId`; chọn node không có prerequisite làm `roadmapNodeId` đầu tiên.
+Khi có skill cần bổ sung, cần AI generation; kế hoạch hợp lệ có 1..50 node, mỗi node 1..1.000 giờ.
+Khi không có skill cần bổ sung, không gọi AI; trả `missing_skills: []`, `nodes: []`,
+`status: "completed"`, `progress_percent: 100`.
+
+Response chứa `learning_scope: "MISSING_SKILLS_ONLY"`, `missing_skills` với hướng dẫn riêng từng skill,
+`nodes`, `skill_gaps`, `learning_recommendations`, `gap_analysis_id`. Lưu `id` vào `roadmapId`,
+`gap_analysis_id` vào `gapAnalysisId`; chọn node không có prerequisite làm `roadmapNodeId` đầu tiên nếu có node.
 
 ### 8.5. Xem lộ trình và gợi ý nguồn học
 
@@ -1168,12 +1278,16 @@ Các route sau không gửi body.
 | Method | URL | Quyền | Query và kết quả |
 | --- | --- | --- | --- |
 | GET | `{{baseUrl}}/roadmaps` | USER | `200` tối đa 100 roadmap của user; không kèm toàn bộ node/snapshot. |
-| GET | `{{baseUrl}}/roadmaps/{{roadmapId}}` | USER | `200` roadmap, `nodes[].prerequisites`, `nodes[].resources`, `skill_gaps`, `learning_recommendations`. |
+| GET | `{{baseUrl}}/roadmaps/{{roadmapId}}` | USER | `200` roadmap, `learning_scope`, `missing_skills` cho bản mới, `nodes[].prerequisites`, `nodes[].resources`, `skill_gaps`, `learning_recommendations`. |
 | GET | `{{baseUrl}}/roadmaps/recommendations?targetJobTitle=Java%20Backend%20Developer&skills=Java&skills=SQL` | CANDIDATE | `200` gợi ý theo mục tiêu/kỹ năng; không tạo roadmap, không gọi AI. |
 
-Query `targetJobTitle` bắt buộc, không trắng, tối đa 255 ký tự. `skills` tùy chọn, truyền nhiều key cùng tên; tối đa 50 tên không trắng, mỗi tên tối đa 150 ký tự. Bộ chọn lấy tối đa 20 focus skill và trả tối đa 15 resource đã lọc/trùng URL.
+Query `targetJobTitle` bắt buộc, không trắng, tối đa 255 ký tự. `skills` tùy chọn, truyền nhiều key cùng tên;
+tối đa 50 tên không trắng, mỗi tên tối đa 150 ký tự. API recommendations trực tiếp chỉ tra tài liệu
+cho skill được truyền, không tự suy ra kỹ năng người dùng thiếu và không tạo kế hoạch.
 
-`learning_recommendations` gồm `provider`, `source_catalog_url`, `focus_skills`, `roadmaps` và `resources`. `provider: "roadmap.sh"` là nguồn catalog lộ trình; từng resource có provider riêng, nên danh sách cũng có YouTube/Coursera do Admin duyệt khi phù hợp nghề/kỹ năng.
+Nguồn học mới có `learning_scope`, `focus_skills`, `roadmaps: []` và `resources`, được giới hạn theo skill.
+Kế hoạch mới còn có `missing_skills` và `skills` nhóm resource theo từng tên skill.
+Từng resource có provider riêng, gồm tài liệu chính thức hoặc YouTube/Coursera đã được Admin duyệt.
 
 Để kiểm thử khóa học mới: Admin tạo link → approve → Candidate gọi recommendations với skill tương ứng. Việc hiển thị tài nguyên trong roadmap/recommendations dựa vào khóa đã duyệt/active; không cần đợi index RAG. Để assistant RAG tìm được khóa, cần index thành công riêng.
 
@@ -1746,6 +1860,58 @@ Category khác trả `400`. Các endpoint này chưa có query phân trang ở c
 `resolution` bắt buộc, không trắng, tối đa 10.000 ký tự.
 Response là phản ánh sau xử lý; endpoint này không tự phát lệnh hoàn tiền qua cổng thanh toán.
 
+<a id="admin-resume-templates"></a>
+
+### 12.7. Quản trị template CV
+
+**Bearer Admin**, prefix `{{baseUrl}}/admin/resume-templates`: GET danh sách (mặc định
+`limit=50&offset=0`, tối đa 100 mục), GET `/{id}`, POST tạo, PUT `/{id}` thay thế đầy đủ và
+PATCH `/{id}/status` với `{ "active": false }` hoặc `true`. Không có hard DELETE template.
+
+Request dùng `name`, `careerPath`, `language`, `description`, `active`, `trialEnabled` và **`htmlContent` bắt buộc**;
+response metadata snake_case với `html_content` là HTML/CSS đã kiểm tra. Từ V19 không còn `layoutConfig`/`layout_config`.
+HTML tối đa 200.000 ký tự, phải có slot `fullName` và ít nhất một section hợp lệ; không nhận script hoặc tài nguyên ngoài.
+Admin có thể **POST `{{baseUrl}}/admin/resume-templates/import`**, Body `form-data` với `file` (File PDF/DOC/DOCX)
+và `language` (Text vi/en, mặc định vi). Để Postman tự đặt Content-Type multipart. Giới hạn 10 MB, PDF tối đa
+10 trang; tài liệu phải có text và không mã hóa/hỏng. Response gồm HTML bản nháp, các khối, cảnh báo và
+`requires_review=true`; chưa ghi template hoặc gọi AI. Admin sửa/gắn slot, xem lại rồi POST/PUT `htmlContent`
+theo hợp đồng lưu ở trên. Không hỗ trợ PPTX/OCR trong luồng này; không cam kết bố cục giống từng pixel.
+PDF giữ chữ dưới dạng HTML theo tọa độ và phần đồ họa/ảnh tĩnh dưới dạng PNG nhúng; dùng font hệ thống,
+CSS tự chứa, không tải Bootstrap/CDN. Ảnh Word chưa được nhập. PNG tối đa 200.000 byte, 2.048 px mỗi chiều,
+4.000.000 pixel; cả HTML gồm base64 vẫn tối đa 200.000 ký tự. Bố cục PDF cố định không tự phân trang khi
+nội dung Candidate dài hơn; cần xem thử dữ liệu, sửa vùng nội dung và xóa/thay ảnh/chữ mẫu trước khi lưu.
+Endpoint download CV vẫn không tự xuất PDF.
+Xem [thứ tự import → biên tập → lưu, quy ước slot và JSON Postman](html-resume-templates.md).
+
+Tắt mẫu ẩn nó khỏi `GET /resumes/templates` và ngăn chọn cho CV mới; CV cũ giữ `template_id`.
+Xem [contract, JSON tạo/sửa, validation và thứ tự test public/FK](admin-resume-templates.md).
+
+### 12.8. Biên độ lương gợi ý việc làm
+
+**Bearer Admin**:
+
+```http
+GET {{baseUrl}}/admin/matching/salary-policy
+PUT {{baseUrl}}/admin/matching/salary-policy
+```
+
+Body PUT raw JSON:
+
+```json
+{
+  "tolerancePercent": 20
+}
+```
+
+`tolerancePercent` là JSON number từ 0 đến 100, tối đa hai chữ số thập phân. Expected `200` với
+`tolerancePercent`, `minimumRatio`, `version`, `policyVersion`, `updatedAt` và `updatedBy` nếu đã có người chỉnh.
+Mặc định 10%, version 1. Ví dụ 20% cho phép job trả từ 80% lương kỳ vọng trở lên, không có trần phía trên.
+Lưu thực sự thay đổi giá trị sẽ tăng version và ghi audit; cấu hình tồn tại qua restart.
+
+Candidate chỉ đọc bằng **GET `{{baseUrl}}/matching/salary-policy`** với token Candidate; không được gọi PUT Admin.
+Thay đổi biên độ áp dụng cho lượt matching mới và đổi cache key; lịch sử giữ snapshot cũ.
+Xem [hướng dẫn và ví dụ 7,5 triệu](admin-salary-policy.md).
+
 <a id="section-13"></a>
 
 ## 13. Admin: thu thập và index việc làm
@@ -2116,8 +2282,8 @@ Các bước approve, archive, đổi mật khẩu, hủy gói hoặc thu hồi 
 | Guest | Tạo session → lưu `sessionKey` → lấy demo/template → build/matching/chat thử bằng cùng header Guest. |
 | Tài khoản | Register → lấy OTP → verify → login → lưu token → `/me` → cập nhật career profile. |
 | Admin/Consultant | Login Admin đã có → tạo account Consultant → login Consultant → lưu token vào biến riêng. |
-| CV | Tạo thủ công hoặc upload → xem/sửa kết quả bóc tách → confirm → đặt primary → phân tích/tải CV. |
-| Tìm việc | Xem skills/jobs → chọn `jobId` thật → matching → mở run/result → feedback → ATS hoặc draft ứng tuyển. |
+| CV/Ollama | Login → kiểm tra quota → build AI hoặc tạo thủ công/upload → xem/sửa dữ liệu → confirm `READY` → đặt primary → embedding 1024 → phân tích/tải CV → đối chiếu AI usage. |
+| Tìm việc | Admin import job active → index bằng embedding Ollama → xem skills/jobs → chọn `jobId` → matching theo CV `READY` → mở run/result → feedback → ATS hoặc draft ứng tuyển. |
 | Đánh giá kỹ năng | Tạo assessment → lấy các câu hỏi → trả lời đầy đủ → submit → xem kết quả → tạo roadmap liên quan. |
 | Lộ trình | Tạo roadmap → lưu ID → mở chi tiết → cập nhật node sau khi đủ prerequisite → kiểm tra tiến độ. |
 | Khóa học đã duyệt | Admin tạo course → xác nhận chưa xuất hiện trong gợi ý → approve → xem recommendations theo skill. |
@@ -2130,6 +2296,10 @@ Các bước approve, archive, đổi mật khẩu, hủy gói hoặc thu hồi 
 
 `assessmentId`, `resumeId`, `threadId` và các ID liên quan phải thuộc đúng người/luồng đang thử.
 Không dùng UUID ngẫu nhiên để thay đối tượng chưa được tạo. Lấy job/CV phù hợp trước khi gọi API phụ thuộc.
+
+Thứ tự folder, dữ liệu mẫu xuyên suốt và các điều kiện dừng nằm trong [checklist chạy Postman](postman-test-order.md#thu-tu-toan-bo).
+Để test CV trước, không cần tạo thanh toán, gói trả phí, job, RAG hoặc Consultant. Tài khoản mới dùng quota Free
+nếu catalog/seed đã cài đúng; backend vẫn kiểm tra token reserve trước mỗi lời gọi model.
 
 ### 15.2. Upload và download CV
 
@@ -2311,14 +2481,15 @@ Kiểm tra HTTP status trước khi đọc field; response download/SSE không p
 | `409` | Trùng dữ liệu, course trùng sau chuẩn hóa, trạng thái đã đóng/archived, dữ liệu chưa READY | Kiểm tra trạng thái hiện tại; không lặp thao tác tạo bằng cùng dữ liệu ngoài ý muốn. |
 | `413` | Upload vượt giới hạn | Kiểm tra `MULTIPART_MAX_FILE_SIZE`/`MULTIPART_MAX_REQUEST_SIZE` và giới hạn file của service. |
 | `429` | Hết quota token/trial hoặc giới hạn tần suất OTP/login | Xem usage/quota, chờ kỳ giới hạn hoặc dùng tài khoản test/gói phù hợp. |
-| `502` | Provider thất bại hoặc trả nội dung sai hợp đồng | Kiểm tra cấu hình AI, trạng thái provider và log của request. |
+| `502` | Ollama thất bại hoặc JSON/field đầu ra không đúng hợp đồng | Kiểm tra model đã tải, container, bộ nhớ, log; phản hồi JSON lỗi vẫn có thể bị tính token đã dùng. |
 | `503` | Database/SMTP/AI embedding/webhook chưa cấu hình hoặc chưa sẵn sàng | Kiểm tra các dependency và biến môi trường liên quan. |
 
 ### 16.3. Phạm vi hiện tại để tránh thử nhầm chức năng
 
 - Chưa có API Forgot/Reset Password qua email; đổi mật khẩu hiện yêu cầu đăng nhập và mật khẩu hiện tại.
 - Quota đang tính theo token/tính năng, chưa có hạn mức số lần gọi API độc lập.
-- Billing hiện có order, webhook và dữ liệu subscription/invoice; chưa có tích hợp checkout/QR thanh toán thật.
+- Billing đã có SePay Payment Gateway: form checkout được ký ở BE, IPN xác thực secret và xử lý trùng trước khi
+  kích hoạt gói. Cần cấu hình merchant và HTTPS công khai để thử với SePay; xem [hướng dẫn](sepay-payment-gateway.md).
 - Invoice API hiện phục vụ hóa đơn của chính người gọi. `payment-reports` là phản ánh thanh toán, không phải
   báo cáo analytics hoặc file xuất quản trị. Chưa có endpoint xuất báo cáo CSV/XLSX/PDF riêng.
 - Cấu hình AI/prompt tạo phiên bản mới. Lưu cấu hình embedding chưa thay bean/model embedding của process đang chạy.

@@ -1,6 +1,10 @@
-# Nguồn tham khảo cho roadmap học tập
+# Nguồn tham khảo cho việc học từng kỹ năng cần bổ sung
 
-EduNexus dùng danh sách liên kết đến roadmap.sh để gợi ý nguồn học theo nghề mục tiêu và kỹ năng.
+Luồng hiện tại chọn JD và hướng dẫn riêng từng skill cần bổ sung, không ghép lộ trình nghề đầy đủ.
+Xem [chọn JD, chuẩn bị bài đánh giá và thứ tự Postman](jd-assessment-missing-skills.md).
+
+EduNexus có danh sách liên kết đến roadmap.sh trong catalog tài nguyên. Luồng mới chọn tài nguyên
+theo từng kỹ năng được đối chiếu; các liên kết nguồn không được nhập thành chương trình nghề đầy đủ.
 Snapshot gồm 98 URL được trích từ [README của kho chính thức](https://github.com/nilbuild/developer-roadmap),
 kho được liên kết trên [roadmap.sh/roadmaps](https://roadmap.sh/roadmaps). Danh sách được đối chiếu ngày
 **14/10/2026** và lưu tại [roadmap-references.json](../src/main/resources/learning/roadmap-references.json).
@@ -13,10 +17,9 @@ Danh mục chứa `slug`, `title`, `url` và các tên gọi tương đương đ
 có nguồn catalog và ngày xác minh để đối chiếu. Nội dung bài viết, đồ thị và mô tả các topic của nhà
 cung cấp không được đưa vào snapshot này.
 
-Lộ trình cá nhân vẫn do EduNexus tạo từ nghề mục tiêu, job, CV đã xác nhận, hồ sơ kỹ năng và assessment
-của người dùng. Các node, thứ tự, prerequisite và skill gap thuộc luồng hiện có của ứng dụng. Danh sách
-nguồn tham khảo được đưa vào ngữ cảnh AI để chọn nguồn học phù hợp; URL tài nguyên được lưu từ catalog
-đã kiểm soát thay vì lấy URL do model tự sinh. Lộ trình trả về là kế hoạch cá nhân của EduNexus.
+Backend xác định danh sách kỹ năng bắt buộc của JD cần bổ sung từ hồ sơ, CV đã xác nhận và bài đánh giá
+cùng JD. Ollama chỉ viết nội dung luyện tập cho những kỹ năng đó. Các node, prerequisite và thời lượng
+thuộc kế hoạch học bù; URL tài nguyên được lưu từ catalog đã kiểm soát thay vì lấy URL do model tự sinh.
 
 Các liên kết đến roadmap.sh dẫn người dùng sang trang nguồn để xem nội dung đầy đủ. Tài nguyên từ
 catalog tài liệu hiện có, như hướng dẫn Java, Spring hoặc PostgreSQL, tiếp tục được sử dụng khi phù hợp
@@ -24,7 +27,7 @@ với kỹ năng của node.
 
 ## Cách dùng API
 
-Các endpoint dùng access token của tài khoản `CANDIDATE`. Request DTO giữ nguyên.
+Các endpoint dùng access token của tài khoản `CANDIDATE`. Tạo bài và kế hoạch mới bắt buộc `jobId`.
 
 Lấy nguồn tham khảo trực tiếp theo nghề và kỹ năng, kể cả khi `AI_ENABLED=false`:
 
@@ -34,11 +37,11 @@ Authorization: Bearer <accessToken>
 ```
 
 `targetJobTitle` bắt buộc; `skills` tùy chọn, có thể lặp tham số (`skills=SQL&skills=Java`) hoặc phân cách
-bằng dấu phẩy (`skills=SQL,Java`). Response trực tiếp là object gồm `provider`, `source_catalog_url`,
-`focus_skills`, `roadmaps`, `resources`, có cấu trúc như `learning_recommendations` trong bảng bên dưới.
+bằng dấu phẩy (`skills=SQL,Java`). Response trực tiếp gồm `learning_scope`, `focus_skills`,
+`roadmaps: []`, `resources`, có cấu trúc như `learning_recommendations` trong bảng bên dưới.
 Endpoint này chọn liên kết từ snapshot và catalog database, không gọi AI hoặc trừ quota AI.
 
-Tạo một lộ trình cho nghề mục tiêu:
+Tạo hướng dẫn riêng cho các kỹ năng cần bổ sung của JD đã chọn:
 
 ```http
 POST /api/v1/roadmaps
@@ -46,13 +49,14 @@ Authorization: Bearer <accessToken>
 Content-Type: application/json
 
 {
-  "targetJobTitle": "Java Backend Developer"
+  "jobId": "<UUID JD thật>"
 }
 ```
 
-Có thể gửi thêm `jobId`, `resumeId` hoặc `assessmentId` đã có trong API. CV được chọn phải ở trạng thái
-`READY`; assessment phải thuộc người dùng và phù hợp nghề mục tiêu. Các kiểm tra quyền, validation,
-transaction và quota tạo roadmap vẫn áp dụng.
+Có thể gửi thêm `resumeId` hoặc `assessmentId`. CV phải thuộc người dùng và ở trạng thái `READY`;
+assessment phải thuộc người dùng, đã completed và gắn đúng `jobId`. Nếu không gửi assessment,
+backend tìm bài completed gần nhất cho cùng JD. Các kiểm tra quyền, validation và transaction vẫn áp dụng.
+Chỉ gọi AI tạo hướng dẫn nếu có skill cần bổ sung; kết quả rỗng được lưu completed mà không gọi model.
 
 Đọc lộ trình bằng ID trả về từ bước tạo:
 
@@ -69,13 +73,20 @@ Các trường trong `learning_recommendations`:
 
 | Trường | Ý nghĩa |
 | --- | --- |
-| `provider` | Nguồn catalog roadmap tham khảo: `roadmap.sh`. |
-| `source_catalog_url` | Liên kết trang catalog nguồn để đối chiếu. |
+| `learning_scope` | `MISSING_SKILLS_ONLY` cho kết quả mới. |
 | `focus_skills` | Danh sách tên kỹ năng được ưu tiên trong gợi ý. |
-| `roadmaps` | Các liên kết được chọn, mỗi mục gồm `slug`, `title`, `url`. |
+| `roadmaps` | Mảng rỗng; không trả chương trình nghề đầy đủ trong kế hoạch mới. |
 | `resources` | Các bản ghi tài nguyên đang hoạt động từ catalog database, gồm nguồn và metadata hiện có. |
+| `missing_skills`, `skills` | Snapshot kế hoạch mới nhóm kết quả đối chiếu và tài nguyên theo từng skill. |
 
-Assessment cũng dùng nghề mục tiêu để chọn nguồn tham khảo:
+Trước khi làm bài, Candidate có thể đọc tài liệu theo kỹ năng JD mà chưa gọi AI:
+
+```http
+GET /api/v1/assessments/preparation?jobId=<UUID JD thật>
+Authorization: Bearer <accessToken>
+```
+
+Sau khi chuẩn bị, tạo bài đánh giá theo JD:
 
 ```http
 POST /api/v1/assessments
@@ -83,7 +94,7 @@ Authorization: Bearer <accessToken>
 Content-Type: application/json
 
 {
-  "targetJobTitle": "Java Backend Developer"
+  "jobId": "<UUID JD thật>"
 }
 ```
 
@@ -98,7 +109,7 @@ Kết quả bài đã hoàn thành, từ submit hoặc `GET /api/v1/assessments/
 `learning_recommendations` và ưu tiên kỹ năng có điểm dưới 70 trong `skill_scores`. Frontend có thể
 hiển thị các nguồn này ngay sau kết quả assessment, rồi cho người dùng tạo roadmap với `assessmentId`
 đã hoàn thành. Việc chọn/trả liên kết tham khảo không tạo thêm lời gọi AI, crawl hay quota AI;
-các bước tạo assessment và tạo roadmap vẫn dùng luồng AI hiện có.
+bước tạo assessment và bước tạo hướng dẫn khi có skill cần bổ sung mới gọi AI.
 
 ## Lưu trữ và cập nhật
 

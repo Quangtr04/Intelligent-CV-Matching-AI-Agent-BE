@@ -2,33 +2,23 @@ package com.example.intelligent_cv_matching_ai_agent.service.shared.identity;
 
 import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException;
 import com.example.intelligent_cv_matching_ai_agent.repository.shared.identity.TokenRepository;
+import com.example.intelligent_cv_matching_ai_agent.util.shared.identity.TokenSupport;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
-import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.security.oauth2.jwt.JwtTimestampValidator;
 import org.springframework.security.oauth2.jwt.JwtValidators;
-import org.springframework.security.oauth2.jwt.JwsHeader;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.spec.SecretKeySpec;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Base64;
-import java.util.HexFormat;
-import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
@@ -39,8 +29,6 @@ import java.util.UUID;
  */
 @Service
 public class TokenService {
-
-    private static final SecureRandom RANDOM = new SecureRandom();
 
     private final TokenRepository db;
 
@@ -53,42 +41,21 @@ public class TokenService {
         @Value("${app.security.jwt-secret}")
         String jwtSecret) {
         this.db = db;
-        SecretKeySpec key = signingKey(jwtSecret);
+        SecretKeySpec key = TokenSupport.signingKey(jwtSecret);
         this.encoder = NimbusJwtEncoder.withSecretKey(key).algorithm(MacAlgorithm.HS256).build();
         NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder.withSecretKey(key).macAlgorithm(MacAlgorithm.HS256).build();
         jwtDecoder.setJwtValidator(JwtValidators.createDefaultWithValidators(new JwtTimestampValidator(Duration.ZERO)));
         this.decoder = jwtDecoder;
     }
 
-    private static SecretKeySpec signingKey(
-        String secret) {
-        if (secret == null || secret.isBlank() || secret.getBytes(StandardCharsets.UTF_8).length < 32) {
-            throw new IllegalArgumentException("APP_JWT_SECRET must contain at least 32 random UTF-8 bytes");
-        }
-        String normalized = secret.strip().toLowerCase(Locale.ROOT);
-        if (normalized.contains("change-me") || normalized.contains("changeme") || normalized.startsWith("replace-")
-            || secret.contains("${")) {
-            throw new IllegalArgumentException("APP_JWT_SECRET must be a generated secret, not a placeholder");
-        }
-        return new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
-    }
-
     public static String random(
         String prefix) {
-        byte[] bytes = new byte[32];
-        RANDOM.nextBytes(bytes);
-
-        return prefix + Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+        return TokenSupport.random(prefix);
     }
 
     public static String hash(
         String value) {
-        try {
-            return HexFormat.of()
-                .formatHex(MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8)));
-        } catch (Exception ex) {
-            throw new IllegalStateException(ex);
-        }
+        return TokenSupport.hash(value);
     }
 
     @Transactional
@@ -98,7 +65,7 @@ public class TokenService {
 
         Instant issuedAt = Instant.now().truncatedTo(ChronoUnit.SECONDS);
         Instant expiresAt = issuedAt.plusSeconds(900);
-        String access = encodeAccessToken(userId, issuedAt, expiresAt);
+        String access = TokenSupport.encodeAccessToken(encoder, userId, issuedAt, expiresAt);
         String refresh = random("r_");
 
         save(userId, access, expiresAt.atOffset(java.time.ZoneOffset.UTC));
@@ -130,7 +97,7 @@ public class TokenService {
         if (access == null || access.startsWith("r_"))
             throw new ApiException(401, "Invalid access token");
 
-        UUID tokenUser = decodeAccessToken(access);
+        UUID tokenUser = TokenSupport.decodeAccessToken(decoder, access);
         Map<String, Object> session = db.findRefreshTokensByTokenHash(hash(access))
             .orElseThrow(() -> new ApiException(401, "Session expired or account unavailable"));
         if (!tokenUser.equals(session.get("id")))
@@ -170,29 +137,4 @@ public class TokenService {
         db.updateRefreshTokensByUserId(user);
     }
 
-    private String encodeAccessToken(
-        UUID userId,
-        Instant issuedAt,
-        Instant expiresAt) {
-        JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).type("JWT").build();
-        JwtClaimsSet claims = JwtClaimsSet.builder().subject(userId.toString()).id(UUID.randomUUID().toString())
-            .issuedAt(issuedAt).expiresAt(expiresAt).build();
-        return encoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue();
-    }
-
-    private UUID decodeAccessToken(
-        String token) {
-        try {
-            Jwt jwt = decoder.decode(token);
-            Instant now = Instant.now();
-            if (jwt.getSubject() == null || jwt.getId() == null || jwt.getId().isBlank() || jwt.getIssuedAt() == null
-                || jwt.getExpiresAt() == null || !jwt.getExpiresAt().isAfter(now) || jwt.getIssuedAt().isAfter(now)
-                || !jwt.getIssuedAt().isBefore(jwt.getExpiresAt())) {
-                throw new ApiException(401, "Invalid access token");
-            }
-            return UUID.fromString(jwt.getSubject());
-        } catch (JwtException | IllegalArgumentException ex) {
-            throw new ApiException(401, "Invalid access token");
-        }
-    }
 }

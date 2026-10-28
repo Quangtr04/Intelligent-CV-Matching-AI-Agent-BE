@@ -55,13 +55,9 @@ public class CandidateProfile {
     @Column(name = "years_experience", nullable = true, precision = 4, scale = 1)
     private BigDecimal yearsExperience;
 
-    @JsonProperty("expected_salary_min")
-    @Column(name = "expected_salary_min", nullable = true, precision = 14, scale = 2)
-    private BigDecimal expectedSalaryMin;
-
-    @JsonProperty("expected_salary_max")
-    @Column(name = "expected_salary_max", nullable = true, precision = 14, scale = 2)
-    private BigDecimal expectedSalaryMax;
+    @JsonProperty("expected_salary")
+    @Column(name = "expected_salary", nullable = true, precision = 14, scale = 2)
+    private BigDecimal expectedSalary;
 
     @JsonProperty("salary_currency")
     @Column(name = "salary_currency", nullable = true, length = 10)
