@@ -1,0 +1,49 @@
+classDiagram
+    direction TB
+    class AdminController {
+        <<controller>>
+        +configure(AiConfigurationRequest body) Map
+        +prompt(AiPromptRequest body) Map
+        +restoreConfiguration(UUID id) Map
+        +restorePrompt(UUID id) Map
+    }
+    class AdminService {
+        <<service>>
+        +configure(AiConfigurationRequest body) Map
+        +prompt(AiPromptRequest body) Map
+        +restoreConfiguration(UUID oldVersionId) Map
+        +restorePrompt(UUID oldVersionId) Map
+    }
+    class AdminRepository {
+        <<repository>>
+        +lockAiConfigurationType(String configType)
+        +getNextAiConfigurationVersion(String configType) int
+        +lockAiPromptFeatureCode(String featureCode)
+        +getNextAiPromptVersion(String featureCode) int
+    }
+    class AuditService {
+        <<service>>
+        +record()
+    }
+    class CurrentUser {
+        +id() UUID
+        +requireRole(String role)
+    }
+    class AiService {
+        <<service>>
+        +model() String
+        +generate(String feature, Map input) Map
+    }
+    class AiRepository {
+        <<repository>>
+        +findAiConfigurationsByConfigType() Optional
+        +findAiPromptTemplatesByFeatureCode() Optional
+    }
+    class SqlStore
+    AdminController --> AdminService : service
+    AdminService --> AdminRepository : db
+    AdminService --> CurrentUser : user
+    AdminService --> AuditService : audit
+    AdminRepository --> SqlStore : db
+    AiService --> AiRepository : db
+    AiRepository --> SqlStore : db

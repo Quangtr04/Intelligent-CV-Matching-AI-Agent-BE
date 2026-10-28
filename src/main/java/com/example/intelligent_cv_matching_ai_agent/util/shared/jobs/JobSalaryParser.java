@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.text.Normalizer;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -19,15 +20,37 @@ public final class JobSalaryParser {
         "\\b(?:year|yearly|annual|annually|annum|nam|day|daily|ngay|hour|hourly|gio|week|weekly|tuan|quarter|quy)\\b"
     );
 
-    private static final Pattern UNKNOWN_SALARY = Pattern.compile(
-        "\\b(?:negotiable|competitive|thoa thuan|canh tranh|up to|at least|over|under|tren|duoi|toi da|toi thieu)\\b"
+    private static final Pattern UNKNOWN_SALARY =
+        Pattern.compile("\\b(?:negotiable|competitive|thoa thuan|thuong luong|canh tranh|over|under|tren|duoi)\\b");
+
+    private static final Pattern CURRENCY =
+        Pattern.compile("\\b(vnd|usd|eur|gbp|jpy|sgd|aud|cad|hkd|nzd|chf|cny|krw|inr)\\b");
+
+    private static final Pattern PREFIXED_DOLLAR = Pattern.compile("\\b(us|sg|s|au|a|ca|c|hk|nz)\\s*\\$");
+
+    private static final Map<String, String> DOLLAR_PREFIXES = Map.ofEntries(
+        Map.entry("us", "USD"),
+        Map.entry("sg", "SGD"),
+        Map.entry("s", "SGD"),
+        Map.entry("au", "AUD"),
+        Map.entry("a", "AUD"),
+        Map.entry("ca", "CAD"),
+        Map.entry("c", "CAD"),
+        Map.entry("hk", "HKD"),
+        Map.entry("nz", "NZD")
     );
 
-    private static final Pattern CURRENCY = Pattern.compile("\\b(vnd|usd|eur|gbp|jpy|sgd|aud|cad)\\b");
+    private static final Set<String> DOLLAR_CURRENCIES = Set.of("USD", "SGD", "AUD", "CAD", "HKD", "NZD");
 
     private static final Pattern VIETNAMESE_UNIT = Pattern.compile("\\b(?:trieu|tr|ty|nghin|ngan)\\b");
 
-    private static final Pattern LOWER_BOUND_PREFIX = Pattern.compile("^\\s*(?:tu|from)\\s+");
+    private static final Pattern RANGE_PREFIX = Pattern.compile("^\\s*(?:tu|from)\\s+");
+
+    private static final Pattern LOWER_BOUND_PREFIX = Pattern.compile("^\\s*(?:at least|toi thieu)\\s+");
+
+    private static final Pattern UPPER_BOUND_PREFIX = Pattern.compile("^\\s*(?:up to|toi da)\\s+");
+
+    private static final Pattern LOWER_BOUND_SUFFIX = Pattern.compile("\\s*(?:tro len|or more|\\+)\\s*$");
 
     private static final Pattern QUANTITY =
         Pattern.compile("^(\\d+(?:[.,]\\d+)*)\\s*(trieu|tr|million|m|ty|billion|nghin|ngan|thousand|k)?\\s*(\\d+)?$");
@@ -44,7 +67,11 @@ public final class JobSalaryParser {
             Normalizer.normalize(salaryText, Normalizer.Form.NFD).replaceAll("\\p{M}+", "").replace('\u0111', 'd')
                 .replace('\u0110', 'D').toLowerCase(Locale.ROOT).replace('\u2013', '-').replace('\u2014', '-')
                 .replace('\u00a0', ' ').replaceAll("(?<=\\d)(?=[a-z])|(?<=[a-z])(?=\\d)", " ").strip();
-        if (OTHER_PERIOD.matcher(text).find() || UNKNOWN_SALARY.matcher(text).find()) {
+        if (OTHER_PERIOD.matcher(text).find()) {
+            return Optional.empty();
+        }
+        text = text.replaceAll("\\(\\s*(?:negotiable|thoa thuan|thuong luong)\\s*\\)", " ");
+        if (UNKNOWN_SALARY.matcher(text).find()) {
             return Optional.empty();
         }
 
@@ -53,8 +80,28 @@ public final class JobSalaryParser {
         while (currencyMatcher.find()) {
             currencies.add(currencyMatcher.group(1).toUpperCase(Locale.ROOT));
         }
-        if (text.contains("$") || text.contains("us$")) {
+        Matcher dollarMatcher = PREFIXED_DOLLAR.matcher(text);
+        while (dollarMatcher.find()) {
+            currencies.add(DOLLAR_PREFIXES.get(dollarMatcher.group(1)));
+        }
+        String bareSymbols = PREFIXED_DOLLAR.matcher(text).replaceAll(" ");
+        if (bareSymbols.contains("$") && (currencies.isEmpty() || !DOLLAR_CURRENCIES.containsAll(currencies))) {
             currencies.add("USD");
+        }
+        if (text.contains("\u20ac")) {
+            currencies.add("EUR");
+        }
+        if (text.contains("\u00a3")) {
+            currencies.add("GBP");
+        }
+        if (text.contains("\u20a9")) {
+            currencies.add("KRW");
+        }
+        if (text.contains("\u20b9")) {
+            currencies.add("INR");
+        }
+        if ((text.contains("\u00a5") || text.contains("\uffe5")) && !currencies.contains("CNY")) {
+            currencies.add("JPY");
         }
         if (text.contains("\u20ab") || text.matches(".*\\d\\s*d\\b.*")
             || VIETNAMESE_UNIT.matcher(text.replaceAll("(?<=\\d)(?=[a-z])", " ")).find()) {
@@ -64,14 +111,26 @@ public final class JobSalaryParser {
             return Optional.empty();
         }
 
-        text = CURRENCY.matcher(text).replaceAll(" ").replace("us$", " ").replace("$", " ").replace("\u20ab", " ")
+        text = PREFIXED_DOLLAR.matcher(text).replaceAll(" ");
+        text = CURRENCY.matcher(text).replaceAll(" ").replaceAll("[$\u20ac\u00a3\u20a9\u20b9\u00a5\uffe5\u20ab]", " ")
             .replaceAll("(?<=\\d)\\s*d\\b", " ")
             .replaceAll("(?:/\\s*|\\bper\\s+|\\ba\\s+)?\\b(?:month|monthly|thang)\\b", " ")
             .replaceAll("\\b(?:muc luong|luong|salary|gross|net)\\b", " ").replaceAll("[():]", " ").strip();
-        boolean hasLowerBoundPrefix = LOWER_BOUND_PREFIX.matcher(text).find();
-        text = LOWER_BOUND_PREFIX.matcher(text).replaceFirst("").replaceAll("\\b(?:to|den)\\b", "-").strip();
+        boolean rangePrefix = RANGE_PREFIX.matcher(text).find();
+        boolean lowerPrefix = LOWER_BOUND_PREFIX.matcher(text).find();
+        boolean upperPrefix = UPPER_BOUND_PREFIX.matcher(text).find();
+        boolean lowerSuffix = LOWER_BOUND_SUFFIX.matcher(text).find();
+        if (rangePrefix) {
+            text = RANGE_PREFIX.matcher(text).replaceFirst("");
+        } else if (lowerPrefix) {
+            text = LOWER_BOUND_PREFIX.matcher(text).replaceFirst("");
+        } else if (upperPrefix) {
+            text = UPPER_BOUND_PREFIX.matcher(text).replaceFirst("");
+        }
+        text = LOWER_BOUND_SUFFIX.matcher(text).replaceFirst("").replaceAll("\\b(?:to|den)\\b", "-").strip();
         String[] bounds = text.split("\\s*-\\s*", -1);
-        if (bounds.length < 1 || bounds.length > 2 || (hasLowerBoundPrefix && bounds.length != 2)) {
+        if (bounds.length < 1 || bounds.length > 2 || (upperPrefix && lowerSuffix)
+            || (bounds.length == 2 && (lowerPrefix || upperPrefix || lowerSuffix))) {
             return Optional.empty();
         }
         try {
@@ -93,7 +152,14 @@ public final class JobSalaryParser {
             if (minimum.signum() <= 0 || minimum.compareTo(maximum) > 0) {
                 return Optional.empty();
             }
-            return Optional.of(new MonthlySalary(minimum, maximum, currencies.iterator().next()));
+            boolean lowerOnly = bounds.length == 1 && (rangePrefix || lowerPrefix || lowerSuffix);
+            return Optional.of(
+                new MonthlySalary(
+                    upperPrefix ? null : minimum,
+                    lowerOnly ? null : maximum,
+                    currencies.iterator().next()
+                )
+            );
         } catch (NumberFormatException ex) {
             return Optional.empty();
         }
@@ -106,10 +172,14 @@ public final class JobSalaryParser {
             return null;
         }
         String number = matcher.group(1);
-        if (number.matches("\\d{1,3}(?:[.,]\\d{3})+")) {
-            number = number.replace(".", "").replace(",", "");
-        } else {
+        if (number.matches("\\d{1,3}(?:,\\d{3})+(?:\\.\\d{1,2})?")) {
+            number = number.replace(",", "");
+        } else if (number.matches("\\d{1,3}(?:\\.\\d{3})+(?:,\\d{1,2})?")) {
+            number = number.replace(".", "").replace(',', '.');
+        } else if (number.matches("\\d+(?:[.,]\\d+)?")) {
             number = number.replace(',', '.');
+        } else {
+            return null;
         }
         BigDecimal amount = new BigDecimal(number);
         String unit = matcher.group(2) == null ? "" : matcher.group(2);
@@ -133,7 +203,7 @@ public final class JobSalaryParser {
         };
     }
 
-    /** Inclusive advertised range, denominated in {@code currency} per month. */
+    /** Advertised monthly range; a null bound means that side was not disclosed. */
     public record MonthlySalary(
         BigDecimal minimum,
         BigDecimal maximum,

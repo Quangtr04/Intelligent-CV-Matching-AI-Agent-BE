@@ -61,7 +61,7 @@ class ResumeTemplateDocumentConverterTests {
         var document = Jsoup.parse((String) result.get("html_content"));
         assertEquals("en", document.selectFirst("html").attr("lang"));
         assertTrue(document.body().text().contains("Backend developer"));
-        assertTrue(document.selectFirst("p span").attr("style").contains("font-weight:700"));
+        assertTrue(document.selectFirst("p").attr("style").contains("font-weight:700"));
         assertTrue(document.select("img,svg,script,a,link,iframe").isEmpty());
         assertTrue(document.select("[data-cv-field],[data-cv-section]").isEmpty());
         assertFalse(((List<?>) result.get("warnings")).isEmpty());

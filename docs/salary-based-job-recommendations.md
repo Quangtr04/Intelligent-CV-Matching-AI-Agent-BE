@@ -1,8 +1,10 @@
-# Một mức lương kỳ vọng và gợi ý việc làm theo hồ sơ
+# Một mức lương kỳ vọng và gợi ý việc làm theo hồ sơ hoặc CV
 
 Candidate lưu **một mức lương kỳ vọng mỗi tháng**, ví dụ **7.500.000 VND**. Admin cấu hình phần trăm cho phép thấp hơn kỳ vọng;
 mặc định 10%, tương ứng job có mức lương **từ 90% mức kỳ vọng trở lên**. Lương cao hơn không bị giới hạn.
-Sau bước lọc lương, matching tiếp tục xếp hạng theo hồ sơ nghề nghiệp và kỹ năng.
+Sau bước đối chiếu lương, matching tiếp tục xếp hạng theo hồ sơ nghề nghiệp hoặc CV và kỹ năng.
+Chính sách hiện tại là **`candidate-configured-salary-monthly-floor-v3`**: quy đổi tiền tệ khi có tỷ giá,
+và vẫn xét job chưa đối chiếu được lương với nhãn **`UNVERIFIED`**. Không coi lương chưa biết là 0 hoặc là đã đạt kỳ vọng.
 Xem [cấu hình Admin, ví dụ và JSON Postman](admin-salary-policy.md).
 
 Biên độ là phần trăm cho phép thấp hơn kỳ vọng, không phải khoảng đối xứng. Ví dụ biên độ 10%, kỳ vọng 7,5 triệu
@@ -14,16 +16,30 @@ Gọi `E` là mức lương kỳ vọng, `P` là phần trăm do Admin đặt (0
 
 ```text
 minimum_acceptable = E × (1 − P / 100)
-job.salary_max >= minimum_acceptable
+comparison_salary_max >= minimum_acceptable
 ```
 
-Với job đăng một mức lương, `salary_min` và `salary_max` đều bằng mức đó. Với job đăng khoảng lương, chỉ cần mức tối đa đạt ngưỡng; điều này không bảo đảm nhà tuyển dụng sẽ trả mức tối đa cho mọi ứng viên.
+`comparison_salary_max` là mức tối đa theo tháng sau khi quy đổi sang tiền tệ của Candidate nếu cần.
+Job có mức tối đa xác định thấp hơn ngưỡng bị loại. Với một mức lương, hai đầu mút bằng nhau;
+với khoảng lương, mức tối đa phải đạt ngưỡng. Điều này không bảo đảm nhà tuyển dụng sẽ trả mức tối đa cho mọi ứng viên.
 
-Hai mức lương phải cùng tiền tệ và được so sánh theo tháng. Chưa quy đổi tỷ giá, gross/net, chi phí sinh hoạt hoặc thuế. Tin tuyển dụng không ghi kỳ trả lương được coi là lương tháng; tin ghi rõ năm/ngày/giờ/tuần bị loại. Lương không xác định, thương lượng, văn bản không đọc được chắc chắn, không có tiền tệ, nhiều tiền tệ mâu thuẫn hoặc khoảng mở không được dùng để kết luận phù hợp.
+Lương USD, EUR hoặc tiền tệ khác được quy đổi khi nguồn tỷ giá có đủ hai mã tiền tệ. Cùng tiền tệ dùng tỷ lệ 1,
+không phụ thuộc kết nối đến nguồn tỷ giá. Không quy đổi gross/net, chi phí sinh hoạt hoặc thuế.
+Tin không ghi kỳ trả lương được coi là lương tháng; tin ghi rõ năm/ngày/giờ/tuần không được tự chia thành lương tháng.
+
+Job thỏa thuận, không công khai lương, văn bản không đọc được chắc chắn, kỳ lương khác tháng,
+tiền tệ không rõ/mâu thuẫn, hoặc thiếu tỷ giá vẫn được xét theo kỹ năng và ghi `status = "UNVERIFIED"`, `verified = false`.
+Lý do là `SALARY_UNDISCLOSED_OR_UNPARSABLE` hoặc `EXCHANGE_RATE_UNAVAILABLE`; không có các chỉ số chênh lệch giả.
+`VERIFIED` nghĩa là đã đọc và đối chiếu được khoảng lương công bố, không bảo đảm mức offer thực tế.
+
+Khoảng một phía giữ đầu mút chưa biết là `null`: `Từ 10 triệu VND` có min 10 triệu/max `null`;
+`Up to 20 triệu VND` có min `null`/max 20 triệu. Các đầu mút là bao gồm. Không thay đầu mút thiếu bằng 0,
+một mức trần tùy ý hoặc một con số do AI đoán. Khi max là `null`, không có bằng chứng rằng toàn bộ khoảng thấp hơn ngưỡng;
+khi max xác định và dưới ngưỡng, job bị loại.
 
 Ví dụ candidate đặt `expectedSalary = 7500000`, `salaryCurrency = "VND"`, Admin đang giữ biên độ **10%**:
 
-| Lương job / tháng | Qua điều kiện lương? | Giải thích |
+| Lương job / tháng | Được xét gợi ý? | Giải thích |
 | --- | --- | --- |
 | 6.749.999 VND | Không | Thấp hơn 6.750.000 VND |
 | 6.750.000 VND | Có | Đúng ngưỡng 90% |
@@ -32,11 +48,36 @@ Ví dụ candidate đặt `expectedSalary = 7500000`, `salaryCurrency = "VND"`, 
 | 20.000.000 VND | Có | Lương cao hơn vẫn được xét |
 | 5–7 triệu VND | Có | Mức tối đa 7 triệu đạt ngưỡng |
 | 5–6 triệu VND | Không | Toàn bộ khoảng dưới ngưỡng |
-| 1.000 USD | Không | Khác tiền tệ, không tự quy đổi |
-| Thỏa thuận | Không | Không xác định được mức để đối chiếu |
-| 90.000.000 VND / năm | Không | Kỳ trả lương khác tháng |
+| 1.000 USD | Tùy tỷ giá | Quy đổi sang VND rồi so với ngưỡng; thiếu tỷ giá thì giữ với nhãn `UNVERIFIED` |
+| Từ 10 triệu VND | Có | `VERIFIED`, min 10 triệu và max `null` |
+| Up to 6 triệu VND | Không | Max 6 triệu dưới ngưỡng |
+| Thỏa thuận hoặc trống | Có | `UNVERIFIED`, chưa kết luận phù hợp lương |
+| 90.000.000 VND / năm | Có | `UNVERIFIED`, không tự quy đổi kỳ lương |
 
-“Có” chỉ nghĩa là qua điều kiện lương. Thứ hạng và số kết quả trả về còn phụ thuộc kỹ năng, phương pháp matching, trạng thái/index của job và `limit`.
+“Có” chỉ nghĩa là được đưa vào tập xét gợi ý; `UNVERIFIED` không có nghĩa đã đạt kỳ vọng lương.
+Thứ hạng và số kết quả trả về còn phụ thuộc kỹ năng, phương pháp matching, trạng thái/index của job và `limit`.
+
+## Tỷ giá và cấu hình vận hành
+
+Backend dùng [endpoint Open Access miễn phí của ExchangeRate-API](https://www.exchangerate-api.com/docs/free),
+cập nhật hằng ngày, không cần API key. Các trang dùng số quy đổi phải hiển thị link nguồn
+[ExchangeRate-API](https://www.exchangerate-api.com); FE của hai luồng matching đã có attribution này.
+
+```dotenv
+SALARY_EXCHANGE_ENABLED=true
+SALARY_EXCHANGE_URL=https://open.er-api.com/v6/latest/USD
+JOB_EMBEDDING_ENABLED=true
+```
+
+Nguồn hiện tại phải trả hợp đồng Open Access với `base_code = "USD"`, các mốc cập nhật và bảng `rates`.
+Cache tỷ giá dùng chung trong bộ nhớ backend, làm mới theo thời điểm cập nhật kế tiếp của nguồn và không chấp nhận
+dữ liệu quá **3 ngày**. Khi tải lỗi, tiếp tục dùng snapshot còn hạn; hết hạn hoặc chưa có dữ liệu thì chỉ đánh dấu
+các phép so khác tiền tệ là chưa xác minh. Sau lỗi chờ **15 phút** trước lần thử tiếp theo; HTTP timeout **3 giây**
+(connect timeout 2 giây). Không gửi request tỷ giá riêng cho từng job. `SALARY_EXCHANGE_ENABLED=false` tắt tải tỷ giá;
+job cùng tiền tệ vẫn đối chiếu được và job khác tiền tệ vẫn được xét với nhãn chưa xác minh.
+
+Thay biến môi trường cần khởi động lại backend/container. Tỷ giá chỉ là tham khảo theo thời điểm ghi ở
+`exchange_rate_as_of`/`conversion_as_of`, không phải cam kết mức lương sau thuế hoặc tỷ giá nhận tiền.
 
 ## Trên giao diện candidate
 
@@ -142,20 +183,72 @@ Kỳ vọng: `200`; phản hồi có `results`, `salary_filter` và `profile_sna
   "tolerance_percent": 10,
   "settings_version": 1,
   "reference": "CANDIDATE_EXPECTED_SALARY",
-  "unknown_salary_policy": "EXCLUDE",
-  "currency_policy": "SAME_CURRENCY"
+  "policy_version": "candidate-configured-salary-monthly-floor-v3",
+  "unknown_salary_policy": "INCLUDE_UNVERIFIED",
+  "currency_policy": "CONVERT_WHEN_AVAILABLE",
+  "exchange_rate_source": null,
+  "exchange_rate_as_of": null,
+  "verified_eligible_jobs": 0,
+  "unverified_eligible_jobs": 0
 }
 ```
 
-Metadata thực tế còn có `policy_version`, `examined_jobs`, `eligible_jobs`. `eligible_jobs` là số job qua điều kiện lương trước bước retrieval/ranking, không phải số dòng bắt buộc phải có trong `results`.
+Đây là minh họa cấu trúc, không phải kết quả đo trên dữ liệu thật. Khi có snapshot tỷ giá hợp lệ,
+`exchange_rate_source` là `https://www.exchangerate-api.com`, `exchange_rate_as_of` là ISO instant;
+hai trường này là `null` khi không có snapshot. Metadata thực tế còn có `examined_jobs`, `eligible_jobs`;
+`eligible_jobs` gồm cả verified và unverified trước bước retrieval/ranking, không phải số dòng bắt buộc trong `results`.
 Biên độ và `settings_version` được đọc một lần trước khi matching, cùng tham gia cache key. Lịch sử trước V15 có thể
 giữ `AT_LEAST_90_PERCENT` và không có `settings_version`; không viết lại các run cũ theo chính sách mới.
 
-Mỗi kết quả lưu lời giải thích ở `match_reason_json.salary_match`, gồm mức kỳ vọng, khoảng lương job, `closest_offer`, `difference_percent`, `shortfall_percent` và chính sách đã áp dụng. `difference_percent` đo khoảng cách từ kỳ vọng tới mức gần nhất trong khoảng lương job. Job cao hơn nhiều có thể có chỉ số này lớn hơn 10% và vẫn hợp lệ; điều kiện loại chỉ nằm ở ngưỡng thấp hơn.
+Mỗi kết quả lưu lời giải thích ở `match_reason_json.salary_match`:
 
-Có catalog job nhưng không có job qua điều kiện lương: trả `200` với `results: []`, `eligible_jobs: 0`; không gọi model để tạo thêm job hoặc nới điều kiện. Nếu không có job active nào được nhập, API trả `409`. Khi bật AI và có job đủ điều kiện nhưng chưa index embedding theo model hiện tại, API có thể trả `409` yêu cầu index trước.
+- `status`, `verified` cho biết lương đã đối chiếu được hay chưa.
+- `job_currency`, `job_salary_min`, `job_salary_max` là tiền tệ và khoảng lương gốc khi đọc được.
+- `comparison_salary_min`, `comparison_salary_max` là khoảng theo tiền tệ Candidate; một đầu mút có thể `null`.
+- `conversion_applied`, `conversion_rate`, `conversion_source`, `conversion_as_of` mô tả phép quy đổi khi có.
+- Chỉ kết quả verified có `closest_offer`, `difference_percent`, `shortfall_percent`.
+  `difference_percent` đo khoảng cách từ kỳ vọng tới mức gần nhất trong khoảng lương job.
+  Job cao hơn nhiều có thể có chỉ số này lớn hơn 10% và vẫn hợp lệ; điều kiện loại chỉ nằm ở ngưỡng thấp hơn.
+- Kết quả unverified có `reason` như trên, không tạo `closest_offer` hay `% chênh lệch` bằng 0 để giả định đạt kỳ vọng.
 
-### 5. Đọc lại kết quả và kiểm tra đổi kỳ vọng
+Có catalog job nhưng tất cả đều có lương đã đối chiếu được và max dưới ngưỡng: trả `200` với `results: []`,
+`eligible_jobs: 0`; không tạo job giả hoặc nới ngưỡng. Nếu không có job active nào được nhập, API trả `409`.
+Khi bật AI mà không có embedding hợp lệ cho tập job đủ điều kiện, matching chuyển sang
+`SKILL_OVERLAP_UNINDEXED_JOBS`, provider `RULE_BASED`, `llm_rerank_score = null` và không gọi rerank AI.
+Đây là fallback do chưa có vector phù hợp; không phải bằng chứng rằng Ollama đã đánh giá các job này.
+
+Khi chỉ một phần job đã có vector, backend bổ sung tối đa 20 job còn lại có kỹ năng trùng với hồ sơ/CV,
+rồi đưa cùng tập truy xuất vào các nhóm rerank AI tối đa 3 JD. Tổng tập rerank tối đa 100 job.
+Mỗi JD gửi tối đa 1.500 ký tự mô tả và 20 kỹ năng; không gửi URL hoặc điểm xếp hạng nội bộ.
+Schema ràng buộc số lượng kết quả và danh sách ID của từng nhóm; backend kiểm tra thiếu/trùng/ID lạ.
+Các nhóm dùng cùng thang điểm tuyệt đối 0–1, không chuẩn hóa trong từng nhóm. Không so trực tiếp điểm
+keyword với điểm LLM; từng kết quả lưu `match_reason_json.retrieval = SKILL` hoặc `VECTOR`.
+Khi toàn bộ index rỗng, fallback không gọi embedding/rerank và không tiêu quota model của candidate.
+
+### 5. Gợi ý theo CV đã xác nhận
+
+```http
+POST {{baseUrl}}/matching
+Content-Type: application/json
+```
+
+```json
+{
+  "basis": "SELECTED_CV",
+  "resumeIds": ["{{confirmedResumeId}}"],
+  "limit": 20
+}
+```
+
+`confirmedResumeId` phải thuộc Candidate và có trạng thái `READY`. Với tất cả CV đã xác nhận, dùng
+`basis = "ALL_CVS"`, `resumeIds = []`. Nếu hồ sơ có kỳ vọng lương, hai luồng dùng cùng chính sách v3;
+nếu chưa đặt kỳ vọng thì không áp dụng ngưỡng lương.
+
+Kiểm tra cả job VND, job USD/tiền tệ khác, job có lương dưới ngưỡng và job không công khai lương.
+Job unverified phải có nhãn/trường lý do và không có phần trăm chênh lệch giả; nếu có quy đổi thì kiểm tra nguồn,
+thời điểm và khoảng quy đổi thay vì hardcode tỷ giá trong test thủ công.
+
+### 6. Đọc lại kết quả và kiểm tra đổi kỳ vọng
 
 Lưu `id` của run thành biến `matchingRunId`, rồi gọi:
 
@@ -168,12 +261,20 @@ Run chỉ đọc được bởi chủ sở hữu. Chính sách và lời giải 
 Nếu Admin đang đặt 10%, thử cập nhật kỳ vọng thành `10000000` rồi matching lại: ngưỡng mới là `9000000`.
 Đổi biên độ sang 20% mà không đổi hồ sơ thì ngưỡng mới là `8000000` và phải dùng chính sách/cache mới.
 Cache key tính cả hồ sơ/mức lương, biên độ/phiên bản cấu hình, phiên bản chính sách, catalog và cấu hình matching.
+Phiên bản v3 và snapshot tỷ giá làm mất hiệu lực cache kết quả rỗng của chính sách cũ cho **POST mới**.
+`GET /matching/{id}` vẫn trả nguyên run lịch sử; để kiểm tra bản sửa phải gửi `POST /matching` mới,
+không chỉ mở lại ID của run từng trả 0 job.
 
 ## Phạm vi matching và model
 
 `CAREER_PROFILE` cần hồ sơ đã lưu và `expected_salary > 0`. Hai basis `ALL_CVS`/`SELECTED_CV` vẫn hoạt động theo CV; nếu candidate đã đặt lương kỳ vọng thì áp dụng cùng bộ lọc, còn chưa đặt thì giữ hành vi matching CV trước đây. CV phải đáp ứng điều kiện READY/ownership hiện có.
 
-Bộ lọc lương chạy bằng quy tắc xác định trước bước chọn job theo vector và AI rerank. Model không được quyền bỏ qua điều kiện lương. Khi tắt AI, matching dùng skill overlap; khi bật AI, backend dùng Ollama self-hosted đã cấu hình. Thay đổi này không thêm lời gọi model thương mại hoặc fallback trả phí.
+Bộ đối chiếu lương chạy bằng quy tắc xác định trước bước chọn job theo vector và AI rerank.
+Model không được quyền giữ lại job có max đã quy đổi dưới ngưỡng. Job chưa xác minh lương được giữ theo chính sách v3,
+không phải do model bỏ qua điều kiện. Khi tắt AI, matching dùng skill overlap; khi bật AI và có vector hợp lệ,
+backend dùng Ollama self-hosted. Nếu tập job chưa có vector hợp lệ thì dùng fallback đã mô tả ở trên.
+`JOB_EMBEDDING_ENABLED=true` cho phép worker lập chỉ mục job theo cấu hình model hiện tại;
+việc bật worker không chứng minh tất cả job đã index xong. Thay đổi này không thêm model thương mại hoặc fallback AI trả phí.
 
 ## Migration và kiểm chứng
 
@@ -181,21 +282,27 @@ Bộ lọc lương chạy bằng quy tắc xác định trước bước chọn 
 
 V15 bổ sung `matching_salary_settings` để Admin lưu biên độ, phiên bản, người và thời gian cập nhật;
 khởi tạo 10% để giữ hành vi cũ. Không đổi mức lương kỳ vọng riêng của Candidate.
+Sửa chính sách v3, quy đổi tỷ giá và fallback chưa có index **không cần migration database mới**;
+metadata được lưu trong các JSON snapshot/lời giải thích hiện có.
 
 Kiểm tra frontend adapter/parser và render có thể chạy từ thư mục frontend:
 
 ```powershell
 node scripts/test-career-salary.mjs
+node scripts/test-candidate-job-integration.mjs
 npm.cmd run build
 ```
 
 Script đầu bao phủ chuyển `7tr5`, từ chối khoảng lương/giá trị không hợp lệ, giữ dữ liệu hồ sơ khi PUT, request thật qua adapter,
 liên kết job an toàn và hiển thị ngưỡng từ chính sách backend/snapshot, không có trần. Đây là kiểm tra adapter/render bằng dữ liệu
 tổng hợp; không phải đo chất lượng model, nghiệm thu thao tác người dùng trong trình duyệt hay benchmark inference.
+Các kiểm tra hồi quy hiện tại còn bao phủ trạng thái chưa xác minh, tỷ giá/quy đổi, khoảng một phía,
+nguồn attribution và việc giữ nguyên mô tả snapshot lịch sử. Không dùng số test lịch sử bên dưới làm kết quả cho bản v3.
 
 ### Kiểm chứng ban đầu ngày 22/10/2026 — phiên bản cố định 10%
 
-Các số liệu bên dưới là lịch sử của bản V12. Kiểm chứng cấu hình Admin hiện tại được ghi riêng trong
+Các số liệu và quy tắc loại lương bên dưới là lịch sử của bản V12, **không phải hành vi v3**.
+Kiểm chứng cấu hình Admin được ghi riêng trong
 [hướng dẫn Admin](admin-salary-policy.md).
 
 | Kiểm tra | Kết quả | Bằng chứng |

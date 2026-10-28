@@ -35,7 +35,9 @@ Tài nguyên học lấy từ catalog/khóa học đã duyệt theo từng skill
 2. Mở `/candidate/assessment` (**Skill Assessment**). Chọn JD trong danh mục thật và xem nội dung JD.
    Phần **Chuẩn bị kiến thức theo JD** hiển thị từng skill, yêu cầu bắt buộc/bổ sung và tài liệu catalog
    để đọc trước. Chọn JD không tự sinh câu hỏi hoặc trừ quota sinh bài.
-3. Bấm **Tạo bài đánh giá theo JD** khi đã sẵn sàng. Chọn đáp án cho từng câu rồi bấm
+3. Bấm **Tạo bài đánh giá theo JD** khi đã sẵn sàng. Backend trả mã tác vụ ngay; giao diện đọc trạng thái
+   bằng các request ngắn, không giữ một request HTTP trong suốt lúc Ollama sinh câu hỏi. Có thể tải lại
+   trang và tiếp tục theo dõi tác vụ của đúng tài khoản/JD. Khi hoàn thành, chọn đáp án cho từng câu rồi bấm
    **Nộp bài và xem kết quả**; xem điểm theo skill, đáp án và giải thích sau khi nộp đủ bài.
 4. Bấm **Xem kỹ năng thiếu và cách học**. Liên kết sang `/candidate/skill-gap` giữ đúng JD và bài đã
    hoàn tất. Có thể mở trực tiếp `/candidate/skill-gap` hoặc `/candidate/learning` để chọn JD,
@@ -98,7 +100,7 @@ Endpoint đọc catalog, không gọi model và không tạo assessment. Chọn 
 ### 3. Sinh bài đánh giá từ JD đã chọn
 
 ```http
-POST {{baseUrl}}/assessments
+POST {{baseUrl}}/assessments/generations
 ```
 
 ```json
@@ -107,7 +109,35 @@ POST {{baseUrl}}/assessments
 }
 ```
 
-Lưu `id` response vào `assessmentId`. Response thành công có `status: "in_progress"`, `market_job_id`
+Response **202 Accepted** trả tác vụ, ví dụ:
+
+```json
+{
+  "id": "{{generationId}}",
+  "job_id": "{{jobId}}",
+  "status": "QUEUED",
+  "assessment_id": null,
+  "error_code": null,
+  "message": null
+}
+```
+
+Lưu `id` vào `generationId`, rồi đọc trạng thái khoảng mỗi 2–3 giây:
+
+```http
+GET {{baseUrl}}/assessments/generations/{{generationId}}
+GET {{baseUrl}}/assessments/generations?jobId={{jobId}}
+```
+
+GET theo mã tác vụ trả object; GET danh sách trả mảng tác vụ gần nhất cho mỗi JD (tối đa 20 JD nếu không
+lọc `jobId`). Chỉ tài khoản sở hữu được đọc. Trạng thái là `QUEUED`, `RUNNING`, `SUCCEEDED` hoặc `FAILED`.
+Khi `SUCCEEDED`, lấy `assessment_id` làm `assessmentId` và gọi `GET /assessments/{{assessmentId}}`.
+Khi `FAILED`, hiển thị `message` và chỉ tạo lại khi người dùng chủ động bấm. `AI_TIMEOUT` nghĩa là
+model vượt thời gian chờ; `INTERRUPTED` nghĩa là worker bị gián đoạn, không tự chạy lại để tránh trừ quota lặp.
+
+Gửi POST lại khi tác vụ cùng tài khoản/JD đang chờ/chạy trả về **cùng mã tác vụ**, không tạo thêm lời gọi AI.
+Hàng đợi giới hạn 3 tác vụ đang hoạt động mỗi tài khoản, 50 toàn hệ thống; quá giới hạn trả `429`.
+Tác vụ đã hoàn tất trả bài assessment có `status: "in_progress"`, `market_job_id`
 bằng `jobId`, **10 câu hỏi**: 5 câu nền tảng (`part: 1`) và 5 câu kỹ thuật theo JD (`part: 2`).
 Mỗi câu có `id`, `question_text`, `options` A/B/C/D, `related_skill_name` và `sequence_order`.
 AI phải chọn skill có trong JD và cung cấp trích dẫn JD để backend kiểm tra trước khi lưu;
@@ -116,12 +146,19 @@ trích dẫn kiểm tra nội bộ này không phải field được đảm bả
 
 `jobId` là bắt buộc. Không còn tạo bài bằng body chỉ có `targetJobTitle`. Nếu gửi thêm `targetJobTitle`,
 nó phải khớp tên JD được chọn; cách đơn giản là chỉ gửi `jobId` như trên. Model local cần đang chạy,
-AI được bật và tài khoản còn quota. Tăng timeout Postman nếu model đang cold start.
+AI được bật và tài khoản còn quota. Tác vụ nền không đảm bảo AI luôn trả kết quả hợp lệ hoặc nhanh;
+thời gian còn phụ thuộc phần cứng, cold start và tải model. Tác vụ chờ được lưu trong database; tác vụ
+đang chạy bị gián đoạn chuyển lỗi khi hết lease 30 phút, thay vì âm thầm gọi lại model.
+
+Endpoint đồng bộ cũ `POST /assessments` vẫn được giữ để tương thích Postman/client cũ, nhưng phải chờ model
+trong một request. FE dùng luồng tác vụ nền ở trên để tránh timeout của browser/proxy.
 
 Model riêng cho sinh câu hỏi được cấu hình bằng `AI_ASSESSMENT_MODEL=qwen3.5:4b`,
 `AI_ASSESSMENT_THINK=true`, `AI_ASSESSMENT_MAX_OUTPUT_TOKENS=12000`,
 `AI_ASSESSMENT_CONTEXT_LENGTH=16384`. Ngân sách này dành cho phần suy luận
-và JSON kết quả; thinking cần thêm token/thời gian, chưa có cam kết tốc độ hoặc độ đúng đáp án.
+và JSON kết quả. Giữ cấu hình hiện có vì thử nghiệm chưa chứng minh được cấu hình thay thế tốt hơn. Model request có
+giới hạn `AI_REQUEST_TIMEOUT=PT15M` và không tự retry lời gọi khi timeout. Việc chuyển sang tác vụ nền tránh
+giữ request HTTP quá lâu; chưa có cam kết tốc độ hoặc độ đúng đáp án.
 Các chức năng CV/chat/hướng dẫn học vẫn dùng `AI_CHAT_MODEL=qwen2.5:7b`;
 embedding không đổi. Model [Qwen3.5 4B trên Ollama](https://ollama.com/library/qwen3.5:4b) có
 [model card chính thức với giấy phép Apache 2.0](https://huggingface.co/Qwen/Qwen3.5-4B).

@@ -1,0 +1,56 @@
+classDiagram
+    direction TB
+    class ResumeController {
+        +create(body)
+        +build(body)
+        +upload(file, title, language)
+        +update(id, body)
+        +confirm(id, body)
+        +analyze(id)
+    }
+    class ResumeService {
+        +upload(file, title, language)
+        +create(input, generated)
+        +update(id, input)
+        +confirm(id, input)
+        +analyze(id)
+        +owned(id)
+    }
+    class ResumeRepository {
+        +insertResumes(fields)
+        +insertResumeParseResults(fields)
+        +insertResumeAnalyses(fields)
+    }
+    class ResumeFileExtractor {
+        +extract(file)
+    }
+    class ExtractedResume {
+        <<record>>
+        +bytes()
+        +filename()
+        +mimeType()
+        +text()
+    }
+    class ResumeData {
+        <<utility>>
+        +normalize(source)$
+    }
+    class AiService {
+        +generate(feature, input)
+    }
+    class CurrentUser {
+        +id()
+        +owns(row, ownerField)
+    }
+    class SqlStore {
+        +insert(table, fields)
+        +update(sql, args)
+    }
+    ResumeController --> ResumeService : service
+    ResumeService --> ResumeRepository : db
+    ResumeService --> ResumeFileExtractor : extractor
+    ResumeService --> AiService : ai
+    ResumeService --> CurrentUser : current
+    ResumeService ..> ResumeData : normalize
+    ResumeFileExtractor ..> ExtractedResume : returns
+    ResumeRepository --> SqlStore : db

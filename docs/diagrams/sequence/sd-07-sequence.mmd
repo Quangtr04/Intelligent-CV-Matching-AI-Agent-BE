@@ -1,0 +1,70 @@
+sequenceDiagram
+    autonumber
+    actor C as Candidate
+    participant FE as FE SkillAssessment
+    participant API as AssessmentGenerationController
+    participant Queue as AssessmentGenerationService
+    participant Worker as Scheduled worker
+    participant Assess as AssessmentService
+    participant AI as AiService
+    participant DB as PostgreSQL
+
+    C->>FE: Chọn JD và tạo bài đánh giá
+    FE->>FE: Bắt đầu timer toàn tác vụ
+    FE->>API: POST /assessments/generations
+    API->>Queue: start(jobId, targetJobTitle)
+    Queue->>DB: Transaction ngắn, lock queue, xử lý lease hết hạn
+    Queue->>DB: Kiểm tra account ACTIVE và request cùng user/JD
+    alt Đã có QUEUED hoặc RUNNING
+        DB-->>Queue: Request hiện có
+    else Chưa có request đang chạy
+        Queue->>Assess: prepareForOwner(owner, target, jobId)
+        Assess->>DB: Đọc JD hợp lệ, skills và profile
+        Queue->>DB: Kiểm tra giới hạn queue, INSERT QUEUED
+    end
+    Queue-->>FE: 202 Accepted, generationId và status
+
+    par Worker xử lý độc lập
+        Worker->>Queue: processNext()
+        Queue->>DB: Claim một request, chuyển RUNNING và cấp lease_token
+        Note over Queue,DB: Chỉ một RUNNING còn lease trên toàn hệ thống
+        Queue->>Assess: Chuẩn bị lại snapshot theo owner
+        Assess->>DB: Kiểm tra account/JD hiện tại
+        Note over Queue,AI: Không giữ transaction JDBC của worker trong lúc inference
+        Assess->>AI: generateForUser(owner, ASSESSMENT_GENERATE, input)
+        AI-->>Assess: Câu hỏi có cấu trúc hoặc lỗi
+        alt Kết quả hợp lệ, lease và dữ liệu còn hợp lệ
+            Queue->>DB: Bắt đầu transaction publication, khóa lease
+            Queue->>Assess: persist(prepared, generated)
+            Assess->>DB: Hạ bài cũ, INSERT session và questions
+            Queue->>DB: UPDATE SUCCEEDED và assessment_id
+            Note over Queue,DB: Assessment và SUCCEEDED commit cùng transaction
+        else Model lỗi hoặc không thể publish
+            Queue->>DB: Rollback phần dở, ghi FAILED nếu còn quyền lease
+            Note over Queue: Không tự chạy lại model sau lỗi
+        end
+    and FE theo dõi
+        loop Khi status là QUEUED hoặc RUNNING
+            FE->>API: GET /assessments/generations/{id}
+            API->>Queue: status(id), kiểm tra owner
+            Queue->>DB: Đọc trạng thái
+            DB-->>FE: status, assessment_id hoặc error
+            FE->>FE: Chờ 2 giây và tiếp tục timer
+        end
+    end
+
+    alt SUCCEEDED
+        FE->>Assess: GET /assessments/{assessmentId} qua LearningController
+        Assess->>DB: Đọc session và câu hỏi thuộc owner
+        Assess-->>FE: Bài in_progress, ẩn đáp án và explanation
+        FE->>FE: Dừng timer tạo AI, mở bài thi
+    else FAILED hoặc client dừng theo dõi
+        FE->>FE: Dừng timer, hiển thị lỗi/trạng thái phù hợp
+    end
+
+    opt Reload hoặc quay lại JD
+        FE->>API: GET /assessments/generations?jobId=...
+        API->>Queue: latest(jobId) theo owner
+        Queue->>DB: Đọc tác vụ đã lưu
+        Queue-->>FE: Request để tiếp tục poll, không enqueue lại
+    end

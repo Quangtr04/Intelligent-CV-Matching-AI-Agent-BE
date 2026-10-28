@@ -121,6 +121,49 @@ class SecurityHttpIntegrationTests {
         assertEquals(401, send("GET", "/error", null).statusCode());
     }
 
+    @Test
+    void browserPreflightAllowsConfiguredFrontendAndGuestHeadersWithoutAuthentication() throws Exception {
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:" + port + TEMPLATES + "/import"))
+            .header("Origin", "http://localhost:5173").header("Access-Control-Request-Method", "POST")
+            .header("Access-Control-Request-Headers", "authorization,content-type,x-guest-session")
+            .method("OPTIONS", HttpRequest.BodyPublishers.noBody()).build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        assertEquals(200, response.statusCode(), response.body());
+        assertEquals("http://localhost:5173", response.headers().firstValue("Access-Control-Allow-Origin").orElse(""));
+        assertTrue(response.headers().firstValue("Access-Control-Allow-Methods").orElse("").contains("POST"));
+        String headers = response.headers().firstValue("Access-Control-Allow-Headers").orElse("").toLowerCase();
+        assertTrue(headers.contains("authorization"));
+        assertTrue(headers.contains("x-guest-session"));
+    }
+
+    @Test
+    void corsHeadersArePresentOnPublicDataAndAuthenticationErrors() throws Exception {
+        for (String path : List.of("/api/v1/jobs?limit=1", "/api/v1/me")) {
+            HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:" + port + path))
+                .header("Origin", "http://localhost:5173").GET().build();
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            assertEquals(path.contains("jobs") ? 200 : 401, response.statusCode(), response.body());
+            assertEquals(
+                "http://localhost:5173",
+                response.headers().firstValue("Access-Control-Allow-Origin").orElse("")
+            );
+        }
+    }
+
+    @Test
+    void corsRejectsUnconfiguredOriginsAndHeaders() throws Exception {
+        HttpRequest unknownOrigin = HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/api/v1/jobs"))
+            .header("Origin", "https://untrusted.example.test").GET().build();
+        HttpResponse<String> denied = client.send(unknownOrigin, HttpResponse.BodyHandlers.ofString());
+        assertEquals(403, denied.statusCode());
+        assertTrue(denied.headers().firstValue("Access-Control-Allow-Origin").isEmpty());
+        HttpRequest unknownHeader = HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/api/v1/jobs"))
+            .header("Origin", "http://localhost:5173").header("Access-Control-Request-Method", "GET")
+            .header("Access-Control-Request-Headers", "x-not-supported")
+            .method("OPTIONS", HttpRequest.BodyPublishers.noBody()).build();
+        assertEquals(403, client.send(unknownHeader, HttpResponse.BodyHandlers.ofString()).statusCode());
+    }
+
     private String token(
         String role) {
         UUID id = db.insert(

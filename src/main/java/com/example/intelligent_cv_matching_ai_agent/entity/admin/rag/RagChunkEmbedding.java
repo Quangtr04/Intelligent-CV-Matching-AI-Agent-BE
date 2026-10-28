@@ -54,11 +54,6 @@ public class RagChunkEmbedding {
     @Column(name = "embedding", nullable = true, columnDefinition = "vector(1024)")
     private String embedding;
 
-    @JsonIgnore
-    @ColumnTransformer(read = "embedding_legacy_1536::text", write = "?::vector")
-    @Column(name = "embedding_legacy_1536", insertable = false, updatable = false, columnDefinition = "vector(1536)")
-    private String embeddingLegacy1536;
-
     @JsonProperty("created_at")
     @Column(name = "created_at", nullable = false, columnDefinition = "timestamptz")
     private OffsetDateTime createdAt;

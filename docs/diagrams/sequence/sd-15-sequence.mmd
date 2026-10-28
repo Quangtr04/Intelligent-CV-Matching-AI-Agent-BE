@@ -1,0 +1,34 @@
+sequenceDiagram
+    autonumber
+    actor U as User đã đăng nhập
+    actor A as Admin
+    participant API as Support APIs
+    participant Support as SupportService
+    participant DB as PostgreSQL
+
+    U->>API: POST /support/tickets
+    API->>Support: create(subject, category, description)
+    Support->>DB: INSERT ticket OPEN, priority NORMAL, user_id hiện tại
+    Support-->>U: Ticket detail
+
+    U->>API: POST /support/tickets/{id}/messages
+    API->>Support: message(id, content)
+    Support->>DB: Lock ticket, kiểm tra owner hoặc Admin
+    alt Ticket CLOSED
+        Support-->>U: 409
+    else Ticket còn cho phép trao đổi
+        Support->>DB: INSERT message và UPDATE updated_at
+        Support-->>U: Tin nhắn đã lưu
+    end
+
+    A->>API: POST /support/tickets/{id}/messages
+    API->>Support: message(id, content)
+    Support->>DB: Kiểm tra quyền/trạng thái, lưu Admin reply
+    Support->>DB: Thông báo SUPPORT_REPLY cho owner nếu Admin khác owner
+    Support-->>A: Tin nhắn đã lưu
+
+    A->>API: PATCH ticket status, priority, assignedAdminId
+    API->>Support: update(id, body), yêu cầu ADMIN
+    Support->>DB: Lock ticket, kiểm tra assignment hợp lệ
+    Support->>DB: UPDATE ticket và INSERT audit_logs
+    Support-->>A: Ticket detail mới

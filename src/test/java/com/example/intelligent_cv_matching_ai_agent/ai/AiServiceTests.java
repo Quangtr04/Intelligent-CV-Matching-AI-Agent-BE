@@ -249,7 +249,8 @@ class AiServiceTests {
                         prompt -> "updated-model".equals(prompt.getOptions().getModel())
                             && prompt
                                 .getOptions() instanceof org.springframework.ai.ollama.api.OllamaChatOptions options
-                            && "json".equals(options.getFormat())
+                            && options.getFormat() instanceof Map<?, ?> format
+                            && List.of("answer").equals(format.get("required"))
                             && Integer.valueOf(512).equals(options.getNumPredict()) && options.getThinkOption() == null
                     )
             );
@@ -470,6 +471,116 @@ class AiServiceTests {
     }
 
     @Test
+    void assessmentModelTimeoutIsReportedWithoutLeakingProviderTextOrLosingTheReservation() {
+        UUID actor = UUID.randomUUID(), reservation = UUID.randomUUID();
+        ChatModel chat = mock(ChatModel.class);
+        when(chats.getIfAvailable()).thenReturn(chat);
+        when(chats.getObject()).thenReturn(chat);
+        when(user.id()).thenReturn(actor);
+        when(entitlement.reserve(eq(actor), eq("ASSESSMENT_GENERATE"), anyInt())).thenReturn(reservation);
+        when(chat.call(any(Prompt.class))).thenThrow(
+            new org.springframework.web.client.ResourceAccessException(
+                "sensitive provider body",
+                new java.net.SocketTimeoutException("sensitive provider connection")
+            )
+        );
+        ApiException failure = assertThrows(
+            ApiException.class,
+            () -> service(true)
+                .generate("ASSESSMENT_GENERATE", Map.of("jd_skills", List.of(Map.of("skill_name", "Java"))))
+        );
+        assertEquals(504, failure.status());
+        assertTrue(failure.getMessage().contains("not automatically retried"));
+        assertFalse(failure.getMessage().contains("sensitive"));
+        verify(chat, times(1)).call(any(Prompt.class));
+        verify(entitlement).cancel(reservation);
+        verify(recorder).record(argThat(row -> "Local model request timed out".equals(row.get("error_message"))));
+    }
+
+    @Test
+    void incompleteGenerationReportsTheTokenLimitAndDoesNotCallTheModelAgain() {
+        UUID actor = UUID.randomUUID(), reservation = UUID.randomUUID();
+        ChatModel chat = mock(ChatModel.class);
+        when(chats.getIfAvailable()).thenReturn(chat);
+        when(chats.getObject()).thenReturn(chat);
+        when(user.id()).thenReturn(actor);
+        when(entitlement.reserve(eq(actor), eq("CAREER_CHAT"), anyInt())).thenReturn(reservation);
+        when(chat.call(any(Prompt.class))).thenReturn(
+            new ChatResponse(
+                List.of(
+                    new Generation(
+                        new AssistantMessage("{\"answer\":\"Incomplete thought"),
+                        ChatGenerationMetadata.builder().finishReason("length").build()
+                    )
+                ),
+                ChatResponseMetadata.builder().usage(new DefaultUsage(80, 512)).build()
+            )
+        );
+
+        ApiException failure =
+            assertThrows(ApiException.class, () -> service(true).generate("CAREER_CHAT", Map.of("message", "Hello")));
+
+        assertEquals(502, failure.status());
+        assertTrue(failure.getMessage().contains("output token limit"));
+        assertTrue(failure.getMessage().contains("not automatically retried"));
+        verify(chat, times(1)).call(any(Prompt.class));
+        verify(entitlement).complete(reservation, 592);
+        verify(entitlement, never()).cancel(any());
+        verify(recorder)
+            .record(
+                argThat(
+                    row -> Boolean.FALSE.equals(row.get("success"))
+                        && "Local model output reached its token limit before finishing"
+                            .equals(row.get("error_message"))
+                        && Integer.valueOf(592).equals(row.get("total_tokens"))
+                )
+            );
+    }
+
+    @Test
+    void applicationWritingRequiresBothPersistedDraftsAndInstructsConciseFactualWriting() {
+        ChatModel chat = mock(ChatModel.class);
+        when(chats.getIfAvailable()).thenReturn(chat);
+        when(chats.getObject()).thenReturn(chat);
+        when(chat.call(any(Prompt.class))).thenReturn(
+            new ChatResponse(
+                List.of(
+                    new Generation(
+                        new AssistantMessage(
+                            "{\"subject\":\"Backend application\",\"email\":\"Dear hiring team, Java experience.\","
+                                + "\"cover_letter\":\"I am applying for the supplied backend role.\"}"
+                        )
+                    )
+                )
+            )
+        );
+
+        Map<String, Object> generated = service(true).generate(
+            "APPLICATION_EMAIL",
+            Map.of("language", "en", "resume_text", "Built Java APIs", "job", Map.of("job_title", "Backend"))
+        );
+
+        assertEquals("Backend application", generated.get("subject"));
+        verify(chat).call(org.mockito.ArgumentMatchers.<Prompt>argThat(prompt -> {
+            if (!(prompt.getOptions() instanceof OllamaChatOptions options)
+                || !(options.getFormat() instanceof Map<?, ?> format))
+                return false;
+            String system = prompt.getInstructions().getFirst().getText();
+            return List.of("subject", "email", "cover_letter").equals(format.get("required"))
+                && Boolean.FALSE.equals(format.get("additionalProperties"))
+                && system.contains("email of at most 120 words") && system.contains("at most 200 words")
+                && system.contains("Do not invent a recipient name") && system.contains("Respond in English.");
+        }));
+
+        when(chat.call(any(Prompt.class))).thenReturn(
+            new ChatResponse(
+                List.of(new Generation(new AssistantMessage("{\"subject\":\"Backend\",\"email\":\"Only email\"}")))
+            )
+        );
+        assertThrows(ApiException.class, () -> service(true).generate("APPLICATION_EMAIL", Map.of()));
+    }
+
+    @Test
     void blankAssessmentModelFallsBackToTheCurrentGeneralModel() {
         ChatModel chat = mock(ChatModel.class);
         when(chats.getIfAvailable()).thenReturn(chat);
@@ -499,7 +610,6 @@ class AiServiceTests {
                     new Generation(
                         new AssistantMessage(
                             "{\"title\":\"Practice Docker\",\"summary\":\"Focus on the missing skill\","
-                                + "\"skill_gaps\":[{\"skill_name\":\"Docker\"}],"
                                 + "\"nodes\":[{\"skill_name\":\"Docker\",\"description\":\"Build an image\","
                                 + "\"estimated_hours\":3,\"prerequisites\":[]}]}"
                         )
@@ -524,12 +634,13 @@ class AiServiceTests {
                 return false;
             Map<?, ?> properties = (Map<?, ?>) format.get("properties");
             Map<?, ?> nodes = (Map<?, ?>) properties.get("nodes");
-            Map<?, ?> item = (Map<?, ?>) nodes.get("items");
+            Map<?, ?> item = (Map<?, ?>) ((List<?>) nodes.get("prefixItems")).getFirst();
             Map<?, ?> fields = (Map<?, ?>) item.get("properties");
             Map<?, ?> skill = (Map<?, ?>) fields.get("skill_name");
             return "test-chat".equals(options.getModel()) && options.getThinkOption() == null
                 && options.getNumCtx() == null && Integer.valueOf(4000).equals(options.getNumPredict())
-                && List.of("Docker").equals(skill.get("enum"))
+                && "Docker".equals(skill.get("const")) && !nodes.containsKey("items")
+                && !properties.containsKey("skill_gaps")
                 && prompt.getInstructions().getFirst().getText().contains("not a complete career roadmap");
         }));
     }
@@ -556,6 +667,30 @@ class AiServiceTests {
         verify(recorder).record(
             argThat(row -> "EMBEDDING".equals(row.get("feature_code")) && Boolean.FALSE.equals(row.get("success")))
         );
+    }
+
+    @Test
+    void completeValidatedJsonAtTheTokenLimitRemainsUsable() {
+        ChatModel chat = mock(ChatModel.class);
+        when(chats.getIfAvailable()).thenReturn(chat);
+        when(chats.getObject()).thenReturn(chat);
+        when(chat.call(any(Prompt.class))).thenReturn(
+            new ChatResponse(
+                List.of(
+                    new Generation(
+                        new AssistantMessage("{\"answer\":\"Complete answer\"}"),
+                        ChatGenerationMetadata.builder().finishReason("length").build()
+                    )
+                )
+            )
+        );
+
+        assertEquals(
+            "Complete answer",
+            service(true).generate("CAREER_CHAT", Map.of("message", "Hello")).get("answer")
+        );
+        verify(chat, times(1)).call(any(Prompt.class));
+        verify(recorder).record(argThat(row -> Boolean.TRUE.equals(row.get("success"))));
     }
 
     @Test

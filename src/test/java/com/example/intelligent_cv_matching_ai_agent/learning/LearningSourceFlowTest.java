@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.PlatformTransactionManager;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -51,9 +52,13 @@ class LearningSourceFlowTest {
 
     private final LearningReferenceService references = mock(LearningReferenceService.class);
 
-    private final AssessmentService assessments = new AssessmentService(assessmentDb, current, ai);
+    private final AssessmentService assessments =
+        new AssessmentService(assessmentDb, current, ai, mock(PlatformTransactionManager.class));
 
-    private final LearningService service = new LearningService(db, current, ai, assessments, resumes, references);
+    private final PlatformTransactionManager transactions = mock(PlatformTransactionManager.class);
+
+    private final LearningService service =
+        new LearningService(db, current, ai, assessments, resumes, references, transactions);
 
     private final UUID actor = UUID.randomUUID();
 
@@ -108,7 +113,7 @@ class LearningSourceFlowTest {
         SecurityContextHolder.setContext(adminContext);
         try {
             LearningService restricted =
-                new LearningService(db, new CurrentUser(), ai, assessments, resumes, references);
+                new LearningService(db, new CurrentUser(), ai, assessments, resumes, references, transactions);
             ApiException failure =
                 assertThrows(ApiException.class, () -> restricted.recommendations("Java Backend", List.of("Java")));
             assertEquals(403, failure.status());
@@ -225,6 +230,35 @@ class LearningSourceFlowTest {
         verify(db, never()).insertRoadmaps(anyMap());
         verify(db, never()).insertRoadmapNodes(anyMap());
         verify(db, never()).updateRoadmapNodeResources(any(), any(), anyInt(), any(), anyMap());
+    }
+
+    @Test
+    void aJobThatExpiresDuringInferenceCannotPublishARoadmap() {
+        UUID jobId = UUID.randomUUID();
+        when(db.getMarketJobPostsById(jobId)).thenReturn(Map.of("job_title", "Java Backend"))
+            .thenThrow(ApiException.notFound("Job no longer available"));
+        when(db.listMarketJobSkillsByMarketJobId(jobId))
+            .thenReturn(List.of(Map.of("skill_name", "Spring Boot", "is_required", true)));
+        when(ai.generate(eq("ROADMAP_GENERATE"), anyMap())).thenReturn(
+            Map.of(
+                "title",
+                "Practice Spring Boot",
+                "skill_gaps",
+                List.of(Map.of("skill_name", "Spring Boot", "gap_status", "MISSING_EVIDENCE", "urgency_score", 80)),
+                "nodes",
+                List.of(Map.of("skill_name", "Spring Boot", "estimated_hours", 3, "prerequisites", List.of()))
+            )
+        );
+
+        ApiException failure = assertThrows(
+            ApiException.class,
+            () -> service.createRoadmap(new RoadmapRequest("Java Backend", jobId, null, null))
+        );
+
+        assertEquals(404, failure.status());
+        verify(ai, times(1)).generate(eq("ROADMAP_GENERATE"), anyMap());
+        verify(db, never()).insertGapAnalyses(anyMap());
+        verify(db, never()).insertRoadmaps(anyMap());
     }
 
     @Test

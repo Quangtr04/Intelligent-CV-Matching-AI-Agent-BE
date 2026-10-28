@@ -1,0 +1,37 @@
+classDiagram
+    direction TB
+    class BearerFilter {
+        #doFilterInternal(request, response, chain)
+    }
+    class TokenService {
+        +authenticate(access)
+        +rotate(refresh)
+        +revokeAll(user)
+    }
+    class AuthController {
+        +refresh(body, request)
+        +logout()
+    }
+    class AuthFlowService {
+        +refresh(body, remoteAddress)
+        +logout()
+    }
+    class CurrentUser {
+        +id()
+        +requireRole(role)
+        +owns(row, ownerField)
+    }
+    class TokenRepository {
+        +insertRefreshTokens(fields)
+        +updateRefreshTokensByUserId(args)
+    }
+    class SqlStore {
+        +one(sql, args)
+        +update(sql, args)
+    }
+    BearerFilter --> TokenService : tokens
+    AuthController --> AuthFlowService : service
+    AuthFlowService --> TokenService : tokens
+    AuthFlowService --> CurrentUser : current
+    TokenService --> TokenRepository : db
+    TokenRepository --> SqlStore : db

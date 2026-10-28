@@ -16,9 +16,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.text.PDFTextStripper;
-import org.apache.pdfbox.text.TextPosition;
 import org.apache.poi.hwpf.HWPFDocument;
 import org.apache.poi.hwpf.usermodel.CharacterRun;
 import org.apache.poi.hwpf.usermodel.Paragraph;
@@ -113,7 +110,10 @@ public class ResumeTemplateDocumentConverter {
                 .warn("Review the converted layout and replace example content with CV fields/sections before saving.");
             String html = draft.document.outerHtml();
             if (html.length() > MAX_HTML) {
-                throw ApiException.badRequest("Converted template exceeds 200000 HTML characters");
+                throw ApiException.badRequest(
+                    "Converted template exceeds 200000 HTML characters; "
+                        + "reduce the PDF page count or embedded artwork size"
+                );
             }
             Map<String, Object> result = new LinkedHashMap<>();
             result.put("source_file_name", filename);
@@ -147,12 +147,70 @@ public class ResumeTemplateDocumentConverter {
             draft.pages = document.getNumberOfPages();
             validatePages(draft.pages);
             draft.warn(
-                "PDF text is converted into editable lines. Columns, tables, images and exact page geometry "
-                    + "may differ; review and adjust the HTML/CSS. Images are not imported."
+                "PDF text positions, sizes and colors are retained as editable HTML over embedded static artwork. "
+                    + "Fonts use local fallbacks; review the result. This is a fixed page layout: "
+                    + "longer candidate content needs manual HTML/CSS adjustment and is not automatically repaginated."
             );
-            PositionedPdfStripper stripper = new PositionedPdfStripper(draft);
-            stripper.setSortByPosition(true);
-            stripper.getText(document);
+            draft.main.addClass("pdf-document");
+            draft.document.head().appendElement("style").appendChild(
+                new org.jsoup.nodes.DataNode(
+                    ".pdf-document{max-width:none;width:max-content;padding:0;margin:0 auto;}"
+                        + ".pdf-page{position:relative;isolation:isolate;background:white;break-after:page;}"
+                        + ".pdf-page:last-child{break-after:auto;}"
+                        + ".pdf-artwork{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:0;}"
+                        + ".pdf-line{position:absolute;margin:0;line-height:1;white-space:pre;z-index:1;}"
+                        + ".pdf-region{line-height:1.35;white-space:normal;z-index:1;}"
+                        + "@media print{@page{margin:0;}body{margin:0;}.pdf-document{margin:0;}}"
+                )
+            );
+            for (int index = 0; index < draft.pages; index++) {
+                var layout = ResumeTemplatePdfLayout.read(document, index);
+                Element page = draft.main.appendElement("section").addClass("document-page pdf-page").attr(
+                    "style",
+                    "width:" + ResumeTemplatePdfLayout.number(layout.width()) + "pt;min-height:"
+                        + ResumeTemplatePdfLayout.number(layout.height()) + "pt;"
+                );
+                if (layout.png() != null) {
+                    page.appendElement("img").addClass("pdf-artwork").attr("src", layout.png()).attr("alt", "")
+                        .attr("aria-hidden", "true");
+                }
+                for (var line : layout.lines()) {
+                    Element paragraph = draft.block(page, "p").addClass("pdf-line");
+                    String rotation = Math.abs(line.angle()) < .01
+                        ? ""
+                        : "transform:rotate(" + ResumeTemplatePdfLayout.number(line.angle())
+                            + "deg);transform-origin:0 0;";
+                    String inheritedStyle = line.style().replaceAll("opacity:[0-9.]+;", "");
+                    paragraph.attr(
+                        "style",
+                        "position:absolute;left:" + ResumeTemplatePdfLayout.number(line.left()) + "pt;top:"
+                            + ResumeTemplatePdfLayout.number(line.top()) + "pt;width:"
+                            + ResumeTemplatePdfLayout.number(line.width()) + "pt;min-height:"
+                            + ResumeTemplatePdfLayout.number(line.height()) + "pt;margin:0;line-height:1;"
+                            + "white-space:pre;" + inheritedStyle + rotation
+                    );
+                    double fallbackWidth = TemplatePdfTextFit.width(line.runs());
+                    Element textContainer = paragraph;
+                    if (fallbackWidth > line.width() * 1.08) {
+                        textContainer = paragraph.appendElement("span").addClass("pdf-fitted-text").attr(
+                            "style",
+                            "display:inline-block;width:" + ResumeTemplatePdfLayout.number(fallbackWidth)
+                                + "pt;transform:scaleX(" + ResumeTemplatePdfLayout.number(line.width() / fallbackWidth)
+                                + ");transform-origin:0 0;white-space:pre;"
+                        );
+                    }
+                    for (var run : line.runs()) {
+                        draft.run();
+                        String ownStyle = run.style();
+                        for (String declaration : inheritedStyle.split(";")) {
+                            if (!declaration.isEmpty()) {
+                                ownStyle = ownStyle.replace(declaration + ";", "");
+                            }
+                        }
+                        draft.text(textContainer.appendElement("span").attr("style", ownStyle), run.text());
+                    }
+                }
+            }
         }
     }
 
@@ -518,67 +576,4 @@ public class ResumeTemplateDocumentConverter {
         }
     }
 
-    private static final class PositionedPdfStripper extends PDFTextStripper {
-
-        private final Draft draft;
-
-        private Element page;
-
-        private Element line;
-
-        private PositionedPdfStripper(
-            Draft draft)
-            throws IOException {
-            this.draft = draft;
-        }
-
-        @Override
-        protected void startPage(
-            PDPage ignored) {
-            page = draft.main.appendElement("section").addClass("document-page");
-            line = null;
-        }
-
-        @Override
-        protected void writeString(
-            String text,
-            List<TextPosition> positions) {
-            if (text.isBlank()) {
-                return;
-            }
-            draft.run();
-            if (line == null) {
-                line = draft.block(page, "p");
-            }
-            Element span = line.appendElement("span");
-            if (!positions.isEmpty()) {
-                TextPosition first = positions.getFirst();
-                String font = first.getFont().getName().replaceFirst("^[A-Z]{6}\\+", "");
-                String lowerFont = font.toLowerCase(Locale.ROOT);
-                span.attr(
-                    "style",
-                    runStyle(
-                        font,
-                        (double) first.getFontSizeInPt(),
-                        lowerFont.contains("bold"),
-                        lowerFont.contains("italic") || lowerFont.contains("oblique"),
-                        null
-                    )
-                );
-            }
-            draft.text(span, text);
-        }
-
-        @Override
-        protected void writeWordSeparator() {
-            if (line != null) {
-                draft.text(line, " ");
-            }
-        }
-
-        @Override
-        protected void writeLineSeparator() {
-            line = null;
-        }
-    }
 }

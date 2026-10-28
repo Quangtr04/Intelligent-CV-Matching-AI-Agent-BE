@@ -229,6 +229,8 @@ CI chạy kiểm thử, upload JAR rồi tải artifact vào `target` trước k
 - [Quy ước Java và lệnh định dạng/kiểm tra](docs/java-coding-style.md)
 - [Schema, migration và ràng buộc](docs/schema.md)
 - [Conceptual Diagram EduNexus: sơ đồ tổng thể một trang](docs/conceptual-diagram.md)
+- [16 Sequence diagram và Class diagram tương ứng, kèm ảnh PNG/SVG](docs/sequence-diagrams.md)
+- [Trang xem và phóng to toàn bộ Sequence/Class diagram](docs/diagrams/sequence/index.html)
 - [Identity, billing và quản trị](docs/identity-billing.md)
 - [CV, AI, assistant, trial và RAG](docs/resume-ai.md)
 - [Đánh giá cách viết CV: bullet, dấu câu, ngôn từ và dữ liệu Postman](docs/cv-writing-quality.md)

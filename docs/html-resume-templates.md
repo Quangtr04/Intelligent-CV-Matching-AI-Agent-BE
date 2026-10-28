@@ -53,9 +53,25 @@ ngắt trang cũng bị từ chối. Bộ chuyển đổi còn giới hạn đ�
 200.000 ký tự HTML và tối đa 20 MB nội dung DOCX sau giải nén.
 
 Bộ chuyển đổi chạy trong backend bằng thư viện Java, không gọi API thương mại hoặc model AI và không trừ quota AI.
-Kết quả giữ nội dung chữ và một phần định dạng cơ bản/bảng theo khả năng đọc của từng định dạng. Đây là bản nháp
-có thể sửa, không cam kết giống từng pixel: cột phức tạp, textbox, hình nền, icon, ảnh và font đặc biệt có thể cần
-dựng lại. Ảnh nhúng được bỏ qua và có cảnh báo. Admin cần kiểm tra thứ tự nội dung, tiếng Việt và ngắt trang.
+Với PDF có chữ đọc được, backend giữ vị trí các dòng, màu, cỡ chữ và kiểu đậm/nghiêng bằng HTML/CSS;
+phần đồ họa tĩnh như hình nền, đường kẻ và ảnh được kết xuất riêng thành PNG nhúng trong cùng HTML.
+Nội dung chữ Unicode được hỗ trợ vẫn là node văn bản chỉnh sửa/đánh dấu được, không biến toàn bộ trang CV
+thành một ảnh. Font PDF được thay bằng font hệ thống phù hợp; không tải hoặc nhúng font từ bên ngoài.
+Với DOC/DOCX, nội dung tiếp tục dàn lại thành đoạn/bảng HTML với định dạng cơ bản; ảnh Word chưa được nhập.
+
+Bản nháp PDF dùng bố cục trang cố định (`pdf-page`, `pdf-line`); khi Admin gộp dòng để gắn slot,
+frontend giữ vùng tọa độ bằng `pdf-region`. Đây không phải bộ tự dàn trang CV: nội dung Candidate dài hơn
+có thể tràn vùng hoặc đè lên mục khác, không tự chuyển sang trang mới. Admin phải thử dữ liệu CV thực tế,
+chỉnh kích thước/vị trí hoặc chuyển phần cần co giãn sang CSS flow/grid/flex trước khi dùng chung.
+Font đặc biệt, ký tự không có ánh xạ Unicode, hiệu ứng clipping/transparency và lớp chồng phức tạp có thể khác nguồn.
+Ảnh chân dung trong PDF là đồ họa tĩnh, không tự thay bằng ảnh của Candidate; cần xóa hoặc thay ảnh mẫu trước khi lưu.
+
+HTML và CSS là một tài liệu tự chứa; không cần Bootstrap và không tải Bootstrap/CDN, stylesheet hoặc font bên ngoài.
+PNG nhúng phải là PNG tĩnh hợp lệ, tối đa **200.000 byte**, **2.048 px mỗi chiều** và **4.000.000 pixel**.
+HTML hoàn chỉnh, gồm cả chuỗi base64 của ảnh, vẫn tối đa **200.000 ký tự**; giới hạn ảnh không cộng thêm dung lượng
+cho HTML. PDF có nhiều ảnh/trang có thể vượt giới hạn và bị từ chối thay vì âm thầm cắt bớt nội dung.
+Trang PDF được hỗ trợ có kích thước mỗi chiều từ 1 đến 1.440 pt. Không cam kết giống từng pixel;
+Admin cần kiểm tra bố cục, chữ tiếng Việt, màu, ảnh tĩnh và ngắt trang trước khi đánh dấu đã xem lại.
 
 Trên trang Admin, phần xem trước bản nháp cho thấy nội dung vừa trích xuất; phần xem trước với dữ liệu CV minh họa
 cho thấy kết quả sau khi gắn các vị trí động. Admin có thể sửa mã HTML/CSS, chọn khối để gắn `fullName`, `headline`,
@@ -203,6 +219,9 @@ hỗ trợ bố cục grid/flex và `@page`/`@media` cho trang in. Dùng font h�
 Backend kiểm tra HTML trước khi lưu: không nhận script, event handler, iframe/embed, form, URL tài nguyên bên ngoài
 hoặc CSS có tải tài nguyên/mã thực thi. Frontend hiển thị trong iframe bị giới hạn quyền, kèm CSP; không chèn HTML
 mẫu trực tiếp vào DOM của ứng dụng. Quy ước này phục vụ bố cục CV, không phải môi trường chạy website tùy ý.
+Ảnh được phép chỉ là PNG tĩnh nhúng bằng `data:image/png;base64,...` đã qua kiểm tra dung lượng/kích thước/cấu trúc;
+không dùng ảnh từ URL, SVG, ảnh động, `srcset`, `@import` hoặc `url()` trong CSS. Giữ CSS trong thẻ `<style>` hoặc
+thuộc tính `style`. Không dùng thẻ `<link>` để gọi Bootstrap CDN.
 
 PDF/DOC/DOCX có thể nhập thành bản nháp qua endpoint `/admin/resume-templates/import`; Admin phải xem lại và
 gắn các slot trước khi lưu. PPTX chưa được hỗ trợ nhập trực tiếp. Không lưu file PDF/Word làm nguồn template.

@@ -15,13 +15,37 @@ public final class ResumeData {
 
     private static final Map<String, List<String>> SECTIONS = Map.of(
         "experience",
-        List.of("company_name", "job_title", "start_date", "end_date", "is_current", "description"),
+        List.of(
+            "id",
+            "company_name",
+            "job_title",
+            "location",
+            "start_date",
+            "end_date",
+            "is_current",
+            "description",
+            "display_start_date",
+            "display_end_date",
+            "highlights"
+        ),
         "education",
-        List.of("school_name", "degree", "major", "start_date", "end_date", "description"),
+        List.of(
+            "id",
+            "school_name",
+            "degree",
+            "major",
+            "gpa",
+            "start_date",
+            "end_date",
+            "description",
+            "display_start_date",
+            "display_end_date",
+            "highlights"
+        ),
         "projects",
-        List.of("project_name", "role", "description", "technologies", "project_url", "start_date", "end_date"),
+        List.of("id", "project_name", "role", "description", "technologies", "project_url", "start_date", "end_date"),
         "certifications",
-        List.of("name", "issuer", "issue_date", "expiry_date", "credential_url"),
+        List.of("id", "name", "issuer", "issue_date", "expiry_date", "credential_url", "display_date"),
         "skills",
         List.of("name", "skill_id", "proficiency_level", "years_experience")
     );
@@ -33,11 +57,37 @@ public final class ResumeData {
 
         Map<String, Object> result = new LinkedHashMap<>();
 
-        for (String name : List.of("full_name", "email", "phone", "location", "summary")) {
+        for (String name : List.of("full_name", "email", "phone", "location", "summary", "position")) {
             Object value = source.get(name);
 
             if (value != null)
                 result.put(name, text(value, name, name.equals("summary") ? 20_000 : 500));
+        }
+
+        if (source.containsKey("frontend_fields")) {
+            if (!(source.get("frontend_fields") instanceof Map<?, ?> fields)) {
+                throw ApiException.badRequest("frontend_fields must be an object");
+            }
+            Map<String, Object> preserved = new LinkedHashMap<>();
+            for (String key : List.of(
+                "website",
+                "linkedin",
+                "github",
+                "detailedSkills",
+                "softSkills",
+                "languages",
+                "awards",
+                "interests",
+                "references",
+                "activities",
+                "dob",
+                "avatarUrl"
+            )) {
+                if (fields.containsKey(key)) {
+                    preserved.put(key, presentationValue(fields.get(key), 0));
+                }
+            }
+            result.put("frontend_fields", preserved);
         }
 
         SECTIONS.forEach(
@@ -65,7 +115,14 @@ public final class ResumeData {
                         if (value == null || value instanceof String s && s.isBlank())
                             continue;
 
-                        if (col.endsWith("_date")) {
+                        if (col.startsWith("display_") && col.endsWith("date")) {
+                            row.put(col, text(value, col, 50));
+                        } else if (col.equals("highlights")) {
+                            if (!(value instanceof List<?> list) || list.size() > 100) {
+                                throw ApiException.badRequest("highlights must be an array of at most 100 entries");
+                            }
+                            row.put(col, list.stream().map(itemValue -> text(itemValue, col, 20_000)).toList());
+                        } else if (col.endsWith("_date")) {
                             try {
                                 row.put(col, LocalDate.parse(value.toString()).toString());
                             } catch (Exception ex) {
@@ -120,6 +177,39 @@ public final class ResumeData {
         );
 
         return result;
+    }
+
+    /** Preserve bounded presentation data without weakening the canonical CV schema. */
+    private static Object presentationValue(
+        Object value,
+        int depth) {
+        if (depth > 4) {
+            throw ApiException.badRequest("CV presentation fields are nested too deeply");
+        }
+        if (value == null || value instanceof Boolean) {
+            return value;
+        }
+        if (value instanceof String) {
+            return text(value, "CV presentation field", 20_000);
+        }
+        if (value instanceof Number number) {
+            if (!Double.isFinite(number.doubleValue())) {
+                throw ApiException.badRequest("CV presentation number must be finite");
+            }
+            return number;
+        }
+        if (value instanceof List<?> list && list.size() <= 100) {
+            return list.stream().map(item -> presentationValue(item, depth + 1)).toList();
+        }
+        if (value instanceof Map<?, ?> map && map.size() <= 30) {
+            Map<String, Object> result = new LinkedHashMap<>();
+            for (Map.Entry<?, ?> entry : map.entrySet()) {
+                String key = text(entry.getKey(), "CV presentation key", 100);
+                result.put(key, presentationValue(entry.getValue(), depth + 1));
+            }
+            return result;
+        }
+        throw ApiException.badRequest("Invalid CV presentation field");
     }
 
     private static void orderedDates(

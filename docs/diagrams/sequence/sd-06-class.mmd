@@ -1,0 +1,47 @@
+classDiagram
+    direction TB
+    class CareerToolsController {
+        +ats(jobId, input)
+    }
+    class CareerToolsService {
+        +ats(jobId, request)
+        -confirmed(id)
+        -activeJob(id)
+    }
+    class CareerToolsRepository {
+        +insertJobResumeAnalyses(fields)
+        +getJobResumeAnalysesById(args)
+    }
+    class ResumeService {
+        +owned(id)
+        +canonicalText(resume)
+    }
+    class AiService {
+        +generate(feature, input)
+        +provider()
+        +model()
+    }
+    class CurrentUser {
+        +id()
+        +requireRole(role)
+    }
+    class StringRedisTemplate {
+        <<framework>>
+    }
+    class CareerToolsSupport {
+        <<utility>>
+        +analysisResponse(row, cached)$
+        +languageOf(value)$
+    }
+    class SqlStore {
+        +insert(table, fields)
+        +optional(sql, args)
+    }
+    CareerToolsController --> CareerToolsService : service
+    CareerToolsService --> CareerToolsRepository : db
+    CareerToolsService --> ResumeService : resumes
+    CareerToolsService --> AiService : ai
+    CareerToolsService --> CurrentUser : user
+    CareerToolsService ..> StringRedisTemplate : optional cache
+    CareerToolsService ..> CareerToolsSupport : response and language
+    CareerToolsRepository --> SqlStore : db

@@ -13,7 +13,7 @@ public record MatchingSalaryPolicy(
     UUID updatedBy
 ) {
 
-    public static final String POLICY_VERSION = "candidate-configured-salary-monthly-floor-v2";
+    public static final String POLICY_VERSION = "candidate-configured-salary-monthly-floor-v3";
 
     public MatchingSalaryPolicy {
         tolerancePercent = validate(tolerancePercent).setScale(2);

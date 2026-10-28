@@ -41,52 +41,28 @@ final class LearningResponseSchema {
             Map<String, Object> question = objectSchema(fields);
             return objectSchema(Map.of("questions", arraySchema(question, 10, 10)));
         }
-        Map<String, Object> gap = objectSchema(
-            Map.of(
-                "skill_name",
-                skill,
-                "gap_status",
-                Map.of("type", "string", "enum", List.of("MISSING_EVIDENCE", "NEEDS_PRACTICE")),
-                "current_level",
-                Map.of("type", List.of("string", "null"), "maxLength", 20),
-                "target_level",
-                Map.of("type", List.of("string", "null"), "maxLength", 20),
-                "urgency_score",
-                Map.of("type", "integer", "minimum", 0, "maximum", 100),
-                "reasoning",
-                textSchema(1, 700)
-            )
-        );
-        Map<String, Object> node = objectSchema(
-            Map.of(
-                "skill_name",
-                skill,
-                "description",
-                textSchema(1, 1500),
-                "estimated_hours",
-                Map.of("type", "integer", "minimum", 1, "maximum", 1000),
+        // A positional schema prevents duplicate/missing skills and self/forward dependencies before decoding.
+        // Gap status and assessment evidence are authoritative server data, not model output.
+        List<Map<String, Object>> nodes = java.util.stream.IntStream.range(0, names.size()).mapToObj(index -> {
+            Map<String, Object> fields = new LinkedHashMap<>();
+            fields.put("skill_name", Map.of("type", "string", "const", names.get(index)));
+            fields.put("description", textSchema(1, 1500));
+            fields.put("estimated_hours", Map.of("type", "integer", "minimum", 1, "maximum", 1000));
+            fields.put(
                 "prerequisites",
-                arraySchema(
-                    Map.of("type", "integer", "minimum", 1, "maximum", names.size()),
-                    0,
-                    Math.max(0, names.size() - 1)
-                )
-            )
+                arraySchema(Map.of("type", "integer", "minimum", 1, "maximum", Math.max(1, index)), 0, index)
+            );
+            return objectSchema(fields);
+        }).toList();
+        Map<String, Object> properties = new LinkedHashMap<>();
+        properties.put("title", textSchema(1, 255));
+        properties.put("summary", textSchema(1, 1000));
+        properties.put("estimated_total_hours", Map.of("type", "integer", "minimum", 0, "maximum", 50000));
+        properties.put(
+            "nodes",
+            Map.of("type", "array", "prefixItems", nodes, "minItems", names.size(), "maxItems", names.size())
         );
-        return objectSchema(
-            Map.of(
-                "title",
-                textSchema(1, 255),
-                "summary",
-                textSchema(1, 1000),
-                "estimated_total_hours",
-                Map.of("type", "integer", "minimum", 0, "maximum", 50000),
-                "skill_gaps",
-                arraySchema(gap, names.size(), names.size()),
-                "nodes",
-                arraySchema(node, names.size(), names.size())
-            )
-        );
+        return objectSchema(properties);
     }
 
     private static Map<String, Object> objectSchema(

@@ -1,0 +1,45 @@
+classDiagram
+    direction TB
+    class CandidateConsultationController {
+        +create(input)
+    }
+    class AdminConsultationController {
+        +assign(id, input)
+    }
+    class ConsultantConsultationController {
+        +candidateProfile(id, resumeId)
+    }
+    class ConsultationController {
+        +send(id, input)
+        +close(id)
+        +events(id)
+    }
+    class ConsultationService {
+        +create(input)
+        +assign(id, request)
+        +candidateProfile(id, resumeId)
+        +send(id, input)
+        +close(id)
+        +events(id)
+    }
+    class ConsultationRepository {
+        +getConsultationThreadsById(args)
+        +insertConsultationThreads(fields)
+        +insertConsultationMessages(fields)
+        +insertAuditLogs(fields)
+    }
+    class CurrentUser {
+        +id()
+        +hasRole(role)
+        +requireRole(role)
+    }
+    class SseEmitter
+    class SqlStore
+    CandidateConsultationController --> ConsultationService : create
+    AdminConsultationController --> ConsultationService : assign
+    ConsultantConsultationController --> ConsultationService : candidateProfile
+    ConsultationController --> ConsultationService : messages close events
+    ConsultationService --> ConsultationRepository : persist and authorize resources
+    ConsultationService --> CurrentUser : actor and roles
+    ConsultationService ..> SseEmitter : create and publish stream
+    ConsultationRepository --> SqlStore : SQL

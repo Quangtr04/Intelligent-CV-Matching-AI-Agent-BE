@@ -132,11 +132,23 @@ public class CareerAssistantService {
             throw ApiException.conflict("Conversation is not active");
 
         String message = CareerAssistantData.message(body);
+        String language = CareerAssistantData.language(body);
 
         Map<String, Object> input = new LinkedHashMap<>();
         input.put("message", message);
+        if (language != null)
+            input.put("language", language);
         input.put("history", db.listCareerAssistantMessagesByConversationId2(id));
         input.put("context", context(thread, guestId));
+        if ("application".equals(thread.get("context_type"))) {
+            input.put(
+                "writing_rule",
+                "Write or revise the requested finished application document using only the supplied candidate facts. "
+                    + "Place the complete document in the CAREER_CHAT answer string. Do not replace the answer field "
+                    + "with content, subject or reviewScore fields. Respect the requested language and do not invent "
+                    + "experience, achievements or contact details."
+            );
+        }
         List<Map<String, Object>> sources = List.of();
 
         if (guestId == null && Boolean.TRUE.equals(body.get("retrieve"))) {

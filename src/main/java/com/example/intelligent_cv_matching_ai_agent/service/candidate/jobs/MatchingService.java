@@ -12,12 +12,16 @@ import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiService;
 
 import com.example.intelligent_cv_matching_ai_agent.service.candidate.resume.ResumeService;
 import com.example.intelligent_cv_matching_ai_agent.util.candidate.jobs.SalaryExpectation;
+import com.example.intelligent_cv_matching_ai_agent.util.candidate.jobs.JobMatchRerank;
 import com.example.intelligent_cv_matching_ai_agent.service.shared.jobs.MatchingSalaryPolicyService;
+import com.example.intelligent_cv_matching_ai_agent.service.shared.jobs.SalaryExchangeRateService;
+import com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobSalaryParser;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.MatchingSalaryPolicy;
 import java.time.OffsetDateTime;
 import java.util.*;
 import com.example.intelligent_cv_matching_ai_agent.util.candidate.jobs.JobSkillOverlap;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +42,8 @@ public class MatchingService {
 
     private final MatchingSalaryPolicyService salaryPolicies;
 
+    private final SalaryExchangeRateService exchangeRates;
+
     public MatchingService(
         MatchingRepository db,
         CurrentUser user,
@@ -45,12 +51,25 @@ public class MatchingService {
         ResumeService resumes,
         ObjectProvider<StringRedisTemplate> redis,
         MatchingSalaryPolicyService salaryPolicies) {
+        this(db, user, ai, resumes, redis, salaryPolicies, null);
+    }
+
+    @Autowired
+    public MatchingService(
+        MatchingRepository db,
+        CurrentUser user,
+        AiService ai,
+        ResumeService resumes,
+        ObjectProvider<StringRedisTemplate> redis,
+        MatchingSalaryPolicyService salaryPolicies,
+        SalaryExchangeRateService exchangeRates) {
         this.db = db;
         this.user = user;
         this.ai = ai;
         this.resumes = resumes;
         this.redis = redis;
         this.salaryPolicies = salaryPolicies;
+        this.exchangeRates = exchangeRates;
     }
 
     public Map<String, Object> result(
@@ -124,6 +143,15 @@ public class MatchingService {
             salary.isPresent() ? db.listActiveJobSalaryMetadata() : db.listMarketJobSkillsByMarketJobId();
         if (catalog.isEmpty())
             throw ApiException.conflict("No active jobs have been imported");
+        if (salary.isPresent() && exchangeRates != null) {
+            String expectedCurrency = salary.get().currency();
+            boolean needsConversion =
+                catalog.stream().map(job -> JobSalaryParser.parseMonthly(text(job.get("salary_text"))))
+                    .anyMatch(parsed -> parsed.isPresent() && !expectedCurrency.equals(parsed.get().currency()));
+            if (needsConversion) {
+                salary = SalaryExpectation.fromProfile(profile, settings, exchangeRates.snapshot());
+            }
+        }
         Map<UUID, Map<String, Object>> salaryMatches = new HashMap<>();
         List<Map<String, Object>> jobs =
             salary.isPresent() ? salaryEligible(catalog, salary.get(), salaryMatches) : new ArrayList<>(catalog);
@@ -143,6 +171,14 @@ public class MatchingService {
         );
         salaryPolicy.put("examined_jobs", catalog.size());
         salaryPolicy.put("eligible_jobs", jobs.size());
+        salaryPolicy.put(
+            "verified_eligible_jobs",
+            salaryMatches.values().stream().filter(match -> Boolean.TRUE.equals(match.get("verified"))).count()
+        );
+        salaryPolicy.put(
+            "unverified_eligible_jobs",
+            salaryMatches.values().stream().filter(match -> Boolean.FALSE.equals(match.get("verified"))).count()
+        );
         String eligibleIds = jobIds(jobs);
         if (salary.isPresent() && !ai.enabled() && !jobs.isEmpty())
             jobs = salaryEligible(db.listMarketJobSkillsByIds(eligibleIds), salary.get(), salaryMatches);
@@ -155,7 +191,7 @@ public class MatchingService {
         String cacheHash = FlowSupport.hash(
             basis + "\n" + resumeIds + "\n" + candidate + "\n" + catalogFingerprint + "\n" + vectorFingerprint + "\n"
                 + mode + "\n" + ai.provider() + "\n" + ai.model() + "\n" + ai.embeddingModel() + "\n" + limit + "\n"
-                + salaryPolicy
+                + salaryPolicy + "\n" + salary.map(SalaryExpectation::exchangeRates)
         );
         String cacheKey = "edunexus:matching:" + user.id() + ":" + cacheHash;
         Optional<UUID> redisRun = cachedRun(cacheKey);
@@ -212,70 +248,109 @@ public class MatchingService {
             db.updateMatchingRunResumes(runId, cv.get("id"));
 
         List<Map<String, Object>> ranked;
+        boolean semanticUsed = false;
 
         if (jobs.isEmpty()) {
             ranked = new ArrayList<>();
         } else if (ai.enabled()) {
-            String vector = FlowSupport.vector(ai.embed(candidate.toString()));
-            ranked = salary.isPresent()
-                ? db.listMarketJobEmbeddingsByStatusForIds(
-                    ai.provider(),
-                    ai.embeddingModel(),
-                    eligibleIds,
-                    vector,
-                    vector,
-                    Math.min(100, Math.max(limit, 20))
-                )
-                : db.listMarketJobEmbeddingsByStatus(
-                    vector,
-                    ai.provider(),
-                    ai.embeddingModel(),
-                    vector,
-                    Math.min(100, Math.max(limit, 20))
-                );
-            if (ranked.isEmpty())
-                throw ApiException.conflict("Index active jobs with the configured embedding model first");
-            if (salary.isPresent())
-                ranked = salaryEligible(ranked, salary.get(), salaryMatches);
-
-            Map<String, Object> generated = ranked.isEmpty()
-                ? fields("results", List.of())
-                : ai.generate("JOB_MATCH_RERANK", fields("candidate", candidate.toString(), "jobs", ranked));
-            Map<UUID, Map<String, Object>> aiResults = new HashMap<>();
-
-            for (Object raw : array(generated.get("results"))) {
-                Map<String, Object> item = object(raw);
-                UUID id = uuid(item.get("job_id"));
-                if (aiResults.put(id, item) != null)
-                    throw new ApiException(502, "AI returned duplicate job IDs");
-
-                FlowSupport.score(item.get("score"), 1, "match score");
+            if (vectorFingerprint.isBlank()) {
+                ranked = new ArrayList<>();
+            } else {
+                String vector = FlowSupport.vector(ai.embed(candidate.toString()));
+                ranked = salary.isPresent()
+                    ? db.listMarketJobEmbeddingsByStatusForIds(
+                        ai.provider(),
+                        ai.embeddingModel(),
+                        eligibleIds,
+                        vector,
+                        vector,
+                        Math.min(100, Math.max(limit, 20))
+                    )
+                    : db.listMarketJobEmbeddingsByStatus(
+                        vector,
+                        ai.provider(),
+                        ai.embeddingModel(),
+                        vector,
+                        Math.min(100, Math.max(limit, 20))
+                    );
             }
+            if (!ranked.isEmpty() && salary.isPresent())
+                ranked = salaryEligible(ranked, salary.get(), salaryMatches);
+            if (ranked.isEmpty()) {
+                mode = "SKILL_OVERLAP_UNINDEXED_JOBS";
+                List<Map<String, Object>> fallback = db.listMarketJobSkillsByIds(eligibleIds);
+                ranked = salary.isPresent()
+                    ? salaryEligible(fallback, salary.get(), salaryMatches)
+                    : new ArrayList<>(fallback);
+                rankSkills(candidate.toString(), ranked);
+                db.updateJobMatchingRunsMode(runId, mode, "RULE_BASED", "skill-overlap-v1");
+            } else {
+                ranked = new ArrayList<>(ranked);
+                Set<UUID> retrievedIds = new HashSet<>();
+                for (var job : ranked) {
+                    retrievedIds.add(uuid(job.get("id")));
+                }
+                List<Map<String, Object>> supplements = new ArrayList<>();
+                Map<UUID, Map<String, Object>> completeJobs = new HashMap<>();
+                for (var job : db.listMarketJobSkillsByIds(eligibleIds)) {
+                    completeJobs.put(uuid(job.get("id")), job);
+                    if (!retrievedIds.contains(uuid(job.get("id")))) {
+                        supplements.add(new LinkedHashMap<>(job));
+                    }
+                }
+                if (salary.isPresent()) {
+                    supplements = salaryEligible(supplements, salary.get(), salaryMatches);
+                }
+                rankSkills(candidate.toString(), supplements);
+                supplements.sort(
+                    Comparator.<Map<String, Object>>comparingDouble(job -> number(job.get("final_score"), 0)).reversed()
+                        .thenComparing(job -> job.get("id").toString())
+                );
+                int available = Math.max(0, 100 - ranked.size());
+                ranked.addAll(
+                    supplements.stream().filter(job -> number(job.get("final_score"), 0) > 0)
+                        .limit(Math.min(20, available)).toList()
+                );
+                for (var job : ranked) {
+                    var complete = completeJobs.get(uuid(job.get("id")));
+                    if (complete != null) {
+                        job.put("skills", complete.get("skills"));
+                    }
+                }
+                semanticUsed = true;
+                Map<UUID, Map<String, Object>> aiResults = new HashMap<>();
+                for (var batch : JobMatchRerank.batches(ranked)) {
+                    var generated =
+                        ai.generate("JOB_MATCH_RERANK", fields("candidate", candidate.toString(), "jobs", batch));
+                    aiResults.putAll(JobMatchRerank.validate(batch, generated));
+                }
 
-            for (var job : ranked) {
-                var explanation = aiResults.get(job.get("id"));
-                if (explanation == null)
-                    throw new ApiException(502, "AI ranking omitted a retrieved job");
+                for (var job : ranked) {
+                    var explanation = aiResults.get(job.get("id"));
+                    if (explanation == null)
+                        throw new ApiException(502, "AI ranking omitted a retrieved job");
 
-                job.put("final_score", explanation.get("score"));
-                job.put("explanation", explanation);
+                    job.put("final_score", explanation.get("score"));
+                    job.put("explanation", explanation);
+                }
             }
         } else {
             ranked = new ArrayList<>(jobs);
 
-            for (var job : ranked) {
-                var overlap = overlap(candidate.toString(), job);
-                job.put("final_score", overlap.get("score"));
-                job.put("explanation", overlap);
-            }
+            rankSkills(candidate.toString(), ranked);
         }
 
-        ranked.sort(
-            Comparator.<Map<String, Object>>comparingDouble(j -> number(j.get("final_score"), 0)).reversed()
-                .thenComparingDouble(
-                    j -> number(salaryMatches.getOrDefault(uuid(j.get("id")), Map.of()).get("shortfall_percent"), 0)
-                ).thenComparing(j -> j.get("id").toString())
-        );
+        ranked
+            .sort(
+                Comparator.<Map<String, Object>>comparingDouble(j -> number(j.get("final_score"), 0)).reversed()
+                    .thenComparingInt(
+                        j -> Boolean.FALSE
+                            .equals(salaryMatches.getOrDefault(uuid(j.get("id")), Map.of()).get("verified")) ? 1 : 0
+                    )
+                    .thenComparingDouble(
+                        j -> number(salaryMatches.getOrDefault(uuid(j.get("id")), Map.of()).get("shortfall_percent"), 0)
+                    ).thenComparing(j -> j.get("id").toString())
+            );
 
         for (int i = 0; i < Math.min(limit, ranked.size()); i++) {
             var job = ranked.get(i);
@@ -290,7 +365,7 @@ public class MatchingService {
                     "vector_similarity_score",
                     job.get("vector_score"),
                     "llm_rerank_score",
-                    ai.enabled() ? job.get("final_score") : null,
+                    semanticUsed ? job.get("final_score") : null,
                     "final_score",
                     job.get("final_score"),
                     "rank_position",
@@ -300,6 +375,8 @@ public class MatchingService {
                         fields(
                             "method",
                             mode,
+                            "retrieval",
+                            job.get("vector_score") == null ? "SKILL" : "VECTOR",
                             "reason",
                             explanation.get("reason"),
                             "salary_match",
@@ -335,6 +412,16 @@ public class MatchingService {
             });
         }
         return eligible;
+    }
+
+    private static void rankSkills(
+        String candidate,
+        List<Map<String, Object>> jobs) {
+        for (var job : jobs) {
+            var overlap = overlap(candidate, job);
+            job.put("final_score", overlap.get("score"));
+            job.put("explanation", overlap);
+        }
     }
 
     private static String jobIds(

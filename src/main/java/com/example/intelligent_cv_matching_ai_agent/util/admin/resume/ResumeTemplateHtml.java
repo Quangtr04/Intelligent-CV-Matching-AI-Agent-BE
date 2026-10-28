@@ -57,6 +57,7 @@ public final class ResumeTemplateHtml {
         "sup",
         "br",
         "hr",
+        "img",
         "table",
         "thead",
         "tbody",
@@ -93,6 +94,8 @@ public final class ResumeTemplateHtml {
         "minmax",
         "fit-content",
         "var",
+        "rotate",
+        "scalex",
         "nth-child",
         "nth-of-type",
         "not",
@@ -182,12 +185,22 @@ public final class ResumeTemplateHtml {
                     || element.parents().stream()
                         .anyMatch(parent -> parent.hasAttr("data-cv-field") || parent.hasAttr("data-cv-section"))
                     || (field ? !fields.add(value) : !sections.add(value))
-                    || Set.of("html", "head", "title", "style", "meta", "br", "hr", "col").contains(tag)
+                    || Set.of("html", "head", "title", "style", "meta", "br", "hr", "col", "img").contains(tag)
                     || element.hasAttr(field ? "data-cv-section" : "data-cv-field")) {
                     throw invalid("contains an unknown, duplicate or nested CV slot");
                 }
             } else if ("style".equals(name)) {
                 validateCss(value);
+            } else if ("img".equals(tag) && "src".equals(name)) {
+                EmbeddedTemplatePng.validate(value);
+            } else if ("img".equals(tag) && "alt".equals(name)) {
+                if (value.length() > 2000 || hasForbiddenControl(value)) {
+                    throw invalid("contains invalid image alternative text");
+                }
+            } else if ("img".equals(tag) && Set.of("width", "height").contains(name)) {
+                if (!value.matches("[1-9][0-9]{0,3}") || Integer.parseInt(value) > 2048) {
+                    throw invalid("image width and height must be between 1 and 2048");
+                }
             } else if (GLOBAL_ATTRIBUTES.contains(name)) {
                 if (value.length() > 2000 || hasForbiddenControl(value)) {
                     throw invalid("contains an invalid attribute value");
@@ -207,6 +220,9 @@ public final class ResumeTemplateHtml {
         }
         if ("meta".equals(tag) && !element.hasAttr("charset")) {
             throw invalid("supports only meta charset=UTF-8");
+        }
+        if ("img".equals(tag) && !element.hasAttr("src")) {
+            throw invalid("embedded PNG image requires src");
         }
         if ("style".equals(tag)) {
             validateCss(element.data());

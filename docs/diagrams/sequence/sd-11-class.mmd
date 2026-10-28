@@ -1,0 +1,50 @@
+classDiagram
+    direction TB
+    class SePayPaymentController {
+        +create(input)
+        +checkout(id)
+        +ipn(secret, body)
+    }
+    class SePayPaymentService {
+        +createCheckout(request)
+        +checkout(orderId)
+        +ipn(secret, body)
+    }
+    class BillingService {
+        +sepayOrder(userId, tierId, months, provider)
+        +confirmSePay(event, provider)
+        +acknowledgeSePayVoid(orderId, invoice, eventId, provider)
+    }
+    class BillingRepository {
+        +getPaymentOrdersByIdForUpdate(args)
+        +insertUserSubscriptions(fields)
+        +insertInvoices(fields)
+    }
+    class BillingController {
+        +order(id)
+        +orders()
+    }
+    class BillingQueryService {
+        +order(id)
+        +orders()
+    }
+    class BillingQueryRepository {
+        +getPaymentOrdersById(args)
+        +listPaymentOrdersByUserId(args)
+    }
+    class SePayProperties
+    class SePayCheckoutSigner {
+        +sign(fields, secret)$
+    }
+    class SqlStore
+    SePayPaymentController --> SePayPaymentService : checkout and IPN
+    SePayPaymentService --> SePayProperties : environment and credentials
+    SePayPaymentService --> BillingService : create order and settle
+    SePayPaymentService --> BillingQueryRepository : retry owned order
+    SePayPaymentService ..> SePayCheckoutSigner : ordered field signature
+    BillingService --> BillingRepository : transactional settlement
+    BillingController --> BillingQueryService : read server status
+    BillingQueryService --> BillingQueryRepository : owned order query
+    BillingQueryService --> BillingService : order operations
+    BillingRepository --> SqlStore : SQL
+    BillingQueryRepository --> SqlStore : SQL

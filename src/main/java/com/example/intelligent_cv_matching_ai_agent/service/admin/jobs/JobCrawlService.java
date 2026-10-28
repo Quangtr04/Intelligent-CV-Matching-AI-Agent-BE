@@ -102,16 +102,19 @@ public class JobCrawlService {
             )
         );
         int searchPages = 0, rejected = 0;
+        String discoveryFailure = null;
         if (urls.isEmpty()) {
             Set<String> found = new LinkedHashSet<>();
             for (int pageNumber = 1; pageNumber <= input.effectiveMaxPages()
                 && found.size() < input.effectiveLimit(); pageNumber++) {
                 String searchUrl = JobUrlDiscovery.searchUrl(site, input.keyword(), input.location(), pageNumber);
+                Integer searchHttpStatus = null;
                 try {
                     HttpPage page = fetch(site, searchUrl);
                     searchPages++;
+                    searchHttpStatus = page.status();
                     if (page.status() < 200 || page.status() >= 300)
-                        throw new IOException("Search returned HTTP " + page.status());
+                        throw new FetchFailure("Search returned HTTP " + page.status(), page.status());
                     List<String> links =
                         JobUrlDiscovery.discoverLinks(page.html(), site, page.url(), input.effectiveLimit());
                     int before = found.size();
@@ -132,7 +135,12 @@ public class JobCrawlService {
                     if (found.size() == before)
                         break;
                 } catch (IOException | ApiException ex) {
-                    recordItem(run, searchUrl, "SEARCH_FETCH_FAILED", null, null, null, ex.getMessage());
+                    if (ex instanceof FetchFailure failure && searchHttpStatus == null && failure.httpStatus != null) {
+                        searchHttpStatus = failure.httpStatus;
+                        searchPages++;
+                    }
+                    discoveryFailure = ex.getMessage();
+                    recordItem(run, searchUrl, "SEARCH_FETCH_FAILED", searchHttpStatus, null, null, discoveryFailure);
                     rejected++;
                     break;
                 }
@@ -250,6 +258,8 @@ public class JobCrawlService {
             }
         }
         String outcome = rejected == 0 ? "COMPLETED" : imported + duplicates == 0 ? "FAILED" : "PARTIAL";
+        String summary = "Imported " + imported + "; duplicates " + duplicates + "; rejected " + rejected
+            + (discoveryFailure == null ? "" : "; " + discoveryFailure);
         int fetchedCount = fetched, parsedCount = parsed, importedCount = imported, duplicateCount = duplicates,
             rejectedCount = rejected, wrongRegionCount = wrongRegion, searchCount = searchPages,
             discoveredCount = input.urls() == null || input.urls().isEmpty() ? urls.size() : 0,
@@ -264,7 +274,7 @@ public class JobCrawlService {
                 checkedCount,
                 wrongRegionCount,
                 rejectedCount,
-                "Imported " + importedCount + "; duplicates " + duplicateCount + "; rejected " + rejectedCount,
+                summary,
                 OffsetDateTime.now(),
                 run
             );
@@ -408,6 +418,10 @@ public class JobCrawlService {
 
             if (response.bodyAsBytes().length > MAX_BODY_BYTES)
                 throw new FetchFailure("Source response exceeds 2 MiB", status);
+            if ("challenge".equalsIgnoreCase(response.header("cf-mitigated")))
+                throw sourceChallenge(status);
+            if (status == 429)
+                throw new FetchFailure("Source rate limit reached (HTTP 429); wait before another crawl", status);
             if (status < 200 || status >= 300)
                 return new HttpPage(current.toASCIIString(), status, "");
 
@@ -416,10 +430,23 @@ public class JobCrawlService {
                 || type.toLowerCase(Locale.ROOT).startsWith("application/xhtml+xml")))
                 throw new FetchFailure("Source did not return HTML", status);
 
-            return new HttpPage(current.toASCIIString(), status, response.body());
+            String html = response.body();
+            if (html != null && (html.contains("/cdn-cgi/challenge-platform/") || html.contains("_cf_chl_opt"))
+                && Jsoup.parse(html).title().toLowerCase(Locale.ROOT).contains("just a moment"))
+                throw sourceChallenge(status);
+            return new HttpPage(current.toASCIIString(), status, html);
         }
 
         throw new FetchFailure("Source exceeded three redirects", null);
+    }
+
+    private static FetchFailure sourceChallenge(
+        int status) {
+        return new FetchFailure(
+            "Source access blocked by Cloudflare verification (HTTP " + status + "). "
+                + "Automated HTML collection is unavailable; use a source-authorized API/feed or manual job import.",
+            status
+        );
     }
 
     private static class FetchFailure extends IOException {

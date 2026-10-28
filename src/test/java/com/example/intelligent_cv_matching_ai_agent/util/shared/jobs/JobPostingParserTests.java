@@ -9,6 +9,8 @@ import java.time.ZoneOffset;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 class JobPostingParserTests {
 
@@ -44,6 +46,37 @@ class JobPostingParserTests {
         assertEquals(true, skills.get("SQL"));
         assertEquals(false, skills.get("Docker"));
         assertFalse(skills.containsKey("Java"), "JavaScript must not imply Java");
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        delimiter = '|',
+        quoteCharacter = '~',
+        value = {
+            "800 - 2,000 USD|MONTH|800 - 2,000 USD / MONTH",
+            "800 - 2,000 USD / MONTH|MONTH|800 - 2,000 USD / MONTH",
+            "Up to 35tr (Thương lượng)|MONTH|Up to 35tr (Thương lượng) / MONTH",
+            "You'll love it|MONTH|You'll love it",
+            "Thương lượng|MONTH|Thương lượng",
+            "1000|MONTH|1000 USD / MONTH",
+            "800 - 2000|MONTH|800 - 2000 USD / MONTH",
+            "20 USD|HOUR|20 USD / HOUR",
+            "10000 EUR/year|MONTH|10000 EUR/year"}
+    )
+    void jsonLdSalaryPreservesDisplayCurrencyAndUnknownTextWithoutAppendingAConflictingDefault(
+        String input,
+        String period,
+        String expected) {
+        String html = """
+            <script type="application/ld+json">
+            {"@type":"JobPosting","title":"Backend Developer",
+             "description":"Required experience with Java and SQL for production backend services.",
+             "baseSalary":{"currency":"USD","value":{"value":"%s","unitText":"%s"}}}
+            </script>
+            """.formatted(input, period);
+        var parsed = JobPostingParser
+            .parse(html, "ITVIEC", "https://itviec.com/it-jobs/backend-example-1234", "Backend").orElseThrow();
+        assertEquals(expected, parsed.job().salaryText());
     }
 
     @Test

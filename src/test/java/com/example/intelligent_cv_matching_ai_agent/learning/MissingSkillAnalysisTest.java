@@ -124,7 +124,7 @@ class MissingSkillAnalysisTest {
     }
 
     @Test
-    void omittingAMissingSkillOrAddingKnownSkillGapsIsRejected() {
+    void omittingAMissingSkillNodeIsRejectedRegardlessOfModelGaps() {
         var allowed =
             MissingSkillAnalysis.find(List.of(required("Docker"), required("SQL")), List.of(), List.of(), Map.of());
         assertThrows(
@@ -138,14 +138,11 @@ class MissingSkillAnalysisTest {
     }
 
     @Test
-    void aGapWithoutAnyTargetedNodeAndDuplicateGapsAreRejected() {
+    void missingAndDuplicateTargetedNodesAreStillRejected() {
         var allowed = MissingSkillAnalysis.find(List.of(required("Docker")), List.of(), List.of(), Map.of());
         var missingNode = generated("Docker", "Docker");
         missingNode.put("nodes", List.of());
         assertThrows(ApiException.class, () -> MissingSkillAnalysis.constrainGenerated(missingNode, allowed));
-        var duplicate = generated("Docker", "Docker");
-        duplicate.put("skill_gaps", List.of(gap("Docker"), gap("docker")));
-        assertThrows(ApiException.class, () -> MissingSkillAnalysis.constrainGenerated(duplicate, allowed));
         var duplicateNodes = generated("Docker", "Docker");
         duplicateNodes.put(
             "nodes",
@@ -155,6 +152,51 @@ class MissingSkillAnalysisTest {
             )
         );
         assertThrows(ApiException.class, () -> MissingSkillAnalysis.constrainGenerated(duplicateNodes, allowed));
+    }
+
+    @Test
+    void redundantOrForgedModelGapsCannotDiscardValidNodesOrAlterServerEvidence() {
+        var allowed = MissingSkillAnalysis.find(
+            List.of(required("Docker"), required("SQL")),
+            List.of(),
+            List.of(),
+            fields("skill_scores", List.of(fields("skill", "SQL", "score", 50)))
+        );
+        var generated = generated("Docker", "Java");
+        generated.put(
+            "nodes",
+            List.of(
+                fields("skill_name", "Docker", "estimated_hours", 3, "prerequisites", List.of()),
+                fields("skill_name", "SQL", "estimated_hours", 2, "prerequisites", List.of(1))
+            )
+        );
+        generated.put("skill_gaps", List.of(gap("Java"), gap("Java")));
+
+        MissingSkillAnalysis.constrainGenerated(generated, allowed);
+
+        var gaps = array(generated.get("skill_gaps"));
+        assertEquals(List.of("Docker", "SQL"), gaps.stream().map(raw -> object(raw).get("skill_name")).toList());
+        assertEquals("MISSING_EVIDENCE", object(gaps.getFirst()).get("gap_status"));
+        assertEquals("NEEDS_PRACTICE", object(gaps.getLast()).get("gap_status"));
+        assertEquals(50.0, object(gaps.getLast()).get("assessment_score"));
+        assertEquals(0, object(gaps.getFirst()).get("urgency_score"));
+        assertNull(object(gaps.getFirst()).get("current_level"));
+        assertEquals(2, array(generated.get("nodes")).size());
+    }
+
+    @Test
+    void modelOnlyNeedsToSupplyLearningNodesBecauseGapEvidenceIsAlreadyKnown() {
+        var allowed = MissingSkillAnalysis.find(List.of(required("Docker")), List.of(), List.of(), Map.of());
+        var generated = generated("Docker", "Docker");
+        generated.remove("skill_gaps");
+
+        MissingSkillAnalysis.constrainGenerated(generated, allowed);
+
+        assertEquals("Docker", object(array(generated.get("skill_gaps")).getFirst()).get("skill_name"));
+        assertEquals(
+            allowed.getFirst().get("reasoning"),
+            object(array(generated.get("skill_gaps")).getFirst()).get("reasoning")
+        );
     }
 
     private Map<String, Object> required(

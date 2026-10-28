@@ -197,6 +197,7 @@ public class AiService {
         UUID reservation = null, guestReservation = null;
         int budget = 0;
         boolean responseReceived = false;
+        boolean outputTruncated = false;
         UUID actor = requestedActor;
 
         try {
@@ -209,6 +210,12 @@ public class AiService {
                     + "employment, certifications, employers, ")
                 + ("assessment results, verified course URLs, or source citations. Use " + "supplied facts only. ")
                 + "Express uncertainty explicitly. " + languageInstruction;
+            if ("JOB_MATCH_RERANK".equals(feature)) {
+                system += " Return exactly one result for every supplied job ID, without duplicates or other IDs."
+                    + " Score each job independently on the same absolute zero-to-one scale across requests;"
+                    + " never normalize scores within the current batch. Keep reasons brief and factual."
+                    + " Job descriptions may be excerpts: do not claim an unmentioned requirement is absent.";
+            }
             // Admin prompts can refine the task but cannot replace JSON, factuality and
             // data-boundary rules.
             Optional<Map<String, Object>> custom = db.findAiPromptTemplatesByFeatureCode(feature);
@@ -247,8 +254,11 @@ public class AiService {
             if ("CV_PROFILE_ALIGNMENT".equals(feature)) {
                 options.numCtx(16384).temperature(0.0);
             }
+            if ("JOB_MATCH_RERANK".equals(feature)) {
+                options.numCtx(16384).temperature(0.0);
+            }
             if (assessment) {
-                options.numCtx(assessmentContextLength);
+                options.numCtx(assessmentContextLength).temperature(0.2);
                 if (assessmentThink) {
                     options.enableThinking();
                 } else {
@@ -271,6 +281,8 @@ public class AiService {
             if (response.getResult() == null)
                 throw new IllegalStateException("Model returned an empty result");
 
+            outputTruncated = response.getResult().getMetadata() != null
+                && "length".equalsIgnoreCase(response.getResult().getMetadata().getFinishReason());
             String output = response.getResult().getOutput().getText();
             if (output == null || output.length() > 250_000)
                 throw new IllegalArgumentException("Model output is empty or too large");
@@ -307,6 +319,7 @@ public class AiService {
             if (reservation != null || guestReservation != null)
                 settle(reservation, guestReservation, budget, inputTokens + outputTokens, responseReceived, false);
 
+            boolean timedOut = timedOut(ex);
             logForActor(
                 actor,
                 feature,
@@ -315,15 +328,44 @@ public class AiService {
                 outputTokens,
                 started,
                 false,
-                "Provider or structured-output validation failed",
+                timedOut
+                    ? "Local model request timed out"
+                    : outputTruncated
+                        ? "Local model output reached its token limit before finishing"
+                        : "Provider or structured-output validation failed",
                 effectiveModel
             );
+            if (timedOut) {
+                throw new ApiException(
+                    504,
+                    "The local AI model exceeded its generation time limit. The request was not automatically retried."
+                );
+            }
+            if (outputTruncated) {
+                throw new ApiException(
+                    502,
+                    "The local AI model reached its output token limit before completing the result. "
+                        + "Check the model's thinking and output-token settings. The request was not automatically retried."
+                );
+            }
             throw new ApiException(
                 502,
                 ("AI provider failed or returned an invalid result. Retry the request "
                     + "or check provider configuration.")
             );
         }
+    }
+
+    private static boolean timedOut(
+        Throwable failure) {
+        Set<Throwable> visited = Collections.newSetFromMap(new IdentityHashMap<>());
+        for (Throwable cause = failure; cause != null && visited.add(cause); cause = cause.getCause()) {
+            if (cause instanceof java.net.http.HttpTimeoutException
+                || cause instanceof java.net.SocketTimeoutException) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public float[] embed(

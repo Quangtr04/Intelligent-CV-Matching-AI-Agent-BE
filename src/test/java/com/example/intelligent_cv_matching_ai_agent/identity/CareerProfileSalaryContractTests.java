@@ -15,7 +15,7 @@ class CareerProfileSalaryContractTests {
     private final JsonMapper mapper = JsonMapper.builder().build();
 
     @Test
-    void aSingleMonthlyAmountIsValidatedAndLegacyEntityFieldsStayPrivate() {
+    void aSingleMonthlyAmountIsValidatedAndLegacyRangeFieldsAreNotExposed() {
         var request =
             mapper.readValue("{\"expectedSalary\":7500000,\"salaryCurrency\":\"VND\"}", CareerProfileRequest.class);
         assertEquals(0, new BigDecimal("7500000").compareTo(request.expectedSalary()));
@@ -25,8 +25,14 @@ class CareerProfileSalaryContractTests {
         }
         CandidateProfile profile = new CandidateProfile();
         profile.setExpectedSalary(new BigDecimal("7500000"));
-        profile.setExpectedSalaryMin(new BigDecimal("10000000"));
-        profile.setExpectedSalaryMax(new BigDecimal("20000000"));
+        assertThrows(
+            NoSuchMethodException.class,
+            () -> CandidateProfile.class.getMethod("setExpectedSalaryMin", BigDecimal.class)
+        );
+        assertThrows(
+            NoSuchMethodException.class,
+            () -> CandidateProfile.class.getMethod("setExpectedSalaryMax", BigDecimal.class)
+        );
         String json = mapper.writeValueAsString(profile);
         assertTrue(json.contains("\"expected_salary\":7500000"));
         assertFalse(json.contains("expected_salary_min"));

@@ -1,0 +1,42 @@
+classDiagram
+    direction TB
+    class SupportController {
+        <<controller>>
+        +create(SupportTicketRequest body) Map
+        +detail(UUID id) Map
+        +message(UUID id, SupportMessageRequest body) Map
+    }
+    class AdminSupportController {
+        <<controller>>
+        +update(UUID id, SupportTicketUpdateRequest body) Map
+    }
+    class SupportService {
+        <<service>>
+        +create(SupportTicketRequest body) Map
+        +message(UUID id, SupportMessageRequest body) Map
+        +update(UUID id, SupportTicketUpdateRequest body) Map
+    }
+    class SupportRepository {
+        <<repository>>
+        +getTicketForUpdate(UUID id) Map
+        +insertSupportTickets() UUID
+        +insertSupportTicketMessages() UUID
+        +insertNotifications() UUID
+    }
+    class CurrentUser {
+        +id() UUID
+        +hasRole(String role) boolean
+        +requireRole(String role)
+        +owns(Map row, String ownerField)
+    }
+    class AuditService {
+        <<service>>
+        +record()
+    }
+    class SqlStore
+    SupportController --> SupportService : service
+    AdminSupportController --> SupportService : service
+    SupportService --> SupportRepository : db
+    SupportService --> CurrentUser : user
+    SupportService --> AuditService : audit
+    SupportRepository --> SqlStore : db

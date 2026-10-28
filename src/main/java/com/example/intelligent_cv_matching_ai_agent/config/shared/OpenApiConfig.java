@@ -22,15 +22,21 @@ public class OpenApiConfig {
                 )
             )
             .components(
-                new Components().addSecuritySchemes(
-                    "bearerAuth",
-                    new SecurityScheme().type(SecurityScheme.Type.HTTP).scheme("bearer")
-                        .description("Opaque accessToken returned by login; expires after 15 minutes.")
-                ).addSecuritySchemes(
-                    "guestSession",
-                    new SecurityScheme().type(SecurityScheme.Type.APIKEY).in(SecurityScheme.In.HEADER)
-                        .name("X-Guest-Session")
-                )
+                new Components()
+                    .addSecuritySchemes(
+                        "bearerAuth",
+                        new SecurityScheme().type(SecurityScheme.Type.HTTP).scheme("bearer")
+                            .description("Opaque accessToken returned by login; expires after 15 minutes.")
+                    )
+                    .addSecuritySchemes(
+                        "guestSession",
+                        new SecurityScheme().type(SecurityScheme.Type.APIKEY).in(SecurityScheme.In.HEADER)
+                            .name("X-Guest-Session")
+                    ).addSecuritySchemes(
+                        "sepayIpn",
+                        new SecurityScheme().type(SecurityScheme.Type.APIKEY).in(SecurityScheme.In.HEADER)
+                            .name("X-Secret-Key").description("SePay merchant IPN authentication type SECRET_KEY")
+                    )
             );
     }
 
@@ -54,7 +60,9 @@ public class OpenApiConfig {
                         boolean publicGet = method.name().equals("GET") && (path.equals("/api/v1/jobs")
                             || path.equals("/api/v1/jobs/{id}") || path.equals("/api/v1/skills")
                             || path.equals("/api/v1/resumes/templates") || path.equals("/api/v1/subscriptions/tiers"));
-                        if (publicAuth || publicGet || path.equals("/api/v1/guest/sessions")
+                        if (path.equals("/api/v1/payments/sepay/ipn"))
+                            operation.setSecurity(List.of(new SecurityRequirement().addList("sepayIpn")));
+                        else if (publicAuth || publicGet || path.equals("/api/v1/guest/sessions")
                             || path.equals("/api/v1/payments/webhook"))
                             operation.setSecurity(List.of());
                         else

@@ -117,7 +117,9 @@ class LearningOllamaSmokeTests {
                     "temperature",
                     0.2,
                     "num_predict",
-                    "ASSESSMENT_GENERATE".equals(feature) ? 12000 : 4000,
+                    "ASSESSMENT_GENERATE".equals(feature)
+                        ? Integer.parseInt(System.getenv().getOrDefault("AI_ASSESSMENT_MAX_OUTPUT_TOKENS", "12000"))
+                        : 4000,
                     "num_ctx",
                     "ASSESSMENT_GENERATE".equals(feature) ? 16384 : 8192
                 ),

@@ -3,6 +3,7 @@ package com.example.intelligent_cv_matching_ai_agent.util.candidate.ai;
 import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.resume.ResumeData;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
@@ -21,6 +22,19 @@ public final class CareerAssistantData {
             throw ApiException.badRequest("retrieve must be boolean");
 
         return message;
+    }
+
+    public static String language(
+        Map<String, Object> body) {
+        Object raw = body.get("language");
+        if (raw == null)
+            return null;
+        if (!(raw instanceof String value))
+            throw ApiException.badRequest("language must be vi or en");
+        String language = value.trim().toLowerCase(Locale.ROOT);
+        if (!language.equals("vi") && !language.equals("en"))
+            throw ApiException.badRequest("language must be vi or en");
+        return language;
     }
 
     public static Object feedbackRating(

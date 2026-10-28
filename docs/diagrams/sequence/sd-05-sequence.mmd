@@ -1,0 +1,48 @@
+sequenceDiagram
+    autonumber
+    actor C as Candidate
+    participant Client as FE hoặc API client
+    participant API as CareerToolsController
+    participant Tools as CareerToolsService
+    participant Match as MatchingService
+    participant Policy as Salary policy / exchange rates
+    participant Cache as Redis tùy chọn
+    participant AI as AiService
+    participant DB as PostgreSQL pgvector
+
+    C->>Client: Chọn cơ sở gợi ý và số kết quả
+    Client->>API: POST /matching
+    API->>Tools: match(input)
+    Tools->>Match: match(basis, resumeIds, limit)
+    Match->>DB: Kiểm tra Candidate, profile/CV owner và READY
+    Match->>Policy: Đọc chính sách lương và tỷ giá nếu cần
+    Match->>DB: Đọc JD ACTIVE, chưa hết hạn và metadata/vector
+    Match->>Match: Lọc lương, dựng candidate text và request hash
+    Note over Match: CAREER_PROFILE cần expectedSalary, CV basis cần ít nhất một CV đã confirm
+    Match->>Cache: Tìm runId theo user và hash
+    Match->>DB: Kiểm tra cache/database run hợp lệ
+    alt Có run đã cache
+        Match->>DB: Đọc run thuộc owner và results
+        Match-->>Client: Kết quả cached=true
+    else Cache miss
+        Match->>DB: INSERT job_matching_runs PROCESSING và matching_run_resumes
+        alt AI bật và truy xuất được job vector hiện hành
+            Match->>AI: embed(candidateText)
+            AI-->>Match: Candidate vector
+            Match->>DB: Cosine search cùng provider/model, lọc salary-eligible
+            DB-->>Match: Candidate jobs
+            Match->>DB: Đọc skills và job bổ sung cần thiết
+            loop Từng batch JD cần xếp hạng
+                Match->>AI: generate(JOB_MATCH_RERANK, candidate, jobs)
+                AI-->>Match: Score, reason, strengths, skill_gaps
+                Match->>Match: Validate đủ và đúng job IDs, score hợp lệ
+            end
+        else AI tắt hoặc không có kết quả vector phù hợp
+            Match->>DB: Đọc JD và skills trong tập đủ điều kiện
+            Match->>Match: Xếp hạng SKILL_OVERLAP hoặc SKILL_OVERLAP_UNINDEXED_JOBS
+        end
+        Match->>Match: Sort theo score và policy, lấy top limit
+        Match->>DB: INSERT job_match_results, hoàn tất run
+        Match->>Cache: Nhớ runId với TTL 1 giờ nếu Redis dùng được
+        Match-->>Client: Run, results, salary_filter, cached=false
+    end

@@ -1,0 +1,293 @@
+{
+  "renderer": "@mermaid-js/tiny 12.2.0 + Chromium",
+  "diagrams": [
+    {
+      "id": "SD-01",
+      "title": "Đăng ký xác minh email và đăng nhập",
+      "type": "sequence",
+      "stem": "sd-01-sequence",
+      "sourceSha256": "31cab2f956194118ed67fae13a1acbb22dafb2aa281d2b6dc437e8b6a511409d",
+      "width": 1675,
+      "height": 2613
+    },
+    {
+      "id": "SD-01",
+      "title": "Đăng ký xác minh email và đăng nhập",
+      "type": "class",
+      "stem": "sd-01-class",
+      "sourceSha256": "300637d10ef183d11d3e07ea81aa94e8b9e59f704aa69445f144cdcb40e330eb",
+      "width": 890,
+      "height": 1334
+    },
+    {
+      "id": "SD-02",
+      "title": "Xác thực request refresh token và logout",
+      "type": "sequence",
+      "stem": "sd-02-sequence",
+      "sourceSha256": "885a908d7760e8bb4d3db174beb7710e4efb40d650a0eee987499b3f17e9c6e4",
+      "width": 1445,
+      "height": 1809
+    },
+    {
+      "id": "SD-02",
+      "title": "Xác thực request refresh token và logout",
+      "type": "class",
+      "stem": "sd-02-class",
+      "sourceSha256": "b6788fa1bc92aa6bf7529490ff820742c98ff3778e324d25d5253bf5fd20a63e",
+      "width": 747,
+      "height": 1086
+    },
+    {
+      "id": "SD-03",
+      "title": "Tạo upload review confirm và phân tích CV",
+      "type": "sequence",
+      "stem": "sd-03-sequence",
+      "sourceSha256": "6fa4f9bd121140cbb7b1165ca32e85485c84bc544db5cf6cbeaece9b409510b4",
+      "width": 1685,
+      "height": 2779
+    },
+    {
+      "id": "SD-03",
+      "title": "Tạo upload review confirm và phân tích CV",
+      "type": "class",
+      "stem": "sd-03-class",
+      "sourceSha256": "f71716b8215528e1434f679ea8524543c271ddb560e0e6340e12766b5918244a",
+      "width": 1444,
+      "height": 1126
+    },
+    {
+      "id": "SD-04",
+      "title": "Nhập JD và lập chỉ mục embedding",
+      "type": "sequence",
+      "stem": "sd-04-sequence",
+      "sourceSha256": "f3328a4916897c973568b47ae4b21453f83e424b982e8dfd9afc333d8cb4ce91",
+      "width": 1675,
+      "height": 1943
+    },
+    {
+      "id": "SD-04",
+      "title": "Nhập JD và lập chỉ mục embedding",
+      "type": "class",
+      "stem": "sd-04-class",
+      "sourceSha256": "525f264ff25a4a21050409983c9dd872dc7d42c2b51b6347f2da8f3e6f321cf7",
+      "width": 1247,
+      "height": 1158
+    },
+    {
+      "id": "SD-05",
+      "title": "Gợi ý việc làm matching",
+      "type": "sequence",
+      "stem": "sd-05-sequence",
+      "sourceSha256": "4e151d4a07a14ec0a9450739bb368bcedfda0eccab2c3d2ca07633615ffa35a4",
+      "width": 2158,
+      "height": 2145
+    },
+    {
+      "id": "SD-05",
+      "title": "Gợi ý việc làm matching",
+      "type": "class",
+      "stem": "sd-05-class",
+      "sourceSha256": "1e95b584fb83b6bf2fb4ac14abceaa3887916070f9509246c3f5115a0fadfa30",
+      "width": 2642,
+      "height": 862
+    },
+    {
+      "id": "SD-06",
+      "title": "Đánh giá CV với một JD JOB_ATS",
+      "type": "sequence",
+      "stem": "sd-06-sequence",
+      "sourceSha256": "0827a9a78382d8e99b48f33851c9bfbe9b3650ab37af030970163d33cbbfc6bc",
+      "width": 1917,
+      "height": 2148
+    },
+    {
+      "id": "SD-06",
+      "title": "Đánh giá CV với một JD JOB_ATS",
+      "type": "class",
+      "stem": "sd-06-class",
+      "sourceSha256": "5764bf49fb4c5a77e5bf9419d345cf19710f8a05c86039b6556ddf4be69e184a",
+      "width": 1844,
+      "height": 862
+    },
+    {
+      "id": "SD-07",
+      "title": "Tạo bài đánh giá bằng hàng đợi AI",
+      "type": "sequence",
+      "stem": "sd-07-sequence",
+      "sourceSha256": "ac93f43b697e3a9c36a47cdee362559ef49297c1507be3b3abfda138cce4902b",
+      "width": 1940,
+      "height": 2955
+    },
+    {
+      "id": "SD-07",
+      "title": "Tạo bài đánh giá bằng hàng đợi AI",
+      "type": "class",
+      "stem": "sd-07-class",
+      "sourceSha256": "8d29757df8e415e5c445f5b6a4376c1fd362d96d501172551ccdd6870731a775",
+      "width": 1491,
+      "height": 1212
+    },
+    {
+      "id": "SD-08",
+      "title": "Nộp bài phân tích gap và lộ trình học",
+      "type": "sequence",
+      "stem": "sd-08-sequence",
+      "sourceSha256": "a33e1deb352b2716feb60b7196501af20d327721c44f65dc1c5ff14698f785f3",
+      "width": 1923,
+      "height": 2808
+    },
+    {
+      "id": "SD-08",
+      "title": "Nộp bài phân tích gap và lộ trình học",
+      "type": "class",
+      "stem": "sd-08-class",
+      "sourceSha256": "bebc2cc857816c549fa8868dc2f1a2c2203496bcc9d1ca3ac848e5987405f1ff",
+      "width": 1984,
+      "height": 982
+    },
+    {
+      "id": "SD-09",
+      "title": "Trợ lý nghề nghiệp và RAG tùy chọn",
+      "type": "sequence",
+      "stem": "sd-09-sequence",
+      "sourceSha256": "a464288d2a580ad98b48542ea8874d771e7e9422dbf6f368e7eec3b87c159db7",
+      "width": 1448,
+      "height": 1770
+    },
+    {
+      "id": "SD-09",
+      "title": "Trợ lý nghề nghiệp và RAG tùy chọn",
+      "type": "class",
+      "stem": "sd-09-class",
+      "sourceSha256": "d69baf28b9ee5b8e879bcc3cd86636b8250f1cd059ce436cc79f6a1432a669ab",
+      "width": 1742,
+      "height": 916
+    },
+    {
+      "id": "SD-10",
+      "title": "Tạo phân công và trao đổi ca tư vấn",
+      "type": "sequence",
+      "stem": "sd-10-sequence",
+      "sourceSha256": "dbfa2ca907429f19be4a8d164e1e30300b44b02d056b55b97b56fa42040b1c4e",
+      "width": 1695,
+      "height": 2018
+    },
+    {
+      "id": "SD-10",
+      "title": "Tạo phân công và trao đổi ca tư vấn",
+      "type": "class",
+      "stem": "sd-10-class",
+      "sourceSha256": "d826ee90ba826e458b292a2574615c7f898f6cd2862a0ada13135a78f613da4b",
+      "width": 1298,
+      "height": 964
+    },
+    {
+      "id": "SD-11",
+      "title": "Thanh toán SePay và kích hoạt gói",
+      "type": "sequence",
+      "stem": "sd-11-sequence",
+      "sourceSha256": "f2631461041b86e1278eb262db135146a0220d171410da0fdc8ea4259c69b898",
+      "width": 1699,
+      "height": 2474
+    },
+    {
+      "id": "SD-11",
+      "title": "Thanh toán SePay và kích hoạt gói",
+      "type": "class",
+      "stem": "sd-11-class",
+      "sourceSha256": "b4d222671b41b2f31d4c3c83053148d4e6c30974abfcd63ef46502d4cafcd479",
+      "width": 1434,
+      "height": 1116
+    },
+    {
+      "id": "SD-12",
+      "title": "Admin lưu và khôi phục cấu hình AI và prompt",
+      "type": "sequence",
+      "stem": "sd-12-sequence",
+      "sourceSha256": "942b6e9b5b8dde060f4bede3dfb82b666c5f2ee03cdefd8c4853a094048be8db",
+      "width": 1455,
+      "height": 1634
+    },
+    {
+      "id": "SD-12",
+      "title": "Admin lưu và khôi phục cấu hình AI và prompt",
+      "type": "class",
+      "stem": "sd-12-class",
+      "sourceSha256": "a095069ddeb7b924cb285191fc22ce67274ea958c68ccfcf6f1bc41b33c853d7",
+      "width": 1477,
+      "height": 988
+    },
+    {
+      "id": "SD-13",
+      "title": "Pipeline gọi AI chung",
+      "type": "sequence",
+      "stem": "sd-13-sequence",
+      "sourceSha256": "b209e7ac44f2041c9126d0c74ebd24645967ff361fbc9981c2feab9c99ae66ff",
+      "width": 1205,
+      "height": 1924
+    },
+    {
+      "id": "SD-13",
+      "title": "Pipeline gọi AI chung",
+      "type": "class",
+      "stem": "sd-13-class",
+      "sourceSha256": "985bc38819e285a200a63882fad9fe5e1287c7abec2ac1db68975dc74354c74b",
+      "width": 2630,
+      "height": 692
+    },
+    {
+      "id": "SD-14",
+      "title": "Tạo embedding cho CV",
+      "type": "sequence",
+      "stem": "sd-14-sequence",
+      "sourceSha256": "56974835c1ef85cec4feeb307c8ebb38562844b3bc06dcdeccca91aab6605e81",
+      "width": 1925,
+      "height": 2252
+    },
+    {
+      "id": "SD-14",
+      "title": "Tạo embedding cho CV",
+      "type": "class",
+      "stem": "sd-14-class",
+      "sourceSha256": "ac214772a534b799967933fb95d0b2be2f27c15eaecba301b79f81b22750498f",
+      "width": 1871,
+      "height": 1030
+    },
+    {
+      "id": "SD-15",
+      "title": "Ticket hỗ trợ và phản hồi Admin",
+      "type": "sequence",
+      "stem": "sd-15-sequence",
+      "sourceSha256": "8796aa5bb6b3584a95946868469da9d859eff66fd1204eeaf77dd17ceff653fd",
+      "width": 1209,
+      "height": 1348
+    },
+    {
+      "id": "SD-15",
+      "title": "Ticket hỗ trợ và phản hồi Admin",
+      "type": "class",
+      "stem": "sd-15-class",
+      "sourceSha256": "51509f933cf87965b6720ad3c8d24b8aa7d4ee71a16911063099d7071f99c987",
+      "width": 1118,
+      "height": 940
+    },
+    {
+      "id": "SD-16",
+      "title": "Soạn nội dung ứng tuyển",
+      "type": "sequence",
+      "stem": "sd-16-sequence",
+      "sourceSha256": "0f785ed06e955893c244cb457308002554eca2fcd8e3474df5b0027046284193",
+      "width": 1694,
+      "height": 1328
+    },
+    {
+      "id": "SD-16",
+      "title": "Soạn nội dung ứng tuyển",
+      "type": "class",
+      "stem": "sd-16-class",
+      "sourceSha256": "94d1cfda8269b36e5fe61872d859f0dd15c75b6b960dd4a2dfc149570087cb0a",
+      "width": 1970,
+      "height": 734
+    }
+  ]
+}

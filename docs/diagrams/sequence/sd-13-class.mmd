@@ -1,0 +1,51 @@
+classDiagram
+    direction TB
+    class AiService {
+        <<service>>
+        +generate(String feature, Map input) Map
+        +generateForUser(UUID actor, String feature, Map input) Map
+        +generateForGuest() Map
+    }
+    class AiRepository {
+        <<repository>>
+        +findAiConfigurationsByConfigType() Optional
+        +findAiPromptTemplatesByFeatureCode() Optional
+    }
+    class EntitlementService {
+        <<service>>
+        +reserve() UUID
+        +complete(UUID reservation, int actualTokens)
+        +cancel(UUID reservation)
+    }
+    class GuestAccess {
+        <<service>>
+        +reserve() UUID
+        +settle(UUID eventId, int actualTokens, boolean success)
+    }
+    class AiUsageRecorder {
+        <<service>>
+        +record()
+    }
+    class AiUsageRecorderRepository {
+        <<repository>>
+    }
+    class AiResponseData {
+        <<utility>>
+        +schema(String feature) String$
+        +validate()$
+    }
+    class CurrentUser {
+        +id() UUID
+    }
+    class ChatModel {
+        <<interface>>
+        +call(Prompt prompt) ChatResponse
+    }
+    AiService --> AiRepository : db
+    AiService --> EntitlementService : entitlement
+    AiService --> GuestAccess : guests
+    AiService --> AiUsageRecorder : usageRecorder
+    AiService --> CurrentUser : current
+    AiService ..> AiResponseData : schema and validation
+    AiService --> ChatModel : chatModels via ObjectProvider
+    AiUsageRecorder --> AiUsageRecorderRepository : db

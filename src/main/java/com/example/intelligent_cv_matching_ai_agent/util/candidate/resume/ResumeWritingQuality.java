@@ -136,6 +136,10 @@ public final class ResumeWritingQuality {
                 String original = Objects.toString(suggestion.get("original_content"), "");
                 if (!original.isBlank() && sourceText.stream().noneMatch(value -> value.contains(searchText(original))))
                     throw invalid("suggestion original_content is not a quote from reviewed CV content");
+                String suggested = Objects.toString(suggestion.get("suggested_content"), "");
+                if (!original.isBlank() && !suggested.isBlank() && original.strip().equals(suggested.strip())) {
+                    continue;
+                }
                 suggestions.add(suggestion);
             }
             BigDecimal content = score(generated.get("content_score"), "content_score");

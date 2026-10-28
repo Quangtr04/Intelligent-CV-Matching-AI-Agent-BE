@@ -89,7 +89,9 @@ AI tắt vẫn thử được các thao tác CRUD, chat tư vấn người thậ
 5. Nhập query ở **Params**; bỏ hẳn tham số tùy chọn chưa dùng thay vì gửi chuỗi rỗng cho UUID.
 6. Thêm script lưu token/ID trong **Scripts → Post-response** của request tương ứng.
 
-Đặt request timeout khoảng **600000 ms** khi thử inference cục bộ; lần load model đầu có thể lâu.
+Tạo assessment qua `/assessments/generations` dùng request ngắn và đọc trạng thái; không giữ POST mở để đợi AI.
+Với các API inference đồng bộ hoặc endpoint assessment cũ, client/proxy cần timeout phù hợp ngân sách model
+đã cấu hình (`AI_REQUEST_TIMEOUT` mặc định 15 phút), có thêm thời gian cho xử lý ứng dụng; lần load đầu có thể lâu.
 Gửi tuần tự từng request AI, không chạy load test trong lượt kiểm tra chức năng này. Test JSON/assertion
 được viết trong [Post-response](https://learning.postman.com/docs/tests-and-scripts/write-scripts/test-scripts/).
 Đổi `.env` chỉ có hiệu lực sau khi process/container backend nạp lại cấu hình; đổi biến Postman không đổi model server.
@@ -580,7 +582,14 @@ Conversation phải thuộc đúng guest session và còn `ACTIVE`; dùng key gu
 
 ## 5. Gói cước và thanh toán
 
-Trong nhóm này, chỉ `GET /subscriptions/tiers` và `POST /payments/webhook` là public. Các API còn lại cần **Bearer `{{candidateAccessToken}}`** hoặc token user đang test; backend ràng buộc dữ liệu theo người mang token. Thành công trả HTTP `200`.
+`GET /subscriptions/tiers` là public. `POST /payments/webhook` và `POST /payments/sepay/ipn` không dùng Bearer,
+nhưng phải có thông tin xác thực riêng của từng gateway. Các API còn lại cần **Bearer `{{candidateAccessToken}}`**
+hoặc token user đang test; backend ràng buộc dữ liệu theo người mang token. Thành công trả HTTP `200`.
+
+**SePay Payment Gateway:** dùng `POST /payments/sepay/checkout` với `tierId`, `durationMonths` để nhận đơn và
+form đã ký; FE gửi `formFields` theo thứ tự sang `checkoutUrl`. IPN nhận tại `/payments/sepay/ipn`, xác thực
+`X-Secret-Key`; đơn SePay không được xác nhận bằng custom webhook cũ. Xem
+[cấu hình sandbox, Postman và form FE đầy đủ](sepay-payment-gateway.md).
 
 ### 5.1. Xem gói, quota và lịch sử
 
@@ -1161,6 +1170,15 @@ Trả `job_id`, `job_title`, `skills[]` gồm `skill_name`, `is_required`, `reso
 Endpoint này chưa đánh giá người dùng và không gọi AI; resource có thể rỗng khi chưa có tài liệu phù hợp.
 
 ### 8.1. Tạo bài đánh giá
+
+**Luồng dùng trên FE:** `POST {{baseUrl}}/assessments/generations` — CANDIDATE, JSON body như dưới,
+trả `202` với `id` tác vụ và trạng thái `QUEUED`/`RUNNING`. Đọc
+`GET {{baseUrl}}/assessments/generations/{{generationId}}` mỗi 2–3 giây; khi `SUCCEEDED`, lấy
+`assessment_id` rồi đọc bài. `GET {{baseUrl}}/assessments/generations?jobId={{jobId}}` trả mảng tác vụ
+gần nhất của đúng chủ sở hữu để tiếp tục sau khi tải lại trang. Cùng user/JD đang chạy chỉ có một tác vụ.
+`FAILED` trả `error_code`/`message`, không tự gọi lại model. Xem [đầy đủ trạng thái và giới hạn hàng đợi](jd-assessment-missing-skills.md#3-sinh-bài-đánh-giá-từ-jd-đã-chọn).
+
+**Endpoint đồng bộ tương thích cũ:**
 
 `POST {{baseUrl}}/assessments` — CANDIDATE, JSON, `200`.
 
@@ -1858,6 +1876,10 @@ và `language` (Text vi/en, mặc định vi). Để Postman tự đặt Content
 10 trang; tài liệu phải có text và không mã hóa/hỏng. Response gồm HTML bản nháp, các khối, cảnh báo và
 `requires_review=true`; chưa ghi template hoặc gọi AI. Admin sửa/gắn slot, xem lại rồi POST/PUT `htmlContent`
 theo hợp đồng lưu ở trên. Không hỗ trợ PPTX/OCR trong luồng này; không cam kết bố cục giống từng pixel.
+PDF giữ chữ dưới dạng HTML theo tọa độ và phần đồ họa/ảnh tĩnh dưới dạng PNG nhúng; dùng font hệ thống,
+CSS tự chứa, không tải Bootstrap/CDN. Ảnh Word chưa được nhập. PNG tối đa 200.000 byte, 2.048 px mỗi chiều,
+4.000.000 pixel; cả HTML gồm base64 vẫn tối đa 200.000 ký tự. Bố cục PDF cố định không tự phân trang khi
+nội dung Candidate dài hơn; cần xem thử dữ liệu, sửa vùng nội dung và xóa/thay ảnh/chữ mẫu trước khi lưu.
 Endpoint download CV vẫn không tự xuất PDF.
 Xem [thứ tự import → biên tập → lưu, quy ước slot và JSON Postman](html-resume-templates.md).
 
@@ -2466,7 +2488,8 @@ Kiểm tra HTTP status trước khi đọc field; response download/SSE không p
 
 - Chưa có API Forgot/Reset Password qua email; đổi mật khẩu hiện yêu cầu đăng nhập và mật khẩu hiện tại.
 - Quota đang tính theo token/tính năng, chưa có hạn mức số lần gọi API độc lập.
-- Billing hiện có order, webhook và dữ liệu subscription/invoice; chưa có tích hợp checkout/QR thanh toán thật.
+- Billing đã có SePay Payment Gateway: form checkout được ký ở BE, IPN xác thực secret và xử lý trùng trước khi
+  kích hoạt gói. Cần cấu hình merchant và HTTPS công khai để thử với SePay; xem [hướng dẫn](sepay-payment-gateway.md).
 - Invoice API hiện phục vụ hóa đơn của chính người gọi. `payment-reports` là phản ánh thanh toán, không phải
   báo cáo analytics hoặc file xuất quản trị. Chưa có endpoint xuất báo cáo CSV/XLSX/PDF riêng.
 - Cấu hình AI/prompt tạo phiên bản mới. Lưu cấu hình embedding chưa thay bean/model embedding của process đang chạy.

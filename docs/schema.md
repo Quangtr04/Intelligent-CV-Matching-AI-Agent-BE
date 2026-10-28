@@ -1,6 +1,11 @@
 # Cơ sở dữ liệu EduNexus
 
-Schema hiện tại sau **V1–V19 có 83 bảng ứng dụng**, không tính bảng lịch sử `flyway_schema_history`.
+Schema hiện tại sau **V1–V20 có 84 bảng ứng dụng**, không tính bảng lịch sử `flyway_schema_history`.
+
+V20 bổ sung `assessment_generations` để lưu yêu cầu tạo câu hỏi độc lập với request HTTP. Bảng lưu owner,
+JD, trạng thái, assessment đã hoàn tất và lease của worker. Unique index chỉ cho phép một yêu cầu đang chờ/chạy
+cho cùng user/JD; index hàng đợi phục vụ claim tuần tự. Đáp án vẫn nằm trong `assessment_questions`, không trả
+qua API trạng thái tác vụ. Khi lease hết hạn, yêu cầu được đánh dấu gián đoạn và không tự gọi lại model.
 Các cột embedding đang sử dụng có kiểu `vector(1024)` cho Ollama `qwen3-embedding:0.6b`;
 vector cũ 1536 chiều được giữ trong cột riêng, theo phần chuyển đổi V10 bên dưới.
 

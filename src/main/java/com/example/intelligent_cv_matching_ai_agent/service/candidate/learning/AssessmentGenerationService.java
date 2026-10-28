@@ -1,0 +1,161 @@
+package com.example.intelligent_cv_matching_ai_agent.service.candidate.learning;
+
+import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.learning.AssessmentRequest;
+import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException;
+import com.example.intelligent_cv_matching_ai_agent.repository.candidate.learning.AssessmentGenerationRepository;
+import com.example.intelligent_cv_matching_ai_agent.security.shared.CurrentUser;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
+
+/** One durable question-generation worker, independent of a browser request or security thread. */
+@Service
+public class AssessmentGenerationService {
+
+    private final AssessmentGenerationRepository db;
+
+    private final AssessmentService assessments;
+
+    private final CurrentUser current;
+
+    private final TransactionTemplate transactions;
+
+    private final boolean enabled;
+
+    private final int leaseSeconds;
+
+    public AssessmentGenerationService(
+        AssessmentGenerationRepository db,
+        AssessmentService assessments,
+        CurrentUser current,
+        PlatformTransactionManager manager,
+        @Value("${app.assessments.generation.enabled:true}")
+        boolean enabled,
+        @Value("${app.assessments.generation.lease-seconds:1800}")
+        int leaseSeconds) {
+        this.db = db;
+        this.assessments = assessments;
+        this.current = current;
+        this.transactions = new TransactionTemplate(manager);
+        this.enabled = enabled;
+        this.leaseSeconds = Math.max(600, Math.min(leaseSeconds, 3600));
+    }
+
+    public Map<String, Object> start(
+        AssessmentRequest input) {
+        current.requireRole("CANDIDATE");
+        UUID owner = current.id();
+        if (!enabled) {
+            throw new ApiException(503, "Question generation is temporarily unavailable.");
+        }
+        return transactions.execute(status -> {
+            db.lockQueue();
+            db.expireInterrupted();
+            requireActive(owner);
+            Optional<Map<String, Object>> existing = db.active(owner, input.jobId());
+            if (existing.isPresent()) {
+                return existing.get();
+            }
+            AssessmentService.Prepared prepared =
+                assessments.prepareForOwner(owner, input.targetJobTitle(), input.jobId());
+            if (db.activeCount(owner) >= 3 || db.activeCount(null) >= 50) {
+                throw new ApiException(429, "Question generation is busy. Wait for an existing request to finish.");
+            }
+            return db.enqueue(owner, prepared.jobId(), prepared.target());
+        });
+    }
+
+    public Map<String, Object> status(
+        UUID id) {
+        current.requireRole("CANDIDATE");
+        return db.status(id, current.id());
+    }
+
+    public List<Map<String, Object>> latest(
+        UUID job) {
+        current.requireRole("CANDIDATE");
+        return db.latest(current.id(), job);
+    }
+
+    @Scheduled(
+        scheduler = "assessmentGenerationScheduler",
+        fixedDelayString = "${app.assessments.generation.fixed-delay-ms:1000}",
+        initialDelayString = "${app.assessments.generation.initial-delay-ms:5000}"
+    )
+    public void processPending() {
+        if (enabled) {
+            processNext();
+        }
+    }
+
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public boolean processNext() {
+        Optional<Map<String, Object>> claimed = transactions.execute(status -> {
+            db.lockQueue();
+            db.expireInterrupted();
+            return db.claimNext(UUID.randomUUID(), leaseSeconds);
+        });
+        if (claimed == null || claimed.isEmpty()) {
+            return false;
+        }
+        Map<String, Object> request = claimed.get();
+        UUID id = (UUID) request.get("id");
+        UUID owner = (UUID) request.get("user_id");
+        UUID job = (UUID) request.get("job_id");
+        UUID token = (UUID) request.get("lease_token");
+        try {
+            AssessmentService.Prepared prepared = transactions.execute(status -> {
+                requireActive(owner);
+                return assessments.prepareForOwner(owner, (String) request.get("target_job_title"), job);
+            });
+            // No JDBC transaction/connection is held while Ollama runs.
+            Map<String, Object> generated = assessments.generate(prepared);
+            transactions.executeWithoutResult(status -> {
+                if (!db.ownsClaim(id, owner, token)) {
+                    throw ApiException.conflict("Question generation was interrupted before publication.");
+                }
+                requireActive(owner);
+                Map<String, Object> assessment = assessments.persist(prepared, generated);
+                if (db.complete(id, token, (UUID) assessment.get("id")) != 1) {
+                    throw ApiException.conflict("Question generation lost its publication lease.");
+                }
+            });
+        } catch (RuntimeException ex) {
+            int http = ex instanceof ApiException api ? api.status() : 500;
+            String code = switch (http) {
+                case 400, 404, 409 -> "INPUT_UNAVAILABLE";
+                case 401, 403 -> "ACCOUNT_UNAVAILABLE";
+                case 429 -> "QUOTA_EXHAUSTED";
+                case 502 -> "AI_RESULT_INVALID";
+                case 503 -> "AI_UNAVAILABLE";
+                case 504 -> "AI_TIMEOUT";
+                default -> "GENERATION_FAILED";
+            };
+            String message = switch (http) {
+                case 429 -> "Not enough AI quota. Retry after quota is available.";
+                case 503 -> "The local AI model is unavailable. Retry when Ollama is ready.";
+                case 504 -> "The local AI model took too long. Wait for Ollama to be idle, then retry manually.";
+                case 400, 404, 409 -> "The selected JD or generation request is no longer available. Review and retry.";
+                case 401, 403 -> "The account no longer allows question generation.";
+                default -> "AI could not finish a valid question set. Retry manually; no partial assessment was saved.";
+            };
+            transactions.executeWithoutResult(status -> db.fail(id, token, code, message));
+        }
+        return true;
+    }
+
+    private void requireActive(
+        UUID owner) {
+        if (!db.activeCandidate(owner)) {
+            throw ApiException.forbidden("An active candidate account is required.");
+        }
+    }
+}

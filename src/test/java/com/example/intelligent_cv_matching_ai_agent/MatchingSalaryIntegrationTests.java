@@ -3,6 +3,10 @@ package com.example.intelligent_cv_matching_ai_agent;
 import com.example.intelligent_cv_matching_ai_agent.repository.shared.SqlStore;
 import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiService;
 import com.example.intelligent_cv_matching_ai_agent.service.shared.identity.TokenService;
+import com.example.intelligent_cv_matching_ai_agent.service.shared.jobs.SalaryExchangeRateService;
+import com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.SalaryExchangeRates;
+import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -66,13 +70,23 @@ class MatchingSalaryIntegrationTests {
     @MockitoBean
     private AiService ai;
 
+    @MockitoBean
+    private SalaryExchangeRateService exchangeRates;
+
     private UUID owner;
 
     private String authorization;
 
     @BeforeEach
     void fixture() {
-        reset(ai);
+        reset(ai, exchangeRates);
+        when(exchangeRates.snapshot()).thenReturn(
+            new SalaryExchangeRates(
+                Map.of("USD", BigDecimal.ONE, "VND", new BigDecimal("25000"), "EUR", new BigDecimal("0.9")),
+                Instant.parse("2026-10-24T00:00:00Z"),
+                "https://rates.example.test"
+            )
+        );
         when(ai.provider()).thenReturn("ollama");
         when(ai.model()).thenReturn("qwen2.5:7b");
         when(ai.embeddingModel()).thenReturn("qwen3-embedding:0.6b");
@@ -106,19 +120,31 @@ class MatchingSalaryIntegrationTests {
         UUID range = job("5 - 7 million VND/month", "java");
         UUID high = job("20 million VND/month", "python");
         job("6749999 VND/month", "java");
-        job("Negotiable", "java");
-        job("1000 USD/month", "java");
-        job("120 million VND/year", "java");
+        UUID unknown = job("Negotiable", "java");
+        UUID foreign = job("1000 USD/month", "java");
+        UUID annual = job("120 million VND/year", "java");
 
         var run = match("CAREER_PROFILE", List.of());
         assertEquals("COMPLETED", run.get("status"));
-        assertEquals(Set.of(floor.toString(), range.toString(), high.toString()), resultIds(run));
+        assertEquals(
+            Set.of(
+                floor.toString(),
+                range.toString(),
+                high.toString(),
+                unknown.toString(),
+                foreign.toString(),
+                annual.toString()
+            ),
+            resultIds(run)
+        );
         List<Map<String, Object>> results = results(run);
         assertEquals(high.toString(), results.getLast().get("market_job_id"));
         assertEquals(1.0, ((Number) results.getFirst().get("final_score")).doubleValue());
         assertEquals(0.0, ((Number) results.getLast().get("final_score")).doubleValue());
         Map<?, ?> policy = (Map<?, ?>) run.get("salary_filter");
-        assertEquals(3, ((Number) policy.get("eligible_jobs")).intValue());
+        assertEquals(6, ((Number) policy.get("eligible_jobs")).intValue());
+        assertEquals(4, ((Number) policy.get("verified_eligible_jobs")).intValue());
+        assertEquals(2, ((Number) policy.get("unverified_eligible_jobs")).intValue());
         assertEquals(6750000.0, ((Number) policy.get("minimum_acceptable")).doubleValue());
         assertEquals("AT_LEAST_CONFIGURED_MINIMUM", policy.get("comparison"));
         for (Map<String, Object> result : results) {
@@ -160,10 +186,9 @@ class MatchingSalaryIntegrationTests {
     }
 
     @Test
-    void anEmptySalaryMatchCompletesWithoutEmbeddingOrGeneratingEvenWhenAiIsEnabled() throws Exception {
+    void knownSalariesBelowTheFloorCompleteWithoutEmbeddingOrGeneratingEvenWhenAiIsEnabled() throws Exception {
         when(ai.enabled()).thenReturn(true);
         job("6 million VND/month", "java");
-        job("Negotiable", "java");
         var run = match("CAREER_PROFILE", List.of());
         assertEquals("COMPLETED", run.get("status"));
         assertTrue(results(run).isEmpty());
@@ -173,15 +198,62 @@ class MatchingSalaryIntegrationTests {
     }
 
     @Test
-    void unrelatedIndexedJobsCannotHideAMissingEligibleEmbedding() throws Exception {
+    void missingEligibleEmbeddingsUseSkillsInsteadOfFailingRecommendations() throws Exception {
         when(ai.enabled()).thenReturn(true);
         when(ai.embed(anyString())).thenReturn(queryVector());
         embedding(job("1 million VND/month", "java"), 1.0, 0.0);
-        job("20 million VND/month", "java");
-        mvc.perform(
-            post("/api/v1/matching").header("Authorization", authorization).contentType(MediaType.APPLICATION_JSON)
-                .content("{\"basis\":\"CAREER_PROFILE\",\"limit\":10}")
-        ).andExpect(status().isConflict());
+        UUID eligible = job("20 million VND/month", "java");
+        var run = match("CAREER_PROFILE", List.of());
+        assertEquals(Set.of(eligible.toString()), resultIds(run));
+        assertEquals("RULE_BASED", run.get("provider"));
+        assertEquals("SKILL_OVERLAP_UNINDEXED_JOBS", ((Map<?, ?>) run.get("profile_snapshot")).get("mode"));
+        assertNull(results(run).getFirst().get("llm_rerank_score"));
+        verify(ai, never()).generate(anyString(), anyMap());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"CAREER_PROFILE", "SELECTED_CV", "ALL_CVS"})
+    void undisclosedAndConvertedSalaryJobsRemainAvailableWithoutAnEmbeddingIndex(
+        String basis)
+        throws Exception {
+        UUID cv = db.insert(
+            "resumes",
+            Map.of(
+                "user_id",
+                owner,
+                "title",
+                "Java CV",
+                "source",
+                "MANUAL",
+                "status",
+                "READY",
+                "raw_content",
+                "Java and SQL experience"
+            )
+        );
+        UUID unknown = job("You'll love it USD / MONTH", "java");
+        UUID foreign = job("800 - 2,000 USD USD / MONTH", "java");
+        UUID ambiguous = job("Up to 35tr (Thương lượng) USD / MONTH", "java");
+        job("200 USD/month", "java");
+        when(ai.enabled()).thenReturn(true);
+        when(ai.embed(anyString())).thenReturn(queryVector());
+
+        var run = match(basis, "SELECTED_CV".equals(basis) ? List.of(cv) : List.of());
+        assertEquals(Set.of(unknown.toString(), foreign.toString(), ambiguous.toString()), resultIds(run));
+        assertEquals("SKILL_OVERLAP_UNINDEXED_JOBS", ((Map<?, ?>) run.get("profile_snapshot")).get("mode"));
+        for (var result : results(run)) {
+            Map<?, ?> salary = (Map<?, ?>) ((Map<?, ?>) result.get("match_reason_json")).get("salary_match");
+            boolean converted = foreign.toString().equals(result.get("market_job_id"));
+            assertEquals(converted ? "VERIFIED" : "UNVERIFIED", salary.get("status"));
+            assertEquals(converted, salary.get("verified"));
+            if (converted) {
+                assertEquals("USD", salary.get("job_currency"));
+                assertEquals(20000000d, ((Number) salary.get("comparison_salary_min")).doubleValue());
+            } else {
+                assertFalse(salary.containsKey("difference_percent"));
+                assertFalse(salary.containsKey("closest_offer"));
+            }
+        }
         verify(ai, never()).generate(anyString(), anyMap());
     }
 

@@ -1,0 +1,42 @@
+classDiagram
+    direction TB
+    class CareerAssistantController {
+        +create(body)
+        +get(id)
+        +send(id, body)
+        +archive(id)
+    }
+    class CareerAssistantService {
+        +create(body)
+        +createGuest(key)
+        +send(id, body)
+        +sendGuest(id, body, key)
+        +archive(id)
+    }
+    class CareerAssistantRepository {
+        +listRagChunksByProvider(args)
+        +insertCareerAssistantMessages(fields)
+        +insertCareerAssistantMessageSources(fields)
+    }
+    class AiService {
+        +embed(text)
+        +generate(feature, input)
+        +generateForGuest(feature, input, guestId)
+    }
+    class CareerAssistantData {
+        +message(body)$
+        +citation(reply, source)$
+        +contextUuid(value)$
+    }
+    class ResumeService
+    class GuestAccess
+    class CurrentUser
+    class SqlStore
+    CareerAssistantController --> CareerAssistantService : delegates
+    CareerAssistantService --> CareerAssistantRepository : history and sources
+    CareerAssistantService --> AiService : embedding and answer
+    CareerAssistantService --> ResumeService : owned CV context
+    CareerAssistantService --> GuestAccess : guest identity and quota
+    CareerAssistantService --> CurrentUser : user identity
+    CareerAssistantService ..> CareerAssistantData : validate and map citation
+    CareerAssistantRepository --> SqlStore : SQL and vector retrieval

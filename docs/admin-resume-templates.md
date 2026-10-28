@@ -17,6 +17,11 @@ Admin tải file `.html`, dán mã hoặc nhập PDF/DOC/DOCX thành bản nháp
 vị trí điền dữ liệu CV. Bản nháp chưa được lưu vào database; Admin lưu bằng POST/PUT thông thường sau khi kiểm tra.
 Backend kiểm tra HTML/CSS và các slot nội dung, không nhận JavaScript. Có
 [hướng dẫn nhập tài liệu, giới hạn và ba mẫu HTML/JSON Postman](html-resume-templates.md).
+PDF giữ chữ HTML có tọa độ và đồ họa/ảnh tĩnh trong PNG nhúng; DOC/DOCX vẫn dàn lại nội dung đoạn/bảng,
+chưa nhập ảnh Word. CSS nằm trong HTML, không gọi Bootstrap/CDN. Mẫu PDF giữ bố cục trang cố định và dùng
+font hệ thống thay font PDF; Admin cần thử dữ liệu Candidate dài hơn, chỉnh các vùng bị tràn và xóa/thay ảnh mẫu.
+Không có tự phân trang theo độ dài dữ liệu. PNG nhúng tối đa 200.000 byte, 2.048 px mỗi chiều và 4.000.000 pixel;
+toàn bộ HTML gồm base64 vẫn tối đa 200.000 ký tự.
 
 `GET /resumes/{id}/download` hiện trả file upload gốc nếu có, hoặc canonical TXT cho CV nhập tay/AI. Chỉnh template không biến endpoint này thành bộ render PDF/DOCX. Mẫu cũng không sinh nội dung AI khi chỉ tạo/sửa danh mục.
 

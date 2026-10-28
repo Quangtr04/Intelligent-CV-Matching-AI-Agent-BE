@@ -80,12 +80,10 @@ public final class MissingSkillAnalysis {
         List<Map<String, Object>> allowed) {
         Map<String, Map<String, Object>> whitelist = new LinkedHashMap<>();
         allowed.forEach(gap -> whitelist.put(SkillNames.normalize(text(gap.get("skill_name"))), gap));
-        if (!(generated.get("nodes") instanceof List<?> nodes)
-            || !(generated.get("skill_gaps") instanceof List<?> gaps)) {
-            throw new ApiException(502, "Missing-skill guidance must contain nodes and skill_gaps arrays");
+        if (!(generated.get("nodes") instanceof List<?> nodes)) {
+            throw new ApiException(502, "Missing-skill guidance must contain a nodes array");
         }
         RoadmapValidator.validateNodes(nodes);
-        RoadmapValidator.validateGaps(gaps);
         Set<String> nodeSkills = new HashSet<>();
         List<Map<String, Object>> safeNodes = new ArrayList<>();
         for (Object raw : nodes) {
@@ -100,20 +98,19 @@ public final class MissingSkillAnalysis {
             node.put("skill_name", whitelist.get(key).get("skill_name"));
             safeNodes.add(node);
         }
-        Set<String> gapSkills = new HashSet<>();
-        List<Map<String, Object>> safeGaps = new ArrayList<>();
-        for (Object raw : gaps) {
-            var gap = new LinkedHashMap<>(object(raw));
-            String key = SkillNames.normalize(text(gap.get("skill_name")));
-            if (!whitelist.containsKey(key) || !gapSkills.add(key)) {
-                throw new ApiException(502, "AI returned an unrelated or duplicate missing skill");
-            }
-            // Evidence classification is determined by the server, never invented by the model.
-            gap.putAll(whitelist.get(key));
-            safeGaps.add(gap);
+        if (!nodeSkills.equals(whitelist.keySet())) {
+            throw new ApiException(502, "Every missing JD skill must have targeted learning guidance");
         }
-        if (!gapSkills.equals(whitelist.keySet()) || !nodeSkills.equals(whitelist.keySet())) {
-            throw new ApiException(502, "Every missing JD skill must have a skill gap and targeted learning guidance");
+        // The model supplies learning actions, not a second copy of the already established evidence.
+        // A malformed/duplicate model gap used to discard otherwise complete and valid learning nodes.
+        List<Map<String, Object>> safeGaps = new ArrayList<>();
+        for (var evidence : whitelist.values()) {
+            var gap = new LinkedHashMap<>(evidence);
+            gap.put("current_level", null);
+            gap.put("target_level", null);
+            // No priority or proficiency measurement was made for missing evidence.
+            gap.put("urgency_score", 0);
+            safeGaps.add(gap);
         }
         generated.put("nodes", safeNodes);
         generated.put("skill_gaps", safeGaps);

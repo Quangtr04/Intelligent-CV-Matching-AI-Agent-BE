@@ -15,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import tools.jackson.databind.json.JsonMapper;
 import static org.junit.jupiter.api.Assertions.*;
@@ -103,6 +104,70 @@ class MissingSkillLearningIntegrationTests {
             );
         var history = read(result.get("id"));
         assertEquals(result.get("missing_skills"), history.get("missing_skills"));
+    }
+
+    @Test
+    void roadmapInferenceReleasesTheTransactionAndKeepsLargePrivateSnapshotsOutOfThePrompt() throws Exception {
+        UUID job = job("Docker");
+        db.update(
+            "UPDATE market_job_posts SET raw_content=?,parsed_requirements=? WHERE id=?",
+            "Docker deployment context. ".repeat(5000),
+            "Build container images with Docker.",
+            job
+        );
+        db.update("UPDATE candidate_profiles SET career_goal=? WHERE user_id=?", "private-goal".repeat(5000), owner);
+        UUID resume = db.insert(
+            "resumes",
+            fields(
+                "user_id",
+                owner,
+                "title",
+                "Confirmed CV",
+                "source",
+                "MANUAL",
+                "status",
+                "READY",
+                "raw_content",
+                "private-cv-content".repeat(5000)
+            )
+        );
+        when(ai.generate(eq("ROADMAP_GENERATE"), anyMap())).thenAnswer(call -> {
+            assertFalse(TransactionSynchronizationManager.isActualTransactionActive());
+            Map<String, Object> input = call.getArgument(1);
+            assertFalse(input.containsKey("job"));
+            assertFalse(input.containsKey("resume"));
+            assertFalse(input.containsKey("assessment"));
+            assertFalse(input.containsKey("learning_references"));
+            assertTrue(text(input.get("jd_text")).length() <= 4800);
+            assertTrue(text(input.get("jd_text")).contains("Build container images with Docker."));
+            assertFalse(mapper.writeValueAsString(input).contains("private-"));
+            return generated("Docker");
+        });
+
+        var result = create(fields("jobId", job, "resumeId", resume));
+
+        assertEquals(1, array(result.get("nodes")).size());
+        assertTrue(TransactionSynchronizationManager.isActualTransactionActive());
+        verify(ai, times(1)).generate(eq("ROADMAP_GENERATE"), anyMap());
+    }
+
+    @Test
+    void validLearningNodesPublishWithoutAskingAiToRepeatTheServersSkillGapAnalysis() throws Exception {
+        UUID job = job("Java", "Docker");
+        declared("Java");
+        Map<String, Object> guidance = generated("Docker");
+        guidance.remove("skill_gaps");
+        when(ai.generate(eq("ROADMAP_GENERATE"), anyMap())).thenReturn(guidance);
+
+        var result = create(fields("jobId", job));
+
+        var gap = object(array(result.get("skill_gaps")).getFirst());
+        assertEquals("Docker", gap.get("skill_name"));
+        assertEquals("MISSING_EVIDENCE", gap.get("gap_status"));
+        assertEquals(1, array(result.get("nodes")).size());
+        assertEquals(1L, ((Number) db.scalar("SELECT count(*) FROM roadmaps WHERE user_id=?", owner)).longValue());
+        assertEquals(1L, ((Number) db.scalar("SELECT count(*) FROM gap_analyses WHERE user_id=?", owner)).longValue());
+        assertEquals(result.get("skill_gaps"), read(result.get("id")).get("skill_gaps"));
     }
 
     @Test

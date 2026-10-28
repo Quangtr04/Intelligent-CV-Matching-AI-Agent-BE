@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.example.intelligent_cv_matching_ai_agent.repository.shared.SqlStore;
 import com.example.intelligent_cv_matching_ai_agent.service.shared.identity.TokenService;
 import java.io.ByteArrayOutputStream;
+import java.awt.Color;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -215,6 +216,57 @@ class ResumeTemplateDocumentImportIntegrationTests {
         assertEquals(before.get("ai_usage_logs"), count("ai_usage_logs"));
     }
 
+    @Test
+    void importedPdfArtworkAndTextGeometrySurviveSavingPublishingAndCandidateTemplateRetrieval() throws Exception {
+        Map<String, Long> before = counts();
+        Map<String, Object> draft = response(
+            mvc.perform(
+                multipart(BASE + "/import").file(file("sidebar.pdf", "application/pdf", pdfWithArtwork()))
+                    .param("language", "en").header("Authorization", admin)
+            ).andExpect(status().isOk()).andExpect(jsonPath("$.page_count").value(1)).andReturn()
+        );
+        assertEquals(before, counts(), "Import produces a review draft without a database write");
+        var document = Jsoup.parse(draft.get("html_content").toString());
+        String png = document.selectFirst("img.pdf-artwork").attr("src");
+        assertTrue(png.startsWith("data:image/png;base64,"));
+        var lines = document.select("p.pdf-line");
+        assertEquals(2, lines.size());
+        String nameGeometry = lines.getFirst().attr("style");
+        assertTrue(nameGeometry.contains("position:absolute;left:40.00pt;"));
+        lines.getFirst().attr("data-cv-field", "fullName");
+        lines.getLast().tagName("div").attr("data-cv-section", "summary").empty();
+        Map<String, Object> created = response(
+            mvc.perform(
+                post(BASE).header("Authorization", admin).contentType(MediaType.APPLICATION_JSON)
+                    .content(mapper.writeValueAsString(templateBody(document.outerHtml(), false)))
+            ).andExpect(status().isOk()).andExpect(jsonPath("$.is_active").value(false)).andReturn()
+        );
+        String templateId = created.get("id").toString();
+        String storedHtml = created.get("html_content").toString();
+        assertFalse(listed(templateId));
+        mvc.perform(
+            patch(BASE + "/" + templateId + "/status").header("Authorization", admin)
+                .contentType(MediaType.APPLICATION_JSON).content("{\"active\":true}")
+        ).andExpect(status().isOk());
+        List<?> available = mapper.readValue(
+            mvc.perform(get("/api/v1/resumes/templates").header("Authorization", candidate)).andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString(),
+            List.class
+        );
+        Map<?, ?> candidateTemplate = (Map<?, ?>) available.stream()
+            .filter(value -> templateId.equals(((Map<?, ?>) value).get("id"))).findFirst().orElseThrow();
+        assertEquals(storedHtml, candidateTemplate.get("html_content"));
+        var candidateHtml = Jsoup.parse(candidateTemplate.get("html_content").toString());
+        assertEquals(png, candidateHtml.selectFirst("img.pdf-artwork").attr("src"));
+        assertEquals(nameGeometry, candidateHtml.selectFirst("[data-cv-field=fullName]").attr("style"));
+        assertEquals(
+            storedHtml,
+            db.scalar("SELECT html_content FROM resume_templates WHERE id=?", UUID.fromString(templateId))
+        );
+        assertEquals(before.get("resume_templates") + 1, count("resume_templates"));
+        assertEquals(before.get("ai_usage_logs"), count("ai_usage_logs"));
+    }
+
     private Map<String, Object> templateBody(
         String html,
         boolean active) {
@@ -312,6 +364,28 @@ class ResumeTemplateDocumentImportIntegrationTests {
                 content.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), 12);
                 content.newLineAtOffset(40, 700);
                 content.showText("<not-markup> Java experience");
+                content.endText();
+            }
+            document.save(output);
+            return output.toByteArray();
+        }
+    }
+
+    private byte[] pdfWithArtwork() throws Exception {
+        try (PDDocument document = new PDDocument(); ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+            PDPage page = new PDPage();
+            document.addPage(page);
+            try (PDPageContentStream content = new PDPageContentStream(document, page)) {
+                content.setNonStrokingColor(new Color(200, 215, 220));
+                content.addRect(0, 0, 120, page.getMediaBox().getHeight());
+                content.fill();
+                content.setNonStrokingColor(Color.BLACK);
+                content.beginText();
+                content.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), 12);
+                content.newLineAtOffset(40, 700);
+                content.showText("Example candidate name");
+                content.newLineAtOffset(0, -40);
+                content.showText("Example summary for mapping");
                 content.endText();
             }
             document.save(output);

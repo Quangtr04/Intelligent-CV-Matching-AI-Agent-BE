@@ -1,0 +1,52 @@
+classDiagram
+    direction TB
+    class LearningController {
+        +answer(id, input)
+        +submit(id)
+        +createRoadmap(input)
+        +node(id, nodeId, input)
+    }
+    class LearningService {
+        +answer(id, answer)
+        +submit(id)
+        +createRoadmap(input)
+        +node(id, nodeId, input)
+    }
+    class AssessmentService {
+        +answer(id, questionId, selected)
+        +submit(id)
+    }
+    class AssessmentRepository {
+        +getAssessmentSessionsByIdForUpdate(args)
+        +updateAssessmentAnswers(args)
+        +updateAssessmentSessionsById(args)
+    }
+    class LearningRepository {
+        +insertGapAnalyses(fields)
+        +insertRoadmaps(fields)
+        +insertRoadmapNodes(fields)
+        +updateRoadmapsByStatus(args)
+    }
+    class MissingSkillAnalysis {
+        +find(requirements, profileSkills, resumeSkills, assessment)$
+        +constrainGenerated(generated, allowed)$
+    }
+    class LearningReferenceService {
+        +recommendSkills(skills)
+        +resourcesForSkill(skill)
+    }
+    class RoadmapReferenceCatalog
+    class ResumeService
+    class AiService {
+        +generate(feature, input)
+    }
+    LearningController --> LearningService : delegates
+    LearningService --> AssessmentService : grading
+    AssessmentService --> AssessmentRepository : answers and score
+    LearningService --> LearningRepository : gaps and roadmap
+    LearningService --> ResumeService : owned CV evidence
+    LearningService --> LearningReferenceService : approved resources
+    LearningService --> AiService : ROADMAP_GENERATE
+    LearningService ..> MissingSkillAnalysis : find and constrain
+    LearningReferenceService --> LearningRepository : resources
+    LearningReferenceService --> RoadmapReferenceCatalog : catalog rules

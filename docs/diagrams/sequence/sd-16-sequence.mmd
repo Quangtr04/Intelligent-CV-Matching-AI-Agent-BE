@@ -1,0 +1,32 @@
+sequenceDiagram
+    autonumber
+    actor C as Candidate
+    participant FE as FE ApplicationAssistance
+    participant Chat as CareerAssistantService
+    participant Tools as CareerToolsService
+    participant AI as AiService
+    participant DB as PostgreSQL
+    participant Local as Browser localStorage
+
+    alt A - Flow FE hiện tại
+        C->>FE: Chọn loại thư, tone, ngôn ngữ, CV và JD
+        FE->>Chat: POST /assistant/conversations với context
+        Chat->>DB: Kiểm tra context và lưu conversation
+        Chat-->>FE: conversationId
+        FE->>Chat: POST messages với yêu cầu soạn/refine
+        Chat->>AI: generate(CAREER_CHAT, yêu cầu và dữ liệu ngữ cảnh)
+        AI-->>Chat: answer chứa nội dung do model trả
+        Chat->>DB: Lưu lịch sử messages
+        Chat-->>FE: Phản hồi assistant
+        FE->>FE: Parse content/subject/review nếu có, không tự cộng điểm giả
+        C->>FE: Lưu draft
+        FE->>Local: Lưu theo account key
+    else B - API drafts chuyên biệt trên BE
+        C->>Tools: POST /jobs/{id}/application-drafts qua API client
+        Tools->>DB: Kiểm tra CV owner/READY và JD ACTIVE
+        Tools->>AI: generate(APPLICATION_EMAIL, resume, JD, language)
+        AI-->>Tools: subject, email, cover_letter
+        Tools->>DB: INSERT hai application_drafts
+        Note over Tools,DB: APPLICATION_EMAIL và COVER_LETTER
+        Tools-->>C: Drafts đã lưu trên BE
+    end

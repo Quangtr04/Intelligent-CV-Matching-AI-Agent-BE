@@ -81,6 +81,9 @@ server:
   port: ${SERVER_PORT}
 app:
   jobs:
+    salary-exchange:
+      enabled: ${SALARY_EXCHANGE_ENABLED:true}
+      url: ${SALARY_EXCHANGE_URL:https://open.er-api.com/v6/latest/USD}
     collection:
       enabled: ${JOB_COLLECTION_ENABLED}
       actor-id: ${JOB_COLLECTION_ACTOR_ID}
@@ -119,6 +122,7 @@ app:
     assessment-context-length: ${AI_ASSESSMENT_CONTEXT_LENGTH:16384}
     assessment-model: ${AI_ASSESSMENT_MODEL:qwen3.5:4b}
     assessment-think: ${AI_ASSESSMENT_THINK:true}
+    request-timeout: ${AI_REQUEST_TIMEOUT:PT15M}
     learning-max-output-tokens: ${AI_LEARNING_MAX_OUTPUT_TOKENS:4000}
   ocr:
     enabled: ${APP_OCR_ENABLED}
@@ -133,6 +137,14 @@ app:
   guest:
     token-limit: ${GUEST_TOKEN_LIMIT}
   payment:
+    sepay:
+      enabled: ${SEPAY_ENABLED:false}
+      environment: ${SEPAY_ENVIRONMENT:sandbox}
+      merchant-id: ${SEPAY_MERCHANT_ID:}
+      merchant-secret: ${SEPAY_MERCHANT_SECRET:}
+      ipn-secret: ${SEPAY_IPN_SECRET:}
+      return-url: ${SEPAY_RETURN_URL:}
+      payment-method: ${SEPAY_PAYMENT_METHOD:BANK_TRANSFER}
     webhook-secret: ${PAYMENT_WEBHOOK_SECRET}
     provider: ${PAYMENT_PROVIDER}
   security:

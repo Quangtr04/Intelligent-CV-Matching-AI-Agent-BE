@@ -1,0 +1,51 @@
+sequenceDiagram
+    autonumber
+    actor A as Admin
+    participant Client as API client
+    participant Job as JobService
+    participant Index as JobEmbeddingService
+    participant Worker as Scheduled worker
+    participant AI as AiService
+    participant DB as PostgreSQL pgvector
+
+    A->>Client: Nhập JD với nguồn và nội dung
+    Client->>Job: POST /admin/jobs qua AdminJobController
+    Job->>Job: requireRole ADMIN, normalize và content hash
+    Job->>DB: Tìm source/content đã có
+    alt JD trùng nội dung
+        Job->>DB: Đồng bộ source/deadline và liên kết hiện hành
+    else JD mới hoặc phiên bản mới
+        Job->>DB: INSERT market_job_posts ACTIVE và skills
+        Job->>DB: Lưu source, retire phiên bản nguồn cũ nếu cần
+        Job->>DB: Invalidate vector không còn hiện hành
+    end
+    Job->>Index: enqueue(jobId, hash, adminId)
+    Index->>DB: Kiểm tra Admin ACTIVE, job hợp lệ, vector cache
+    Index->>DB: Lưu task QUEUED hoặc COMPLETED/CANCELLED
+    Job-->>Client: JD và trạng thái deduplicated
+
+    loop Worker khi embedding được bật
+        Worker->>Index: processPending()
+        Index->>DB: Transaction ngắn claim task và lease
+        DB-->>Index: Task PROCESSING
+        Index->>DB: Chuẩn bị snapshot job và actor
+        Note over Index,AI: Worker không giữ transaction JDBC khi gọi provider
+        Index->>AI: embedForUser(adminId, jobText)
+        AI-->>Index: Vector 1024 chiều hoặc lỗi
+        alt Thành công và lease/hash/job vẫn hợp lệ
+            Index->>DB: Transaction publication, kiểm tra lại lease
+            Index->>DB: Thay vector hiện hành và task COMPLETED
+        else Provider lỗi hoặc job/lease thay đổi
+            Index->>DB: Ghi lỗi hoặc hủy task theo trạng thái thực
+        end
+    end
+
+    opt Admin index thủ công
+        Client->>Job: POST /admin/jobs/{id}/index
+        Job->>Index: indexNow(id, adminId)
+        Index->>DB: Enqueue/claim task hợp lệ
+        Index->>AI: Tạo vector nếu task được claim
+        Index-->>Client: Task hiện tại
+        Client->>Job: GET /admin/jobs/{id}/index
+        Job-->>Client: Trạng thái task
+    end

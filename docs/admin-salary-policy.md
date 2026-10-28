@@ -7,11 +7,12 @@ Gọi `E` là lương kỳ vọng của Candidate và `P` là phần trăm Admin
 
 ```text
 minimum_acceptable = E × (1 − P / 100)
-job.salary_max >= minimum_acceptable
+comparison_salary_max >= minimum_acceptable
 ```
 
 Mặc định **P = 10%** để giữ quy tắc trước đây. Job trả lương cao hơn kỳ vọng vẫn được xét, không có trần.
 Đây là phần trăm cho phép thấp hơn kỳ vọng, không áp dụng khoảng đối xứng hai phía.
+`comparison_salary_max` dùng tiền tệ của Candidate sau khi quy đổi nếu cần.
 
 Ví dụ Candidate kỳ vọng **7.500.000 VND/tháng**:
 
@@ -21,11 +22,44 @@ Ví dụ Candidate kỳ vọng **7.500.000 VND/tháng**:
 | 10% | 6.750.000 VND |
 | 12,5% | 6.562.500 VND |
 | 20% | 6.000.000 VND |
-| 100% | Ngưỡng bằng 0; vẫn phải có mức lương tháng xác định, cùng tiền tệ |
+| 100% | Ngưỡng bằng 0; lương chưa đối chiếu được vẫn được đánh dấu `UNVERIFIED` |
 
 Với khoảng lương, mức tối đa phải đạt ngưỡng. Ví dụ biên độ 20%, job 5–6 triệu qua điều kiện lương;
-điều này không bảo đảm nhà tuyển dụng trả 6 triệu cho mọi ứng viên. Các quy tắc tiền tệ, lương tháng,
-loại lương không xác định và xếp hạng theo kỹ năng/hồ sơ giữ nguyên.
+điều này không bảo đảm nhà tuyển dụng trả 6 triệu cho mọi ứng viên. Khoảng một phía giữ đầu mút chưa biết là `null`:
+`Từ 10 triệu VND` có max `null`, `Up to 6 triệu VND` có min `null` và max 6 triệu.
+Chỉ loại vì lương khi mức tối đa xác định, đã đối chiếu được, thấp hơn ngưỡng; lương cao hơn không có trần.
+
+## Chính sách v3: tiền tệ và lương chưa công khai
+
+Chính sách hiện tại là **`candidate-configured-salary-monthly-floor-v3`** và áp dụng cho cả gợi ý theo hồ sơ lẫn theo CV
+khi Candidate đã đặt kỳ vọng lương:
+
+- `currency_policy = "CONVERT_WHEN_AVAILABLE"`: đọc lương tháng gốc, quy đổi khi có tỷ giá rồi áp dụng ngưỡng.
+  Cùng tiền tệ dùng tỷ lệ 1, không cần kết nối nguồn tỷ giá.
+- `unknown_salary_policy = "INCLUDE_UNVERIFIED"`: job không công khai/thỏa thuận, không đọc được chắc chắn,
+  ghi kỳ lương khác tháng hoặc thiếu tỷ giá vẫn được xét theo kỹ năng, không bị loại chỉ vì thiếu dữ liệu lương.
+- `salary_match.status = "UNVERIFIED"`, `verified = false` đi cùng `reason` là
+  `SALARY_UNDISCLOSED_OR_UNPARSABLE` hoặc `EXCHANGE_RATE_UNAVAILABLE`.
+  Không tạo `closest_offer`, `difference_percent` hoặc `shortfall_percent` giả cho các job này.
+- Job `VERIFIED` giữ `job_currency` và khoảng gốc `job_salary_min`/`job_salary_max`, đồng thời ghi
+  `comparison_salary_min`/`comparison_salary_max`, `conversion_applied`, tỷ lệ và thời điểm quy đổi.
+  Mỗi đầu mút chưa biết là `null`; không biến thành 0 hoặc một số tiền tự đoán.
+
+Nguồn là [Open Access ExchangeRate-API](https://www.exchangerate-api.com/docs/free), miễn phí, cập nhật hằng ngày,
+không cần API key. Những trang dùng tỷ giá phải có attribution link đến [ExchangeRate-API](https://www.exchangerate-api.com).
+Đây là API dữ liệu tỷ giá, không phải API model AI; chat/embedding vẫn dùng Ollama tự lưu trữ.
+
+Backend dùng `SALARY_EXCHANGE_ENABLED=true` và
+`SALARY_EXCHANGE_URL=https://open.er-api.com/v6/latest/USD` theo `.env.example`.
+Nguồn phải trả đúng hợp đồng Open Access, gốc USD. Cache trong bộ nhớ được dùng tối đa 3 ngày tính từ thời điểm
+cập nhật nguồn; khi tải lỗi thì dùng snapshot còn hạn, hết hạn thì job khác tiền tệ chuyển sang chưa xác minh.
+HTTP timeout 3 giây, connect timeout 2 giây; sau lỗi chờ 15 phút trước khi thử lại.
+Tắt `SALARY_EXCHANGE_ENABLED` không làm mất job khác tiền tệ: chúng được gắn nhãn chưa xác minh.
+Thay biến môi trường cần restart backend; thay tỷ lệ Admin qua API không cần restart.
+
+Snapshot run có `exchange_rate_source`, `exchange_rate_as_of`, `verified_eligible_jobs`, `unverified_eligible_jobs`.
+Các số job là trước retrieval/ranking và `limit`, không phải cam kết số kết quả cuối cùng.
+Không quy đổi lương năm thành tháng, gross thành net hoặc thuế/chi phí sinh hoạt.
 
 ## Thao tác trên giao diện
 
@@ -93,11 +127,22 @@ tài khoản không có quyền Admin gọi API quản trị trả `403`. Giá t
 ```
 
 Metadata mới dùng `comparison = "AT_LEAST_CONFIGURED_MINIMUM"` cùng `tolerance_percent`,
-`settings_version`, `policy_version`. Các run lịch sử trước thay đổi này có thể vẫn mang
-`comparison = "AT_LEAST_90_PERCENT"`; đó là snapshot cũ.
+`settings_version`, `policy_version = "candidate-configured-salary-monthly-floor-v3"`.
+Các run lịch sử có thể mang `comparison = "AT_LEAST_90_PERCENT"` hoặc chính sách v2 `SAME_CURRENCY`/`EXCLUDE`;
+đó là snapshot cũ, không viết lại theo quy tắc v3.
 
 Biên độ được đọc một lần cho mỗi lượt matching và dùng thống nhất cho lọc job, cache, lời giải thích và snapshot.
 Một lượt đang chạy có thể hoàn tất theo cấu hình đã đọc trước khi Admin chỉnh; lượt bắt đầu sau cập nhật dùng cấu hình mới.
+
+Sau khi cập nhật backend, gửi **POST matching mới** để kiểm tra. Cache key v3/snapshot tỷ giá không dùng lại kết quả rỗng
+của chính sách cũ, nhưng `GET /matching/{id}` luôn giữ kết quả lịch sử của ID đó.
+Nên thử thêm job USD/tiền tệ khác và job không công khai lương; kiểm tra trạng thái `UNVERIFIED` và nguồn/thời điểm
+quy đổi thay vì mặc định một tỷ giá cố định cho mọi ngày.
+
+Nếu bật AI nhưng tập job đủ điều kiện chưa có embedding hợp lệ theo provider/model hiện tại, backend dùng mode
+`SKILL_OVERLAP_UNINDEXED_JOBS`, provider `RULE_BASED` và `llm_rerank_score = null`.
+Không gán kết quả này thành điểm do model Ollama đánh giá. Cần bật `JOB_EMBEDDING_ENABLED=true` để worker lập chỉ mục;
+vẫn phải kiểm tra tiến độ index, vì bật biến không đồng nghĩa vector đã có ngay.
 
 ## Lưu trữ
 
@@ -105,10 +150,14 @@ Migration **V15** thêm bảng singleton `matching_salary_settings`, khởi tạ
 Database lưu `tolerance_percent`, `version`, `updated_by`, `updated_at`; chỉ có dòng `id = 1`.
 Thay đổi tỷ lệ có audit, tồn tại qua restart và áp dụng chung cho các Candidate.
 Lương kỳ vọng riêng của từng Candidate tiếp tục nằm ở `candidate_profiles.expected_salary`.
+Các thay đổi v3 dùng JSON snapshot/lời giải thích hiện có, **không cần migration mới**.
 
 Xem thêm [lương kỳ vọng và gợi ý theo hồ sơ](salary-based-job-recommendations.md).
 
 ## Kết quả kiểm tra ngày 23/10/2026
+
+Đây là bằng chứng lịch sử của phiên bản trước v3; không dùng các số này để khẳng định đã kiểm chứng tỷ giá,
+lương chưa xác minh hoặc fallback mới.
 
 - Backend formatter và `verify`: **BUILD SUCCESS**, 814 test được ghi nhận: **758 đạt, 0 failure/error, 56 bỏ qua**.
   Có chạy integration với PostgreSQL/pgvector trong Docker. Các test chính sách kiểm tra quyền, dữ liệu không hợp lệ,

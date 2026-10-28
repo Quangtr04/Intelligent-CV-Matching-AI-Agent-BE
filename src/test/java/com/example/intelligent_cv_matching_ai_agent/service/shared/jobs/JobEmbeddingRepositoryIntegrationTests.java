@@ -143,6 +143,7 @@ class JobEmbeddingRepositoryIntegrationTests {
             sql.update("DELETE FROM job_match_results WHERE market_job_id=?", job);
             sql.update("DELETE FROM job_matching_runs WHERE user_id IN (?,?)", actor, replacementActor);
             sql.update("DELETE FROM market_job_sources WHERE market_job_id=?", job);
+            sql.update("DELETE FROM market_job_skills WHERE market_job_id=?", job);
             sql.update("DELETE FROM market_job_posts WHERE id=?", job);
             sql.update("DELETE FROM users WHERE id IN (?,?)", actor, replacementActor);
         });
@@ -151,6 +152,47 @@ class JobEmbeddingRepositoryIntegrationTests {
     private UUID enqueue(
         UUID requestedBy) {
         return db.enqueue(job, hash, requestedBy, "test", model, "QUEUED", null);
+    }
+
+    @Test
+    void salaryFilteredCandidatesKeepJobContentSkillsAndTheActiveSource() {
+        assertEquals("", matching.readMarketJobEmbeddingsByStatus("test", model));
+        String original = primaryUrl();
+        String active = "https://www.topcv.vn/viec-lam/salary-candidate-" + UUID.randomUUID() + ".html";
+        source(original, "ITVIEC", OffsetDateTime.now().minusDays(1));
+        source(active, "TOPCV", OffsetDateTime.now().plusDays(1));
+        sql.update(
+            "UPDATE market_job_posts SET company_name='Matching Company',location='Ha Noi',"
+                + "salary_text='1000 USD/month' WHERE id=?",
+            job
+        );
+        sql.insert(
+            "market_job_skills",
+            fields("market_job_id", job, "skill_name", "Java", "normalized_skill", "java", "is_required", true)
+        );
+
+        var candidates = matching.listMarketJobSkillsByIds("{" + job + "," + UUID.randomUUID() + "}");
+        assertEquals(1, candidates.size());
+        Map<String, Object> candidate = candidates.getFirst();
+        assertEquals(job, candidate.get("id"));
+        assertEquals("Queue SQL Test", candidate.get("job_title"));
+        assertEquals("Matching Company", candidate.get("company_name"));
+        assertEquals("Ha Noi", candidate.get("location"));
+        assertEquals("1000 USD/month", candidate.get("salary_text"));
+        assertEquals(hash, candidate.get("raw_content_hash"));
+        assertEquals("A disposable job used to verify durable embedding claims", candidate.get("raw_content"));
+        assertEquals(original, candidate.get("original_source_url"));
+        assertEquals(active, candidate.get("source_url"));
+        assertEquals("TOPCV", candidate.get("source_site"));
+        var skills = com.example.intelligent_cv_matching_ai_agent.util.shared.Values.array(candidate.get("skills"));
+        assertEquals(1, skills.size());
+        assertEquals("java", ((Map<?, ?>) skills.getFirst()).get("name"));
+        assertEquals(true, ((Map<?, ?>) skills.getFirst()).get("required"));
+
+        sql.update("UPDATE market_job_posts SET valid_through=now()-interval '1 minute' WHERE id=?", job);
+        assertTrue(matching.listMarketJobSkillsByIds("{" + job + "}").isEmpty());
+        sql.update("UPDATE market_job_posts SET valid_through=NULL,status='REMOVED' WHERE id=?", job);
+        assertTrue(matching.listMarketJobSkillsByIds("{" + job + "}").isEmpty());
     }
 
     @Test

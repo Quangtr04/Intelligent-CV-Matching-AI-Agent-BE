@@ -40,6 +40,7 @@ public class SecurityConfig {
                 auth -> auth
                     // Preserve the original HTTP error when the container dispatches to /error.
                     .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/v1/payments/sepay/ipn").permitAll()
                     .requestMatchers(
                         "/api/v1/auth/register",
                         "/api/v1/auth/verify-email",
@@ -97,7 +98,7 @@ public class SecurityConfig {
         return registration;
     }
 
-    @Bean
+    @Bean(name = "corsConfigurationSource")
     CorsConfigurationSource corsSource(
         @Value("${app.security.allowed-origins:http://localhost:3000,http://localhost:5173}")
         String origins) {

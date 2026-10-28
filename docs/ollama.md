@@ -40,6 +40,7 @@ AI_ASSESSMENT_MODEL=qwen3.5:4b
 AI_ASSESSMENT_THINK=true
 AI_ASSESSMENT_MAX_OUTPUT_TOKENS=12000
 AI_ASSESSMENT_CONTEXT_LENGTH=16384
+AI_REQUEST_TIMEOUT=PT15M
 AI_EMBEDDING_MODEL=qwen3-embedding:0.6b
 AI_EMBEDDING_DIMENSIONS=1024
 OLLAMA_BASE_URL=http://localhost:11434
@@ -55,6 +56,11 @@ cho lời gọi này qua tùy chọn native Ollama. Context riêng `AI_ASSESSMEN
 phần suy luận và JSON kết quả. Thinking cần thêm token và thời gian; timeout phải đủ cho model/máy thực tế,
 chưa có cam kết latency. Các luồng chat/CV khác giữ `AI_CHAT_MODEL`, embedding giữ
 model và dimension riêng. Sau khi đổi cấu hình, tải model tương ứng và khởi động lại backend.
+`AI_REQUEST_TIMEOUT` giới hạn lời gọi HTTP đồng bộ đến Ollama (mặc định 15 phút, tối đa 20 phút),
+không đổi timeout của các HTTP client khác. Lời gọi model thất bại hoặc timeout không tự chạy lại inference;
+người dùng quyết định thử lại sau khi xem trạng thái. Timeout model được trả bằng lỗi 504 với thông báo đã lọc.
+FE tạo bài đánh giá qua tác vụ nền và đọc trạng thái ngắn, nên không cần giữ một request mở trong suốt lúc sinh câu hỏi.
+Server kiểm tra trích dẫn phải có trong JD, đủ 10 câu và cơ cấu 5 câu nền tảng + 5 câu tình huống trước khi lưu bài.
 Model chat có thể thay bằng `qwen2.5:1.5b` trước khi khởi động, rồi chạy lại init và smoke test.
 Model embedding phải khớp schema 1024 chiều; đổi sang model khác cần migration và index lại dữ liệu.
 Không dùng tên model `:cloud`. Giá/quota/token trong ứng dụng là chính sách nội bộ, không phải chi phí

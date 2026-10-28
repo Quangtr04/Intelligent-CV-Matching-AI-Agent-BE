@@ -3,7 +3,9 @@ package com.example.intelligent_cv_matching_ai_agent.jobs;
 import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException;
 import com.example.intelligent_cv_matching_ai_agent.util.candidate.jobs.SalaryExpectation;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.MatchingSalaryPolicy;
+import com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.SalaryExchangeRates;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -14,6 +16,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -42,13 +45,16 @@ class SalaryExpectationTests {
     }
 
     @ParameterizedTest
+    @ValueSource(strings = {"6749999 VND", "6 - 6.749999 triệu", "1 - 6 triệu", "5000000 VND"})
+    void excludesOnlyKnownOffersBelowTheFloor(
+        String salaryText) {
+        assertTrue(expectation().match(salaryText).isEmpty(), salaryText);
+    }
+
+    @ParameterizedTest
     @NullAndEmptySource
     @ValueSource(
         strings = {
-            "6749999 VND",
-            "6 - 6.749999 triệu",
-            "1 - 6 triệu",
-            "5000000 VND",
             "$1000-$2000",
             "1000 EUR",
             "7500000",
@@ -58,9 +64,9 @@ class SalaryExpectationTests {
             "7500000 VND / DAY",
             "7500000 VND / HOUR"}
     )
-    void excludesOffersBelowTheFloorAndSalariesThatCannotBeCompared(
+    void keepsSalariesThatCannotBeComparedExplicitlyUnverified(
         String salaryText) {
-        assertTrue(expectation().match(salaryText).isEmpty(), salaryText);
+        assertUnverified(expectation().match(salaryText).orElseThrow());
     }
 
     @ParameterizedTest
@@ -112,14 +118,14 @@ class SalaryExpectationTests {
         assertEquals("MONTH", policy.get("period"));
         assertEquals("CANDIDATE_EXPECTED_SALARY", policy.get("reference"));
         assertEquals("AT_LEAST_CONFIGURED_MINIMUM", policy.get("comparison"));
-        assertEquals("EXCLUDE", policy.get("unknown_salary_policy"));
-        assertEquals("SAME_CURRENCY", policy.get("currency_policy"));
+        assertEquals("INCLUDE_UNVERIFIED", policy.get("unknown_salary_policy"));
+        assertEquals("CONVERT_WHEN_AVAILABLE", policy.get("currency_policy"));
         assertDecimal("6750000", policy.get("minimum_acceptable"));
         assertFalse(policy.containsKey("maximum_acceptable"));
     }
 
     @ParameterizedTest
-    @CsvSource({"0,7500000,7499999", "20,6000000,5999999", "100,1,0", "12.34,6574500,6574499"})
+    @CsvSource({"0,7500000,7499999", "20,6000000,5999999", "12.34,6574500,6574499"})
     void appliesConfiguredExactFloorsWithoutAnUpperCap(
         String tolerance,
         String accepted,
@@ -134,7 +140,7 @@ class SalaryExpectationTests {
     }
 
     @Test
-    void oneHundredPercentAllowsKnownPositiveSalaryAndStillExcludesUnknownAndForeignCurrency() {
+    void oneHundredPercentAllowsKnownPositiveSalaryAndPreservesUnverifiedSalaryLabels() {
         var expected = new SalaryExpectation(
             new BigDecimal("7500000"),
             "VND",
@@ -142,9 +148,9 @@ class SalaryExpectationTests {
         );
         assertDecimal("0", expected.minimum());
         assertTrue(expected.match("1 VND/month").isPresent());
-        assertTrue(expected.match("Negotiable").isEmpty());
-        assertTrue(expected.match("1 USD/month").isEmpty());
-        assertTrue(expected.match("1 VND/year").isEmpty());
+        assertUnverified(expected.match("Negotiable").orElseThrow());
+        assertUnverified(expected.match("1 USD/month").orElseThrow());
+        assertUnverified(expected.match("1 VND/year").orElseThrow());
     }
 
     @Test
@@ -170,8 +176,123 @@ class SalaryExpectationTests {
         assertTrue(expected.match("$900 / month").isPresent());
         assertTrue(expected.match("USD 100000 monthly").isPresent());
         assertTrue(expected.match("USD 899.99 monthly").isEmpty());
-        assertTrue(expected.match("EUR 1000 monthly").isEmpty());
-        assertTrue(expected.match("25000000 VND monthly").isEmpty());
+        assertUnverified(expected.match("EUR 1000 monthly").orElseThrow());
+        assertUnverified(expected.match("25000000 VND monthly").orElseThrow());
+    }
+
+    @Test
+    void comparesTheSameCurrencyWithoutDependingOnExchangeRates() {
+        var match = expectation().match("7 - 10 triệu").orElseThrow();
+        assertEquals("VERIFIED", match.get("status"));
+        assertEquals(true, match.get("verified"));
+        assertEquals(false, match.get("conversion_applied"));
+        assertDecimal("1", match.get("conversion_rate"));
+        assertDecimal("7000000", match.get("comparison_salary_min"));
+        assertDecimal("10000000", match.get("comparison_salary_max"));
+    }
+
+    @Test
+    void convertsDollarOffersToVndAndExplainsTheOriginalAndComparedAmounts() {
+        var expected = withRates("7500000", "VND");
+        var match = expected.match("USD 300 - 500").orElseThrow();
+        assertEquals("VERIFIED", match.get("status"));
+        assertEquals("VND", match.get("currency"));
+        assertEquals("USD", match.get("job_currency"));
+        assertEquals(true, match.get("conversion_applied"));
+        assertDecimal("300", match.get("job_salary_min"));
+        assertDecimal("500", match.get("job_salary_max"));
+        assertDecimal("7500000", match.get("comparison_salary_min"));
+        assertDecimal("12500000", match.get("comparison_salary_max"));
+        assertDecimal("25000", match.get("conversion_rate"));
+        assertDecimal("7500000", match.get("closest_offer"));
+        assertDecimal("0", match.get("difference_percent"));
+        assertEquals(rates().source(), match.get("conversion_source"));
+        assertEquals(rates().asOf(), match.get("conversion_as_of"));
+    }
+
+    @Test
+    void convertedDollarAndEuroOffersHonorTheInclusiveFloorWithoutRounding() {
+        var expected = withRates("7500000", "VND");
+        assertDecimal("6750000", expected.match("270 USD").orElseThrow().get("comparison_salary_max"));
+        assertTrue(expected.match("269.99996 USD").isEmpty());
+        assertDecimal("6750000", expected.match("216 EUR").orElseThrow().get("comparison_salary_max"));
+        assertTrue(expected.match("215.999968 EUR").isEmpty());
+        assertTrue(expected.match("USD 10000").isPresent());
+    }
+
+    @Test
+    void nonTerminatingCrossRatesStillAcceptTheExactFloorAndRejectAnArbitrarilyCloseLowerOffer() {
+        var exchange = new SalaryExchangeRates(
+            Map.of("USD", BigDecimal.ONE, "EUR", new BigDecimal("0.9")),
+            Instant.parse("2026-10-24T00:00:00Z"),
+            "https://fx.example.test"
+        );
+        var expected =
+            new SalaryExpectation(new BigDecimal("100"), "USD", MatchingSalaryPolicy.legacyDefault(), exchange);
+        var exactFloor = expected.match("81 EUR").orElseThrow();
+        assertEquals("VERIFIED", exactFloor.get("status"));
+        assertDecimal("90", exactFloor.get("comparison_salary_max"));
+        assertDecimal("10", exactFloor.get("shortfall_percent"));
+        assertTrue(expected.match("80.999999999999999999999999999999999 EUR").isEmpty());
+    }
+
+    @Test
+    void supportsDollarCandidateComparingVndOffersAndEuroCandidateComparingDollars() {
+        var dollars = withRates("1000", "USD");
+        var match = dollars.match("22500000 VND").orElseThrow();
+        assertDecimal("900", match.get("comparison_salary_max"));
+        assertDecimal("0.00004", match.get("conversion_rate"));
+        assertTrue(dollars.match("22499999 VND").isEmpty());
+        assertTrue(withRates("1000", "EUR").match("1125 USD").isPresent());
+        assertTrue(withRates("1000", "EUR").match("1124.99 USD").isEmpty());
+    }
+
+    @Test
+    void preservesUndisclosedSidesOfConvertedAndSameCurrencyOffers() {
+        var expected = withRates("7500000", "VND");
+        var upperOnly = expected.match("Up to 270 USD").orElseThrow();
+        assertNull(upperOnly.get("job_salary_min"));
+        assertNull(upperOnly.get("comparison_salary_min"));
+        assertDecimal("6750000", upperOnly.get("comparison_salary_max"));
+        assertDecimal("6750000", upperOnly.get("closest_offer"));
+        assertTrue(expected.match("Up to 269 USD").isEmpty());
+        var lowerOnly = expected.match("From 200 USD").orElseThrow();
+        assertNull(lowerOnly.get("job_salary_max"));
+        assertNull(lowerOnly.get("comparison_salary_max"));
+        assertDecimal("5000000", lowerOnly.get("comparison_salary_min"));
+        assertDecimal("7500000", lowerOnly.get("closest_offer"));
+        assertNull(expected.match("Từ 7 triệu").orElseThrow().get("comparison_salary_max"));
+        assertNull(expected.match("Tối đa 7 triệu").orElseThrow().get("comparison_salary_min"));
+    }
+
+    @Test
+    void unavailableRatesKeepOriginalSalaryButNeverClaimItPassedTheSalaryFloor() {
+        var match = expectation().match("USD 300 - 500").orElseThrow();
+        assertUnverified(match);
+        assertEquals("EXCHANGE_RATE_UNAVAILABLE", match.get("reason"));
+        assertEquals("USD", match.get("job_currency"));
+        assertDecimal("300", match.get("job_salary_min"));
+        assertDecimal("500", match.get("job_salary_max"));
+        assertFalse(match.containsKey("comparison_salary_min"));
+        assertFalse(match.containsKey("conversion_rate"));
+        var unsupported = withRates("7500000", "VND").match("CNY 1000").orElseThrow();
+        assertUnverified(unsupported);
+        assertEquals("EXCHANGE_RATE_UNAVAILABLE", unsupported.get("reason"));
+    }
+
+    @Test
+    void malformedAndUndisclosedSalariesDoNotInventAnOfferOrAConversion() {
+        for (String text : new String[]{
+            "Thỏa thuận",
+            "Up to 35tr (Thương lượng) USD / MONTH",
+            "You'll love it USD / MONTH",
+            "20 - 30 million"}) {
+            var match = withRates("7500000", "VND").match(text).orElseThrow();
+            assertUnverified(match);
+            assertEquals("SALARY_UNDISCLOSED_OR_UNPARSABLE", match.get("reason"));
+            assertFalse(match.containsKey("job_salary_min"));
+            assertFalse(match.containsKey("job_salary_max"));
+        }
     }
 
     @ParameterizedTest
@@ -196,6 +317,30 @@ class SalaryExpectationTests {
 
     private static SalaryExpectation expectation() {
         return SalaryExpectation.fromProfile(Map.of("expected_salary", 7500000)).orElseThrow();
+    }
+
+    private static SalaryExpectation withRates(
+        String amount,
+        String currency) {
+        return new SalaryExpectation(new BigDecimal(amount), currency, MatchingSalaryPolicy.legacyDefault(), rates());
+    }
+
+    private static SalaryExchangeRates rates() {
+        return new SalaryExchangeRates(
+            Map.of("USD", BigDecimal.ONE, "VND", new BigDecimal("25000"), "EUR", new BigDecimal("0.8")),
+            Instant.parse("2026-10-24T00:00:00Z"),
+            "https://fx.example.test"
+        );
+    }
+
+    private static void assertUnverified(
+        Map<String, Object> match) {
+        assertEquals("UNVERIFIED", match.get("status"));
+        assertEquals(false, match.get("verified"));
+        assertEquals(false, match.get("conversion_applied"));
+        assertFalse(match.containsKey("closest_offer"));
+        assertFalse(match.containsKey("difference_percent"));
+        assertFalse(match.containsKey("shortfall_percent"));
     }
 
     private static void assertDecimal(

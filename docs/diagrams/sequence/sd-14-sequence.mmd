@@ -1,0 +1,56 @@
+sequenceDiagram
+    autonumber
+    actor C as Candidate
+    participant Client as API client
+    participant API as ResumeController
+    participant Resume as ResumeService
+    participant AI as AiService
+    participant Quota as EntitlementService
+    participant DB as PostgreSQL pgvector
+    participant Model as Ollama EmbeddingModel
+
+    C->>Client: Yêu cầu tạo vector CV
+    Client->>API: POST /resumes/{id}/embedding
+    API->>Resume: embedding(id)
+    Resume->>DB: Kiểm tra owner, READY, canonical content hash
+    Resume->>Resume: Kiểm tra embedding được bật
+    alt Provider embedding tắt
+        Resume-->>Client: 503 trước khi tìm cache hoặc tạo task
+    else Provider đã bật
+        Resume->>DB: Tìm embedding hiện hành cùng hash/provider/model
+        alt Đã có vector hợp lệ
+            Resume-->>Client: Embedding cached, không inference lại
+        else Cần tạo vector mới
+            Resume->>DB: Ghi vector_indexing_jobs PROCESSING
+            Resume->>AI: embed(canonicalText)
+            AI->>AI: Model/dimensions/context từ cấu hình môi trường
+            AI->>Quota: reserve(userId, EMBEDDING, budget)
+            Quota->>DB: Kiểm tra quota và lưu reservation nếu hợp lệ
+            alt Quota bị từ chối
+                AI-->>Resume: ApiException, chưa gọi model
+                Resume->>DB: Đánh indexing job FAILED
+                Resume-->>Client: Lỗi tương ứng
+            else Được phép gọi model
+                AI->>Model: EmbeddingRequest với model hiện hành
+                Model-->>AI: Vector và usage hoặc lỗi
+                alt Vector hợp lệ 1024 chiều
+                    AI->>Quota: Settle usage thực tế
+                    AI->>DB: Log EMBEDDING success
+                    AI-->>Resume: float vector
+                    Resume->>DB: Khóa CV, kiểm tra lại READY và content hash
+                    alt CV không thay đổi trong lúc inference
+                        Resume->>DB: Hạ vector cũ, lưu resume_embeddings hiện hành
+                        Resume->>DB: Hoàn tất indexing job
+                        Resume-->>Client: Embedding hiện hành
+                    else CV đã thay đổi
+                        Resume->>DB: Đánh indexing job FAILED
+                        Resume-->>Client: Conflict, yêu cầu confirm bản mới
+                    end
+                else Provider lỗi hoặc vector không hợp lệ
+                    AI-->>Resume: ApiException
+                    Resume->>DB: Đánh indexing job FAILED
+                    Resume-->>Client: Lỗi, không tạo vector thành công giả
+                end
+            end
+        end
+    end

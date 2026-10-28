@@ -50,10 +50,9 @@ public final class AiResponseData {
             case "ASSESSMENT_GENERATE" -> ("{questions:[{part:1_or_2,question_text:string,options:{A:string,"
                 + "B:string,C:string,D:string},correct_option:A_B_C_or_D,"
                 + "related_skill_name:string,jd_evidence:string,explanation:string}]}");
-            case "ROADMAP_GENERATE" -> ("{title:string,estimated_total_hours:integer,summary:string,"
-                + "skill_gaps:[{skill_name,gap_status,current_level,target_level,"
-                + "urgency_score,reasoning}],nodes:[{skill_name:string," + "description:string,estimated_hours:integer,"
-                + "prerequisites:[integer_sequence_order]}]}");
+            case "ROADMAP_GENERATE" ->
+                ("{title:string,estimated_total_hours:integer,summary:string," + "nodes:[{skill_name:string,"
+                    + "description:string,estimated_hours:integer," + "prerequisites:[integer_sequence_order]}]}");
             case "APPLICATION_EMAIL" -> "{subject:string,email:string,cover_letter:string}";
             case "CAREER_CHAT" -> "{answer:string}";
             case "SALARY_ESTIMATE" -> "{estimated_min:number,estimated_max:number,currency:string,reasoning:string}";
@@ -166,8 +165,9 @@ public final class AiResponseData {
         if ("ROADMAP_GENERATE".equals(feature))
             return "Create focused learning guidance ONLY for the supplied allowed_missing_skills of the selected JD. "
                 + "This is not a complete career roadmap, beginner curriculum, or a list of all job skills. "
-                + "Return exactly one skill_gaps entry and one concise learning node for EACH allowed_missing_skills "
-                + "entry, copying its skill_name and gap_status verbatim. Do not add any other skill, including "
+                + "Return exactly one concise learning node for EACH allowed_missing_skills entry, in the supplied "
+                + "order, copying its skill_name verbatim. The server supplies gap status, evidence and scores; "
+                + "do not return skill_gaps or reassess the candidate. Do not add any other skill, including "
                 + "already evidenced skills, general foundations, or broad career topics. MISSING_EVIDENCE means "
                 + "the CV/profile lacks evidence, not that the person is unable to do the skill; NEEDS_PRACTICE "
                 + "means a completed assessment for this same JD was below the supplied threshold. Preserve that "
@@ -179,6 +179,21 @@ public final class AiResponseData {
                 + "Do not add full-role roadmap links or invent course URLs. Verified resources are attached by "
                 + "the application from its catalog. Keep the title and summary focused on the missing skills; "
                 + "respond concisely in the requested language.";
+        if ("CAREER_CHAT".equals(feature))
+            return "Return the complete response in the answer string, never content, subject or reviewScore as "
+                + "top-level fields. For an application writing request, produce the finished requested document "
+                + "directly, using only supplied candidate facts and the requested language, tone and document type. "
+                + "Keep an application email within 160 words and a cover letter within 250 words. For email, "
+                + "the answer may begin with Subject: and a blank line before the body. Do not replace the document "
+                + "with instructions for writing it. Omit unavailable candidate facts instead of inventing them.";
+        if ("APPLICATION_EMAIL".equals(feature))
+            return "Write both an application email and a cover letter for the ONE supplied job, using only "
+                + "the supplied candidate facts. Return all three fields: subject, email and cover_letter. "
+                + "Use a concise subject, an email of at most 120 words, and a cover letter of at most 200 words. "
+                + "Each text must be ready for the candidate to review and edit. Connect actual candidate evidence "
+                + "to the job's stated requirements. Do not invent a recipient name, contact details, experience, "
+                + "achievements, qualifications or attachments. If the contact is unknown use a neutral greeting; "
+                + "omit missing candidate details instead of fabricating them. Follow the requested language.";
         if (!"CV_ANALYZE".equals(feature))
             return "";
         return "Both content_quality rubric cv-content-v1 and writing_quality rubric cv-writing-v1 are mandatory. "
@@ -237,6 +252,18 @@ public final class AiResponseData {
             case "CV_ANALYZE" -> CvWritingResponseSchema.schema();
             case "CV_PROFILE_ALIGNMENT" -> CvProfileAlignmentResponseSchema.schema(input);
             case "ASSESSMENT_GENERATE", "ROADMAP_GENERATE" -> LearningResponseSchema.schema(feature, input);
+            case "JOB_MATCH_RERANK" -> JobMatchResponseSchema.schema(input);
+            case "APPLICATION_EMAIL" -> ApplicationWritingResponseSchema.schema();
+            case "CAREER_CHAT" -> Map.of(
+                "type",
+                "object",
+                "properties",
+                Map.of("answer", Map.of("type", "string", "minLength", 1)),
+                "required",
+                List.of("answer"),
+                "additionalProperties",
+                false
+            );
             default -> "json";
         };
     }
@@ -272,7 +299,6 @@ public final class AiResponseData {
             case "ROADMAP_GENERATE" -> {
                 string(result, "title");
                 array(result, "nodes");
-                array(result, "skill_gaps");
             }
             case "APPLICATION_EMAIL" -> {
                 string(result, "subject");

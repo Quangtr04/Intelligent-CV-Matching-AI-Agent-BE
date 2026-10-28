@@ -1,0 +1,42 @@
+classDiagram
+    direction TB
+    class AuthController {
+        +register(body, request)
+        +verify(body, request)
+        +login(body, request)
+    }
+    class AuthFlowService {
+        +register(body, remoteAddress)
+        +verify(body, remoteAddress)
+        +login(body, remoteAddress)
+    }
+    class AuthService {
+        +register(email, password, fullName, language)
+        +verify(email, code)
+        +login(email, password)
+    }
+    class AuthThrottle {
+        +check(key, limit, seconds)
+    }
+    class TokenService {
+        +issue(userId)
+    }
+    class AuthRepository {
+        +insertUsers(fields)
+        +insertEmailVerificationCodes(fields)
+    }
+    class TokenRepository {
+        +insertRefreshTokens(fields)
+    }
+    class SqlStore {
+        +insert(table, fields)
+        +update(sql, args)
+    }
+    AuthController --> AuthFlowService : service
+    AuthFlowService --> AuthService : auth
+    AuthFlowService --> AuthThrottle : throttle
+    AuthService --> AuthRepository : db
+    AuthService --> TokenService : tokens
+    TokenService --> TokenRepository : db
+    AuthRepository --> SqlStore : db
+    TokenRepository --> SqlStore : db

@@ -1,0 +1,61 @@
+sequenceDiagram
+    autonumber
+    actor U as Người dùng
+    participant FE as FE Auth
+    participant API as AuthController / AuthFlowService
+    participant Auth as AuthService
+    participant Token as TokenService
+    participant DB as PostgreSQL
+    participant Mail as SMTP
+
+    U->>FE: Nhập tên, email, password
+    FE->>API: POST /auth/register
+    API->>API: Validate DTO và throttle
+    API->>Auth: register(email, password, fullName, language)
+    Auth->>DB: Kiểm tra email đã tồn tại
+    alt Email trùng
+        Auth-->>FE: 409 Conflict
+    else Email mới
+        Auth->>Auth: BCrypt password và sinh OTP 6 số
+        Auth->>DB: INSERT users với CANDIDATE / PENDING
+        Auth->>DB: INSERT email_verification_codes với hash OTP
+        alt Development OTP được bật
+            Auth-->>FE: message + developmentCode
+        else Gửi mail xác minh
+            Auth->>Mail: Gửi OTP
+            alt Gửi thành công
+                Auth-->>FE: message, không trả OTP
+            else Mail bị tắt hoặc gửi lỗi
+                Auth-->>FE: 503, transaction đăng ký không hoàn tất
+            end
+        end
+    end
+
+    U->>FE: Nhập mã OTP
+    FE->>API: POST /auth/verify-email
+    API->>Auth: verify(email, code)
+    Auth->>DB: Khóa mã còn hiệu lực, tăng attempt_count
+    Auth->>Auth: So sánh BCrypt và giới hạn số lần thử
+    alt Mã hợp lệ
+        Auth->>DB: Xác minh email, user ACTIVE, tạo candidate_profiles
+        Auth-->>FE: Email verified, chưa cấp token
+    else Mã sai, hết hạn hoặc vượt giới hạn
+        Auth-->>FE: Lỗi xác minh
+    end
+
+    U->>FE: Đăng nhập bằng email/password
+    Note over U,FE: FE có thể tự login sau verify nếu còn password đăng ký trong bộ nhớ
+    FE->>API: POST /auth/login
+    API->>Auth: login(email, password)
+    Auth->>DB: Đọc và khóa account
+    Auth->>Auth: Kiểm tra password và status ACTIVE
+    alt Sai thông tin hoặc account chưa ACTIVE
+        Auth-->>FE: 401 hoặc 403
+    else Hợp lệ
+        Auth->>Token: issue(userId)
+        Token->>DB: INSERT refresh_tokens với hash access và refresh token
+        Token-->>FE: accessToken + refreshToken
+        FE->>API: GET /me với Bearer token
+        API-->>FE: Thông tin user và role từ BE
+        FE->>FE: Lưu phiên, điều hướng theo role
+    end

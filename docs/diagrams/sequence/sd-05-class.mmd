@@ -1,0 +1,59 @@
+classDiagram
+    direction TB
+    class CareerToolsController {
+        +match(input)
+        +run(id)
+    }
+    class CareerToolsService {
+        +match(request)
+        +run(id)
+    }
+    class MatchingService {
+        +match(basis, selected, limit)
+        +result(runId)
+    }
+    class MatchingRepository {
+        +insertJobMatchingRuns(fields)
+        +insertJobMatchResults(fields)
+    }
+    class ResumeService {
+        +owned(id)
+        +canonicalText(resume)
+    }
+    class AiService {
+        +embed(text)
+        +generate(feature, input)
+    }
+    class CurrentUser {
+        +id()
+        +requireRole(role)
+    }
+    class StringRedisTemplate {
+        <<framework>>
+    }
+    class MatchingSalaryPolicyService {
+        +effective()
+    }
+    class SalaryExchangeRateService {
+        +snapshot()
+    }
+    class JobMatchRerank {
+        <<utility>>
+        +batches(jobs)$
+        +validate(batch, generated)$
+    }
+    class JobSkillOverlap {
+        <<utility>>
+        +overlap(candidate, job)$
+    }
+    CareerToolsController --> CareerToolsService : service
+    CareerToolsService --> MatchingService : matching
+    MatchingService --> MatchingRepository : db
+    MatchingService --> ResumeService : resumes
+    MatchingService --> AiService : ai
+    MatchingService --> CurrentUser : user
+    MatchingService --> MatchingSalaryPolicyService : salaryPolicies
+    MatchingService --> SalaryExchangeRateService : exchangeRates
+    MatchingService ..> StringRedisTemplate : optional cache
+    MatchingService ..> JobMatchRerank : batch and validate
+    MatchingService ..> JobSkillOverlap : fallback

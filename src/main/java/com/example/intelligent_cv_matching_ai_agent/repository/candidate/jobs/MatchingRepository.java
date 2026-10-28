@@ -87,7 +87,10 @@ public class MatchingRepository {
     public List<Map<String, Object>> listMarketJobSkillsByIds(
         String jobIds) {
         return db.list(
-            "SELECT j.id,j.salary_text,COALESCE((SELECT "
+            "SELECT j.id,j.job_title,j.company_name,j.location,j.salary_text,j.valid_through,"
+                + "j.source_url AS original_source_url," + JobSourceProjection.ACTIVE_URL + " AS source_url,"
+                + JobSourceProjection.ACTIVE_SITE + " AS source_site,j.raw_content_hash,j.raw_content,"
+                + "COALESCE((SELECT "
                 + "jsonb_agg(jsonb_build_object('name',s.normalized_skill,'required',s.is_required) "
                 + "ORDER BY s.normalized_skill) FROM market_job_skills s WHERE s.market_job_id=j.id),'[]'::jsonb) "
                 + "AS skills FROM market_job_posts j WHERE j.status='ACTIVE' "
@@ -110,8 +113,9 @@ public class MatchingRepository {
     public Object readMarketJobEmbeddingsByStatus(
         Object... args) {
         return db.scalar(
-            ("SELECT " + "md5(COALESCE(string_agg(e.id::text||':'||e.content_hash||':'||e.create"
-                + "d_at::text,',' ORDER BY e.id),'')) FROM market_job_embeddings e JOIN "
+            ("SELECT CASE WHEN count(*)=0 THEN '' ELSE "
+                + "md5(COALESCE(string_agg(e.id::text||':'||e.content_hash||':'||e.create"
+                + "d_at::text,',' ORDER BY e.id),'')) END FROM market_job_embeddings e JOIN "
                 + "market_job_posts j ON j.id=e.market_job_id WHERE j.status='ACTIVE' "
                 + "AND (j.valid_through IS NULL OR j.valid_through>now()) "
                 + "AND e.is_current AND e.embedding IS NOT NULL AND e.provider=? AND e.model=? AND "
@@ -181,6 +185,21 @@ public class MatchingRepository {
     public int updateJobMatchingRunsById(
         Object... args) {
         return db.update("UPDATE job_matching_runs SET status='COMPLETED',completed_at=now() WHERE id=?", args);
+    }
+
+    public int updateJobMatchingRunsMode(
+        UUID runId,
+        String mode,
+        String provider,
+        String model) {
+        return db.update(
+            "UPDATE job_matching_runs SET provider=?,model=?,"
+                + "profile_snapshot=jsonb_set(profile_snapshot,'{mode}',to_jsonb(CAST(? AS text))) WHERE id=?",
+            provider,
+            model,
+            mode,
+            runId
+        );
     }
 
 }
