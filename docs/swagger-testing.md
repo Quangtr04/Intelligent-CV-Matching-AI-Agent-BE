@@ -927,10 +927,11 @@ Nếu chưa có provider, ghi rõ phần chưa kiểm tra trong bảng kết qu�
 
 ## Cấu hình Redis và kiểm tra cache ATS
 
-Redis là cache tùy chọn cho **ATS CV–job**. Kết nối được khai báo trong
+Redis là cache response tùy chọn cho **ATS CV–job, phân tích CV và matching**. Kết nối được khai báo trong
 [`spring.data.redis`](../src/main/resources/application.yaml), lấy các biến `REDIS_*`
 trong [`.env.example`](../.env.example). Backend và Swagger vẫn chạy khi Redis không kết
-nối được vì ATS còn tìm cache trong PostgreSQL. Tạo một phân tích ATS mới vẫn cần chat AI.
+nối được vì ATS/matching còn tìm cache trong PostgreSQL; phân tích CV có thể tạo kết quả mới khi Redis miss.
+Tạo một phân tích ATS mới vẫn cần chat AI.
 
 ### Khởi động Redis local
 
@@ -970,16 +971,16 @@ và port 6379 nếu cùng mạng Compose, không dùng localhost để trỏ san
 
 1. Chuẩn bị token CANDIDATE, CV READY và job ACTIVE; bật chat AI và có quota. Chọn cặp
    CV/job chưa có analysis cùng đầu vào/model trong database, chẳng hạn tạo và confirm
-   một CV test mới. Bản ghi đã có DB cache không được tự ghi lại sang Redis khi đọc cache.
+   một CV test mới. Nếu đã có DB cache phù hợp, response trả `cached=true` và được ghi lại vào Redis sau commit.
 2. Gọi `POST /api/v1/jobs/<JOB_ID>/ats` với `{"resumeId":"<RESUME_ID>"}`. Kỳ vọng `200`,
    `cached=false`, có `ats_score`; lưu UUID analysis `id` thành `<ATS_ANALYSIS_ID>`.
 3. Tìm key trong Redis bằng terminal; các lệnh dưới dùng database 0 đúng với cấu hình mẫu:
 
 ```powershell
-docker compose exec redis redis-cli -n 0 --scan --pattern 'edunexus:ats:*'
+docker compose exec redis redis-cli -n 0 --scan --pattern 'edunexus:ats:response:v1:*'
 ```
 
-Key có dạng `edunexus:ats:<userId>:<resumeId>:<jobId>:<inputHash>`. Chọn key chứa đúng
+Key có dạng `edunexus:ats:response:v1:<userId>:<resumeId>:<jobId>:<inputHash>`. Chọn key chứa đúng
 UUID người dùng/CV/job đang thử, copy nguyên key để thay `<CACHE_KEY>` trong hai lệnh:
 
 ```powershell
@@ -987,24 +988,36 @@ docker compose exec redis redis-cli -n 0 GET '<CACHE_KEY>'
 docker compose exec redis redis-cli -n 0 TTL '<CACHE_KEY>'
 ```
 
-Kỳ vọng GET trả đúng `<ATS_ANALYSIS_ID>`; TTL là số giây dương không quá `86400` (24 giờ).
+Kỳ vọng GET trả JSON gồm `schema_version: 1`, `identity` đúng user/CV/job/hash và `response`
+chứa `id = <ATS_ANALYSIS_ID>`, điểm, điểm mạnh, kỹ năng thiếu và gợi ý. TTL là số giây dương
+không quá `86400` (24 giờ); TTL có thể thấp hơn giới hạn do thời gian đã trôi qua sau commit.
 `TTL = -2` nghĩa là không tìm thấy key hoặc key đã hết hạn; `-1` là key không có thời hạn,
 khác với cách ghi cache ATS hiện tại. Nếu đổi `REDIS_DATABASE`, dùng cùng số database
 trong các lệnh `-n`. Những lệnh này kiểm tra Redis Compose local; với Redis ngoài, kết nối
 CLI đến đúng server và dùng cơ chế AUTH/TLS của server đó.
 
 4. Gửi lại ATS với cùng token, CV, job và model: `200`, `cached=true`, cùng analysis `id`.
-   Redis chỉ giữ UUID analysis/run; backend vẫn đối chiếu bản ghi PostgreSQL theo owner,
-   CV, job và input hash trước khi tái sử dụng, không trả toàn bộ báo cáo chỉ từ Redis.
+   Backend kiểm tra owner/CV READY/job hiện hành và tính lại input hash, rồi trả toàn bộ
+   response Redis hợp lệ; không truy vấn lại dòng `job_resume_analyses` trên Redis hit.
 5. Ghi ID và key/TTL vào bảng kết quả. **`cached=true` một mình không chứng minh Redis hit**
    vì database fallback cũng trả cùng cờ. `/actuator/health` UP cũng không chứng minh
    Redis sẵn sàng: `management.health.redis.enabled=false` trong cấu hình mặc định.
 
 Cache ATS Redis TTL 24 giờ độc lập với **cache matching Redis/database một giờ** của
-`POST /api/v1/matching`. Thay nội dung CV/job hoặc provider/model làm thay input hash ATS;
+`POST /api/v1/matching`. Matching key là `edunexus:matching:response:v1:<userId>:<requestHash>`;
+TTL dương không quá `3600` giây và được giới hạn bởi thời điểm run hoàn tất + 1 giờ/deadline job.
+Phân tích CV dùng `edunexus:resume-analysis:response:v1:<userId>:<resumeId>:<inputHash>`,
+TTL tối đa `86400` giây, cũng lưu response JSON. Redis hit phân tích CV không đọc analysis/suggestions;
+Redis miss không tìm lại DB theo hash mà tạo và lưu phân tích mới.
+Thay nội dung CV/job, ngôn ngữ CV, provider/model hoặc prompt làm thay input hash ATS;
 key cũ không được dùng cho dữ liệu mới. TTL chỉ áp dụng cho key Redis; analysis đã lưu trong
 database vẫn có thể được tái sử dụng khi hash khớp. Không cần xóa cache toàn bộ để thử một
 đầu vào mới.
+
+JSON sai định dạng, sai identity/schema/payload hoặc Redis lỗi phải đi theo nhánh fallback, không làm lộ
+kết quả của user/CV/job khác. Cache chỉ được publish sau khi transaction lưu kết quả commit thành công.
+Muốn xác nhận không có truy vấn result trên cache hit, xem SQL trace hoặc kiểm thử repository;
+`cached=true`, GET key và TTL chỉ xác nhận khả năng tái sử dụng/cache tồn tại.
 
 <a id="ai-tools"></a>
 

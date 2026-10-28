@@ -108,6 +108,33 @@ class AiServiceTests {
 
     private final AiUsageRecorder recorder = mock(AiUsageRecorder.class);
 
+    @Test
+    void responseCacheFingerprintChangesWithActivePromptAndModelWithoutCallingAi() {
+        AiService service = service(true);
+        when(db.optional(contains("FROM ai_prompt_templates"), eq("JOB_ATS")))
+            .thenReturn(Optional.of(Map.of("system_prompt", "Explain evidence", "user_prompt_template", "Be brief")));
+        String first = service.cacheFingerprint("JOB_ATS");
+        assertEquals(first, service.cacheFingerprint("JOB_ATS"));
+
+        when(db.optional(contains("FROM ai_prompt_templates"), eq("JOB_ATS"))).thenReturn(
+            Optional.of(Map.of("system_prompt", "Explain missing skills", "user_prompt_template", "Be brief"))
+        );
+        String changedPrompt = service.cacheFingerprint("JOB_ATS");
+        assertNotEquals(first, changedPrompt);
+
+        when(db.optional(contains("FROM ai_configurations"), eq("ollama")))
+            .thenReturn(Optional.of(Map.of("model_name", "another-local-model")));
+        assertNotEquals(changedPrompt, service.cacheFingerprint("JOB_ATS"));
+        verifyNoInteractions(chats, embeddings, entitlement, guests, recorder);
+    }
+
+    @Test
+    void responseCacheFingerprintSeparatesFeatures() {
+        AiService service = service(true);
+        assertNotEquals(service.cacheFingerprint("JOB_ATS"), service.cacheFingerprint("CV_ANALYZE"));
+        verifyNoInteractions(chats, embeddings, entitlement, guests, recorder);
+    }
+
     private AiService service(
         boolean enabled) {
         return service(enabled, "test-assessment", false);

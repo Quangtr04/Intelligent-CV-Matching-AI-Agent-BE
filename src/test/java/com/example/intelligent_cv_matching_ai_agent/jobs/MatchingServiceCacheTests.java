@@ -67,7 +67,7 @@ class MatchingServiceCacheTests {
                 )
             )
         );
-        when(db.scalar(contains("FROM market_job_posts WHERE status='ACTIVE'"))).thenReturn("unchanged-catalog");
+        when(db.scalar(contains("FROM market_job_posts j WHERE j.status='ACTIVE'"))).thenReturn("unchanged-catalog");
         when(db.json(any())).thenAnswer(invocation -> invocation.getArgument(0));
         Map<String, UUID> cache = new HashMap<>();
         Map<UUID, Map<String, Object>> runs = new HashMap<>();

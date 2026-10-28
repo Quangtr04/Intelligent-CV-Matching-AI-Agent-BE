@@ -9,6 +9,7 @@ import com.example.intelligent_cv_matching_ai_agent.repository.candidate.jobs.Ma
 import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException;
 
 import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiService;
+import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiResponseCache;
 
 import com.example.intelligent_cv_matching_ai_agent.service.candidate.resume.ResumeService;
 import com.example.intelligent_cv_matching_ai_agent.util.candidate.jobs.SalaryExpectation;
@@ -17,6 +18,8 @@ import com.example.intelligent_cv_matching_ai_agent.service.shared.jobs.Matching
 import com.example.intelligent_cv_matching_ai_agent.service.shared.jobs.SalaryExchangeRateService;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobSalaryParser;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.MatchingSalaryPolicy;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.*;
 import com.example.intelligent_cv_matching_ai_agent.util.candidate.jobs.JobSkillOverlap;
@@ -38,7 +41,7 @@ public class MatchingService {
 
     private final ResumeService resumes;
 
-    private final ObjectProvider<StringRedisTemplate> redis;
+    private final AiResponseCache responseCache;
 
     private final MatchingSalaryPolicyService salaryPolicies;
 
@@ -67,7 +70,7 @@ public class MatchingService {
         this.user = user;
         this.ai = ai;
         this.resumes = resumes;
-        this.redis = redis;
+        this.responseCache = new AiResponseCache(redis);
         this.salaryPolicies = salaryPolicies;
         this.exchangeRates = exchangeRates;
     }
@@ -191,12 +194,15 @@ public class MatchingService {
         String cacheHash = FlowSupport.hash(
             basis + "\n" + resumeIds + "\n" + candidate + "\n" + catalogFingerprint + "\n" + vectorFingerprint + "\n"
                 + mode + "\n" + ai.provider() + "\n" + ai.model() + "\n" + ai.embeddingModel() + "\n" + limit + "\n"
-                + salaryPolicy + "\n" + salary.map(SalaryExpectation::exchangeRates)
+                + salaryPolicy + "\n" + salary.map(SalaryExpectation::exchangeRates) + "\n"
+                + text(ai.cacheFingerprint("JOB_MATCH_RERANK"))
         );
-        String cacheKey = "edunexus:matching:" + user.id() + ":" + cacheHash;
-        Optional<UUID> redisRun = cachedRun(cacheKey);
-        if (redisRun.isPresent()) {
-            var result = result(redisRun.get());
+        String cacheKey = "edunexus:matching:response:v1:" + user.id() + ":" + cacheHash;
+        Map<String, String> cacheIdentity = Map.of("user_id", user.id().toString(), "request_hash", cacheHash);
+        var redisResult =
+            responseCache.read(cacheKey, cacheIdentity).filter(result -> validCachedResult(result, basis, cacheHash));
+        if (redisResult.isPresent()) {
+            var result = redisResult.get();
             result.put("cached", true);
             result.put("cache_source", "REDIS");
 
@@ -209,7 +215,7 @@ public class MatchingService {
             var result = result((UUID) cached.get().get("id"));
             result.put("cached", true);
             result.put("cache_source", "DATABASE");
-            remember(cacheKey, (UUID) cached.get().get("id"));
+            remember(cacheKey, cacheIdentity, result);
 
             return result;
         }
@@ -395,7 +401,7 @@ public class MatchingService {
 
         var result = result(runId);
         result.put("cached", false);
-        remember(cacheKey, runId);
+        remember(cacheKey, cacheIdentity, result);
 
         return result;
     }
@@ -432,28 +438,85 @@ public class MatchingService {
         return ids.toString();
     }
 
-    private Optional<UUID> cachedRun(
-        String cacheKey) {
+    private boolean validCachedResult(
+        Map<String, Object> result,
+        String basis,
+        String cacheHash) {
         try {
-            var client = redis.getIfAvailable();
-            String cached = client == null ? null : client.opsForValue().get(cacheKey);
-            if (cached == null)
-                return Optional.empty();
-
-            return Optional.of(UUID.fromString(cached));
-        } catch (org.springframework.data.redis.RedisConnectionFailureException | IllegalArgumentException ex) {
-            return Optional.empty();
+            UUID runId = UUID.fromString(text(result.get("id")));
+            Duration lifetime = cacheLifetime(result);
+            if (!user.id().toString().equals(text(result.get("user_id"))) || !basis.equals(result.get("basis"))
+                || !"COMPLETED".equals(result.get("status"))
+                || !cacheHash.equals(object(result.get("profile_snapshot")).get("request_hash"))
+                || !(result.get("results") instanceof List<?> rows) || lifetime.compareTo(Duration.ZERO) <= 0) {
+                return false;
+            }
+            for (Object value : rows) {
+                Map<String, Object> row = object(value);
+                if (!runId.toString().equals(text(row.get("matching_run_id")))
+                    || !"ACTIVE".equals(row.get("job_status"))) {
+                    return false;
+                }
+                UUID.fromString(text(row.get("id")));
+                UUID.fromString(text(row.get("market_job_id")));
+            }
+            return true;
+        } catch (IllegalArgumentException ex) {
+            return false;
         }
     }
 
     private void remember(
         String cacheKey,
-        UUID runId) {
+        Map<String, String> identity,
+        Map<String, Object> result) {
+        Duration lifetime = cacheLifetime(result);
+        if (!lifetime.isNegative() && !lifetime.isZero()) {
+            responseCache.putAfterCommit(cacheKey, identity, result, lifetime);
+        }
+    }
+
+    private static Duration cacheLifetime(
+        Map<String, Object> result) {
+        Instant completed = instant(result.get("completed_at"));
+        if (completed == null) {
+            return Duration.ZERO;
+        }
+        Instant now = Instant.now();
+        Instant expires = completed.plus(Duration.ofHours(1));
+        if (expires.isAfter(now.plus(Duration.ofHours(1)))) {
+            return Duration.ZERO;
+        }
+        for (Object value : array(result.get("results"))) {
+            Map<String, Object> row = object(value);
+            if (row.get("valid_through") != null) {
+                Instant deadline = instant(row.get("valid_through"));
+                if (deadline == null) {
+                    return Duration.ZERO;
+                }
+                if (deadline.isBefore(expires)) {
+                    expires = deadline;
+                }
+            }
+        }
+        return Duration.between(now, expires);
+    }
+
+    private static Instant instant(
+        Object value) {
         try {
-            var client = redis.getIfAvailable();
-            if (client != null)
-                client.opsForValue().set(cacheKey, runId.toString(), java.time.Duration.ofHours(1));
-        } catch (org.springframework.data.redis.RedisConnectionFailureException ex) {
+            if (value instanceof Instant time) {
+                return time;
+            }
+            if (value instanceof java.util.Date time) {
+                return time.toInstant();
+            }
+            if (value instanceof OffsetDateTime time) {
+                return time.toInstant();
+            }
+            return OffsetDateTime.parse(text(value)).toInstant();
+        } catch (java.time.DateTimeException ex) {
+            return null;
         }
     }
 

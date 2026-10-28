@@ -17,6 +17,7 @@ import com.example.intelligent_cv_matching_ai_agent.repository.candidate.jobs.Ca
 import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException;
 
 import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiService;
+import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiResponseCache;
 
 import com.example.intelligent_cv_matching_ai_agent.service.candidate.resume.ResumeService;
 import java.util.*;
@@ -25,10 +26,14 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.json.JsonMapper;
+import java.time.Duration;
 import static com.example.intelligent_cv_matching_ai_agent.util.shared.Values.*;
 
 @Service
 public class CareerToolsService {
+
+    private static final JsonMapper CACHE_JSON = JsonMapper.builder().build();
 
     private final CareerToolsRepository db;
 
@@ -40,7 +45,7 @@ public class CareerToolsService {
 
     private final AiService ai;
 
-    private final ObjectProvider<StringRedisTemplate> redis;
+    private final AiResponseCache responseCache;
 
     public CareerToolsService(
         CareerToolsRepository db,
@@ -54,7 +59,7 @@ public class CareerToolsService {
         this.matching = matching;
         this.resumes = resumes;
         this.ai = ai;
-        this.redis = redis;
+        this.responseCache = new AiResponseCache(redis);
     }
 
     public Map<String, Object> match(
@@ -99,46 +104,46 @@ public class CareerToolsService {
 
         var cv = confirmed(request.resumeId());
         var job = activeJob(jobId);
+        Map<String, Object> input = fields(
+            "resume",
+            cv.get("structured_data"),
+            "resume_text",
+            resumes.canonicalText(cv),
+            "job",
+            job,
+            "language",
+            CareerToolsSupport.languageOf(cv.get("language"))
+        );
         String inputHash = FlowSupport.hash(
-            resumes.canonicalText(cv) + "\n" + job.get("raw_content_hash") + "\n" + ai.provider() + "\n" + ai.model()
+            "job-ats-response-v1\n" + CACHE_JSON.writeValueAsString(input) + "\n" + ai.provider() + "\n" + ai.model()
+                + "\n" + text(ai.cacheFingerprint("JOB_ATS"))
         );
-        String cacheKey = "edunexus:ats:" + user.id() + ":" + request.resumeId() + ":" + jobId + ":" + inputHash;
-
-        try {
-            var client = redis.getIfAvailable();
-            String cached = client == null ? null : client.opsForValue().get(cacheKey);
-
-            if (cached != null) {
-                var row = db.findJobResumeAnalysesById(
-                    UUID.fromString(cached),
-                    user.id(),
-                    request.resumeId(),
-                    jobId,
-                    inputHash
-                );
-                if (row.isPresent())
-                    return CareerToolsSupport.analysisResponse(row.get(), true);
-            }
-        } catch (org.springframework.data.redis.RedisConnectionFailureException | IllegalArgumentException ex) {
-
-            /* Database cache remains available. */ }
+        String cacheKey =
+            "edunexus:ats:response:v1:" + user.id() + ":" + request.resumeId() + ":" + jobId + ":" + inputHash;
+        Map<String, String> identity = Map.of(
+            "user_id",
+            user.id().toString(),
+            "resume_id",
+            request.resumeId().toString(),
+            "job_id",
+            jobId.toString(),
+            "input_hash",
+            inputHash
+        );
+        var redisHit = responseCache.read(cacheKey, identity)
+            .filter(response -> validAtsResponse(response, request.resumeId(), jobId));
+        if (redisHit.isPresent()) {
+            redisHit.get().put("cached", true);
+            return redisHit.get();
+        }
         var cached = db.findJobResumeAnalysesByUserId(user.id(), request.resumeId(), jobId, inputHash);
-        if (cached.isPresent())
-            return CareerToolsSupport.analysisResponse(cached.get(), true);
+        if (cached.isPresent()) {
+            Map<String, Object> response = CareerToolsSupport.analysisResponse(cached.get(), true);
+            responseCache.putAfterCommit(cacheKey, identity, response, Duration.ofHours(24));
+            return response;
+        }
 
-        Map<String, Object> generated = ai.generate(
-            "JOB_ATS",
-            fields(
-                "resume",
-                cv.get("structured_data"),
-                "resume_text",
-                resumes.canonicalText(cv),
-                "job",
-                job,
-                "language",
-                CareerToolsSupport.languageOf(cv.get("language"))
-            )
-        );
+        Map<String, Object> generated = ai.generate("JOB_ATS", input);
         double score = FlowSupport.score(generated.get("ats_score"), 100, "ATS score");
 
         UUID id = db.insertJobResumeAnalyses(
@@ -162,15 +167,25 @@ public class CareerToolsService {
             )
         );
 
+        Map<String, Object> response = CareerToolsSupport.analysisResponse(db.getJobResumeAnalysesById(id), false);
+        responseCache.putAfterCommit(cacheKey, identity, response, Duration.ofHours(24));
+        return response;
+    }
+
+    private boolean validAtsResponse(
+        Map<String, Object> response,
+        UUID resumeId,
+        UUID jobId) {
+        double score = number(response.get("ats_score"), Double.NaN);
         try {
-            var client = redis.getIfAvailable();
-
-            if (client != null)
-                client.opsForValue().set(cacheKey, id.toString(), java.time.Duration.ofHours(24));
-        } catch (org.springframework.data.redis.RedisConnectionFailureException ex) {
+            UUID.fromString(text(response.get("id")));
+            return user.id().toString().equals(text(response.get("user_id")))
+                && resumeId.toString().equals(text(response.get("resume_id")))
+                && jobId.toString().equals(text(response.get("market_job_id"))) && Double.isFinite(score) && score >= 0
+                && score <= 100 && response.get("improvement_suggestions_json") instanceof List<?>;
+        } catch (IllegalArgumentException ex) {
+            return false;
         }
-
-        return CareerToolsSupport.analysisResponse(db.getJobResumeAnalysesById(id), false);
     }
 
     public Map<String, Object> targetedResume(

@@ -88,7 +88,7 @@ EduNexus hỗ trợ chuẩn bị CV, tìm việc phù hợp, đánh giá kỹ n�
 | PostgreSQL / pgvector | Compose PostgreSQL 17, embedding hiện tại 1024 chiều | Dữ liệu nghiệp vụ, semantic matching, RAG; V10 giữ vector legacy 1536 |
 | Flyway | V1–V10 | Schema, constraint, seed, ingestion automation và chuyển embedding |
 | JDBC / JPA | Cùng tồn tại | Workflow SQL và truy cập entity có kiểu |
-| Redis | Tùy chọn | Cache ATS/matching, có database fallback |
+| Redis | Tùy chọn | Cache JSON response ATS/matching/phân tích CV; ATS/matching có database fallback |
 | PDFBox / POI / Tesseract | Trích xuất tệp/OCR | Đọc CV và scan khi OCR được cấu hình |
 | Jsoup | Fetch và parse HTML | Discovery keyword và detail parsing ITviec/TopCV |
 | SMTP | `JavaMailSender` | Gửi OTP; dùng được với Mailtrap |
@@ -384,7 +384,7 @@ docker compose exec redis redis-cli PING
 
 `PONG` xác nhận Redis. Local Redis không auth/TLS; credentials trống, SSL false. Switch `-WithInfrastructure` chỉ chạy PostgreSQL.
 
-ATS cache TTL 24 giờ: `edunexus:ats:<userId>:<resumeId>:<jobId>:<inputHash>`. Matching TTL 1 giờ: `edunexus:matching:<userId>:<requestHash>`. Cache giữ ID kết quả; database kiểm tra quyền/hash. Redis lỗi dùng database fallback; `cached=true` có thể đến từ database.
+Redis giữ JSON envelope `schema_version/identity/response`, gồm toàn bộ kết quả FE. ATS TTL tối đa 24 giờ dùng `edunexus:ats:response:v1:<userId>:<resumeId>:<jobId>:<inputHash>`; matching tối đa 1 giờ dùng `edunexus:matching:response:v1:<userId>:<requestHash>` và không vượt tuổi run/deadline job. Phân tích CV dùng `edunexus:resume-analysis:response:v1:<userId>:<resumeId>:<inputHash>`, tối đa 24 giờ. Cache hit không đọc lại analysis/run/results nhưng vẫn kiểm tra owner, đầu vào và hiệu lực tài nguyên bằng DB. Hash xét nội dung/ngôn ngữ/model/prompt tương ứng; matching còn xét catalog/vector/chính sách lương. ATS/matching Redis miss có DB fallback và DB hit ghi lại cache; phân tích CV Redis miss tạo báo cáo mới, không có DB lookup theo hash. Ghi Redis sau commit, rollback không publish; `cached=true` của ATS/matching có thể đến từ DB.
 
 Trong app container, `localhost` là container app; cần host DB/cache truy cập được. `compose.production.yaml` chỉ tạo app, không tạo PostgreSQL/Redis.
 
@@ -881,7 +881,7 @@ AI tắt: so required-skill keyword overlap, không required skill thì score0; 
 
 AI bật: canonical candidate text → embed → retrieve job ACTIVE/vector current cùng provider/model, top min(100,max(limit,20)) → JOB_MATCH_RERANK → validate/save run/results. Chưa có job indexed phù hợp trả409. Kết quả có score0–1, reason, matched/missing skills.
 
-Lưu job_matching_runs, matching_run_resumes, job_match_results. Hash cache gồm input CV/profile, catalog/vector/provider/model/basis/limit; Redis/DB cache1giờ. GET matching history/detail chỉ user. Feedback PUT LIKE/DISLIKE, rating1–5/comment lưu job_match_feedback.
+Lưu job_matching_runs, matching_run_resumes, job_match_results. Hash cache gồm input CV/profile, metadata/nguồn job hiện hành, catalog/vector/provider/model/prompt/basis/limit và chính sách lương; Redis giữ response tối đa 1 giờ, DB fallback tìm run hoàn tất trong 1 giờ. GET matching history/detail chỉ user. Feedback PUT LIKE/DISLIKE, rating1–5/comment lưu job_match_feedback.
 
 <a id="project-85-ats-và-công-cụ-ứng-tuyển"></a>
 
@@ -890,7 +890,7 @@ Lưu job_matching_runs, matching_run_resumes, job_match_results. Hash cache gồ
 
 | Chức năng | Luồng và output |
 | --- | --- |
-| ATS | READY owned CV + ACTIVE job → hash input/provider/chat model → Redis TTL24h hoặc tái dùng bản ghi DB cùng input hash; DB không có TTL riêng → JOB_ATS khi chưa có kết quả → job_resume_analyses, score0–100/strengths/missing/suggestions |
+| ATS | READY owned CV + ACTIVE job → hash toàn bộ input/ngôn ngữ/provider/model/prompt → Redis response TTL24h hoặc tái dùng DB cùng hash rồi rewarm; DB không có TTL riêng → JOB_ATS khi chưa có kết quả → job_resume_analyses, score0–100/strengths/missing/suggestions |
 | CV hướng job | Job requirements + dữ kiện thật user → AI CV → REVIEW_REQUIRED → review/confirm |
 | Email/cover letter | APPLICATION_EMAIL → hai application_drafts loại APPLICATION_EMAIL và COVER_LETTER |
 | Sửa draft | PATCH content, kiểm tra ownership |
@@ -1983,7 +1983,7 @@ flowchart TB
     PG[("PostgreSQL + pgvector 1024 chiều\nnghiệp vụ · JSONB · kết quả · aliases · leases · vector legacy1536")]
     QUEUE[("vector_indexing_jobs\nhàng đợi trong cùng PostgreSQL")]
     FILES[("CV file storage · UPLOAD_DIR / volume")]
-    REDIS[("Redis tùy chọn\nATS ID 24h · matching run ID 1h")]
+    REDIS[("Redis response JSON tùy chọn\nCV/ATS ≤24h · matching ≤1h")]
 
     USERS --> CLIENT
     CLIENT --> API
@@ -2017,7 +2017,7 @@ Trong sơ đồ kiến trúc, mũi tên chỉ hướng tương tác hoặc phụ
 | `AiService` | Phối hợp Spring AI `ChatModel`/`EmbeddingModel`, nội dung prompt, quota và usage. Gọi provider phụ thuộc cấu hình và luồng cụ thể; đọc kết quả đã lưu không tự gọi AI. |
 | PostgreSQL + pgvector | Lưu dữ liệu nghiệp vụ, JSONB, embedding hiện tại 1024 chiều, matching cache, phân tích và các bảng automation. V10 giữ riêng vector legacy 1536. |
 | `vector_indexing_jobs` | Hàng đợi embedding bền vững trong PostgreSQL. Worker dùng lease và retry; queue không cần RabbitMQ riêng. |
-| Redis tùy chọn | Lưu ID kết quả ATS CV–job TTL 24 giờ và ID matching run TTL 1 giờ. Backend đối chiếu dữ liệu tương ứng trong database. |
+| Redis tùy chọn | Lưu toàn bộ response CV/ATS tối đa 24 giờ và matching tối đa 1 giờ (giới hạn tuổi run/deadline). Cache hit không đọc result rows; backend vẫn kiểm tra owner/đầu vào/hiệu lực tài nguyên. |
 | CV file storage | Lưu upload tại `UPLOAD_DIR` hoặc volume. PDFBox/POI đọc file; Tesseract local hỗ trợ OCR khi cấu hình phù hợp. |
 | ITviec / TopCV | Nguồn HTML qua HTTPS cho search/discovery và trang chi tiết. Khi ứng tuyển, backend cung cấp URL nguồn để ứng viên mở. |
 | Ollama | Adapter native chat/embedding của Spring AI. Cần bật AI, model server và model đã tải; không cần API key inference. Embedding 1024 chiều của job vẫn cần quota admin được ghi nhận trên task. |
@@ -2390,16 +2390,27 @@ Seed có 3 gói FREE/BASIC/PRO, 30 hạn mức token theo tháng gồm `AI_TOTAL
 
 Sao chép `.env.example` thành `.env`, thay mật khẩu mẫu, chạy `docker compose up -d postgres`, rồi khởi động ứng dụng. Flyway áp dụng migration theo thứ tự. PostgreSQL trong Compose dùng `pgvector/pgvector:0.8.7-pg17-bookworm`, được liệt kê trong [các tag chính thức của pgvector](https://github.com/pgvector/pgvector#docker). Các dịch vụ Qdrant, RabbitMQ và Redis được giữ dưới profile `optional`; bật tất cả bằng `docker compose --profile optional up -d`.
 
-Redis được dùng cho cache ATS và matching, nhưng không thay thế các bảng nghiệp vụ. Để chỉ
+Redis được dùng cho cache kết quả phân tích CV, ATS và matching, nhưng không thay thế các bảng nghiệp vụ. Để chỉ
 khởi động Redis, dùng `docker compose up -d --wait redis`, sau đó
 `docker compose exec redis redis-cli PING` phải trả `PONG`. Cấu hình `REDIS_*` nằm trong
 `.env.example` và `spring.data.redis` trong `application.yaml`; script `run-local.ps1`
 nạp `.env` cho backend nhưng `-WithInfrastructure` chỉ khởi động PostgreSQL.
 
-Key ATS có dạng `edunexus:ats:<userId>:<resumeId>:<jobId>:<inputHash>`, lưu UUID analysis
-với TTL 24 giờ. Nội dung phân tích và kiểm tra quyền/hash vẫn lấy từ PostgreSQL; khi Redis
-không kết nối được, backend tìm cache database. Matching `/api/v1/matching` dùng cache
-database một giờ, và có thêm key Redis `edunexus:matching:<userId>:<requestHash>` TTL 1 giờ.
+Redis lưu JSON envelope `schema_version`, `identity`, `response`, gồm toàn bộ kết quả trả cho FE:
+
+| Luồng | Key Redis | TTL tối đa |
+| --- | --- | --- |
+| ATS CV–job | `edunexus:ats:response:v1:<userId>:<resumeId>:<jobId>:<inputHash>` | 24 giờ |
+| Matching | `edunexus:matching:response:v1:<userId>:<requestHash>` | 1 giờ, không vượt tuổi run hoặc deadline job |
+| Phân tích CV | `edunexus:resume-analysis:response:v1:<userId>:<resumeId>:<inputHash>` | 24 giờ |
+
+Cache hit hợp lệ trả response trực tiếp, không đọc lại các dòng analysis/run/results trong PostgreSQL.
+Backend vẫn đọc dữ liệu hiện tại để kiểm tra owner, trạng thái CV/job và tính hash; thay nội dung,
+ngôn ngữ, model hoặc prompt làm đổi hash tương ứng. Matching còn kiểm tra catalog/vector/chính sách lương.
+ATS và matching tìm lại cache database khi Redis miss/lỗi; DB hit sẽ ghi lại response vào Redis.
+Phân tích CV không có DB lookup theo input hash: Redis miss thì tạo phân tích mới và lưu lịch sử trong DB.
+Các lần ghi Redis được thực hiện sau commit; rollback không publish cache. Key cũ chỉ chứa ID không được đọc
+bằng namespace response mới. PostgreSQL vẫn là nguồn dữ liệu nghiệp vụ và lịch sử.
 Xem [cấu hình Redis local](#unified-project)
 và [cách kiểm tra key/TTL](#unified-operations).
 
@@ -4704,6 +4715,13 @@ Nó không xóa vật lý file và không xóa toàn bộ lịch sử phân tíc
 HTTP: `POST /api/v1/resumes/{id}/analyses`. Chỉ CV `READY` được phân tích; transaction
 lưu analysis và suggestions cùng nhau.
 
+Sau khi kiểm tra owner/READY, `analyze` tính hash toàn bộ đầu vào CV/ngôn ngữ, mode AI/rule,
+model/prompt và phiên bản rubric. Key `edunexus:resume-analysis:response:v1:{userId}:{resumeId}:{inputHash}`
+lưu JSON envelope `schema_version/identity/response` tối đa 24 giờ. Cache hit hợp lệ trả analysis và
+suggestions trực tiếp với `cached=true`, không đọc các dòng kết quả trong DB. Redis miss/lỗi tạo
+phân tích mới; luồng này không có DB cache lookup theo input hash. Kết quả mới vẫn được lưu lịch sử
+và chỉ ghi Redis sau commit; rollback không publish cache.
+
 Nếu `ai.enabled()`, gọi `CV_ANALYZE` với row CV và `canonicalText`, lưu `AI_QUALITY` và model.
 Nếu chat AI tắt, gọi `baseline`, lưu `RULE_BASED` và `rules-v1`.
 Output luôn là analysis chi tiết, nhưng rule mode chỉ kiểm tra độ đầy đủ section:
@@ -4877,19 +4895,21 @@ Nhánh semantic còn cần embedding provider hoạt động; chỉ bật chat m
 
 
 Hash cache gồm basis, danh sách resume ID đã sort, candidate text, catalog fingerprint,
-vector fingerprint khi AI bật, mode, provider/chat model/embedding model và limit.
-Catalog fingerprint băm các job active/chưa hết hạn với raw hash; vector fingerprint băm
+vector fingerprint khi AI bật, mode, provider/chat model/embedding model/prompt, limit và chính sách lương/tỷ giá.
+Catalog fingerprint băm các job active/chưa hết hạn với raw hash, metadata hiển thị, deadline và URL/site nguồn active; vector fingerprint băm
 các vector current đúng provider/model và đúng hash job.
 Do đó đổi CV/profile, import job mới, job hết hạn hoặc re-index model có thể làm cache miss.
 
-1. Redis key `edunexus:matching:{userId}:{hash}` lưu run ID.
-2. Nếu có Redis run ID hợp lệ, đọc result thuộc user và trả `cached=true/cache_source=REDIS`.
+1. Redis key `edunexus:matching:response:v1:{userId}:{hash}` lưu JSON toàn bộ response trong envelope `schema_version/identity/response`.
+2. Nếu identity/payload/tuổi run/deadline hợp lệ, trả trực tiếp `cached=true/cache_source=REDIS`, không gọi `result(runId)` hoặc đọc run/results.
 3. Nếu Redis miss, tìm run `COMPLETED` cùng request hash trong 1 giờ ở database.
 4. Có DB cache thì trả `cached=true/cache_source=DATABASE` và nhớ lại Redis.
 5. Cache miss mới tạo run `PROCESSING` và liên kết những CV được sử dụng.
 
-Cache lưu ID của kết quả đã persist, không lưu bản JSON độc lập.
-`cachedRun` chỉ kiểm tra parse UUID/Redis connection; `result` vẫn kiểm tra sở hữu khi đọc run.
+Cache là bản chụp response của kết quả đã persist; việc ghi Redis chỉ diễn ra sau commit.
+Kiểm tra owner, CV/profile, catalog/vector và chính sách lương vẫn chạy trước lookup Redis.
+TTL tối đa một giờ, không vượt thời điểm run hoàn tất + một giờ hoặc deadline gần nhất của job trong response.
+Key ID cũ không được đọc bằng namespace response mới; JSON sai hoặc Redis lỗi được coi là miss.
 
 <a id="services-nhánh-semantic-trong-match"></a>
 
@@ -4923,7 +4943,8 @@ Cả hai nhánh sort giảm dần theo `final_score`; hòa điểm thì sort the
 Lưu tối đa `limit` result với rank bắt đầu từ 1; vector score, LLM score là các cột riêng.
 Nhánh rule có `llm_rerank_score=null` và reason method `SKILL_OVERLAP`.
 
-Run được cập nhật `COMPLETED`, trả `result(runId)` với `cached=false` rồi ghi Redis một giờ.
+Run được cập nhật `COMPLETED`, lấy `result(runId)` với `cached=false` và chuẩn bị cache response;
+chỉ publish Redis sau commit, với TTL giới hạn theo tuổi run/deadline job.
 Nếu exception làm transaction rollback, các row run/result vừa tạo rollback cùng nhau.
 Quota/model usage đã được [AiService](#svc-aiservice) xử lý riêng, không mặc nhiên được hoàn
 chỉ vì transaction matching sau đó thất bại.
@@ -4969,8 +4990,10 @@ strengths `["java"]` và gaps `["postgresql"]`.
 
 | Phương thức | Input/output | Cách xử lý |
 | --- | --- | --- |
-| `cachedRun(String cacheKey)` | Key → `Optional<UUID>` | Lấy Redis bean nếu có; miss/Redis connection failure/UUID lỗi trả empty. |
-| `remember(String cacheKey, UUID runId)` | Key/ID → void | Lưu run ID với TTL một giờ; bỏ qua lỗi kết nối Redis. |
+| `AiResponseCache.read(key, identity)` | Key/identity → response tùy chọn | Kiểm schema/identity; JSON hoặc Redis lỗi trả empty. |
+| `validCachedResult(result, basis, cacheHash)` | Response → boolean | Kiểm run/user/basis/hash, danh sách result, tuổi run và deadline. |
+| `remember(key, identity, result)` | Response → void | Tính TTL còn lại rồi đăng ký ghi toàn bộ response sau commit. |
+| `cacheLifetime(result)` | Response → Duration | Giới hạn bởi completed_at + một giờ và deadline job gần nhất. |
 
 Đoạn sort cần hiểu:
 
@@ -5060,17 +5083,18 @@ Output là row feedback sau upsert.
 HTTP `POST /api/v1/jobs/{jobId}/ats` với `{"resumeId":"{{resumeId}}"}`.
 Transaction yêu cầu candidate, CV của user ở `READY` và job active/chưa qua deadline.
 
-Tính `inputHash` từ canonical CV text, job raw hash, provider và chat model.
+Tính `inputHash` từ toàn bộ input gửi `JOB_ATS` (structured CV, canonical text, job hiện hành,
+ngôn ngữ), provider/chat model và fingerprint prompt active.
 Key Redis gồm user + CV + job + hash; vì vậy cùng UUID nhưng nội dung đổi sẽ không dùng cache cũ.
 
-1. Redis có thể chứa analysis ID; lookup database vẫn kiểm tra user/CV/job/hash.
-2. Redis miss hoặc lỗi kết nối/UUID thì lookup DB theo cùng bộ giá trị.
-3. Có kết quả thì `analysisResponse(row,true)`, không gọi AI.
+1. Key `edunexus:ats:response:v1:{userId}:{resumeId}:{jobId}:{inputHash}` chứa JSON envelope `schema_version/identity/response`.
+2. Redis response hợp lệ trả trực tiếp `cached=true`, không đọc lại analysis từ DB; kiểm tra owner/READY/job và hash đã chạy trước lookup.
+3. Redis miss/JSON sai/lỗi kết nối thì tìm DB theo user/CV/job/hash; có kết quả thì `analysisResponse(row,true)` và ghi lại response Redis sau commit, không gọi AI.
 4. Miss mới gọi `JOB_ATS` với structured CV, canonical text, job và ngôn ngữ CV.
 5. Kiểm tra score 0..100, lưu strengths/missing skills và suggestions.
 6. Suggestions JSON được lưu dưới object `{"input_hash":...,"items":[...]}`.
    API trả lại items array, không lộ cấu trúc cache nội bộ.
-7. Ghi Redis analysis ID với TTL 24 giờ và trả `cached=false`.
+7. Trả response `cached=false` và chỉ ghi toàn bộ response Redis sau commit, TTL tối đa 24 giờ.
 
 DB lookup ATS không giới hạn thời gian theo `created_at`. TTL 24 giờ chỉ áp dụng Redis;
 nếu input hash không đổi, DB vẫn có thể tái sử dụng analysis lâu hơn 24 giờ.
@@ -16411,7 +16435,8 @@ hạn được tạo trong ứng dụng; job billing hiện không tự gửi em
 
 ATS và matching có cache Redis, đồng thời còn tìm kết quả phù hợp trong PostgreSQL khi
 Redis chưa có hoặc lỗi kết nối. Redis không phải session store của ứng dụng hiện tại.
-Tạo analysis mới vẫn cần provider khi workflow yêu cầu AI.
+Phân tích CV cũng có Redis response cache nhưng không tìm lại DB theo input hash khi miss;
+kết quả mới vẫn được lưu lịch sử. Tạo analysis mới vẫn cần provider khi workflow yêu cầu AI.
 
 Các biến cấu hình gồm `REDIS_HOST`, `REDIS_PORT`, `REDIS_USERNAME`, `REDIS_PASSWORD`,
 `REDIS_DATABASE`, `REDIS_TIMEOUT`, `REDIS_CONNECT_TIMEOUT`, `REDIS_SSL_ENABLED`.
@@ -16430,23 +16455,28 @@ trên cùng mạng Compose; localhost trong container là container đó.
 gọi ATS lần đầu, lưu UUID analysis, rồi tìm key:
 
 ```powershell
-docker compose exec redis redis-cli -n 0 --scan --pattern 'edunexus:ats:*'
+docker compose exec redis redis-cli -n 0 --scan --pattern 'edunexus:ats:response:v1:*'
 docker compose exec redis redis-cli -n 0 GET '<CACHE_KEY>'
 docker compose exec redis redis-cli -n 0 TTL '<CACHE_KEY>'
 ```
 
-Key ATS có dạng `edunexus:ats:<userId>:<resumeId>:<jobId>:<inputHash>`; value là UUID analysis.
-TTL dương tối đa 86400 giây. `TTL=-2` là thiếu/hết hạn, `-1` là không có expiry. Dùng đúng
-database index nếu đã đổi `REDIS_DATABASE`. Cache matching có prefix `edunexus:matching:`
-và TTL một giờ; cache ATS có TTL 24 giờ.
+Key ATS có dạng `edunexus:ats:response:v1:<userId>:<resumeId>:<jobId>:<inputHash>`; value là JSON
+envelope `schema_version: 1`, `identity`, `response`. `response.id` phải khớp analysis vừa ghi nhận,
+kèm điểm và gợi ý đầy đủ. TTL dương tối đa 86400 giây. `TTL=-2` là thiếu/hết hạn, `-1` là không có expiry.
+Dùng đúng database index nếu đã đổi `REDIS_DATABASE`. Matching có prefix `edunexus:matching:response:v1:`
+và TTL dương tối đa 3600 giây, không vượt tuổi run/deadline job; phân tích CV có prefix
+`edunexus:resume-analysis:response:v1:` và TTL tối đa 86400 giây.
 
 Gửi lại cùng đầu vào, đối chiếu `cached=true` và cùng ID. Cờ này đơn lẻ chưa chứng minh
-Redis hit vì database fallback cũng có thể trả cache. Một bản ghi đọc từ DB cache không
-nhất thiết được tự ghi lại Redis. Cần đối chiếu key/value/TTL để kiểm tra Redis lưu dữ liệu.
+Redis hit vì database fallback cũng có thể trả cache. ATS/matching đọc được DB cache sẽ ghi lại
+toàn bộ response Redis sau commit. Cần đối chiếu key/value/TTL để kiểm tra Redis lưu dữ liệu;
+muốn chứng minh không đọc result rows trên Redis hit cần SQL trace hoặc kiểm thử repository.
 
-Cache chỉ giữ ID; service vẫn đối chiếu owner và hash/dữ liệu/model tương ứng trong DB.
-Thay CV, job hoặc provider/model làm thay cache key/hash; matching còn xét catalog/index
-hiện hành. Không cần xóa toàn bộ Redis để thử đầu vào mới. Health UP cũng không chứng minh
+Cache hợp lệ trả response trực tiếp, không đọc lại analysis/run/results. Service vẫn đọc đầu vào
+để kiểm tra owner, CV READY, job hiện hành và tính hash. Thay nội dung CV/job, ngôn ngữ,
+provider/model hoặc prompt làm thay cache key/hash tương ứng; matching còn xét catalog/index/chính sách lương.
+JSON sai, sai identity hoặc Redis lỗi đi theo nhánh fallback. Chỉ publish cache sau commit, không khi rollback.
+Không cần xóa toàn bộ Redis để thử đầu vào mới. Health UP cũng không chứng minh
 Redis sẵn sàng vì health indicator Redis mặc định tắt.
 
 <a id="unified-ops-errors"></a>

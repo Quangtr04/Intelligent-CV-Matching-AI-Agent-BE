@@ -148,6 +148,23 @@ public class AiService {
         return embeddingModel;
     }
 
+    /** Identifies the model and task guidance used by a cached business response. */
+    public String cacheFingerprint(
+        String feature) {
+        String effectiveModel =
+            "ASSESSMENT_GENERATE".equals(feature) && !assessmentModel.isBlank() ? assessmentModel : model();
+        Map<String, Object> signature = new LinkedHashMap<>();
+        signature.put("version", "ai-response-v1");
+        signature.put("feature", feature);
+        signature.put("provider", provider);
+        signature.put("model", effectiveModel);
+        signature.put("max_output_tokens", maxOutputTokens);
+        signature.put("schema", AiResponseData.schema(feature));
+        signature.put("instructions", AiResponseData.taskInstructions(feature));
+        signature.put("prompt", db.findAiPromptTemplatesByFeatureCode(feature).orElse(Map.of()));
+        return FlowSupport.hash(mapper.writeValueAsString(signature));
+    }
+
     public Map<String, Object> generate(
         String feature,
         Map<String, Object> input) {

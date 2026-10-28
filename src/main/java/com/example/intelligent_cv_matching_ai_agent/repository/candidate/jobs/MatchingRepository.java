@@ -103,9 +103,11 @@ public class MatchingRepository {
     public Object readMarketJobPostsByStatus(
         Object... args) {
         return db.scalar(
-            ("SELECT md5(COALESCE(string_agg(id::text||':'||raw_content_hash||':'||COALESCE(salary_text,''),',' "
-                + "ORDER BY id),'')) FROM market_job_posts WHERE status='ACTIVE' "
-                + "AND (valid_through IS NULL OR valid_through>now())"),
+            "SELECT md5(COALESCE(string_agg(jsonb_build_array(j.id,j.raw_content_hash,j.job_title,"
+                + "j.company_name,j.location,j.salary_text,j.valid_through,j.source_url,"
+                + JobSourceProjection.ACTIVE_URL + "," + JobSourceProjection.ACTIVE_SITE
+                + ")::text,',' ORDER BY j.id),'')) FROM market_job_posts j WHERE j.status='ACTIVE' "
+                + "AND (j.valid_through IS NULL OR j.valid_through>now())",
             args
         );
     }

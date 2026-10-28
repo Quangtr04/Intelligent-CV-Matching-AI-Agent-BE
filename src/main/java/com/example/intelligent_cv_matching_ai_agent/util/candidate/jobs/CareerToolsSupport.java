@@ -12,11 +12,12 @@ public final class CareerToolsSupport {
     public static Map<String, Object> analysisResponse(
         Map<String, Object> row,
         boolean cached) {
-        var metadata = object(row.get("improvement_suggestions_json"));
-        row.put("improvement_suggestions_json", array(metadata.get("items")));
-        row.put("cached", cached);
+        Map<String, Object> response = new LinkedHashMap<>(row);
+        var metadata = object(response.get("improvement_suggestions_json"));
+        response.put("improvement_suggestions_json", array(metadata.get("items")));
+        response.put("cached", cached);
 
-        return row;
+        return response;
     }
 
     public static String requiredAi(

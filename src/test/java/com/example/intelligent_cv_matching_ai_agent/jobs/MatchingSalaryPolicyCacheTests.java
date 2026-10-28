@@ -9,6 +9,7 @@ import com.example.intelligent_cv_matching_ai_agent.service.shared.jobs.Matching
 import com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.MatchingSalaryPolicy;
 import java.math.BigDecimal;
 import java.time.Duration;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -37,7 +38,7 @@ class MatchingSalaryPolicyCacheTests {
         Fixture fixture = new Fixture(aiEnabled, redisEnabled);
         var first = fixture.match();
         var repeated = fixture.match();
-        assertEquals(first.get("id"), repeated.get("id"));
+        assertEquals(first.get("id").toString(), repeated.get("id").toString());
         assertEquals(true, repeated.get("cached"));
         assertEquals(redisEnabled ? "REDIS" : "DATABASE", repeated.get("cache_source"));
         assertPolicy(first, "10", 1);
@@ -48,7 +49,7 @@ class MatchingSalaryPolicyCacheTests {
         var changedRepeated = fixture.match();
         assertNotEquals(first.get("id"), changed.get("id"));
         assertEquals(false, changed.get("cached"));
-        assertEquals(changed.get("id"), changedRepeated.get("id"));
+        assertEquals(changed.get("id").toString(), changedRepeated.get("id").toString());
         assertEquals(true, changedRepeated.get("cached"));
         assertPolicy(changed, "20", 2);
         @SuppressWarnings("unchecked")
@@ -65,7 +66,7 @@ class MatchingSalaryPolicyCacheTests {
         assertNotEquals(first.get("id"), reverted.get("id"));
         assertNotEquals(changed.get("id"), reverted.get("id"));
         assertPolicy(reverted, "10", 3);
-        assertEquals(reverted.get("id"), fixture.match().get("id"));
+        assertEquals(reverted.get("id").toString(), fixture.match().get("id").toString());
         assertPolicy(fixture.service.result((UUID) first.get("id")), "10", 1);
         verify(fixture.policies, times(6)).effective();
         verify(fixture.db, times(3)).insertJobMatchingRuns(anyMap());
@@ -112,8 +113,11 @@ class MatchingSalaryPolicyCacheTests {
         String tolerance,
         long version) {
         Map<?, ?> policy = (Map<?, ?>) run.get("salary_filter");
-        assertEquals(0, new BigDecimal(tolerance).compareTo((BigDecimal) policy.get("tolerance_percent")));
-        assertEquals(version, policy.get("settings_version"));
+        assertEquals(
+            0,
+            new BigDecimal(tolerance).compareTo(new BigDecimal(policy.get("tolerance_percent").toString()))
+        );
+        assertEquals(version, ((Number) policy.get("settings_version")).longValue());
     }
 
     private static final class Fixture {
@@ -174,7 +178,23 @@ class MatchingSalaryPolicyCacheTests {
                 Map<String, Object> snapshot = (Map<String, Object>) values.get("profile_snapshot");
                 UUID id = UUID.randomUUID();
                 hashes.put(snapshot.get("request_hash").toString(), id);
-                runs.put(id, Map.of("id", id, "profile_snapshot", snapshot));
+                runs.put(
+                    id,
+                    Map.of(
+                        "id",
+                        id,
+                        "user_id",
+                        owner,
+                        "basis",
+                        "CAREER_PROFILE",
+                        "status",
+                        "COMPLETED",
+                        "completed_at",
+                        OffsetDateTime.now().minusSeconds(1),
+                        "profile_snapshot",
+                        snapshot
+                    )
+                );
                 return id;
             });
             when(db.getJobMatchingRunsById(any(), eq(owner)))
