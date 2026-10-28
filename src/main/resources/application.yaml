@@ -150,6 +150,15 @@ app:
   security:
     allowed-origins: ${CORS_ALLOWED_ORIGINS}
     jwt-secret: ${APP_JWT_SECRET}
+  bootstrap:
+    admin:
+      email: ${BOOTSTRAP_ADMIN_EMAIL:}
+      password: ${BOOTSTRAP_ADMIN_PASSWORD:}
+      full-name: ${BOOTSTRAP_ADMIN_NAME:Administrator}
+    consultant:
+      email: ${BOOTSTRAP_CONSULTANT_EMAIL:}
+      password: ${BOOTSTRAP_CONSULTANT_PASSWORD:}
+      full-name: ${BOOTSTRAP_CONSULTANT_NAME:Career Consultant}
   billing:
     maintenance-enabled: ${BILLING_MAINTENANCE_ENABLED}
     maintenance-batch-size: ${BILLING_MAINTENANCE_BATCH_SIZE}
