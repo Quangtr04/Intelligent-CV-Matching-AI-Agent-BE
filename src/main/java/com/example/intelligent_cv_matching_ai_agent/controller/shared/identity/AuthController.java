@@ -1,10 +1,12 @@
 package com.example.intelligent_cv_matching_ai_agent.controller.shared.identity;
 
 import com.example.intelligent_cv_matching_ai_agent.dto.request.shared.identity.EmailRequest;
+import com.example.intelligent_cv_matching_ai_agent.dto.request.shared.identity.ForgotPasswordRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.shared.identity.GoogleLoginRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.shared.identity.LoginRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.shared.identity.RefreshTokenRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.shared.identity.RegistrationRequest;
+import com.example.intelligent_cv_matching_ai_agent.dto.request.shared.identity.ResetPasswordRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.shared.identity.VerifyEmailRequest;
 
 import com.example.intelligent_cv_matching_ai_agent.service.shared.identity.AuthFlowService;
@@ -79,7 +81,7 @@ public class AuthController {
     public Map<String, Object> forgotPassword(
         @Valid
         @RequestBody
-        com.example.intelligent_cv_matching_ai_agent.dto.request.shared.identity.ForgotPasswordRequest body,
+        ForgotPasswordRequest body,
         HttpServletRequest request) {
         return service.forgotPassword(body, request.getRemoteAddr());
     }
@@ -88,7 +90,7 @@ public class AuthController {
     public Map<String, Object> resetPassword(
         @Valid
         @RequestBody
-        com.example.intelligent_cv_matching_ai_agent.dto.request.shared.identity.ResetPasswordRequest body,
+        ResetPasswordRequest body,
         HttpServletRequest request) {
         return service.resetPassword(body, request.getRemoteAddr());
     }
