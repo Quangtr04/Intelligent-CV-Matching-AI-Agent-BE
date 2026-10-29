@@ -75,7 +75,6 @@ public class AuthController {
         return service.logout();
     }
 
-    
     @PostMapping("/forgot-password")
     public Map<String, Object> forgotPassword(
         @Valid

@@ -2,6 +2,7 @@ package com.example.intelligent_cv_matching_ai_agent.identity;
 
 import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException;
 import com.example.intelligent_cv_matching_ai_agent.repository.shared.identity.AuthRepository;
+import com.example.intelligent_cv_matching_ai_agent.repository.shared.identity.ResetPasswordTokenRepository;
 import com.example.intelligent_cv_matching_ai_agent.service.shared.identity.AuthService;
 import com.example.intelligent_cv_matching_ai_agent.service.shared.identity.TokenService;
 import jakarta.mail.Message;
@@ -44,6 +45,8 @@ class AuthVerificationMailTest {
     private static final Pattern CODE = Pattern.compile("(?<!\\d)\\d{6}(?!\\d)");
 
     private final AuthRepository repository = mock(AuthRepository.class);
+
+    private final ResetPasswordTokenRepository resetPasswordTokenRepository = mock(ResetPasswordTokenRepository.class);
 
     private final PasswordEncoder encoder = mock(PasswordEncoder.class);
 
@@ -132,7 +135,17 @@ class AuthVerificationMailTest {
     private AuthService service(
         boolean developmentCode,
         boolean mailEnabled) {
-        return new AuthService(repository, encoder, tokens, mail, developmentCode, FROM_EMAIL, mailEnabled);
+        return new AuthService(
+            repository,
+            resetPasswordTokenRepository,
+            encoder,
+            tokens,
+            mail,
+            developmentCode,
+            FROM_EMAIL,
+            "https://example.invalid/reset-password",
+            mailEnabled
+        );
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})

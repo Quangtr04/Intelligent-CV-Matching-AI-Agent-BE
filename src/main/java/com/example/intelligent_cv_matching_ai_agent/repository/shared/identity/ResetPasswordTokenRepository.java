@@ -8,8 +8,9 @@ import org.springframework.stereotype.Repository;
 
 import com.example.intelligent_cv_matching_ai_agent.repository.shared.SqlStore;
 
-@Repository 
+@Repository
 public class ResetPasswordTokenRepository {
+
     private final SqlStore db;
 
     public ResetPasswordTokenRepository(
@@ -48,7 +49,8 @@ public class ResetPasswordTokenRepository {
     public Optional<Map<String, Object>> findResetPasswordTokensByTokenHash2(
         Object... args) {
         return db.optional(
-            ("SELECT user_id FROM reset_password_tokens WHERE token_hash=? AND revoked_at " + "IS NULL AND expires_at>now()"),
+            ("SELECT user_id FROM reset_password_tokens WHERE token_hash=? AND revoked_at "
+                + "IS NULL AND expires_at>now()"),
             args
         );
     }
@@ -81,7 +83,8 @@ public class ResetPasswordTokenRepository {
 
     public int updateResetPasswordTokensByUserId(
         Object... args) {
-        return db.update("UPDATE reset_password_tokens SET revoked_at=now() WHERE user_id=? AND revoked_at IS NULL", args);
+        return db
+            .update("UPDATE reset_password_tokens SET revoked_at=now() WHERE user_id=? AND revoked_at IS NULL", args);
     }
 
 }

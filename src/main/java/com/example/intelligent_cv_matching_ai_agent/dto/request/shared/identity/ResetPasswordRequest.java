@@ -14,5 +14,5 @@ public record ResetPasswordRequest(
     @Size(max = 255)
     String token
 ) {
-    
+
 }

@@ -247,23 +247,24 @@ public class AuthService {
         return tokens.issue(id);
     }
 
-    @Transactional 
-    public Map<String, Object> forgotPassword(String email){
+    @Transactional
+    public Map<String, Object> forgotPassword(
+        String email) {
         AuthValidation.email(email);
 
         var user = db.findUsersByEmailForUpdate(email(email));
         if (user.isEmpty())
             throw ApiException.badRequest("Email not registered");
 
-        if(user.get().get("status").toString().equals("PENDING"))
+        if (user.get().get("status").toString().equals("PENDING"))
             throw ApiException.badRequest("Email not verified; check your inbox or request a new verification code");
 
-        if(!user.get().get("auth_provider").toString().equals("EMAIL"))
+        if (!user.get().get("auth_provider").toString().equals("EMAIL"))
             throw ApiException.badRequest("Password reset is not available for this account; contact support");
 
-        if(!user.get().get("status").toString().equals("ACTIVE"))
+        if (!user.get().get("status").toString().equals("ACTIVE"))
             throw ApiException.badRequest("Account is not active; contact support");
-        
+
         return issueCodePassword((UUID) user.get().get("id"), user.get().get("email").toString());
     }
 
@@ -315,23 +316,18 @@ public class AuthService {
         JavaMailSender sender,
         String recipient,
         String token) {
-    try {
-        // Tạo đường link dẫn tới trang reset password của Frontend
-        String resetLink = frontendResetUrl
-                + "?token="
-                + URLEncoder.encode(token, StandardCharsets.UTF_8);
+        try {
+            // Tạo đường link dẫn tới trang reset password của Frontend
+            String resetLink = frontendResetUrl + "?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
 
-        MimeMessageHelper message = new MimeMessageHelper(
-                sender.createMimeMessage(),
-                true,
-                StandardCharsets.UTF_8.name()
-        );
+            MimeMessageHelper message =
+                new MimeMessageHelper(sender.createMimeMessage(), true, StandardCharsets.UTF_8.name());
 
-        message.setFrom(mailFrom, "EduNexus");
-        message.setTo(recipient);
-        message.setSubject("EduNexus - Đặt lại mật khẩu");
+            message.setFrom(mailFrom, "EduNexus");
+            message.setTo(recipient);
+            message.setSubject("EduNexus - Đặt lại mật khẩu");
 
-        String plainText = """
+            String plainText = """
             Xin chào,
 
             Chúng tôi nhận được yêu cầu đặt lại mật khẩu tài khoản EduNexus của bạn.
@@ -350,61 +346,45 @@ public class AuthService {
             Đội ngũ EduNexus
             """.formatted(resetLink);
 
-        String html = new ClassPathResource(
-                "templates/mail/password-reset.html"
-        )
-        .getContentAsString(StandardCharsets.UTF_8)
-        .replace("{{resetLink}}", resetLink);
+            String html = new ClassPathResource("templates/mail/password-reset.html")
+                .getContentAsString(StandardCharsets.UTF_8).replace("{{resetLink}}", resetLink);
 
-        message.setText(plainText, html);
+            message.setText(plainText, html);
 
-        sender.send(message.getMimeMessage());
+            sender.send(message.getMimeMessage());
 
-    } catch (MessagingException | IOException | RuntimeException ex) {
-            throw new ApiException(
-                503,
-                "Email could not be sent; retry later"
-            );
+        } catch (MessagingException | IOException | RuntimeException ex) {
+            throw new ApiException(503, "Email could not be sent; retry later");
         }
     }
 
-    @Transactional 
-    public Map<String, Object> resetPassword(String token, String newPassword, String newPasswordConfirmation){
+    @Transactional
+    public Map<String, Object> resetPassword(
+        String token,
+        String newPassword,
+        String newPasswordConfirmation) {
         AuthValidation.passwordLength(newPassword);
 
         var tokenRow = resetPasswordTokenRepository.findResetPasswordTokensByTokenHashForUpdate(token);
         if (tokenRow.isEmpty())
             throw ApiException.badRequest("Invalid or expired verification code");
 
-        UUID tokenId = UUID.fromString(
-            tokenRow.get().get("id").toString()
-        );
+        UUID tokenId = UUID.fromString(tokenRow.get().get("id").toString());
 
-        UUID userId = UUID.fromString(
-            tokenRow.get().get("user_id").toString()
-        );
+        UUID userId = UUID.fromString(tokenRow.get().get("user_id").toString());
 
-
-        int updated = resetPasswordTokenRepository
-        .updateResetPasswordTokensById(tokenId, userId);
+        int updated = resetPasswordTokenRepository.updateResetPasswordTokensById(tokenId, userId);
 
         if (updated != 1) {
-            throw ApiException.badRequest(
-            "Invalid or expired reset token"
-            );
+            throw ApiException.badRequest("Invalid or expired reset token");
         }
 
-        if(!newPassword.equals(newPasswordConfirmation)){
-            throw ApiException.badRequest(
-                "New password and confirmation do not match"
-            );
+        if (!newPassword.equals(newPasswordConfirmation)) {
+            throw ApiException.badRequest("New password and confirmation do not match");
         }
-        
-        db.updateUsersPasswordById(
-            userId,
-            encoder.encode(newPassword)
-        );
-    
+
+        db.updateUsersPasswordById(userId, encoder.encode(newPassword));
+
         return Map.of("message", "Password reset successfully; you can log in");
 
     }
