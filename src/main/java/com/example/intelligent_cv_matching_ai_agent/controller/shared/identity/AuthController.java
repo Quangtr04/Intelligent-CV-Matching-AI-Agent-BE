@@ -75,6 +75,25 @@ public class AuthController {
         return service.logout();
     }
 
+    
+    @PostMapping("/forgot-password")
+    public Map<String, Object> forgotPassword(
+        @Valid
+        @RequestBody
+        com.example.intelligent_cv_matching_ai_agent.dto.request.shared.identity.ForgotPasswordRequest body,
+        HttpServletRequest request) {
+        return service.forgotPassword(body, request.getRemoteAddr());
+    }
+
+    @PostMapping("/reset-password")
+    public Map<String, Object> resetPassword(
+        @Valid
+        @RequestBody
+        com.example.intelligent_cv_matching_ai_agent.dto.request.shared.identity.ResetPasswordRequest body,
+        HttpServletRequest request) {
+        return service.resetPassword(body, request.getRemoteAddr());
+    }
+
     @PostMapping("/google")
     public Map<String, Object> google(
         @Valid

@@ -2,6 +2,7 @@ package com.example.intelligent_cv_matching_ai_agent.service.shared.identity;
 
 import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException;
 import com.example.intelligent_cv_matching_ai_agent.repository.shared.identity.AuthRepository;
+import com.example.intelligent_cv_matching_ai_agent.repository.shared.identity.ResetPasswordTokenRepository;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.identity.AuthValidation;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.ObjectProvider;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.time.OffsetDateTime;
@@ -25,6 +27,8 @@ import java.util.UUID;
 public class AuthService {
 
     private final AuthRepository db;
+
+    private final ResetPasswordTokenRepository resetPasswordTokenRepository;
 
     private final PasswordEncoder encoder;
 
@@ -40,8 +44,11 @@ public class AuthService {
 
     private final String dummyHash;
 
+    private final String frontendResetUrl;
+
     public AuthService(
         AuthRepository db,
+        ResetPasswordTokenRepository resetPasswordTokenRepository,
         PasswordEncoder encoder,
         TokenService tokens,
         ObjectProvider<JavaMailSender> mail,
@@ -49,15 +56,19 @@ public class AuthService {
         boolean devCode,
         @Value("${app.auth.mail-from:noreply@edunexus.local}")
         String mailFrom,
+        @Value("${app.frontend-reset-url}")
+        String frontendResetUrl,
         @Value("${app.mail.enabled:false}")
         boolean mailEnabled) {
         this.db = db;
+        this.resetPasswordTokenRepository = resetPasswordTokenRepository;
         this.encoder = encoder;
         this.tokens = tokens;
         this.mail = mail;
         this.exposeDevelopmentCode = devCode;
         this.mailFrom = mailFrom;
         this.mailEnabled = mailEnabled;
+        this.frontendResetUrl = frontendResetUrl;
         this.dummyHash = encoder.encode(TokenService.random(""));
     }
 
@@ -103,7 +114,7 @@ public class AuthService {
             )
         );
 
-        return issueCode(user, normalized);
+        return issueCodeEmail(user, normalized);
     }
 
     @Transactional
@@ -114,10 +125,10 @@ public class AuthService {
         if (user.isEmpty())
             return Map.of("message", "If this account is pending, a verification code will be sent");
 
-        return issueCode((UUID) user.get().get("id"), user.get().get("email").toString());
+        return issueCodeEmail((UUID) user.get().get("id"), user.get().get("email").toString());
     }
 
-    private Map<String, Object> issueCode(
+    private Map<String, Object> issueCodeEmail(
         UUID user,
         String email) {
         if (db.findEmailVerificationCodesByUserId(user).isPresent())
@@ -234,5 +245,167 @@ public class AuthService {
         db.updateUsersById2(id);
 
         return tokens.issue(id);
+    }
+
+    @Transactional 
+    public Map<String, Object> forgotPassword(String email){
+        AuthValidation.email(email);
+
+        var user = db.findUsersByEmailForUpdate(email(email));
+        if (user.isEmpty())
+            throw ApiException.badRequest("Email not registered");
+
+        if(user.get().get("status").toString().equals("PENDING"))
+            throw ApiException.badRequest("Email not verified; check your inbox or request a new verification code");
+
+        if(!user.get().get("auth_provider").toString().equals("EMAIL"))
+            throw ApiException.badRequest("Password reset is not available for this account; contact support");
+
+        if(!user.get().get("status").toString().equals("ACTIVE"))
+            throw ApiException.badRequest("Account is not active; contact support");
+        
+        return issueCodePassword((UUID) user.get().get("id"), user.get().get("email").toString());
+    }
+
+    private Map<String, Object> issueCodePassword(
+        UUID user,
+        String email) {
+        if (db.findResetPasswordTokensByUserId(user).isPresent())
+            throw new ApiException(429, "Wait 60 seconds before requesting a new code");
+
+        db.updateResetPasswordTokensByUserId(user);
+
+        String code = String.format("%06d", new SecureRandom().nextInt(1000000));
+
+        db.insertResetPasswordTokens(
+            Map.of(
+                "user_id",
+                user,
+                "code_hash",
+                encoder.encode(code),
+                "expires_at",
+                OffsetDateTime.now().plusMinutes(10),
+                "created_at",
+                OffsetDateTime.now()
+            )
+        );
+
+        if (!exposeDevelopmentCode) {
+            if (!mailEnabled)
+                throw new ApiException(503, "Email delivery is disabled; configure MAIL_ENABLED and SMTP settings");
+
+            JavaMailSender sender = mail.getIfAvailable();
+            if (sender == null)
+                throw new ApiException(503, "Email delivery is not configured");
+
+            sendResetPasswordEmail(sender, email, code);
+        }
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("message", "If this account is pending, a verification code will be sent");
+        result.put("expiresIn", 600);
+
+        if (exposeDevelopmentCode)
+            result.put("developmentCode", code);
+
+        return result;
+    }
+
+    private void sendResetPasswordEmail(
+        JavaMailSender sender,
+        String recipient,
+        String token) {
+    try {
+        // Tạo đường link dẫn tới trang reset password của Frontend
+        String resetLink = frontendResetUrl
+                + "?token="
+                + URLEncoder.encode(token, StandardCharsets.UTF_8);
+
+        MimeMessageHelper message = new MimeMessageHelper(
+                sender.createMimeMessage(),
+                true,
+                StandardCharsets.UTF_8.name()
+        );
+
+        message.setFrom(mailFrom, "EduNexus");
+        message.setTo(recipient);
+        message.setSubject("EduNexus - Đặt lại mật khẩu");
+
+        String plainText = """
+            Xin chào,
+
+            Chúng tôi nhận được yêu cầu đặt lại mật khẩu tài khoản EduNexus của bạn.
+
+            Nhấn vào đường link sau để đặt lại mật khẩu:
+
+            %s
+
+            Link có hiệu lực trong 10 phút.
+
+            Nếu bạn không yêu cầu đặt lại mật khẩu,
+            vui lòng bỏ qua email này.
+
+            Không chia sẻ đường link này với bất kỳ ai.
+
+            Đội ngũ EduNexus
+            """.formatted(resetLink);
+
+        String html = new ClassPathResource(
+                "templates/mail/password-reset.html"
+        )
+        .getContentAsString(StandardCharsets.UTF_8)
+        .replace("{{resetLink}}", resetLink);
+
+        message.setText(plainText, html);
+
+        sender.send(message.getMimeMessage());
+
+    } catch (MessagingException | IOException | RuntimeException ex) {
+            throw new ApiException(
+                503,
+                "Email could not be sent; retry later"
+            );
+        }
+    }
+
+    @Transactional 
+    public Map<String, Object> resetPassword(String token, String newPassword, String newPasswordConfirmation){
+        AuthValidation.passwordLength(newPassword);
+
+        var tokenRow = resetPasswordTokenRepository.findResetPasswordTokensByTokenHashForUpdate(token);
+        if (tokenRow.isEmpty())
+            throw ApiException.badRequest("Invalid or expired verification code");
+
+        UUID tokenId = UUID.fromString(
+            tokenRow.get().get("id").toString()
+        );
+
+        UUID userId = UUID.fromString(
+            tokenRow.get().get("user_id").toString()
+        );
+
+
+        int updated = resetPasswordTokenRepository
+        .updateResetPasswordTokensById(tokenId, userId);
+
+        if (updated != 1) {
+            throw ApiException.badRequest(
+            "Invalid or expired reset token"
+            );
+        }
+
+        if(!newPassword.equals(newPasswordConfirmation)){
+            throw ApiException.badRequest(
+                "New password and confirmation do not match"
+            );
+        }
+        
+        db.updateUsersPasswordById(
+            userId,
+            encoder.encode(newPassword)
+        );
+    
+        return Map.of("message", "Password reset successfully; you can log in");
+
     }
 }

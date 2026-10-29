@@ -1,0 +1,56 @@
+package com.example.intelligent_cv_matching_ai_agent.entity.shared.identity;
+
+import java.time.OffsetDateTime;
+import java.util.UUID;
+
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.UuidGenerator;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Entity 
+@Table (name = "reset_password_tokens")
+@Getter 
+@Setter 
+@NoArgsConstructor 
+@DynamicInsert 
+@DynamicUpdate 
+public class ResetPasswordToken {
+    @JsonProperty("id")
+    @Id
+    @GeneratedValue
+    @UuidGenerator
+    @Column(name = "id", nullable = false)
+    private UUID id;
+
+    @JsonProperty("user_id")
+    @Column(name = "user_id", nullable = false)
+    private UUID userId;
+
+    @JsonProperty("token_hash")
+    @JsonIgnore 
+    @Column(name = "token_hash", nullable = false, length = 255)
+    private String tokenHash;
+
+    @JsonProperty("expires_at")
+    @Column(name = "expires_at", nullable = false, columnDefinition = "timestamptz")
+    private OffsetDateTime expiresAt;
+
+    @JsonProperty("revoked_at")
+    @Column(name = "revoked_at", nullable = true, columnDefinition = "timestamptz")
+    private OffsetDateTime revokedAt;
+
+    @JsonProperty("created_at")
+    @Column(name = "created_at", nullable = false, columnDefinition = "timestamptz")
+    private OffsetDateTime createdAt;
+}

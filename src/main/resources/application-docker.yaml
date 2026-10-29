@@ -41,6 +41,7 @@ logging:
     org.springframework.jdbc: ${LOG_SPRING_JDBC_LEVEL:INFO}
 
 app:
+  frontend-reset-url: ${APP_FRONTEND_RESET_URL}
   storage:
     path: ${UPLOAD_DIR:/app/uploads}
   auth:

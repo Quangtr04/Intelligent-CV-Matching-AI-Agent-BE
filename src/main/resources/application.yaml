@@ -80,6 +80,7 @@ spring:
 server:
   port: ${SERVER_PORT}
 app:
+  frontend-reset-url: ${APP_FRONTEND_RESET_URL}
   jobs:
     salary-exchange:
       enabled: ${SALARY_EXCHANGE_ENABLED:true}
