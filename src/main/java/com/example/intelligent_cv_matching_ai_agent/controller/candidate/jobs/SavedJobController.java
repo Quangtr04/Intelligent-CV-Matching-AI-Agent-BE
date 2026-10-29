@@ -51,4 +51,3 @@ public class SavedJobController {
         return service.remove(id);
     }
 }
-

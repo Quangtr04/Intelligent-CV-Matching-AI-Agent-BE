@@ -60,4 +60,3 @@ public class SavedJobService {
         return Map.of("job_id", jobId, "saved", false);
     }
 }
-
