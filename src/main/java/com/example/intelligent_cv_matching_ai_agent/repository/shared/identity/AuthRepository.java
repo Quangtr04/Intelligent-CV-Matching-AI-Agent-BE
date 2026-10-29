@@ -109,4 +109,29 @@ public class AuthRepository {
         return db.update("UPDATE users SET last_login_at=now(),updated_at=now() WHERE id=?", args);
     }
 
+    public UUID insertResetPasswordTokens(
+        Map<String, Object> fields) {
+        return db.insert("reset_password_tokens", fields);
+    }
+
+    public Optional<Map<String, Object>> findResetPasswordTokensByUserId(
+        Object... args) {
+        return db.optional(
+            ("SELECT id FROM reset_password_tokens WHERE user_id=? AND " + "created_at>now()-interval '60 seconds'"),
+            args
+        );
+    }
+
+    public int updateResetPasswordTokensByUserId(
+        Object... args) {
+        return db.update(
+            ("UPDATE reset_password_tokens SET expires_at=now() WHERE user_id=? " + "AND verified_at IS NULL"),
+            args
+        );
+    }
+
+    public int updateUsersPasswordById(
+        Object... args) {
+        return db.update("UPDATE users SET password_hash=?,updated_at=now() WHERE id=?", args);
+    }
 }

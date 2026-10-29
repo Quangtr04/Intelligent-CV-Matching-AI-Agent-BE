@@ -1,10 +1,13 @@
 package com.example.intelligent_cv_matching_ai_agent.service.shared.identity;
 
 import com.example.intelligent_cv_matching_ai_agent.dto.request.shared.identity.EmailRequest;
+import com.example.intelligent_cv_matching_ai_agent.dto.request.shared.identity.ForgotPasswordRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.shared.identity.GoogleLoginRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.shared.identity.LoginRequest;
+import com.example.intelligent_cv_matching_ai_agent.dto.request.shared.identity.PasswordChangeRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.shared.identity.RefreshTokenRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.shared.identity.RegistrationRequest;
+import com.example.intelligent_cv_matching_ai_agent.dto.request.shared.identity.ResetPasswordRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.shared.identity.VerifyEmailRequest;
 
 import com.example.intelligent_cv_matching_ai_agent.security.shared.AuthThrottle;
@@ -93,5 +96,21 @@ public class AuthFlowService {
         throttle.check("google:" + remoteAddress, 30, 900);
 
         return google.login(body.idToken());
+    }
+
+    public Map<String, Object> forgotPassword(
+        ForgotPasswordRequest body,
+        String remoteAddress) {
+        throttle.check("forgot-password:" + remoteAddress, 10, 3600);
+
+        return auth.forgotPassword(body.email());
+    }
+
+    public Map<String, Object> resetPassword(
+        ResetPasswordRequest body,
+        String remoteAddress) {
+        throttle.check("reset-password:" + remoteAddress, 10, 3600);
+
+        return auth.resetPassword(body.token(), body.newPassword(), body.newPasswordConfirmation());
     }
 }

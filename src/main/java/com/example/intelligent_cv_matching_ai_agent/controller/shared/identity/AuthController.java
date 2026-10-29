@@ -1,10 +1,12 @@
 package com.example.intelligent_cv_matching_ai_agent.controller.shared.identity;
 
 import com.example.intelligent_cv_matching_ai_agent.dto.request.shared.identity.EmailRequest;
+import com.example.intelligent_cv_matching_ai_agent.dto.request.shared.identity.ForgotPasswordRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.shared.identity.GoogleLoginRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.shared.identity.LoginRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.shared.identity.RefreshTokenRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.shared.identity.RegistrationRequest;
+import com.example.intelligent_cv_matching_ai_agent.dto.request.shared.identity.ResetPasswordRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.shared.identity.VerifyEmailRequest;
 
 import com.example.intelligent_cv_matching_ai_agent.service.shared.identity.AuthFlowService;
@@ -73,6 +75,24 @@ public class AuthController {
     @PostMapping("/logout")
     public Map<String, Object> logout() {
         return service.logout();
+    }
+
+    @PostMapping("/forgot-password")
+    public Map<String, Object> forgotPassword(
+        @Valid
+        @RequestBody
+        ForgotPasswordRequest body,
+        HttpServletRequest request) {
+        return service.forgotPassword(body, request.getRemoteAddr());
+    }
+
+    @PostMapping("/reset-password")
+    public Map<String, Object> resetPassword(
+        @Valid
+        @RequestBody
+        ResetPasswordRequest body,
+        HttpServletRequest request) {
+        return service.resetPassword(body, request.getRemoteAddr());
     }
 
     @PostMapping("/google")
