@@ -4,7 +4,6 @@ import com.example.intelligent_cv_matching_ai_agent.dto.request.shared.identity.
 import com.example.intelligent_cv_matching_ai_agent.dto.request.shared.identity.ForgotPasswordRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.shared.identity.GoogleLoginRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.shared.identity.LoginRequest;
-import com.example.intelligent_cv_matching_ai_agent.dto.request.shared.identity.PasswordChangeRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.shared.identity.RefreshTokenRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.shared.identity.RegistrationRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.shared.identity.ResetPasswordRequest;

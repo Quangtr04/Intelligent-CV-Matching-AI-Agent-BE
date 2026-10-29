@@ -13,9 +13,10 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.util.HtmlUtils;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.time.OffsetDateTime;
@@ -250,9 +251,7 @@ public class AuthService {
     @Transactional
     public Map<String, Object> forgotPassword(
         String email) {
-        AuthValidation.email(email);
-
-        var user = db.findUsersByEmailForUpdate(email(email));
+        var user = db.findUsersByEmailForPasswordReset(email(email));
         if (user.isEmpty())
             throw ApiException.badRequest("Email not registered");
 
@@ -265,29 +264,30 @@ public class AuthService {
         if (!user.get().get("status").toString().equals("ACTIVE"))
             throw ApiException.badRequest("Account is not active; contact support");
 
-        return issueCodePassword((UUID) user.get().get("id"), user.get().get("email").toString());
+        return issuePasswordResetToken((UUID) user.get().get("id"), user.get().get("email").toString());
     }
 
-    private Map<String, Object> issueCodePassword(
+    private Map<String, Object> issuePasswordResetToken(
         UUID user,
         String email) {
         if (db.findResetPasswordTokensByUserId(user).isPresent())
-            throw new ApiException(429, "Wait 60 seconds before requesting a new code");
+            throw new ApiException(429, "Wait 60 seconds before requesting a new reset link");
 
         db.updateResetPasswordTokensByUserId(user);
 
-        String code = String.format("%06d", new SecureRandom().nextInt(1000000));
+        String token = TokenService.random("p_");
+        OffsetDateTime now = OffsetDateTime.now();
 
         db.insertResetPasswordTokens(
             Map.of(
                 "user_id",
                 user,
-                "code_hash",
-                encoder.encode(code),
+                "token_hash",
+                TokenService.hash(token),
                 "expires_at",
-                OffsetDateTime.now().plusMinutes(10),
+                now.plusMinutes(10),
                 "created_at",
-                OffsetDateTime.now()
+                now
             )
         );
 
@@ -299,15 +299,15 @@ public class AuthService {
             if (sender == null)
                 throw new ApiException(503, "Email delivery is not configured");
 
-            sendResetPasswordEmail(sender, email, code);
+            sendResetPasswordEmail(sender, email, token);
         }
 
         Map<String, Object> result = new LinkedHashMap<>();
-        result.put("message", "If this account is pending, a verification code will be sent");
+        result.put("message", "If this account is eligible, a password reset link will be sent");
         result.put("expiresIn", 600);
 
         if (exposeDevelopmentCode)
-            result.put("developmentCode", code);
+            result.put("developmentToken", token);
 
         return result;
     }
@@ -318,7 +318,8 @@ public class AuthService {
         String token) {
         try {
             // Tạo đường link dẫn tới trang reset password của Frontend
-            String resetLink = frontendResetUrl + "?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
+            String resetLink = UriComponentsBuilder.fromUriString(frontendResetUrl).replaceQueryParam("token", token)
+                .build().encode().toUriString();
 
             MimeMessageHelper message =
                 new MimeMessageHelper(sender.createMimeMessage(), true, StandardCharsets.UTF_8.name());
@@ -346,8 +347,9 @@ public class AuthService {
             Đội ngũ EduNexus
             """.formatted(resetLink);
 
-            String html = new ClassPathResource("templates/mail/password-reset.html")
-                .getContentAsString(StandardCharsets.UTF_8).replace("{{resetLink}}", resetLink);
+            String html =
+                new ClassPathResource("templates/mail/password-reset.html").getContentAsString(StandardCharsets.UTF_8)
+                    .replace("{{resetLink}}", HtmlUtils.htmlEscape(resetLink, StandardCharsets.UTF_8.name()));
 
             message.setText(plainText, html);
 
@@ -363,27 +365,31 @@ public class AuthService {
         String token,
         String newPassword,
         String newPasswordConfirmation) {
+        if (newPassword == null || newPassword.isBlank() || newPassword.length() < 10)
+            throw ApiException.badRequest("New password must contain at least 10 characters");
         AuthValidation.passwordLength(newPassword);
-
-        var tokenRow = resetPasswordTokenRepository.findResetPasswordTokensByTokenHashForUpdate(token);
-        if (tokenRow.isEmpty())
-            throw ApiException.badRequest("Invalid or expired verification code");
-
-        UUID tokenId = UUID.fromString(tokenRow.get().get("id").toString());
-
-        UUID userId = UUID.fromString(tokenRow.get().get("user_id").toString());
-
-        int updated = resetPasswordTokenRepository.updateResetPasswordTokensById(tokenId, userId);
-
-        if (updated != 1) {
-            throw ApiException.badRequest("Invalid or expired reset token");
-        }
-
-        if (!newPassword.equals(newPasswordConfirmation)) {
+        if (!newPassword.equals(newPasswordConfirmation))
             throw ApiException.badRequest("New password and confirmation do not match");
-        }
+        if (token == null || !token.startsWith("p_") || token.length() != 45)
+            throw ApiException.badRequest("Invalid or expired reset token");
 
-        db.updateUsersPasswordById(userId, encoder.encode(newPassword));
+        String tokenHash = TokenService.hash(token);
+        UUID userId = (UUID) resetPasswordTokenRepository.findResetPasswordTokensByTokenHash2(tokenHash)
+            .orElseThrow(() -> ApiException.badRequest("Invalid or expired reset token")).get("user_id");
+        // Account locks come before token locks, matching sign-in and session revocation.
+        resetPasswordTokenRepository.findUsersByIdForUpdate(userId)
+            .orElseThrow(() -> ApiException.badRequest("Invalid or expired reset token"));
+        Map<String, Object> tokenRow =
+            resetPasswordTokenRepository.findResetPasswordTokensByTokenHashForUpdate(tokenHash)
+                .orElseThrow(() -> ApiException.badRequest("Invalid or expired reset token"));
+        if (!userId.equals(tokenRow.get("user_id")))
+            throw ApiException.badRequest("Invalid or expired reset token");
+        if (resetPasswordTokenRepository.updateResetPasswordTokensById((UUID) tokenRow.get("id"), userId) != 1)
+            throw ApiException.badRequest("Invalid or expired reset token");
+        if (db.updateUsersPasswordById(encoder.encode(newPassword), userId) != 1)
+            throw ApiException.badRequest("Account is not available for password reset");
+        resetPasswordTokenRepository.updateResetPasswordTokensByUserId(userId);
+        tokens.revokeAll(userId);
 
         return Map.of("message", "Password reset successfully; you can log in");
 

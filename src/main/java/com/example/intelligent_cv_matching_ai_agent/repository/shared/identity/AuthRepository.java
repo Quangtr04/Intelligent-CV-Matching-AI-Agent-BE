@@ -104,6 +104,14 @@ public class AuthRepository {
         );
     }
 
+    public Optional<Map<String, Object>> findUsersByEmailForPasswordReset(
+        String email) {
+        return db.optional(
+            "SELECT id,email,status,auth_provider FROM users WHERE email=? AND deleted_at IS NULL FOR NO KEY UPDATE",
+            email
+        );
+    }
+
     public int updateUsersById2(
         Object... args) {
         return db.update("UPDATE users SET last_login_at=now(),updated_at=now() WHERE id=?", args);
@@ -124,14 +132,13 @@ public class AuthRepository {
 
     public int updateResetPasswordTokensByUserId(
         Object... args) {
-        return db.update(
-            ("UPDATE reset_password_tokens SET expires_at=now() WHERE user_id=? " + "AND verified_at IS NULL"),
-            args
-        );
+        return db
+            .update("UPDATE reset_password_tokens SET revoked_at=now() WHERE user_id=? AND revoked_at IS NULL", args);
     }
 
     public int updateUsersPasswordById(
-        Object... args) {
-        return db.update("UPDATE users SET password_hash=?,updated_at=now() WHERE id=?", args);
+        String passwordHash,
+        UUID userId) {
+        return db.update("UPDATE users SET password_hash=?,updated_at=now() WHERE id=?", passwordHash, userId);
     }
 }
