@@ -28,6 +28,16 @@ public class BearerFilter extends OncePerRequestFilter {
     }
 
     @Override
+    protected boolean shouldNotFilter(
+        HttpServletRequest request) {
+        if (!"POST".equals(request.getMethod())) {
+            return false;
+        }
+        String path = request.getRequestURI().substring(request.getContextPath().length());
+        return "/api/v1/auth/forgot-password".equals(path) || "/api/v1/auth/reset-password".equals(path);
+    }
+
+    @Override
     protected void doFilterInternal(
         HttpServletRequest request,
         HttpServletResponse response,

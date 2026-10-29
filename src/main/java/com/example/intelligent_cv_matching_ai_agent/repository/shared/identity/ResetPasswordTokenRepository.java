@@ -31,7 +31,8 @@ public class ResetPasswordTokenRepository {
     public Optional<Map<String, Object>> findUsersByIdForUpdate(
         Object... args) {
         return db.optional(
-            ("SELECT id FROM users WHERE id=? AND status='ACTIVE' AND deleted_at IS " + "NULL FOR NO KEY UPDATE"),
+            ("SELECT id FROM users WHERE id=? AND status='ACTIVE' AND auth_provider='EMAIL' "
+                + "AND deleted_at IS NULL FOR NO KEY UPDATE"),
             args
         );
     }
