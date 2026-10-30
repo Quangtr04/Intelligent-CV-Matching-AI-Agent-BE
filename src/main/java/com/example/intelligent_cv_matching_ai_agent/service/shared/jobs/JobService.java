@@ -179,7 +179,7 @@ public class JobService {
                 "original_content_extracted_at",
                 OffsetDateTime.now(),
                 "parsed_description",
-                normalized,
+                JobNormalizer.lines(input.content()),
                 "parsed_requirements",
                 input.requirements(),
                 "parsed_responsibilities",

@@ -172,6 +172,23 @@ class JobPostingParserTests {
     }
 
     @Test
+    void itviecDescriptionContainerFallbackDoesNotRepeatItsSections() {
+        String html = """
+            <main><h1 class="job-title">Java Engineer</h1>
+            <div id="job-description">
+            <h2>Top 3 reasons to join us</h2><ul><li>Work with global banking partners.</li></ul>
+            <h2>Your skills and experience</h2><ul><li>Experience with Java and Spring Boot is required.</li></ul>
+            <h2>Why you'll love working here</h2><p>Hybrid working and full health insurance for everyone.</p>
+            </div></main>
+            """;
+        var job = JobPostingParser.parse(html, "ITVIEC", "https://itviec.com/it-jobs/java-engineer-1234", "Backend")
+            .orElseThrow().job();
+        assertEquals(1, job.content().split("Hybrid working", -1).length - 1);
+        assertEquals(1, job.content().split("Spring Boot is required", -1).length - 1);
+        assertTrue(job.benefits().contains("Hybrid working"));
+    }
+
+    @Test
     void textOnlyDescriptionCanSupplyExplicitRequiredSkillsWithoutInventingEmploymentOrExpiry() {
         String html = """
             <script type="application/ld+json">

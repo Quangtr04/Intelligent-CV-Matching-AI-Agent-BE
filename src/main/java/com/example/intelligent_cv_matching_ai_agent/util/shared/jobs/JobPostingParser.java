@@ -218,7 +218,7 @@ public final class JobPostingParser {
         String requirements = sections.get("requirements");
         String responsibilities = sections.get("responsibilities");
         String benefits = sections.get("benefits");
-        String content = combine(description, requirements, responsibilities, benefits);
+        String content = combineMissing(description, requirements, responsibilities, benefits);
         if (content.length() > 100000)
             throw ApiException.badRequest("JobPosting description exceeds 100000 characters");
         String company = htmlValue(
@@ -646,6 +646,27 @@ public final class JobPostingParser {
         }
 
         return "";
+    }
+
+    /**
+     * Appends each section only when the description does not already contain it. When the parser falls back to the
+     * whole description container, that container already holds the requirement and benefit sections.
+     */
+    private static String combineMissing(
+        String description,
+        String... sections) {
+        List<String> values = new ArrayList<>();
+        values.add(description);
+        String seen = plain(description);
+        for (String section : sections) {
+            String text = section == null ? "" : plain(section);
+            if (text.isEmpty() || seen.contains(text)) {
+                continue;
+            }
+            values.add(section);
+            seen = seen + " " + text;
+        }
+        return combine(values.toArray(String[]::new));
     }
 
     private static String combine(
