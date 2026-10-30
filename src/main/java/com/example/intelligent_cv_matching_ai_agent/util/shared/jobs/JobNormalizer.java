@@ -12,13 +12,39 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.Element;
+import org.jsoup.nodes.Node;
+import org.jsoup.nodes.TextNode;
+import org.jsoup.select.NodeVisitor;
 
 /**
  * Deterministic ingestion normalization. Only explicit metadata and skills are canonicalized;
  * description text is never used to invent missing structured fields.
  */
 public final class JobNormalizer {
+
+    private static final Pattern HTML_TAG = Pattern.compile("<[a-zA-Z/!][^>]*>");
+
+    private static final Set<String> LINE_BLOCKS = Set.of(
+        "p",
+        "div",
+        "section",
+        "article",
+        "li",
+        "ul",
+        "ol",
+        "tr",
+        "table",
+        "blockquote",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6"
+    );
 
     private static final Map<String, String> LOCATION_ALIASES = Map.ofEntries(
         Map.entry("hcm", "Ho Chi Minh"),
@@ -119,9 +145,9 @@ public final class JobNormalizer {
             input.content(),
             List.copyOf(skills),
             employmentType(input.employmentType()),
-            optionalPlain(input.requirements()),
-            optionalPlain(input.responsibilities()),
-            optionalPlain(input.benefits()),
+            optionalLines(input.requirements()),
+            optionalLines(input.responsibilities()),
+            optionalLines(input.benefits()),
             input.postedAt(),
             input.validThrough()
         );
@@ -145,9 +171,10 @@ public final class JobNormalizer {
             append(value, skill);
         }
         append(value, normalized.employmentType());
-        append(value, normalized.requirements());
-        append(value, normalized.responsibilities());
-        append(value, normalized.benefits());
+        // Hashes compare single-line text so line breaks do not change identities of jobs imported earlier.
+        append(value, optionalPlain(normalized.requirements()));
+        append(value, optionalPlain(normalized.responsibilities()));
+        append(value, optionalPlain(normalized.benefits()));
         append(value, instant(normalized.postedAt()));
         append(value, instant(normalized.validThrough()));
         return FlowSupport.hash(value.toString());
@@ -257,6 +284,64 @@ public final class JobNormalizer {
     private static String optionalPlain(
         String value) {
         String normalized = plain(value);
+        return normalized.isEmpty() ? null : normalized;
+    }
+
+    /**
+     * Readable text that keeps one line per paragraph, list item, heading or line break.
+     * Whitespace inside a line is collapsed like {@link #plain(String)}.
+     */
+    public static String lines(
+        String value) {
+        if (value == null || value.isBlank()) {
+            return "";
+        }
+
+        String text;
+        if (HTML_TAG.matcher(value).find()) {
+            StringBuilder out = new StringBuilder();
+            Jsoup.parseBodyFragment(value).body().traverse(new NodeVisitor() {
+
+                @Override
+                public void head(
+                    Node node,
+                    int depth) {
+                    if (node instanceof TextNode textNode) {
+                        out.append(textNode.text());
+                    } else if (node instanceof Element element) {
+                        if (element.nameIs("br") || LINE_BLOCKS.contains(element.normalName())) {
+                            out.append('\n');
+                        }
+                    }
+                }
+
+                @Override
+                public void tail(
+                    Node node,
+                    int depth) {
+                    if (node instanceof Element element && LINE_BLOCKS.contains(element.normalName())) {
+                        out.append('\n');
+                    }
+                }
+            });
+            text = out.toString();
+        } else {
+            text = Jsoup.parse(value).wholeText();
+        }
+
+        List<String> result = new ArrayList<>();
+        for (String line : text.split("\\R")) {
+            String normalized = line.replaceAll("[\\s\\p{Z}]+", " ").strip();
+            if (!normalized.isEmpty()) {
+                result.add(normalized);
+            }
+        }
+        return String.join("\n", result);
+    }
+
+    private static String optionalLines(
+        String value) {
+        String normalized = lines(value);
         return normalized.isEmpty() ? null : normalized;
     }
 

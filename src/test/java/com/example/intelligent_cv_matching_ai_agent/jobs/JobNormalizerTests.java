@@ -41,7 +41,7 @@ class JobNormalizerTests {
         assertEquals("20 - 30 million VND", normalized.salaryText());
         assertEquals(html, normalized.content());
         assertEquals("FULL_TIME", normalized.employmentType());
-        assertEquals("Java experience SQL experience", normalized.requirements());
+        assertEquals("Java experience\nSQL experience", normalized.requirements());
         assertEquals(new JobSkillRequest(skillId, "Node.js", true), normalized.skills().getFirst());
         assertEquals(new JobSkillRequest(null, "React Native", false), normalized.skills().get(1));
         assertNull(normalized.responsibilities());
@@ -81,6 +81,22 @@ class JobNormalizerTests {
         assertTrue(normalized.skills().isEmpty());
         assertNull(normalized.requirements());
         assertNull(normalized.employmentType());
+    }
+
+    @Test
+    void linesKeepsParagraphsListItemsAndBreaks() {
+        assertEquals(
+            "Top 3 reasons\nGlobal banks\nHybrid working\nFirst line\nSecond line\nJava & Kotlin",
+            JobNormalizer.lines(
+                "<h2>Top 3 reasons</h2>\n<ul>\n  <li>Global   banks</li><li>Hybrid working</li></ul>"
+                    + "<p>First line<br>Second line</p><p>Java &amp; Kotlin</p>"
+            )
+        );
+        assertEquals(
+            "Java experience\nSQL experience",
+            JobNormalizer.lines("  Java   experience \n\n SQL experience ")
+        );
+        assertEquals("", JobNormalizer.lines(null));
     }
 
     @Test
