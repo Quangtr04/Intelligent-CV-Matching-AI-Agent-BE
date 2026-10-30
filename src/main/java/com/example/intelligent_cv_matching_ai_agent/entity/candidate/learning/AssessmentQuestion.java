@@ -30,6 +30,10 @@ import org.hibernate.type.SqlTypes;
 @DynamicUpdate
 public class AssessmentQuestion {
 
+    @JsonProperty("cv_evidence")
+    @Column(name = "cv_evidence", columnDefinition = "text")
+    private String cvEvidence;
+
     @JsonProperty("id")
     @Id
     @GeneratedValue

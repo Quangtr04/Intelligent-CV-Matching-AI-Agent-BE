@@ -77,6 +77,14 @@ public class Resume {
     @Column(name = "file_url", nullable = true, columnDefinition = "text")
     private String fileUrl;
 
+    @JsonProperty("original_file_url")
+    @Column(name = "original_file_url", columnDefinition = "text")
+    private String originalFileUrl;
+
+    @JsonIgnore
+    @Column(name = "pdf_input_hash", length = 64)
+    private String pdfInputHash;
+
     @JsonProperty("mime_type")
     @Column(name = "mime_type", nullable = true, length = 100)
     private String mimeType;

@@ -5,9 +5,11 @@ import com.example.intelligent_cv_matching_ai_agent.repository.candidate.resume.
 import com.example.intelligent_cv_matching_ai_agent.repository.candidate.resume.ResumeProfileAlignmentRefreshRepository;
 import com.example.intelligent_cv_matching_ai_agent.security.shared.CurrentUser;
 import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiService;
+import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiResponseCache;
 import com.example.intelligent_cv_matching_ai_agent.util.candidate.resume.ResumeProfileAlignment;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.FlowSupport;
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -15,6 +17,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
 import java.util.UUID;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,17 +37,21 @@ public class ResumeProfileAlignmentService {
 
     private final ResumeProfileAlignmentRefreshRepository refreshes;
 
+    private final AiResponseCache responseCache;
+
     public ResumeProfileAlignmentService(
         ResumeProfileAlignmentRepository db,
         CurrentUser user,
         AiService ai,
         ObjectMapper mapper,
-        ResumeProfileAlignmentRefreshRepository refreshes) {
+        ResumeProfileAlignmentRefreshRepository refreshes,
+        ObjectProvider<StringRedisTemplate> redis) {
         this.db = db;
         this.user = user;
         this.ai = ai;
         this.mapper = mapper;
         this.refreshes = refreshes;
+        this.responseCache = new AiResponseCache(redis);
     }
 
     @Transactional
@@ -86,6 +94,9 @@ public class ResumeProfileAlignmentService {
         UUID resumeId,
         UUID owner,
         Refresh refresh) {
+        if (!refreshes.isActiveCandidate(owner)) {
+            throw ApiException.forbidden("CV/profile comparisons require an active candidate account");
+        }
         Map<String, Object> resume = db.resume(resumeId, owner);
         if (refresh == null && refreshes.active(resumeId, owner)) {
             throw ApiException
@@ -106,13 +117,62 @@ public class ResumeProfileAlignmentService {
         String profileHash = hash(profileSnapshot);
         String resumeHash = contentHash(resume, resumeSnapshot);
         String resumeSnapshotHash = hash(resumeSnapshot);
-        Map<String, Object> existing = null;
+        Map<String, Object> input = Map.of(
+            "resume",
+            resumeSnapshot,
+            "career_profile",
+            profileSnapshot,
+            "language",
+            Objects.toString(resume.get("language"), "vi")
+        );
+        String inputHash = hash(
+            List.of(
+                "cv-profile-response-v1",
+                owner.toString(),
+                resumeId.toString(),
+                resumeHash,
+                input,
+                ResumeProfileAlignment.RUBRIC_VERSION,
+                Objects.toString(ai.provider(), ""),
+                Objects.toString(ai.model(), ""),
+                Objects.toString(ai.cacheFingerprint("CV_PROFILE_ALIGNMENT"), "")
+            )
+        );
+        Map<String, String> cacheIdentity =
+            Map.of("user_id", owner.toString(), "resume_id", resumeId.toString(), "input_hash", inputHash);
+        String cacheKey = "edunexus:cv-profile:response:v1:" + owner + ":" + resumeId + ":" + inputHash;
         if (refresh != null) {
             requireRefresh(resumeId, owner, refresh, profileHash, false);
-            existing = db.list(resumeId, owner, 1, 0).stream()
-                .filter(row -> profileHash.equals(row.get("profile_hash")))
-                .filter(row -> resumeHash.equals(row.get("resume_content_hash")))
-                .filter(row -> resumeSnapshotHash.equals(hash(row.get("resume_snapshot")))).findFirst().orElse(null);
+        }
+        Map<String, Object> existing = responseCache.read(cacheKey, cacheIdentity)
+            .filter(
+                row -> validCached(
+                    row,
+                    owner,
+                    resumeId,
+                    resumeHash,
+                    profileHash,
+                    inputHash,
+                    resumeSnapshot,
+                    profileSnapshot
+                )
+            ).orElse(null);
+        String cacheSource = "REDIS";
+        if (existing == null) {
+            existing = db.reusable(resumeId, owner, resumeHash, profileHash, inputHash)
+                .filter(
+                    row -> validCached(
+                        row,
+                        owner,
+                        resumeId,
+                        resumeHash,
+                        profileHash,
+                        inputHash,
+                        resumeSnapshot,
+                        profileSnapshot
+                    )
+                ).orElse(null);
+            cacheSource = "DATABASE";
         }
         if (existing == null && !ai.enabled()) {
             throw new ApiException(
@@ -122,14 +182,6 @@ public class ResumeProfileAlignmentService {
         }
 
         // No user/profile/resume row lock is held while inference reserves quota in its own transaction.
-        Map<String, Object> input = Map.of(
-            "resume",
-            resumeSnapshot,
-            "career_profile",
-            profileSnapshot,
-            "language",
-            Objects.toString(resume.get("language"), "vi")
-        );
         Map<String, Object> generated = existing != null
             ? Map.of()
             : refresh == null
@@ -150,15 +202,21 @@ public class ResumeProfileAlignmentService {
         }
         if (refresh != null) {
             requireRefresh(resumeId, owner, refresh, profileHash, true);
-            if (!refreshes.isActiveCandidate(owner)) {
-                throw ApiException.forbidden("The candidate account is no longer active");
-            }
+        }
+        if (!refreshes.isActiveCandidate(owner)) {
+            throw ApiException.forbidden("The candidate account is no longer active");
         }
         if (existing != null) {
-            completeRefresh(resumeId, owner, refresh, (UUID) existing.get("id"));
-            return expose(existing, currentResume, profileSnapshot);
+            UUID alignment = UUID.fromString(existing.get("id").toString());
+            complete(resumeId, owner, refresh, profileHash, alignment);
+            responseCache.putAfterCommit(cacheKey, cacheIdentity, existing, Duration.ofHours(24));
+            Map<String, Object> response = expose(existing, currentResume, profileSnapshot);
+            response.put("cached", true);
+            response.put("cache_source", cacheSource);
+            return response;
         }
         Map<String, Object> result = ResumeProfileAlignment.normalize(generated, resumeSnapshot, profileSnapshot);
+        result.put("_cache_input_hash", inputHash);
         String model = Objects.toString(generated.get("_model"), ai.model());
         if (model == null || model.isBlank() || model.length() > 255) {
             throw new ApiException(502, "AI alignment returned an invalid model identifier");
@@ -173,12 +231,70 @@ public class ResumeProfileAlignmentService {
         values.put("result_json", db.json(result));
         values.put("model_name", model);
         UUID alignment = db.insert(values);
+        complete(resumeId, owner, refresh, profileHash, alignment);
+        Map<String, Object> stored = db.get(alignment, resumeId, owner);
+        responseCache.putAfterCommit(cacheKey, cacheIdentity, stored, Duration.ofHours(24));
+        Map<String, Object> response = expose(stored, currentResume, profileSnapshot);
+        response.put("cached", false);
+        return response;
+    }
+
+    private void complete(
+        UUID resumeId,
+        UUID owner,
+        Refresh refresh,
+        String profileHash,
+        UUID alignment) {
         if (refresh == null) {
             refreshes.completeManual(resumeId, owner, profileHash, alignment);
         } else {
             completeRefresh(resumeId, owner, refresh, alignment);
         }
-        return expose(db.get(alignment, resumeId, owner), currentResume, profileSnapshot);
+    }
+
+    private boolean validCached(
+        Map<String, Object> row,
+        UUID owner,
+        UUID resumeId,
+        String resumeHash,
+        String profileHash,
+        String inputHash,
+        Map<String, Object> resumeSnapshot,
+        Map<String, Object> profileSnapshot) {
+        try {
+            UUID.fromString(Objects.toString(row.get("id"), ""));
+            if (!owner.toString().equals(Objects.toString(row.get("user_id"), ""))
+                || !resumeId.toString().equals(Objects.toString(row.get("resume_id"), ""))
+                || !resumeHash.equals(row.get("resume_content_hash")) || !profileHash.equals(row.get("profile_hash"))
+                || !hash(resumeSnapshot).equals(hash(row.get("resume_snapshot")))
+                || !hash(profileSnapshot).equals(hash(row.get("profile_snapshot")))
+                || !(row.get("result_json") instanceof Map<?, ?> rawResult)
+                || !inputHash.equals(rawResult.get("_cache_input_hash"))
+                || !(rawResult.get("criteria") instanceof List<?> criteria)
+                || criteria.size() != ResumeProfileAlignment.CODES.size() + 1
+                || Objects.toString(row.get("model_name"), "").isBlank()) {
+                return false;
+            }
+            List<?> assessed = criteria.stream()
+                .filter(
+                    item -> item instanceof Map<?, ?> criterion
+                        && ResumeProfileAlignment.CODES.contains(criterion.get("code"))
+                ).toList();
+            Map<String, Object> generated =
+                Map.of("rubric_version", rawResult.get("rubric_version"), "criteria", assessed);
+            Map<String, Object> normalized =
+                ResumeProfileAlignment.normalize(generated, resumeSnapshot, profileSnapshot);
+            Map<String, Object> savedResult = new LinkedHashMap<>();
+            rawResult.forEach(
+                (
+                    key,
+                    value) -> savedResult.put(key.toString(), value)
+            );
+            savedResult.remove("_cache_input_hash");
+            return hash(normalized).equals(hash(savedResult));
+        } catch (ApiException | IllegalArgumentException | NullPointerException ex) {
+            return false;
+        }
     }
 
     private void requireRefresh(
@@ -236,6 +352,16 @@ public class ResumeProfileAlignmentService {
         Map<String, Object> resume,
         Map<String, Object> profile) {
         Map<String, Object> result = new LinkedHashMap<>(row);
+        if (row.get("result_json") instanceof Map<?, ?> saved) {
+            Map<String, Object> publicResult = new LinkedHashMap<>();
+            saved.forEach(
+                (
+                    key,
+                    value) -> publicResult.put(key.toString(), value)
+            );
+            publicResult.remove("_cache_input_hash");
+            result.put("result_json", publicResult);
+        }
         Map<String, Object> currentResume = freeze(ResumeProfileAlignment.resumeSnapshot(resume));
         boolean resumeChanged = !Objects.equals(row.get("resume_content_hash"), contentHash(resume, currentResume))
             || !hash(row.get("resume_snapshot")).equals(hash(currentResume));

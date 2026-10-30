@@ -28,7 +28,7 @@ public class ResumeRepository {
     public List<Map<String, Object>> listResumesByUserId(
         Object... args) {
         return db.list(
-            ("SELECT id,title,source,status,is_primary,language,file_name,"
+            ("SELECT id,title,source,status,is_primary,language,file_name,file_url,"
                 + "created_at,updated_at FROM resumes WHERE user_id=? AND "
                 + "status<>'ARCHIVED' ORDER BY is_primary DESC,updated_at DESC"),
             args
@@ -157,6 +157,16 @@ public class ResumeRepository {
     public UUID insertResumeAnalyses(
         Map<String, Object> fields) {
         return db.insert("resume_analyses", fields);
+    }
+
+    public Optional<Map<String, Object>> findResumeAnalysisByInput(
+        Object... args) {
+        return db.optional(
+            "SELECT a.id FROM resume_analyses a JOIN resumes r ON r.id=a.resume_id "
+                + "WHERE a.resume_id=? AND a.analysis_type=? AND a.input_hash=? "
+                + "AND r.user_id=? AND r.status='READY' ORDER BY a.created_at DESC,a.id DESC LIMIT 1",
+            args
+        );
     }
 
     public UUID insertResumeAnalysisSuggestions(

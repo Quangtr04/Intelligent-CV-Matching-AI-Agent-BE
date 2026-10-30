@@ -28,7 +28,7 @@ class AiRequestContractTests {
     private final JsonMapper json = JsonMapper.builder().build();
 
     @Test
-    void trialInputIgnoresInjectedPrivateCvAndClientTokenClaims() {
+    void trialInputRejectsMixedSourcesAndIgnoresClientTokenClaims() {
         UUID template = UUID.randomUUID(), demo = UUID.randomUUID();
         GuestBuildRequest request = json.readValue(
             "{\"template_id\":\"" + template + "\",\"demo_resume_id\":\"" + demo
@@ -37,8 +37,12 @@ class AiRequestContractTests {
         );
         assertEquals(template, request.templateId());
         assertEquals(demo, request.demoResumeId());
-        assertFalse(json.writeValueAsString(request).contains("invented"));
+        assertFalse(request.isValidSource());
+        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+            assertFalse(factory.getValidator().validate(request).isEmpty());
+        }
         assertFalse(json.writeValueAsString(request).contains("tokens"));
+        assertFalse(request.toString().contains("invented"));
     }
 
     @Test

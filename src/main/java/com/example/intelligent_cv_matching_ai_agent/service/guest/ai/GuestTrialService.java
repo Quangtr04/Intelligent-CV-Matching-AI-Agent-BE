@@ -7,6 +7,7 @@ import com.example.intelligent_cv_matching_ai_agent.repository.guest.ai.GuestTri
 import com.example.intelligent_cv_matching_ai_agent.service.guest.identity.GuestAccess;
 import com.example.intelligent_cv_matching_ai_agent.service.candidate.jobs.MatchingService;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.resume.ResumeData;
+import com.example.intelligent_cv_matching_ai_agent.util.candidate.resume.ResumeInput;
 import com.example.intelligent_cv_matching_ai_agent.service.candidate.resume.ResumeService;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
@@ -41,29 +42,68 @@ public class GuestTrialService {
         String key,
         GuestBuildRequest request) {
         UUID guest = guests.id(key);
+        if (request.templateId() == null || !request.isValidSource()) {
+            throw ApiException.badRequest("Choose a trial template and either demo_resume_id or structured_data");
+        }
         UUID templateId = request.templateId();
         Map<String, Object> template = db.getResumeTemplatesById(templateId);
-        Map<String, Object> demo = demo(request.demoResumeId());
+        boolean personal = request.demoResumeId() == null;
+        String language =
+            ResumeInput.language(request.language() == null ? template.get("language") : request.language());
+        String raw = request.rawContent() == null ? "" : ResumeData.text(request.rawContent(), "raw_content", 200_000);
+        Map<String, Object> facts = personal ? ResumeData.normalize(request.structuredData()) : null;
+        if (personal && raw.isBlank() && facts.values().stream().noneMatch(this::hasContent)) {
+            throw ApiException.badRequest("Enter CV information before building a personal trial CV");
+        }
+        boolean useAi = request.useAi() == null ? !personal : request.useAi();
         Map<String, Object> input = new LinkedHashMap<>();
         input.put("template", template);
-        input.put("demo_resume", demo.get("structured_data"));
         input.put("trial", true);
-        input.put("language", template.get("language"));
+        input.put("language", language);
+        if (personal) {
+            input.put("structured_data", facts);
+            input.put("raw_content", raw);
+        } else {
+            input.put("demo_resume", demo(request.demoResumeId()).get("structured_data"));
+        }
 
-        // Trial input comes from system demo facts and an approved template, not
-        // arbitrary private CVs.
-        Map<String, Object> built = ResumeData.normalize(ai.generateForGuest("CV_BUILD", input, guest));
+        Map<String, Object> suggested =
+            useAi ? ResumeData.normalize(ai.generateForGuest("CV_BUILD", input, guest)) : null;
+        Map<String, Object> editable =
+            personal ? facts : suggested != null ? suggested : ResumeData.normalize(document(input.get("demo_resume")));
 
-        return Map.of(
-            "trial",
-            true,
-            "template_id",
-            templateId,
-            "structured_data",
-            built,
-            "registration_prompt",
-            "Đăng ký để tạo và lưu CV cá nhân."
-        );
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("trial", true);
+        response.put("mode", personal ? "PERSONAL" : "DEMO");
+        response.put("template_id", templateId);
+        response.put("language", language);
+        response.put("status", useAi ? "REVIEW_REQUIRED" : "DRAFT");
+        response.put("persisted", false);
+        response.put("structured_data", editable);
+        response.put("raw_content", raw);
+        response.put("ai_generated", useAi);
+        if (personal && suggested != null) {
+            response.put("suggested_structured_data", suggested);
+        }
+        response.put("registration_prompt", "Đăng ký để tạo và lưu CV cá nhân.");
+        return response;
+    }
+
+    private boolean hasContent(
+        Object value) {
+        if (value instanceof String text) {
+            return !text.isBlank();
+        }
+        return value instanceof Collection<?> collection && !collection.isEmpty();
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> document(
+        Object value) {
+        if (!(value instanceof Map<?, ?>)) {
+            throw ApiException.badRequest("CV facts must be an object");
+        }
+        return (Map<String, Object>) value;
     }
 
     @Transactional

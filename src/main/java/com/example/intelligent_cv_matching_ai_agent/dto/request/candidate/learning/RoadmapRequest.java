@@ -4,13 +4,19 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import java.util.List;
 import java.util.UUID;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public record RoadmapRequest(
     @Size(max = 255)
     String targetJobTitle,
-    @NotNull
     UUID jobId,
     UUID resumeId,
     UUID assessmentId
 ) {
+
+    @AssertTrue(message = "Select a stored JD or a completed CV/JD assessment")
+    @JsonIgnore
+    public boolean isContextValid() {
+        return jobId != null || assessmentId != null;
+    }
 }

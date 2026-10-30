@@ -379,6 +379,17 @@ public class ResumeService {
             return response;
         }
 
+        Optional<Map<String, Object>> saved = db.findResumeAnalysisByInput(id, mode, inputHash, current.id());
+        if (saved.isPresent()) {
+            UUID savedId = ResumeInput.optionalUuid(saved.get().get("id"));
+            Map<String, Object> response = savedId == null ? Map.of() : analysis(savedId, id);
+            if (validCachedAnalysis(response, id, mode)) {
+                response.put("cached", true);
+                responseCache.putAfterCommit(cacheKey, cacheIdentity, response, Duration.ofHours(24));
+                return response;
+            }
+        }
+
         Map<String, Object> result;
         if (useAi) {
             Map<String, Object> generated = ai.generate("CV_ANALYZE", input);
@@ -398,6 +409,7 @@ public class ResumeService {
         Map<String, Object> fields = new LinkedHashMap<>();
         fields.put("resume_id", id);
         fields.put("analysis_type", mode);
+        fields.put("input_hash", inputHash);
         fields.put("overall_score", result.get("overall_score"));
         fields.put("ats_score", result.get("ats_score"));
         fields.put("summary", result.get("summary"));

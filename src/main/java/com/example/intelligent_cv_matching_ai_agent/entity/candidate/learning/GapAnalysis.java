@@ -61,6 +61,19 @@ public class GapAnalysis {
     @Column(name = "input_source", nullable = false, length = 30)
     private String inputSource;
 
+    @JsonProperty("context_key")
+    @Column(name = "context_key", length = 100)
+    private String contextKey;
+
+    @JsonProperty("input_hash")
+    @Column(name = "input_hash", length = 64)
+    private String inputHash;
+
+    @JsonIgnore
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "context_snapshot", columnDefinition = "jsonb")
+    private Object contextSnapshot;
+
     @JsonProperty("version")
     @Column(name = "version", nullable = false)
     private Short version;

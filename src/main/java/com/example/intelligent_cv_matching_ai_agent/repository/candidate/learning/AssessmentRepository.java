@@ -33,7 +33,8 @@ public class AssessmentRepository {
         }
         return db.list(
             ("SELECT id,session_id,sequence_order,part,question_text,options,"
-                + "related_skill_name FROM assessment_questions WHERE session_id=? ORDER " + "BY sequence_order"),
+                + "related_skill_name,cv_evidence FROM assessment_questions WHERE session_id=? ORDER "
+                + "BY sequence_order"),
             sessionId
         );
     }
@@ -72,6 +73,38 @@ public class AssessmentRepository {
     public Optional<Map<String, Object>> findCandidateProfilesByUserId2(
         Object... args) {
         return db.optional("SELECT * FROM candidate_profiles WHERE user_id=?", args);
+    }
+
+    public Map<String, Object> getResumeForOwner(
+        UUID id,
+        UUID owner) {
+        return db.one("SELECT * FROM resumes WHERE id=? AND user_id=?", id, owner);
+    }
+
+    public List<Map<String, Object>> listResumeSkills(
+        UUID id) {
+        return db.list(
+            "SELECT s.name FROM resume_skills rs JOIN skills s ON s.id=rs.skill_id "
+                + "WHERE rs.resume_id=? ORDER BY lower(s.name),s.id",
+            id
+        );
+    }
+
+    public List<Map<String, Object>> listActiveSkills() {
+        return db.list("SELECT id,name FROM skills WHERE is_active ORDER BY lower(name),id LIMIT 5000");
+    }
+
+    public void retirePastedContext(
+        UUID owner,
+        UUID resume,
+        String jdIdentity) {
+        db.update(
+            "UPDATE assessment_sessions SET is_current=false WHERE user_id=? AND market_job_id IS NULL "
+                + "AND resume_id=? AND context_snapshot->>'jd_identity'=?",
+            owner,
+            resume,
+            jdIdentity
+        );
     }
 
     public int updateAssessmentSessionsByUserId(

@@ -116,6 +116,53 @@ class AssessmentGenerationIntegrationTests {
     }
 
     @Test
+    void pastedJdAndCvAreDurablyBoundToTheOwnerWithoutPublishingACatalogJob() throws Exception {
+        UUID resume = confirmedCv();
+        long catalogCount = ((Number) db.scalar("SELECT count(*) FROM market_job_posts")).longValue();
+        Map<String, Object> input = fields("resumeId", resume, "jdText", JD, "targetJobTitle", "Private Java role");
+        var quiz = questions();
+        quiz.forEach(question -> question.put("cv_evidence", "Built Java backend services"));
+        when(ai.generateForUser(eq(owner), eq("ASSESSMENT_GENERATE"), anyMap())).thenAnswer(call -> {
+            Map<String, Object> prompt = call.getArgument(2);
+            assertTrue(
+                ((Map<?, ?>) prompt.get("resume")).get("text").toString().contains("Built Java backend services")
+            );
+            assertEquals(JD, prompt.get("jd_text"));
+            return Map.of("questions", quiz);
+        });
+        var first = start(input, bearer, 202);
+        assertEquals(first.get("id"), start(input, bearer, 202).get("id"));
+        assertNull(first.get("job_id"));
+        assertEquals(resume.toString(), first.get("resume_id"));
+        assertFalse(first.containsKey("context_snapshot"));
+        UUID id = UUID.fromString(first.get("id").toString());
+        assertTrue(worker.processNext());
+        var completed = read(id, bearer);
+        assertEquals("SUCCEEDED", completed.get("status"));
+        UUID assessment = UUID.fromString(completed.get("assessment_id").toString());
+        var persisted = db.one("SELECT * FROM assessment_sessions WHERE id=?", assessment);
+        assertNull(persisted.get("market_job_id"));
+        assertEquals(resume, persisted.get("resume_id"));
+        assertEquals(first.get("input_hash"), persisted.get("input_hash"));
+        assertEquals(catalogCount, ((Number) db.scalar("SELECT count(*) FROM market_job_posts")).longValue());
+        mvc.perform(get(PATH + "/" + id).header("Authorization", token(actor("CANDIDATE"))))
+            .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void aCvEditedAfterEnqueueCannotSilentlyGenerateFromDifferentInputs() throws Exception {
+        UUID resume = confirmedCv();
+        UUID id = UUID.fromString(start(fields("jobId", job, "resumeId", resume), bearer, 202).get("id").toString());
+        db.update("UPDATE resumes SET raw_content='Changed CV content' WHERE id=?", resume);
+        assertTrue(worker.processNext());
+        var failed = read(id, bearer);
+        assertEquals("FAILED", failed.get("status"));
+        assertEquals("INPUT_UNAVAILABLE", failed.get("error_code"));
+        assertNull(failed.get("assessment_id"));
+        verifyNoInteractions(ai);
+    }
+
+    @Test
     void browserReturnsBeforeAiAndPollingSurvivesASecondStartWithoutDuplicatingWork() throws Exception {
         Map<String, Object> initial = start(job, bearer, 202);
         UUID id = UUID.fromString(initial.get("id").toString());
@@ -362,11 +409,37 @@ class AssessmentGenerationIntegrationTests {
         String authorization,
         int expected)
         throws Exception {
+        return start(fields("jobId", selectedJob), authorization, expected);
+    }
+
+    private Map<String, Object> start(
+        Map<String, Object> input,
+        String authorization,
+        int expected)
+        throws Exception {
         var response = mvc.perform(
             post(PATH).header("Authorization", authorization).contentType(MediaType.APPLICATION_JSON)
-                .content(mapper.writeValueAsString(Map.of("jobId", selectedJob)))
+                .content(mapper.writeValueAsString(input))
         ).andExpect(status().is(expected)).andReturn();
         return mapper.readValue(response.getResponse().getContentAsString(), Map.class);
+    }
+
+    private UUID confirmedCv() {
+        return db.insert(
+            "resumes",
+            fields(
+                "user_id",
+                owner,
+                "title",
+                "Confirmed Java CV",
+                "source",
+                "MANUAL",
+                "status",
+                "READY",
+                "raw_content",
+                "Built Java backend services for a production application."
+            )
+        );
     }
 
     private Map<String, Object> read(

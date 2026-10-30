@@ -14,7 +14,12 @@ import com.example.intelligent_cv_matching_ai_agent.service.guest.identity.Guest
 import com.example.intelligent_cv_matching_ai_agent.service.candidate.resume.ResumeService;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.guest.ai.GuestBuildRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.guest.ai.GuestRecommendationRequest;
+import jakarta.validation.Validation;
+import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import tools.jackson.databind.json.JsonMapper;
 import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -67,6 +72,159 @@ class GuestTrialTests {
             eq(guest)
         );
         verify(db, never()).insert(anyString(), anyMap());
+    }
+
+    private void trialTemplate() {
+        when(guests.id("session")).thenReturn(guest);
+        when(db.one(contains("FROM resume_templates"), eq(template)))
+            .thenReturn(Map.of("id", template, "language", "vi"));
+    }
+
+    @Test
+    void personalTrialCanBeEditedAndReviewedWithoutAiOrPersistentStorage() {
+        trialTemplate();
+        Map<String, Object> facts = Map.of(
+            "full_name",
+            "  Nguyễn An  ",
+            "summary",
+            "Đã phát triển REST API với Java.",
+            "skills",
+            List.of("Java", "SQL"),
+            "user_id",
+            UUID.randomUUID().toString()
+        );
+        Map<?, ?> output = (Map<?, ?>) service
+            .build("session", new GuestBuildRequest(template, null, facts, " Verified project facts ", "EN", false));
+        Map<?, ?> document = (Map<?, ?>) output.get("structured_data");
+        assertEquals("Nguyễn An", document.get("full_name"));
+        assertEquals(List.of(Map.of("name", "Java"), Map.of("name", "SQL")), document.get("skills"));
+        assertFalse(document.containsKey("user_id"));
+        assertEquals("Verified project facts", output.get("raw_content"));
+        assertEquals("en", output.get("language"));
+        assertEquals("PERSONAL", output.get("mode"));
+        assertEquals("DRAFT", output.get("status"));
+        assertEquals(false, output.get("persisted"));
+        assertEquals(false, output.get("ai_generated"));
+        assertFalse(output.containsKey("suggested_structured_data"));
+        verifyNoInteractions(ai, resumes);
+        verify(db, never()).one(contains("FROM resumes"), any());
+        verify(db, never()).insert(anyString(), anyMap());
+        verify(guests, never()).reserve(any(), anyString(), anyInt(), any());
+    }
+
+    @Test
+    void personalAiSuggestionsUseGuestQuotaPathAndPreserveOriginalFactsForHumanReview() {
+        trialTemplate();
+        Map<String, Object> facts = Map.of("full_name", "Nguyễn An", "summary", "Built Java APIs.");
+        when(ai.generateForGuest(eq("CV_BUILD"), anyMap(), eq(guest)))
+            .thenReturn(Map.of("summary", "Developed Java APIs."));
+        Map<?, ?> output = (Map<?, ?>) service
+            .build("session", new GuestBuildRequest(template, null, facts, "Only supplied facts", null, true));
+        assertEquals("Built Java APIs.", ((Map<?, ?>) output.get("structured_data")).get("summary"));
+        assertEquals("Developed Java APIs.", ((Map<?, ?>) output.get("suggested_structured_data")).get("summary"));
+        assertEquals("REVIEW_REQUIRED", output.get("status"));
+        assertEquals(true, output.get("ai_generated"));
+        assertEquals(false, output.get("persisted"));
+        verify(ai).generateForGuest(eq("CV_BUILD"), argThat(input -> {
+            Map<?, ?> source = (Map<?, ?>) input.get("structured_data");
+            return "Nguyễn An".equals(source.get("full_name")) && "Only supplied facts".equals(input.get("raw_content"))
+                && "vi".equals(input.get("language")) && !input.containsKey("demo_resume")
+                && !input.containsKey("tokens");
+        }), eq(guest));
+        verify(db, never()).one(contains("FROM resumes"), any());
+        verify(db, never()).insert(anyString(), anyMap());
+    }
+
+    @Test
+    void acceptedOrEditedSuggestionCanBeValidatedAgainWithoutAnotherAiCall() {
+        trialTemplate();
+        Map<String, Object> accepted = Map.of("summary", "Developed Java APIs, reviewed by the candidate.");
+        Map<?, ?> output =
+            (Map<?, ?>) service.build("session", new GuestBuildRequest(template, null, accepted, null, null, null));
+        assertEquals(accepted.get("summary"), ((Map<?, ?>) output.get("structured_data")).get("summary"));
+        assertEquals(false, output.get("ai_generated"));
+        verifyNoInteractions(ai);
+    }
+
+    @Test
+    void exhaustedGuestQuotaCannotReturnAnAiSuggestionOrPersistPersonalCv() {
+        trialTemplate();
+        when(ai.generateForGuest(eq("CV_BUILD"), anyMap(), eq(guest)))
+            .thenThrow(new ApiException(429, "Trial limit reached; register an account to continue"));
+        ApiException exception = assertThrows(
+            ApiException.class,
+            () -> service.build(
+                "session",
+                new GuestBuildRequest(template, null, Map.of("summary", "Verified facts"), null, null, true)
+            )
+        );
+        assertEquals(429, exception.status());
+        verify(db, never()).insert(anyString(), anyMap());
+    }
+
+    @Test
+    void mixedDemoAndPersonalSourcesAreRejectedBeforeTemplateOrCvLookup() {
+        when(guests.id("session")).thenReturn(guest);
+        GuestBuildRequest request =
+            new GuestBuildRequest(template, demo, Map.of("summary", "Personal facts"), null, null, true);
+        assertEquals(400, assertThrows(ApiException.class, () -> service.build("session", request)).status());
+        verifyNoInteractions(db, ai, resumes);
+    }
+
+    @Test
+    void emptyOrMalformedPersonalFactsCannotReachAi() {
+        trialTemplate();
+        assertEquals(
+            400,
+            assertThrows(
+                ApiException.class,
+                () -> service.build("session", new GuestBuildRequest(template, null, Map.of(), null, null, true))
+            ).status()
+        );
+        assertEquals(
+            400,
+            assertThrows(
+                ApiException.class,
+                () -> service
+                    .build("session", new GuestBuildRequest(template, null, Map.of("skills", "Java"), null, null, true))
+            ).status()
+        );
+        verifyNoInteractions(ai);
+    }
+
+    @Test
+    void missingOrNonTrialTemplateIsRejectedBeforeAiOrDemoAccess() {
+        trialTemplate();
+        when(db.one(contains("FROM resume_templates"), eq(template))).thenThrow(ApiException.notFound("Template"));
+        assertEquals(
+            404,
+            assertThrows(
+                ApiException.class,
+                () -> service.build(
+                    "session",
+                    new GuestBuildRequest(template, null, Map.of("summary", "Facts"), null, null, true)
+                )
+            ).status()
+        );
+        verifyNoInteractions(ai, resumes);
+        verify(db, never()).one(contains("FROM resumes"), any());
+    }
+
+    @ParameterizedTest
+    @ValueSource(
+        strings = {
+            "{}",
+            "{\"template_id\":\"%s\"}",
+            "{\"template_id\":\"%s\",\"structured_data\":{},\"language\":\"fr\"}",
+            "{\"template_id\":\"%s\",\"demo_resume_id\":\"%s\",\"raw_content\":\"private facts\"}"}
+    )
+    void invalidPersonalTrialRequestShapesFailBeanValidation(
+        String json) {
+        GuestBuildRequest request =
+            JsonMapper.builder().build().readValue(json.formatted(template, demo), GuestBuildRequest.class);
+        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+            assertFalse(factory.getValidator().validate(request).isEmpty());
+        }
     }
 
     @Test

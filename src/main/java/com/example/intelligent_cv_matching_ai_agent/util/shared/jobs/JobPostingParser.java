@@ -388,7 +388,7 @@ public final class JobPostingParser {
         return "";
     }
 
-    private static List<JobSkillRequest> extractSkills(
+    public static List<JobSkillRequest> extractSkills(
         String explicit,
         String requirements,
         String description) {

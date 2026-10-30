@@ -12,7 +12,7 @@ import org.springframework.stereotype.Repository;
 public class AssessmentGenerationRepository {
 
     private static final String PUBLIC_COLUMNS =
-        "id,job_id,status,assessment_id,error_code,message,requested_at,started_at,completed_at";
+        "id,job_id,resume_id,input_hash,status,assessment_id,error_code,message,requested_at,started_at,completed_at";
 
     private final SqlStore db;
 
@@ -35,12 +35,12 @@ public class AssessmentGenerationRepository {
 
     public Optional<Map<String, Object>> active(
         UUID owner,
-        UUID job) {
+        String inputHash) {
         return db.optional(
             "SELECT " + PUBLIC_COLUMNS + " FROM assessment_generations "
-                + "WHERE user_id=? AND job_id=? AND status IN ('QUEUED','RUNNING')",
+                + "WHERE user_id=? AND input_hash=? AND status IN ('QUEUED','RUNNING')",
             owner,
-            job
+            inputHash
         );
     }
 
@@ -60,13 +60,19 @@ public class AssessmentGenerationRepository {
     public Map<String, Object> enqueue(
         UUID owner,
         UUID job,
-        String target) {
+        String target,
+        UUID resume,
+        String inputHash,
+        Map<String, Object> snapshot) {
         return db.one(
-            "INSERT INTO assessment_generations(user_id,job_id,target_job_title) VALUES(?,?,?) RETURNING "
-                + PUBLIC_COLUMNS,
+            "INSERT INTO assessment_generations(user_id,job_id,target_job_title,resume_id,input_hash,context_snapshot) "
+                + "VALUES(?,?,?,?,?,?) RETURNING " + PUBLIC_COLUMNS,
             owner,
             job,
-            target
+            target,
+            resume,
+            inputHash,
+            db.json(snapshot)
         );
     }
 
@@ -82,8 +88,9 @@ public class AssessmentGenerationRepository {
         String filter = job == null ? "" : " AND job_id=?";
         Object[] args = job == null ? new Object[]{owner} : new Object[]{owner, job};
         return db.list(
-            "SELECT " + PUBLIC_COLUMNS + " FROM (SELECT DISTINCT ON(job_id) * FROM assessment_generations "
-                + "WHERE user_id=?" + filter + " ORDER BY job_id,requested_at DESC,id DESC) recent "
+            "SELECT " + PUBLIC_COLUMNS + " FROM (SELECT DISTINCT ON(COALESCE(input_hash,job_id::text)) * "
+                + "FROM assessment_generations WHERE user_id=?" + filter
+                + " ORDER BY COALESCE(input_hash,job_id::text),requested_at DESC,id DESC) recent "
                 + "ORDER BY requested_at DESC,id DESC LIMIT 20",
             args
         );

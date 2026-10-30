@@ -54,6 +54,24 @@ public class ResumeProfileAlignmentRepository {
         return db.insert("resume_profile_alignments", values);
     }
 
+    public Optional<Map<String, Object>> reusable(
+        UUID resume,
+        UUID owner,
+        String resumeHash,
+        String profileHash,
+        String inputHash) {
+        return db.optional(
+            "SELECT * FROM resume_profile_alignments WHERE resume_id=? AND user_id=?"
+                + " AND resume_content_hash=? AND profile_hash=? AND result_json->>'_cache_input_hash'=?"
+                + " ORDER BY created_at DESC,id DESC LIMIT 1",
+            resume,
+            owner,
+            resumeHash,
+            profileHash,
+            inputHash
+        );
+    }
+
     public Object json(
         Object value) {
         return db.json(value);

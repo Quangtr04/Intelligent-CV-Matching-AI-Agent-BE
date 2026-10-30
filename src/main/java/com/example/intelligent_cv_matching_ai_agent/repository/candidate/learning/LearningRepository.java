@@ -33,8 +33,12 @@ public class LearningRepository {
 
     public List<Map<String, Object>> listAssessmentSessionsByUserId(
         Object... args) {
-        return db
-            .list(("SELECT * FROM assessment_sessions WHERE user_id=? ORDER BY created_at " + "DESC LIMIT 100"), args);
+        return db.list(
+            "SELECT id,user_id,target_job_title,market_job_id,resume_id,input_hash,job_role_category_snapshot,"
+                + "part1_count,part2_count,skill_scores,status,is_current,reused_from_session_id,started_at,"
+                + "submitted_at,created_at FROM assessment_sessions WHERE user_id=? ORDER BY created_at DESC LIMIT 100",
+            args
+        );
     }
 
     public Optional<Map<String, Object>> findCandidateProfilesByUserId(
@@ -70,10 +74,39 @@ public class LearningRepository {
         UUID jobId) {
         return db.optional(
             "SELECT * FROM assessment_sessions WHERE user_id=? AND market_job_id=? "
-                + "AND status='completed' ORDER BY submitted_at DESC,created_at DESC LIMIT 1",
+                + "AND resume_id IS NULL AND status='completed' ORDER BY submitted_at DESC,created_at DESC LIMIT 1",
             userId,
             jobId
         );
+    }
+
+    public Optional<Map<String, Object>> findCompletedAssessmentForResume(
+        UUID owner,
+        UUID job,
+        UUID resume) {
+        return db.optional(
+            "SELECT * FROM assessment_sessions WHERE user_id=? AND market_job_id=? AND resume_id=? "
+                + "AND status='completed' ORDER BY submitted_at DESC,created_at DESC LIMIT 1",
+            owner,
+            job,
+            resume
+        );
+    }
+
+    public Object readGapVersionByContext(
+        UUID owner,
+        String key) {
+        return db.scalar(
+            "SELECT COALESCE(max(version),0)+1 FROM gap_analyses WHERE user_id=? AND context_key=?",
+            owner,
+            key
+        );
+    }
+
+    public void retireGapContext(
+        UUID owner,
+        String key) {
+        db.update("UPDATE gap_analyses SET is_latest=false WHERE user_id=? AND context_key=?", owner, key);
     }
 
     public List<Map<String, Object>> listResumeSkillsByResumeId(

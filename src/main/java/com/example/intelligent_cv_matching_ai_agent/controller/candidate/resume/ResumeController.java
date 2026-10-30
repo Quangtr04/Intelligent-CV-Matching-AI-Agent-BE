@@ -1,6 +1,7 @@
 package com.example.intelligent_cv_matching_ai_agent.controller.candidate.resume;
 
 import com.example.intelligent_cv_matching_ai_agent.service.candidate.resume.ResumeService;
+import com.example.intelligent_cv_matching_ai_agent.service.candidate.resume.ResumePdfExportService;
 
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
@@ -17,9 +18,13 @@ public class ResumeController {
 
     private final ResumeService service;
 
+    private final ResumePdfExportService pdfExports;
+
     public ResumeController(
-        ResumeService service) {
+        ResumeService service,
+        ResumePdfExportService pdfExports) {
         this.service = service;
+        this.pdfExports = pdfExports;
     }
 
     @GetMapping("/templates")
@@ -137,11 +142,18 @@ public class ResumeController {
         UUID id,
         @RequestParam(defaultValue = "false")
         boolean text) {
-        ResumeDownloadResponse file = service.download(id, text);
+        ResumeDownloadResponse file = text ? service.download(id, true) : pdfExports.download(id);
         return ResponseEntity.ok().contentType(MediaType.parseMediaType(file.mimeType()))
             .header(
                 HttpHeaders.CONTENT_DISPOSITION,
                 ContentDisposition.attachment().filename(file.filename(), StandardCharsets.UTF_8).build().toString()
             ).header("X-Content-Type-Options", "nosniff").body(file.content());
+    }
+
+    @PostMapping("/{id}/export")
+    public Map<String, Object> export(
+        @PathVariable
+        UUID id) {
+        return pdfExports.export(id);
     }
 }

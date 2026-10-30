@@ -77,4 +77,19 @@ public final class AssessmentValidator {
         String value) {
         return Normalizer.normalize(value, Normalizer.Form.NFKC).strip().replaceAll("(?U)\\s+", " ");
     }
+
+    public static void validateCandidateEvidence(
+        List<?> questions,
+        String resumeText) {
+        String source = quoteText(resumeText);
+        for (Object raw : questions) {
+            var question = object(raw);
+            if (!(question.get("cv_evidence") instanceof String evidence) || evidence.length() > 250) {
+                throw new ApiException(502, "CV-aware questions require a short CV evidence quote or an empty string");
+            }
+            if (!evidence.isBlank() && !source.contains(quoteText(evidence))) {
+                throw new ApiException(502, "Assessment CV evidence was not found in the selected confirmed CV");
+            }
+        }
+    }
 }
