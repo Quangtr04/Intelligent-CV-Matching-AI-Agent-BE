@@ -2,7 +2,7 @@
 
 Base URL: `http://localhost:8080/api/v1`. Request JSON sử dụng tên trường của DTO; dữ liệu database trả về sử dụng `snake_case`. Mã lỗi nghiệp vụ dùng HTTP 400/401/403/404/409/429/502/503 và `application/problem+json` với `status`, `detail`; lỗi validation có thêm `errors`. Lỗi 401/403 từ bộ lọc xác thực hoặc phân quyền trả `application/json` với `status`, `message`. Danh sách endpoint đầy đủ có trong Swagger.
 
-Sau đăng nhập, gửi `Authorization: Bearer <accessToken>`. Token access có hạn 15 phút; refresh token có hạn 30 ngày, xoay sau mỗi lần dùng và không được dùng làm bearer. Guest gửi `X-Guest-Session: <sessionKey>`. API không nhận user ID từ client để thay chủ sở hữu dữ liệu.
+Sau đăng nhập, gửi `Authorization: Bearer <accessToken>`. Thời hạn access token và refresh token lấy từ `APP_ACCESS_TOKEN_TTL_SECONDS` và `APP_REFRESH_TOKEN_TTL_SECONDS` trong `.env` (giá trị mẫu: 900 giây = 15 phút và 2592000 giây = 30 ngày). `expiresIn` trả thời hạn access token theo giây. Refresh token xoay sau mỗi lần dùng và không được dùng làm bearer. Guest gửi `X-Guest-Session: <sessionKey>`. API không nhận user ID từ client để thay chủ sở hữu dữ liệu.
 
 ## Identity và trial
 

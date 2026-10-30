@@ -36,11 +36,24 @@ public class TokenService {
 
     private final JwtDecoder decoder;
 
+    private final int accessTokenTtlSeconds;
+
+    private final int refreshTokenTtlSeconds;
+
     public TokenService(
         TokenRepository db,
         @Value("${app.security.jwt-secret}")
-        String jwtSecret) {
+        String jwtSecret,
+        @Value("${app.security.access-token-ttl-seconds}")
+        int accessTokenTtlSeconds,
+        @Value("${app.security.refresh-token-ttl-seconds}")
+        int refreshTokenTtlSeconds) {
+        if (accessTokenTtlSeconds <= 0 || refreshTokenTtlSeconds <= 0) {
+            throw new IllegalArgumentException("Access and refresh token lifetimes must be positive seconds");
+        }
         this.db = db;
+        this.accessTokenTtlSeconds = accessTokenTtlSeconds;
+        this.refreshTokenTtlSeconds = refreshTokenTtlSeconds;
         SecretKeySpec key = TokenSupport.signingKey(jwtSecret);
         this.encoder = NimbusJwtEncoder.withSecretKey(key).algorithm(MacAlgorithm.HS256).build();
         NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder.withSecretKey(key).macAlgorithm(MacAlgorithm.HS256).build();
@@ -64,14 +77,23 @@ public class TokenService {
         requireActive(userId);
 
         Instant issuedAt = Instant.now().truncatedTo(ChronoUnit.SECONDS);
-        Instant expiresAt = issuedAt.plusSeconds(900);
+        Instant expiresAt = issuedAt.plusSeconds(accessTokenTtlSeconds);
         String access = TokenSupport.encodeAccessToken(encoder, userId, issuedAt, expiresAt);
         String refresh = random("r_");
 
         save(userId, access, expiresAt.atOffset(java.time.ZoneOffset.UTC));
-        save(userId, refresh, OffsetDateTime.now().plusDays(30));
+        save(userId, refresh, OffsetDateTime.now().plusSeconds(refreshTokenTtlSeconds));
 
-        return Map.of("accessToken", access, "refreshToken", refresh, "tokenType", "Bearer", "expiresIn", 900);
+        return Map.of(
+            "accessToken",
+            access,
+            "refreshToken",
+            refresh,
+            "tokenType",
+            "Bearer",
+            "expiresIn",
+            accessTokenTtlSeconds
+        );
     }
 
     private void save(

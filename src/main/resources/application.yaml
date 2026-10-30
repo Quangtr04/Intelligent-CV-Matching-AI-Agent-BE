@@ -151,6 +151,8 @@ app:
   security:
     allowed-origins: ${CORS_ALLOWED_ORIGINS}
     jwt-secret: ${APP_JWT_SECRET}
+    access-token-ttl-seconds: ${APP_ACCESS_TOKEN_TTL_SECONDS}
+    refresh-token-ttl-seconds: ${APP_REFRESH_TOKEN_TTL_SECONDS}
   bootstrap:
     admin:
       email: ${BOOTSTRAP_ADMIN_EMAIL:}

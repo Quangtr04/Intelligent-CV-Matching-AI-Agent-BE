@@ -119,7 +119,7 @@ class AuthPasswordResetIntegrationTest {
         }
 
         SqlStore store = new SqlStore(jdbc);
-        tokens = new TokenService(new TokenRepository(store), TEST_JWT_SECRET);
+        tokens = new TokenService(new TokenRepository(store), TEST_JWT_SECRET, 900, 2592000);
         auth = new AuthService(
             new AuthRepository(store),
             new ResetPasswordTokenRepository(store),
