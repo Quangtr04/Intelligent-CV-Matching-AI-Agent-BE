@@ -99,7 +99,7 @@ class CoreFlowIntegrationTests {
 
     private String candidate, other, admin, consultant;
 
-    private UUID candidateId, consultantId;
+    private UUID candidateId, consultantId, adminId;
 
     @BeforeEach
     void fixtures() {
@@ -111,7 +111,8 @@ class CoreFlowIntegrationTests {
         candidateId = createUser("CANDIDATE");
         candidate = access(candidateId);
         other = access(createUser("CANDIDATE"));
-        admin = access(createUser("ADMIN"));
+        adminId = createUser("ADMIN");
+        admin = access(adminId);
         consultantId = createUser("CAREER_CONSULTANT");
         consultant = access(consultantId);
     }
@@ -496,6 +497,7 @@ class CoreFlowIntegrationTests {
             Map.of("subject", "Career guidance", "description", "Please review my target career")
         );
         String id = thread.get("id").toString();
+        assertEquals(1, consultationNotifications(adminId, "CONSULTATION_REQUEST", id));
         mvc.perform(get("/api/v1/consultations/" + id + "/messages").header("Authorization", "Bearer " + other))
             .andExpect(status().isNotFound());
         mvc.perform(get("/api/v1/consultations/" + id).header("Authorization", "Bearer " + consultant))
@@ -506,6 +508,8 @@ class CoreFlowIntegrationTests {
                     .contentType(MediaType.APPLICATION_JSON).content(json(Map.of("consultantId", consultantId)))
             )
         );
+        assertEquals(1, consultationNotifications(consultantId, "CONSULTATION_ASSIGNED", id));
+        assertEquals(1, consultationNotifications(candidateId, "CONSULTATION_ASSIGNED", id));
         var candidateData = response(
             mvc.perform(
                 get("/api/v1/consultations/" + id + "/candidate-profile")
@@ -517,7 +521,10 @@ class CoreFlowIntegrationTests {
             get("/api/v1/consultations/" + id + "/candidate-profile").header("Authorization", "Bearer " + other)
         ).andExpect(status().isNotFound());
         postJson("/api/v1/consultations/" + id + "/messages", candidate, Map.of("content", "Hello"));
+        postJson("/api/v1/consultations/" + id + "/messages", candidate, Map.of("content", "Are you there?"));
         postJson("/api/v1/consultations/" + id + "/messages", consultant, Map.of("content", "Here is my advice"));
+        assertEquals(1, consultationNotifications(consultantId, "CONSULTATION_MESSAGE", id));
+        assertEquals(1, consultationNotifications(candidateId, "CONSULTATION_MESSAGE", id));
         response(
             mvc.perform(post("/api/v1/consultations/" + id + "/close").header("Authorization", "Bearer " + candidate))
         );
@@ -525,6 +532,18 @@ class CoreFlowIntegrationTests {
             post("/api/v1/consultations/" + id + "/messages").header("Authorization", "Bearer " + consultant)
                 .contentType(MediaType.APPLICATION_JSON).content(json(Map.of("content", "Closed thread")))
         ).andExpect(status().isConflict());
+    }
+
+    private int consultationNotifications(
+        UUID userId,
+        String type,
+        String threadId) {
+        return ((Number) db.scalar(
+            "SELECT count(*) FROM notifications WHERE user_id=? AND type=? AND reference_id=?",
+            userId,
+            type,
+            UUID.fromString(threadId)
+        )).intValue();
     }
 
     @Test

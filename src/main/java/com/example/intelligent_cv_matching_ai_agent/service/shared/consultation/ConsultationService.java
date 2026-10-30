@@ -53,6 +53,7 @@ public class ConsultationService {
         return thread;
     }
 
+    @Transactional
     public Map<String, Object> create(
         CreateConsultationRequest input) {
         user.requireRole("CANDIDATE");
@@ -71,6 +72,15 @@ public class ConsultationService {
                 "NORMAL"
             )
         );
+
+        for (var admin : db.listActiveAdmins())
+            inform(
+                (UUID) admin.get("id"),
+                "CONSULTATION_REQUEST",
+                "Yêu cầu tư vấn mới",
+                text(input.subject()) + " - cần phân công cố vấn.",
+                id
+            );
 
         return access(id);
     }
@@ -110,7 +120,24 @@ public class ConsultationService {
         db.getConsultationThreadsByIdForUpdate(id);
         db.getUsersById2(request.consultantId());
 
+        var before = db.getConsultationThreadsById(id);
         db.updateConsultationThreadsById(request.consultantId(), id);
+        if (!request.consultantId().equals(before.get("consultant_user_id"))) {
+            inform(
+                request.consultantId(),
+                "CONSULTATION_ASSIGNED",
+                "Bạn được phân công một yêu cầu tư vấn",
+                text(before.get("subject")),
+                id
+            );
+            inform(
+                (UUID) before.get("candidate_user_id"),
+                "CONSULTATION_ASSIGNED",
+                "Yêu cầu tư vấn đã có cố vấn",
+                text(before.get("subject")),
+                id
+            );
+        }
         db.insertAuditLogs(
             fields(
                 "actor_user_id",
@@ -162,6 +189,17 @@ public class ConsultationService {
         );
 
         var message = db.getConsultationMessagesById(messageId);
+
+        for (Object recipient : Arrays.asList(thread.get("candidate_user_id"), thread.get("consultant_user_id")))
+            if (recipient != null && !user.id().equals(recipient)
+                && db.findUnreadNotificationsByUserIdAndReference(recipient, "CONSULTATION_MESSAGE", id).isEmpty())
+                inform(
+                    (UUID) recipient,
+                    "CONSULTATION_MESSAGE",
+                    "Tin nhắn tư vấn mới",
+                    text(thread.get("subject")),
+                    id
+                );
 
         afterCommit(() -> publish(id, message));
 
@@ -233,6 +271,32 @@ public class ConsultationService {
                 subscriber.emitter().complete();
             }
         }
+    }
+
+    private void inform(
+        UUID recipient,
+        String type,
+        String title,
+        String content,
+        UUID threadId) {
+        db.insertNotifications(
+            fields(
+                "user_id",
+                recipient,
+                "type",
+                type,
+                "title",
+                title,
+                "content",
+                content,
+                "reference_type",
+                "CONSULTATION",
+                "reference_id",
+                threadId,
+                "created_at",
+                java.time.OffsetDateTime.now()
+            )
+        );
     }
 
     private void disconnect(
