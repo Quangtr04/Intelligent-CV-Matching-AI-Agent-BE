@@ -64,6 +64,11 @@ comment sau giá trị; comment đặt trên dòng riêng. Dùng dấu `/` cho �
 Import là optional để Docker vẫn chạy khi chỉ được cấp biến môi trường; các biến bắt buộc vẫn phải đủ.
 Sửa cấu hình rồi khởi động lại backend.
 
+Thời hạn token đăng nhập được đặt trong `.env` bằng `APP_ACCESS_TOKEN_TTL_SECONDS=900`
+(15 phút) và `APP_REFRESH_TOKEN_TTL_SECONDS=2592000` (30 ngày). Cả hai tính bằng giây và phải lớn hơn 0.
+Trường `expiresIn` trong phản hồi đăng nhập/refresh dùng thời hạn access token đã cấu hình.
+Sau khi đổi cấu hình, khởi động lại backend; token đã phát hành giữ thời điểm hết hạn cũ.
+
 Trong môi trường phát triển, `AUTH_EXPOSE_DEV_OTP=true` trả `developmentCode` khi đăng ký để thử bước xác minh email. Khi dùng SMTP, đặt `AUTH_EXPOSE_DEV_OTP=false`, `MAIL_ENABLED=true` và các biến `MAIL_*`. Google login nhận ID token từ frontend khi đã cấu hình `GOOGLE_CLIENT_ID`.
 
 ### Chọn môi trường chạy

@@ -14,7 +14,9 @@ import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
@@ -23,6 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -44,7 +47,17 @@ class TokenServiceTest {
     void signingSecretMustBeExplicitAndStrongEnough(
         String secret) {
         TokenRepository db = mock(TokenRepository.class);
-        assertThrows(IllegalArgumentException.class, () -> new TokenService(db, secret));
+        assertThrows(IllegalArgumentException.class, () -> new TokenService(db, secret, 900, 2592000));
+        verifyNoInteractions(db);
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {0, -1, Integer.MIN_VALUE})
+    void tokenLifetimesMustBePositive(
+        int seconds) {
+        TokenRepository db = mock(TokenRepository.class);
+        assertThrows(IllegalArgumentException.class, () -> new TokenService(db, TEST_SECRET, seconds, 2592000));
+        assertThrows(IllegalArgumentException.class, () -> new TokenService(db, TEST_SECRET, 900, seconds));
         verifyNoInteractions(db);
     }
 
@@ -59,7 +72,10 @@ class TokenServiceTest {
     @Test
     void refreshTokensCannotBeUsedAsBearerAccess() {
         SqlStore db = mock(SqlStore.class);
-        assertUnauthorized(new TokenService(new TokenRepository(db), TEST_SECRET), TokenService.random("r_"));
+        assertUnauthorized(
+            new TokenService(new TokenRepository(db), TEST_SECRET, 900, 2592000),
+            TokenService.random("r_")
+        );
         verifyNoInteractions(db);
     }
 
@@ -68,7 +84,7 @@ class TokenServiceTest {
         SqlStore db = mock(SqlStore.class);
         UUID user = UUID.randomUUID();
         when(db.optional(contains("FROM users"), eq(user))).thenReturn(Optional.of(Map.of("id", user)));
-        var result = new TokenService(new TokenRepository(db), TEST_SECRET).issue(user);
+        var result = new TokenService(new TokenRepository(db), TEST_SECRET, 900, 2592000).issue(user);
         assertTrue(result.get("accessToken").toString().contains("."));
         verify(db, times(2)).insert(
             eq("refresh_tokens"),
@@ -85,7 +101,7 @@ class TokenServiceTest {
         TokenRepository db = mock(TokenRepository.class);
         UUID user = UUID.randomUUID();
         when(db.findUsersByIdForUpdate(user)).thenReturn(Optional.of(Map.of("id", user)));
-        Map<String, Object> result = new TokenService(db, TEST_SECRET).issue(user);
+        Map<String, Object> result = new TokenService(db, TEST_SECRET, 900, 2592000).issue(user);
         SignedJWT access = SignedJWT.parse(result.get("accessToken").toString());
         assertEquals(JWSAlgorithm.HS256, access.getHeader().getAlgorithm());
         assertTrue(access.verify(new MACVerifier(TEST_SECRET.getBytes(StandardCharsets.UTF_8))));
@@ -100,13 +116,48 @@ class TokenServiceTest {
     }
 
     @Test
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    void configuredLifetimesControlJwtStoredSessionsAndResponse() throws Exception {
+        TokenRepository db = mock(TokenRepository.class);
+        UUID user = UUID.randomUUID();
+        when(db.findUsersByIdForUpdate(user)).thenReturn(Optional.of(Map.of("id", user)));
+        int accessLifetime = 37;
+        int refreshLifetime = 1234;
+        Instant beforeIssue = Instant.now();
+        Map<String, Object> result = new TokenService(db, TEST_SECRET, accessLifetime, refreshLifetime).issue(user);
+        Instant afterIssue = Instant.now();
+
+        JWTClaimsSet claims = SignedJWT.parse(result.get("accessToken").toString()).getJWTClaimsSet();
+        assertEquals(
+            accessLifetime,
+            Duration.between(claims.getIssueTime().toInstant(), claims.getExpirationTime().toInstant()).getSeconds()
+        );
+        assertEquals(accessLifetime, result.get("expiresIn"));
+
+        ArgumentCaptor<Map<String, Object>> saved = ArgumentCaptor.forClass((Class) Map.class);
+        verify(db, times(2)).insertRefreshTokens(saved.capture());
+        Map<String, Object> accessSession = saved.getAllValues().stream()
+            .filter(row -> TokenService.hash(result.get("accessToken").toString()).equals(row.get("token_hash")))
+            .findFirst().orElseThrow();
+        Instant accessExpiry = ((OffsetDateTime) accessSession.get("expires_at")).toInstant();
+        assertEquals(claims.getExpirationTime().toInstant(), accessExpiry);
+
+        Map<String, Object> refreshSession = saved.getAllValues().stream()
+            .filter(row -> TokenService.hash(result.get("refreshToken").toString()).equals(row.get("token_hash")))
+            .findFirst().orElseThrow();
+        Instant refreshExpiry = ((OffsetDateTime) refreshSession.get("expires_at")).toInstant();
+        assertFalse(refreshExpiry.isBefore(beforeIssue.plusSeconds(refreshLifetime)));
+        assertFalse(refreshExpiry.isAfter(afterIssue.plusSeconds(refreshLifetime)));
+    }
+
+    @Test
     void independentlySignedAccessTokenAuthenticatesWithMatchingStoredOwner() throws Exception {
         TokenRepository db = mock(TokenRepository.class);
         UUID user = UUID.randomUUID();
         String access = sign(validClaims(user).build());
         Map<String, Object> session = Map.of("id", user, "role", "CANDIDATE", "full_name", "Test User");
         when(db.findRefreshTokensByTokenHash(TokenService.hash(access))).thenReturn(Optional.of(session));
-        assertSame(session, new TokenService(db, TEST_SECRET).authenticate(access));
+        assertSame(session, new TokenService(db, TEST_SECRET, 900, 2592000).authenticate(access));
         verify(db).findRefreshTokensByTokenHash(TokenService.hash(access));
     }
 
@@ -118,7 +169,7 @@ class TokenServiceTest {
         String access = sign(validClaims(user).build(), secret, JWSAlgorithm.HS256);
         Map<String, Object> session = Map.of("id", user);
         when(db.findRefreshTokensByTokenHash(TokenService.hash(access))).thenReturn(Optional.of(session));
-        assertSame(session, new TokenService(db, secret).authenticate(access));
+        assertSame(session, new TokenService(db, secret, 900, 2592000).authenticate(access));
     }
 
     @Test
@@ -219,7 +270,7 @@ class TokenServiceTest {
         String access = sign(validClaims(UUID.randomUUID()).build());
         when(db.findRefreshTokensByTokenHash(TokenService.hash(access)))
             .thenReturn(Optional.of(Map.of("id", UUID.randomUUID())));
-        assertUnauthorized(new TokenService(db, TEST_SECRET), access);
+        assertUnauthorized(new TokenService(db, TEST_SECRET, 900, 2592000), access);
     }
 
     @Test
@@ -227,7 +278,7 @@ class TokenServiceTest {
         TokenRepository db = mock(TokenRepository.class);
         String access = sign(validClaims(UUID.randomUUID()).build());
         when(db.findRefreshTokensByTokenHash(TokenService.hash(access))).thenReturn(Optional.empty());
-        assertUnauthorized(new TokenService(db, TEST_SECRET), access);
+        assertUnauthorized(new TokenService(db, TEST_SECRET, 900, 2592000), access);
         verify(db).findRefreshTokensByTokenHash(TokenService.hash(access));
     }
 
@@ -238,8 +289,10 @@ class TokenServiceTest {
         when(db.optional(anyString(), eq(user))).thenReturn(Optional.empty());
         assertEquals(
             401,
-            assertThrows(ApiException.class, () -> new TokenService(new TokenRepository(db), TEST_SECRET).issue(user))
-                .status()
+            assertThrows(
+                ApiException.class,
+                () -> new TokenService(new TokenRepository(db), TEST_SECRET, 900, 2592000).issue(user)
+            ).status()
         );
         verify(db).optional(contains("FOR NO KEY UPDATE"), eq(user));
         verify(db, never()).insert(anyString(), anyMap());
@@ -256,8 +309,10 @@ class TokenServiceTest {
         when(db.optional(startsWith("SELECT t.id,t.user_id"), eq(TokenService.hash(raw)))).thenReturn(Optional.empty());
         assertEquals(
             401,
-            assertThrows(ApiException.class, () -> new TokenService(new TokenRepository(db), TEST_SECRET).rotate(raw))
-                .status()
+            assertThrows(
+                ApiException.class,
+                () -> new TokenService(new TokenRepository(db), TEST_SECRET, 900, 2592000).rotate(raw)
+            ).status()
         );
         var order = inOrder(db);
         order.verify(db).optional(startsWith("SELECT user_id FROM refresh_tokens"), eq(TokenService.hash(raw)));
@@ -279,7 +334,8 @@ class TokenServiceTest {
             .thenReturn(Optional.of(Map.of("id", tokenId, "user_id", UUID.randomUUID())));
         assertEquals(
             401,
-            assertThrows(ApiException.class, () -> new TokenService(db, TEST_SECRET).rotate(refresh)).status()
+            assertThrows(ApiException.class, () -> new TokenService(db, TEST_SECRET, 900, 2592000).rotate(refresh))
+                .status()
         );
         verify(db, never()).updateRefreshTokensById(any(), any());
         verify(db, never()).insertRefreshTokens(anyMap());
@@ -301,7 +357,8 @@ class TokenServiceTest {
         when(db.updateRefreshTokensById(tokenId, owner)).thenReturn(consumed);
         assertEquals(
             401,
-            assertThrows(ApiException.class, () -> new TokenService(db, TEST_SECRET).rotate(refresh)).status()
+            assertThrows(ApiException.class, () -> new TokenService(db, TEST_SECRET, 900, 2592000).rotate(refresh))
+                .status()
         );
         verify(db).updateRefreshTokensById(tokenId, owner);
         verify(db, never()).insertRefreshTokens(anyMap());
@@ -319,7 +376,7 @@ class TokenServiceTest {
         when(db.findRefreshTokensByTokenHashForUpdate(TokenService.hash(refresh)))
             .thenReturn(Optional.of(Map.of("id", tokenId, "user_id", owner)));
         when(db.updateRefreshTokensById(tokenId, owner)).thenReturn(1);
-        TokenService service = new TokenService(db, TEST_SECRET);
+        TokenService service = new TokenService(db, TEST_SECRET, 900, 2592000);
         Map<String, Object> session = service.rotate(refresh);
         assertNotEquals(refresh, session.get("refreshToken"));
         assertTrue(session.get("refreshToken").toString().matches("r_[A-Za-z0-9_-]{43}"));
@@ -354,7 +411,7 @@ class TokenServiceTest {
     private static void assertRejectedBeforeDatabase(
         String access) {
         TokenRepository db = mock(TokenRepository.class);
-        assertUnauthorized(new TokenService(db, TEST_SECRET), access);
+        assertUnauthorized(new TokenService(db, TEST_SECRET, 900, 2592000), access);
         verifyNoInteractions(db);
     }
 

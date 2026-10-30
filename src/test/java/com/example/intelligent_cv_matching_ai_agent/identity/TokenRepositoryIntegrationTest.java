@@ -89,7 +89,7 @@ class TokenRepositoryIntegrationTest {
         jdbc = new JdbcTemplate(dataSource);
         jdbc.setQueryTimeout(5);
         repository = new TokenRepository(new SqlStore(jdbc));
-        tokens = new TokenService(repository, TEST_JWT_SECRET);
+        tokens = new TokenService(repository, TEST_JWT_SECRET, 900, 2592000);
         transaction = new TransactionTemplate(new DataSourceTransactionManager(dataSource));
         transaction.setTimeout(10);
 
@@ -254,7 +254,7 @@ class TokenRepositoryIntegrationTest {
                 return super.findUsersByIdForUpdate(args);
             }
         };
-        TokenService rotatingTokens = new TokenService(observedRepository, TEST_JWT_SECRET);
+        TokenService rotatingTokens = new TokenService(observedRepository, TEST_JWT_SECRET, 900, 2592000);
 
         try (var executor = Executors.newFixedThreadPool(2)) {
             var revocation = executor.submit(() -> transaction.executeWithoutResult(status -> {

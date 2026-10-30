@@ -26,7 +26,7 @@ public class OpenApiConfig {
                     .addSecuritySchemes(
                         "bearerAuth",
                         new SecurityScheme().type(SecurityScheme.Type.HTTP).scheme("bearer")
-                            .description("Opaque accessToken returned by login; expires after 15 minutes.")
+                            .description("JWT accessToken returned by login; expiresIn is its lifetime in seconds.")
                     )
                     .addSecuritySchemes(
                         "guestSession",

@@ -66,6 +66,39 @@ class ApplicationEnvironmentTest {
         assertEquals("process@example.invalid", environment.getRequiredProperty("app.auth.mail-from"));
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"dev", "prod", "docker"})
+    void tokenLifetimesLoadFromFileAndRespectProcessOverridesAcrossProfiles(
+        String profile)
+        throws IOException {
+        String fixture = """
+            APP_ACCESS_TOKEN_TTL_SECONDS=123
+            APP_REFRESH_TOKEN_TTL_SECONDS=45678
+            """;
+        StandardEnvironment fileEnvironment =
+            loadEnvironment(fixture, Map.of(), Map.of(), "--spring.profiles.active=" + profile);
+        assertEquals(123, fileEnvironment.getRequiredProperty("app.security.access-token-ttl-seconds", Integer.class));
+        assertEquals(
+            45678,
+            fileEnvironment.getRequiredProperty("app.security.refresh-token-ttl-seconds", Integer.class)
+        );
+
+        StandardEnvironment processEnvironment = loadEnvironment(
+            fixture,
+            Map.of("APP_ACCESS_TOKEN_TTL_SECONDS", "300", "APP_REFRESH_TOKEN_TTL_SECONDS", "86400"),
+            Map.of(),
+            "--spring.profiles.active=" + profile
+        );
+        assertEquals(
+            300,
+            processEnvironment.getRequiredProperty("app.security.access-token-ttl-seconds", Integer.class)
+        );
+        assertEquals(
+            86400,
+            processEnvironment.getRequiredProperty("app.security.refresh-token-ttl-seconds", Integer.class)
+        );
+    }
+
     @Test
     void systemPropertiesOverrideProcessEnvironmentAndImportedFileValues() throws IOException {
         StandardEnvironment environment = loadEnvironment(
@@ -220,7 +253,14 @@ class ApplicationEnvironmentTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"app.security.jwt-secret", "app.guest.token-limit", "spring.task.scheduling.pool.size"})
+    @ValueSource(
+        strings = {
+            "app.security.jwt-secret",
+            "app.security.access-token-ttl-seconds",
+            "app.security.refresh-token-ttl-seconds",
+            "app.guest.token-limit",
+            "spring.task.scheduling.pool.size"}
+    )
     void missingConfigurationHasNoRuntimeFallback(
         String property)
         throws IOException {
