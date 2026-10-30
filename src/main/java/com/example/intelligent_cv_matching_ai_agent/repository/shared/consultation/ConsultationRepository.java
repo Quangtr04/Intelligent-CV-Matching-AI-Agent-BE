@@ -157,4 +157,23 @@ public class ConsultationRepository {
         );
     }
 
+    public List<Map<String, Object>> listActiveAdmins(
+        Object... args) {
+        return db.list("SELECT id FROM users WHERE role='ADMIN' AND status='ACTIVE'", args);
+    }
+
+    public Optional<Map<String, Object>> findUnreadNotificationsByUserIdAndReference(
+        Object... args) {
+        return db.optional(
+            ("SELECT 1 FROM notifications WHERE user_id=? AND type=? AND reference_type='CONSULTATION' "
+                + "AND reference_id=? AND NOT is_read LIMIT 1"),
+            args
+        );
+    }
+
+    public UUID insertNotifications(
+        Map<String, Object> fields) {
+        return db.insert("notifications", fields);
+    }
+
 }
