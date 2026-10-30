@@ -11,6 +11,7 @@ services:
       - .env
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      APP_PDF_NO_SANDBOX: "true"
       SERVER_PORT: ${SERVER_PORT:-8080}
       DATABASE_URL: jdbc:postgresql://host.docker.internal:5432/edunexus
       REDIS_HOST: redis

@@ -82,6 +82,95 @@ class AssessmentJdIntegrationTests {
     }
 
     @Test
+    void completedCvAndPrivatePastedJdAssessmentCanCreateItsResultBasedRoadmap() throws Exception {
+        UUID resume = db.insert(
+            "resumes",
+            fields(
+                "user_id",
+                owner,
+                "title",
+                "Confirmed Java CV",
+                "source",
+                "MANUAL",
+                "status",
+                "READY",
+                "raw_content",
+                "Built Java backend services for production users."
+            )
+        );
+        long catalogCount = ((Number) db.scalar("SELECT count(*) FROM market_job_posts")).longValue();
+        var quiz = questions("Java");
+        quiz.forEach(question -> question.put("cv_evidence", "Built Java backend services"));
+        when(ai.generate(eq("ASSESSMENT_GENERATE"), anyMap())).thenReturn(fields("questions", quiz));
+        var session =
+            create(fields("resumeId", resume, "targetJobTitle", "Private backend role", "jdText", JAVA_JD), 200);
+        String id = session.get("id").toString();
+        assertNull(session.get("market_job_id"));
+        assertEquals(resume.toString(), session.get("resume_id"));
+        assertFalse(session.containsKey("context_snapshot"));
+
+        mvc.perform(
+            post("/api/v1/roadmaps").header("Authorization", authorization).contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(fields("assessmentId", id)))
+        ).andExpect(status().isNotFound());
+        for (Object raw : (List<?>) session.get("questions")) {
+            mvc.perform(
+                put("/api/v1/assessments/" + id + "/answers").header("Authorization", authorization)
+                    .contentType(MediaType.APPLICATION_JSON).content(
+                        mapper.writeValueAsString(
+                            fields("questionId", ((Map<?, ?>) raw).get("id"), "selectedOption", "A")
+                        )
+                    )
+            ).andExpect(status().isOk());
+        }
+        mvc.perform(post("/api/v1/assessments/" + id + "/submit").header("Authorization", authorization))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.roadmap_request.assessmentId").value(id));
+        when(ai.generate(eq("ROADMAP_GENERATE"), anyMap())).thenReturn(
+            fields(
+                "title",
+                "Practice SQL for this JD",
+                "summary",
+                "Focus on the required SQL skill.",
+                "nodes",
+                List.of(
+                    fields(
+                        "skill_name",
+                        "SQL",
+                        "description",
+                        "Practice transaction rollback and commit.",
+                        "estimated_hours",
+                        4,
+                        "prerequisites",
+                        List.of()
+                    )
+                )
+            )
+        );
+        var result = read(
+            mvc.perform(
+                post("/api/v1/roadmaps").header("Authorization", authorization).contentType(MediaType.APPLICATION_JSON)
+                    .content(mapper.writeValueAsString(fields("assessmentId", id)))
+            ).andExpect(status().isOk()).andReturn()
+        );
+        assertNull(result.get("market_job_id"));
+        assertEquals("Private backend role", result.get("target_job_title"));
+        assertEquals("SQL", ((Map<?, ?>) ((List<?>) result.get("missing_skills")).getFirst()).get("skill_name"));
+        var gap =
+            db.one("SELECT * FROM gap_analyses WHERE id=?", UUID.fromString(result.get("gap_analysis_id").toString()));
+        assertEquals(resume, gap.get("resume_id"));
+        assertEquals(UUID.fromString(id), gap.get("assessment_session_id"));
+        assertTrue(gap.get("context_key").toString().startsWith("paste:"));
+        assertNotNull(gap.get("input_hash"));
+        assertEquals(catalogCount, ((Number) db.scalar("SELECT count(*) FROM market_job_posts")).longValue());
+
+        db.update("UPDATE resumes SET raw_content='A different CV' WHERE id=?", resume);
+        mvc.perform(
+            post("/api/v1/roadmaps").header("Authorization", authorization).contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(fields("assessmentId", id)))
+        ).andExpect(status().isConflict());
+    }
+
+    @Test
     void selectedJobIsRequiredEvenWhenTheProfileHasATargetCareer() throws Exception {
         db.update("INSERT INTO candidate_profiles(user_id,target_job_title) VALUES(?,'Software Engineer')", owner);
         create(Map.of("targetJobTitle", "Software Engineer"), 400);

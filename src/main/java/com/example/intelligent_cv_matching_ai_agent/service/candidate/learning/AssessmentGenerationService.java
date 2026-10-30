@@ -60,16 +60,22 @@ public class AssessmentGenerationService {
             db.lockQueue();
             db.expireInterrupted();
             requireActive(owner);
-            Optional<Map<String, Object>> existing = db.active(owner, input.jobId());
+            AssessmentService.Prepared prepared = assessments.prepareForOwner(owner, input);
+            Optional<Map<String, Object>> existing = db.active(owner, prepared.inputHash());
             if (existing.isPresent()) {
                 return existing.get();
             }
-            AssessmentService.Prepared prepared =
-                assessments.prepareForOwner(owner, input.targetJobTitle(), input.jobId());
             if (db.activeCount(owner) >= 3 || db.activeCount(null) >= 50) {
                 throw new ApiException(429, "Question generation is busy. Wait for an existing request to finish.");
             }
-            return db.enqueue(owner, prepared.jobId(), prepared.target());
+            return db.enqueue(
+                owner,
+                prepared.jobId(),
+                prepared.target(),
+                prepared.resumeId(),
+                prepared.inputHash(),
+                prepared.snapshot()
+            );
         });
     }
 
@@ -114,7 +120,13 @@ public class AssessmentGenerationService {
         try {
             AssessmentService.Prepared prepared = transactions.execute(status -> {
                 requireActive(owner);
-                return assessments.prepareForOwner(owner, (String) request.get("target_job_title"), job);
+                Map<String, Object> snapshot = com.example.intelligent_cv_matching_ai_agent.util.shared.Values
+                    .object(request.get("context_snapshot"));
+                if (snapshot.isEmpty()) {
+                    // A request queued before the context migration remains a catalog-only legacy assessment.
+                    return assessments.prepareForOwner(owner, (String) request.get("target_job_title"), job);
+                }
+                return assessments.restoreForOwner(owner, snapshot, (String) request.get("input_hash"));
             });
             // No JDBC transaction/connection is held while Ollama runs.
             Map<String, Object> generated = assessments.generate(prepared);
@@ -143,7 +155,8 @@ public class AssessmentGenerationService {
                 case 429 -> "Not enough AI quota. Retry after quota is available.";
                 case 503 -> "The local AI model is unavailable. Retry when Ollama is ready.";
                 case 504 -> "The local AI model took too long. Wait for Ollama to be idle, then retry manually.";
-                case 400, 404, 409 -> "The selected JD or generation request is no longer available. Review and retry.";
+                case 400, 404, 409 ->
+                    "The selected CV, JD or generation inputs changed or became unavailable. Review and retry.";
                 case 401, 403 -> "The account no longer allows question generation.";
                 default -> "AI could not finish a valid question set. Retry manually; no partial assessment was saved.";
             };

@@ -124,6 +124,13 @@ Danh mục mẫu gồm FREE/BASIC/PRO, kỹ năng, template/CV demo và tài ngu
 
 ## AI chat và embedding chạy bằng Ollama
 
+Các luồng bổ sung theo workflow:
+
+- [Xuất PDF từ CV đã xác nhận và lưu đường dẫn](docs/resume-pdf-export.md).
+- [Guest nhập CV cá nhân và duyệt gợi ý AI](docs/guest-trial-personal-cv.md).
+- [Learning: JD/profile khi chưa có CV; CV/JD, assessment và roadmap khi có CV](docs/learning-cv-jd-workflow.md).
+- [Redis và cache bền vững cho đối chiếu CV với career profile](docs/cv-profile-cache.md).
+
 Backend dùng model chat và embedding cục bộ qua adapter Ollama native của Spring AI. Không cần API key hoặc dịch vụ inference thương mại. Với backend chạy trong IDE/Maven trên Windows, khởi động model server và kiểm tra cả hai model bằng:
 
 ```powershell

@@ -129,6 +129,21 @@ class ResumeProfileAlignmentIntegrationTests {
     }
 
     @Test
+    void unchangedInputsReuseTheSavedComparisonWithoutAnotherAiCallOrHistoryRow() throws Exception {
+        Map<String, Object> first = create();
+        clearInvocations(ai);
+
+        Map<String, Object> repeated = create();
+
+        assertEquals(first.get("id"), repeated.get("id"));
+        assertEquals(first.get("result_json"), repeated.get("result_json"));
+        assertEquals(true, repeated.get("cached"));
+        assertFalse(((Map<?, ?>) repeated.get("result_json")).containsKey("_cache_input_hash"));
+        assertEquals(1L, count());
+        verify(ai, never()).generate(anyString(), anyMap());
+    }
+
+    @Test
     void historyReadsFrozenSnapshotsWithoutAiAndShowsProfileAndResumeStalenessSeparately() throws Exception {
         var created = create();
         UUID id = UUID.fromString(created.get("id").toString());

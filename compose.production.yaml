@@ -6,6 +6,7 @@ services:
       - "${APP_PORT:-8080}:${SERVER_PORT:?Set SERVER_PORT in .env}"
     environment:
       SPRING_PROFILES_ACTIVE: prod
+      APP_PDF_NO_SANDBOX: "true"
       SERVER_PORT: ${SERVER_PORT:?Set SERVER_PORT in .env}
       UPLOAD_DIR: /app/uploads
       AI_PROVIDER: ollama

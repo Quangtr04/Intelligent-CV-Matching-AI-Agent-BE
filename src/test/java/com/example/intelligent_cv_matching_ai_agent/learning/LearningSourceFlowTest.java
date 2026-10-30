@@ -18,6 +18,8 @@ import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -208,6 +210,84 @@ class LearningSourceFlowTest {
 
         verify(db).getRoadmapsById(roadmapId, actor);
         verifyNoInteractions(references, ai);
+    }
+
+    @Test
+    void invalidSnapshotCannotSuppressMissingSkillsInADirectProfileRoadmap() {
+        UUID jobId = UUID.randomUUID();
+        when(db.getMarketJobPostsById(jobId)).thenReturn(Map.of("job_title", "Java Backend"));
+        when(db.listMarketJobSkillsByMarketJobId(jobId))
+            .thenReturn(List.of(Map.of("skill_name", "Java", "is_required", true)));
+        Map<String, Object> invalid = new HashMap<>(session("completed"));
+        invalid.put("market_job_id", jobId);
+        invalid.put("skill_scores", List.of(Map.of("skill", "Java", "score", 100)));
+        invalid.put("context_snapshot", Map.of("owner_id", actor.toString()));
+        invalid.put("input_hash", "not-the-snapshot-hash");
+        when(db.findCompletedAssessmentForJob(actor, jobId)).thenReturn(Optional.of(invalid));
+        when(ai.generate(eq("ROADMAP_GENERATE"), anyMap())).thenThrow(new ApiException(429, "AI quota exhausted"));
+
+        assertEquals(
+            429,
+            assertThrows(ApiException.class, () -> service.createRoadmap(new RoadmapRequest(null, jobId, null, null)))
+                .status()
+        );
+        verify(ai).generate(
+            eq("ROADMAP_GENERATE"),
+            argThat(input -> ((List<?>) input.get("allowed_missing_skills")).size() == 1)
+        );
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"jd", "profile"})
+    void staleOptionalAssessmentScoresAreIgnoredButExplicitStaleAssessmentIsRejected(
+        String changed) {
+        UUID jobId = UUID.randomUUID();
+        String previousJd = "Build Java backend services and validate transactions.";
+        Map<String, Object> originalJob = Map.of("job_title", "Java Backend", "raw_content", previousJd);
+        List<Map<String, Object>> skills = List.of(Map.of("skill_name", "Java", "is_required", true));
+        when(assessmentDb.getMarketJobPostsById(jobId)).thenReturn(originalJob);
+        when(assessmentDb.listMarketJobSkills(jobId)).thenReturn(skills);
+        when(assessmentDb.findCandidateProfilesByUserId2(actor)).thenReturn(Optional.of(Map.of("years_experience", 1)));
+        var prepared = assessments.prepareForOwner(actor, "Java Backend", jobId);
+        Map<String, Object> completed = new HashMap<>(session("completed"));
+        completed.put("market_job_id", jobId);
+        completed.put("skill_scores", List.of(Map.of("skill", "Java", "score", 100)));
+        completed.put("context_snapshot", prepared.snapshot());
+        completed.put("input_hash", prepared.inputHash());
+        Map<String, Object> currentJob = "jd".equals(changed)
+            ? Map.of("job_title", "Java Backend", "raw_content", previousJd + " Maintain deployment rollback.")
+            : originalJob;
+        int experience = "profile".equals(changed) ? 2 : 1;
+        when(assessmentDb.getMarketJobPostsById(jobId)).thenReturn(currentJob);
+        when(assessmentDb.findCandidateProfilesByUserId2(actor))
+            .thenReturn(Optional.of(Map.of("years_experience", experience)));
+        when(db.getMarketJobPostsById(jobId)).thenReturn(currentJob);
+        when(db.findCandidateProfilesByUserId(actor)).thenReturn(Optional.of(Map.of("years_experience", experience)));
+        when(db.listMarketJobSkillsByMarketJobId(jobId)).thenReturn(skills);
+        when(db.findCompletedAssessmentForJob(actor, jobId)).thenReturn(Optional.of(completed));
+        when(db.getAssessmentSessionsById(assessmentId, actor)).thenReturn(completed);
+        when(ai.generate(eq("ROADMAP_GENERATE"), anyMap())).thenThrow(new ApiException(429, "AI quota exhausted"));
+
+        assertEquals(
+            429,
+            assertThrows(ApiException.class, () -> service.createRoadmap(new RoadmapRequest(null, jobId, null, null)))
+                .status()
+        );
+        verify(ai).generate(eq("ROADMAP_GENERATE"), argThat(input -> {
+            var gaps = (List<?>) input.get("allowed_missing_skills");
+            return gaps.size() == 1 && "MISSING_EVIDENCE".equals(((Map<?, ?>) gaps.getFirst()).get("gap_status"));
+        }));
+
+        clearInvocations(ai);
+        assertEquals(
+            409,
+            assertThrows(
+                ApiException.class,
+                () -> service.createRoadmap(new RoadmapRequest(null, jobId, null, assessmentId))
+            ).status()
+        );
+        verifyNoInteractions(ai);
+        verify(db, never()).insertRoadmaps(anyMap());
     }
 
     @Test

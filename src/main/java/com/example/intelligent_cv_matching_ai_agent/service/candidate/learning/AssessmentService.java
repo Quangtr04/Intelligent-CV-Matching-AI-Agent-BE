@@ -12,6 +12,13 @@ import java.time.OffsetDateTime;
 import java.util.*;
 import com.example.intelligent_cv_matching_ai_agent.util.candidate.learning.AssessmentValidator;
 import com.example.intelligent_cv_matching_ai_agent.util.candidate.learning.SkillNames;
+import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.learning.AssessmentRequest;
+import com.example.intelligent_cv_matching_ai_agent.util.candidate.learning.LearningInputContext;
+import com.example.intelligent_cv_matching_ai_agent.util.candidate.resume.ResumeContent;
+import com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobPostingParser;
+import java.util.regex.Pattern;
+import org.springframework.web.util.HtmlUtils;
+import tools.jackson.databind.json.JsonMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -28,6 +35,8 @@ public class AssessmentService {
     private final AiService ai;
 
     private final TransactionTemplate transactions;
+
+    private final JsonMapper mapper = JsonMapper.builder().build();
 
     public AssessmentService(
         AssessmentRepository db,
@@ -52,6 +61,22 @@ public class AssessmentService {
         // Never expose correct answers while an assessment is in progress.
         session.put("questions", db.listQuestionsForSession(id, "completed".equals(session.get("status"))));
         session.put("answers", db.listAssessmentAnswersBySessionId(id));
+        var snapshot = object(session.remove("context_snapshot"));
+        if (!snapshot.isEmpty()) {
+            session.put(
+                "input_context",
+                fields(
+                    "jd_source",
+                    snapshot.get("jd_source"),
+                    "job_id",
+                    snapshot.get("job_id"),
+                    "resume_id",
+                    snapshot.get("resume_id"),
+                    "target_job_title",
+                    snapshot.get("target_job_title")
+                )
+            );
+        }
 
         return session;
     }
@@ -59,9 +84,14 @@ public class AssessmentService {
     public Map<String, Object> create(
         String target,
         UUID jobId) {
+        return create(new AssessmentRequest(target, jobId));
+    }
+
+    public Map<String, Object> create(
+        AssessmentRequest request) {
         user.requireRole("CANDIDATE");
         UUID owner = user.id();
-        Prepared prepared = transactions.execute(status -> prepareForOwner(owner, target, jobId));
+        Prepared prepared = transactions.execute(status -> prepareForOwner(owner, request));
         Map<String, Object> generated = ai.generate("ASSESSMENT_GENERATE", prepared.input());
         return transactions.execute(status -> persist(prepared, generated));
     }
@@ -71,11 +101,22 @@ public class AssessmentService {
         UUID owner,
         String target,
         UUID jobId) {
+        return prepareForOwner(owner, new AssessmentRequest(target, jobId));
+    }
 
-        if (jobId == null)
-            throw ApiException.badRequest("Select a job description before generating assessment questions");
-
-        Map<String, Object> job = db.getMarketJobPostsById(jobId);
+    public Prepared prepareForOwner(
+        UUID owner,
+        AssessmentRequest request) {
+        if (!request.isContextValid() || (request.targetJobTitle() != null && request.targetJobTitle().length() > 255)
+            || (request.jdText() != null
+                && (request.jdText().strip().length() < 30 || request.jdText().length() > 50000))) {
+            throw ApiException.badRequest("Select one stored JD or paste 30-50000 characters with a confirmed CV");
+        }
+        UUID jobId = request.jobId();
+        String target = request.targetJobTitle();
+        Map<String, Object> job = jobId == null
+            ? fields("job_title", target.strip(), "raw_content", request.jdText().strip())
+            : db.getMarketJobPostsById(jobId);
         String jobTitle = text(job.get("job_title")).strip();
         if (jobTitle.isBlank())
             throw ApiException.conflict("The selected job has no title to assess");
@@ -83,10 +124,15 @@ public class AssessmentService {
             throw ApiException.badRequest("The target career must match the selected job description");
         target = jobTitle;
 
-        List<Map<String, Object>> jobSkills =
-            db.listMarketJobSkills(jobId).stream().filter(skill -> !text(skill.get("skill_name")).isBlank()).toList();
+        List<Map<String, Object>> jobSkills = jobId == null
+            ? pastedSkills(request.jdText())
+            : db.listMarketJobSkills(jobId).stream().filter(skill -> !text(skill.get("skill_name")).isBlank()).toList();
         if (jobSkills.isEmpty())
-            throw ApiException.conflict("The selected job needs extracted skills before generating an assessment");
+            throw ApiException.conflict(
+                jobId == null
+                    ? "No supported skills were recognized in the pasted JD; include explicit technical skill names"
+                    : "The selected job needs extracted skills before generating an assessment"
+            );
         List<String> jdSources = new ArrayList<>();
         for (String key : List
             .of("parsed_requirements", "parsed_responsibilities", "parsed_description", "raw_content")) {
@@ -124,7 +170,149 @@ public class AssessmentService {
             "role_specific_count",
             5
         );
-        return new Prepared(owner, jobId, target, job, jobSkills, jdSources, input);
+        Map<String, Object> resumeSnapshot = Map.of();
+        if (request.resumeId() != null) {
+            var resume = db.getResumeForOwner(request.resumeId(), owner);
+            if (!"READY".equals(resume.get("status"))) {
+                throw ApiException.conflict("Confirm CV data before generating an assessment");
+            }
+            String canonical = ResumeContent.canonicalText(mapper, resume);
+            if (object(resume.get("structured_data")).isEmpty() && text(resume.get("raw_content")).isBlank()) {
+                throw ApiException.conflict("The confirmed CV has no content to assess");
+            }
+            var declared = db.listResumeSkills(request.resumeId());
+            resumeSnapshot = fields(
+                "id",
+                request.resumeId().toString(),
+                "title",
+                resume.get("title"),
+                "language",
+                resume.get("language"),
+                "content_hash",
+                resume.get("content_hash"),
+                "canonical_text",
+                canonical,
+                "declared_skills",
+                declared
+            );
+            input.put(
+                "resume",
+                fields(
+                    "title",
+                    resume.get("title"),
+                    "language",
+                    resume.get("language"),
+                    "text",
+                    canonical.substring(0, Math.min(canonical.length(), 16000)),
+                    "text_is_excerpt",
+                    canonical.length() > 16000,
+                    "declared_skills",
+                    declared
+                )
+            );
+        }
+        Map<String, Object> snapshot = fields(
+            "version",
+            "cv-jd-learning-v1",
+            "owner_id",
+            owner.toString(),
+            "job_id",
+            jobId == null ? null : jobId.toString(),
+            "resume_id",
+            request.resumeId() == null ? null : request.resumeId().toString(),
+            "target_job_title",
+            target,
+            "jd_source",
+            jobId == null ? "PASTED" : "CATALOG",
+            "jd_identity",
+            jobId == null ? LearningInputContext.hash(jdSources) : jobId.toString(),
+            "jd_sources",
+            jdSources,
+            "jd_skills",
+            jobSkills,
+            "job",
+            jobSnapshot(job),
+            "resume",
+            resumeSnapshot,
+            "profile",
+            input.get("profile")
+        );
+        return new Prepared(
+            owner,
+            jobId,
+            target,
+            job,
+            jobSkills,
+            jdSources,
+            input,
+            request.resumeId(),
+            LearningInputContext.hash(snapshot),
+            snapshot
+        );
+    }
+
+    public Prepared restoreForOwner(
+        UUID owner,
+        Map<String, Object> snapshot,
+        String expectedHash) {
+        if (!owner.toString().equals(text(snapshot.get("owner_id"))) || expectedHash == null
+            || !expectedHash.equals(LearningInputContext.hash(snapshot))) {
+            throw ApiException
+                .conflict("The learning input snapshot is unavailable or invalid; start a new assessment");
+        }
+        UUID job = LearningInputContext.optionalUuid(snapshot.get("job_id"));
+        UUID resume = LearningInputContext.optionalUuid(snapshot.get("resume_id"));
+        String pasted = job == null ? text(object(snapshot.get("job")).get("raw_content")) : null;
+        Prepared current =
+            prepareForOwner(owner, new AssessmentRequest(text(snapshot.get("target_job_title")), job, resume, pasted));
+        if (!expectedHash.equals(current.inputHash())) {
+            throw ApiException.conflict("CV, JD or assessment inputs changed; generate a new assessment");
+        }
+        return current;
+    }
+
+    private Map<String, Object> jobSnapshot(
+        Map<String, Object> job) {
+        return fields(
+            "job_title",
+            job.get("job_title"),
+            "role_category",
+            job.get("role_category"),
+            "parsed_requirements",
+            job.get("parsed_requirements"),
+            "parsed_responsibilities",
+            job.get("parsed_responsibilities"),
+            "parsed_description",
+            job.get("parsed_description"),
+            "raw_content",
+            job.get("raw_content")
+        );
+    }
+
+    private List<Map<String, Object>> pastedSkills(
+        String description) {
+        String html = "<p>" + HtmlUtils.htmlEscape(description).replace("\n", "</p><p>") + "</p>";
+        Map<String, Map<String, Object>> found = new LinkedHashMap<>();
+        for (var skill : JobPostingParser.extractSkills("", html, "")) {
+            found.put(
+                SkillNames.normalize(skill.name()),
+                fields("skill_name", skill.name(), "is_required", skill.required())
+            );
+        }
+        for (var skill : db.listActiveSkills()) {
+            String name = text(skill.get("name"));
+            if (!name.isBlank() && Pattern.compile(
+                "(?<![\\p{L}\\p{N}_])" + Pattern.quote(name) + "(?![\\p{L}\\p{N}_])",
+                Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE
+            ).matcher(description).find()) {
+                found.putIfAbsent(SkillNames.normalize(name), fields("skill_name", name, "is_required", true));
+                found.get(SkillNames.normalize(name)).put("skill_id", skill.get("id"));
+            }
+        }
+        if (found.size() > 50) {
+            throw ApiException.badRequest("The pasted JD contains more than 50 recognized skills");
+        }
+        return found.values().stream().sorted(Comparator.comparing(row -> text(row.get("skill_name")))).toList();
     }
 
     private String compactJd(
@@ -172,9 +360,18 @@ public class AssessmentService {
         List<Map<String, Object>> jobSkills = prepared.skills();
         List<?> questions = array(generated.get("questions"));
         AssessmentValidator.validateQuestions(questions, jobSkills, prepared.sources());
-
-        db.getMarketJobPostsById(jobId);
-        db.updateAssessmentSessionsByUserId(owner, jobId);
+        if (prepared.resumeId() != null) {
+            AssessmentValidator.validateCandidateEvidence(
+                questions,
+                text(object(prepared.snapshot().get("resume")).get("canonical_text"))
+            );
+        }
+        restoreForOwner(owner, prepared.snapshot(), prepared.inputHash());
+        if (jobId == null) {
+            db.retirePastedContext(owner, prepared.resumeId(), text(prepared.snapshot().get("jd_identity")));
+        } else {
+            db.updateAssessmentSessionsByUserId(owner, jobId);
+        }
 
         int foundation = (int) questions.stream().filter(q -> number(object(q).get("part"), 0) == 1).count();
 
@@ -186,6 +383,12 @@ public class AssessmentService {
                 prepared.target(),
                 "market_job_id",
                 jobId,
+                "resume_id",
+                prepared.resumeId(),
+                "input_hash",
+                prepared.inputHash(),
+                "context_snapshot",
+                db.json(prepared.snapshot()),
                 "job_role_category_snapshot",
                 prepared.job().get("role_category"),
                 "part1_count",
@@ -227,7 +430,9 @@ public class AssessmentService {
                     "related_skill_id",
                     jobSkill.get("skill_id"),
                     "explanation",
-                    q.get("explanation")
+                    q.get("explanation"),
+                    "cv_evidence",
+                    q.get("cv_evidence")
                 )
             );
         }
@@ -242,7 +447,10 @@ public class AssessmentService {
         Map<String, Object> job,
         List<Map<String, Object>> skills,
         List<String> sources,
-        Map<String, Object> input
+        Map<String, Object> input,
+        UUID resumeId,
+        String inputHash,
+        Map<String, Object> snapshot
     ) {
     }
 

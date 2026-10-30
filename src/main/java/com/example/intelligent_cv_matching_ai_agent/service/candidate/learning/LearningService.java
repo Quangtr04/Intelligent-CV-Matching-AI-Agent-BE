@@ -8,6 +8,7 @@ import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.learni
 import com.example.intelligent_cv_matching_ai_agent.util.candidate.learning.RoadmapValidator;
 import com.example.intelligent_cv_matching_ai_agent.util.candidate.learning.MissingSkillAnalysis;
 import com.example.intelligent_cv_matching_ai_agent.util.candidate.learning.SkillNames;
+import com.example.intelligent_cv_matching_ai_agent.util.candidate.learning.LearningInputContext;
 
 import com.example.intelligent_cv_matching_ai_agent.security.shared.CurrentUser;
 
@@ -68,7 +69,7 @@ public class LearningService {
 
     public Map<String, Object> assess(
         AssessmentRequest request) {
-        return assessments.create(request.targetJobTitle(), request.jobId());
+        return assessments.create(request);
     }
 
     public Map<String, Object> recommendations(
@@ -112,6 +113,7 @@ public class LearningService {
         }
         Map<String, Object> result = new LinkedHashMap<>(session);
         result.put("learning_recommendations", references.forAssessment(session));
+        result.put("roadmap_request", fields("assessmentId", session.get("id")));
         return result;
     }
 
@@ -136,38 +138,129 @@ public class LearningService {
 
     private PreparedRoadmap prepareRoadmap(
         RoadmapRequest request) {
+        return prepareRoadmap(request, true);
+    }
 
-        if (request.jobId() == null) {
-            throw ApiException.badRequest("Select a JD to identify its missing skills");
+    private PreparedRoadmap prepareRoadmap(
+        RoadmapRequest request,
+        boolean includeReferences) {
+
+        if (!request.isContextValid()) {
+            throw ApiException.badRequest("Select a JD or a completed CV/JD assessment");
         }
+        UUID jobId = request.jobId();
+        UUID resumeId = request.resumeId();
         var profile = db.findCandidateProfilesByUserId(user.id()).orElse(Map.of());
-        var job = db.getMarketJobPostsById(request.jobId());
-        var cv = request.resumeId() == null ? Map.<String, Object>of() : resumes.owned(request.resumeId());
+        var cv = resumeId == null ? Map.<String, Object>of() : resumes.owned(resumeId);
         if (!cv.isEmpty() && !"READY".equals(cv.get("status")))
             throw ApiException.conflict("Confirm CV data first");
 
-        String target = text(job.get("job_title"));
-
-        if (target.isBlank())
-            throw ApiException.badRequest("Select a target career");
-
         Map<String, Object> assessment;
-
         if (request.assessmentId() != null) {
             assessment = db.getAssessmentSessionsById(request.assessmentId(), user.id());
-            if (!request.jobId().toString().equals(text(assessment.get("market_job_id")))) {
+            UUID assessmentJob = LearningInputContext.optionalUuid(assessment.get("market_job_id"));
+            if (jobId != null && !jobId.equals(assessmentJob)) {
                 throw ApiException.badRequest("Assessment must be completed for the same selected JD");
             }
-        } else
-            assessment = db.findCompletedAssessmentForJob(user.id(), request.jobId()).orElse(Map.of());
+            jobId = assessmentJob;
+            UUID assessmentResume = LearningInputContext.optionalUuid(assessment.get("resume_id"));
+            if (resumeId != null && !resumeId.equals(assessmentResume)) {
+                throw ApiException.badRequest("Assessment must use the same confirmed CV");
+            }
+            resumeId = assessmentResume;
+        } else if (resumeId != null) {
+            assessment = db.findCompletedAssessmentForResume(user.id(), jobId, resumeId)
+                .orElseThrow(() -> ApiException.conflict("Complete a CV/JD assessment before creating its roadmap"));
+        } else {
+            assessment = db.findCompletedAssessmentForJob(user.id(), jobId).orElse(Map.of());
+        }
+
+        AssessmentService.Prepared assessedContext = null;
+        Map<String, Object> assessmentSnapshot = object(assessment.get("context_snapshot"));
+        if (!assessmentSnapshot.isEmpty()) {
+            try {
+                assessedContext =
+                    assessments.restoreForOwner(user.id(), assessmentSnapshot, text(assessment.get("input_hash")));
+                if (!Objects.equals(jobId, assessedContext.jobId())
+                    || !Objects.equals(resumeId, assessedContext.resumeId())) {
+                    throw ApiException.conflict("Assessment context does not match its selected CV and JD");
+                }
+            } catch (ApiException ex) {
+                boolean optionalAssessment = request.assessmentId() == null && resumeId == null && jobId != null;
+                if (!optionalAssessment || !Set.of(400, 404, 409).contains(ex.status())) {
+                    throw ex;
+                }
+                // A direct profile/JD roadmap remains available when an old optional quiz is stale.
+                assessment = Map.of();
+                assessmentSnapshot = Map.of();
+                assessedContext = null;
+            }
+        } else if (resumeId != null || jobId == null) {
+            throw ApiException.conflict("Generate and complete a new assessment using this confirmed CV and JD");
+        }
+        var job = assessedContext != null ? assessedContext.job() : db.getMarketJobPostsById(jobId);
+        String target = text(job.get("job_title"));
+        if (target.isBlank()) {
+            throw ApiException.badRequest("Select a target career");
+        }
 
         var profileSkills = db.listCandidateProfileSkillsByUserId(user.id());
-        List<Map<String, Object>> requirements = db.listMarketJobSkillsByMarketJobId(request.jobId());
-        var resumeSkills = request.resumeId() == null
-            ? List.<Map<String, Object>>of()
-            : db.listResumeSkillsByResumeId(request.resumeId());
+        List<Map<String, Object>> requirements =
+            assessedContext != null ? assessedContext.skills() : db.listMarketJobSkillsByMarketJobId(jobId);
+        var resumeSkills = resumeId == null ? List.<Map<String, Object>>of() : db.listResumeSkillsByResumeId(resumeId);
         var missing = MissingSkillAnalysis.find(requirements, profileSkills, resumeSkills, assessment);
-        var recommendationSnapshot = missingSkillReferences(missing);
+        String contextKey = jobId != null ? "job:" + jobId : "paste:" + text(assessmentSnapshot.get("jd_identity"));
+        Map<String, Object> sourceSnapshot = fields(
+            "job_id",
+            jobId,
+            "resume_id",
+            resumeId,
+            "context_key",
+            contextKey,
+            "job",
+            fields(
+                "job_title",
+                target,
+                "raw_content",
+                job.get("raw_content"),
+                "parsed_requirements",
+                job.get("parsed_requirements"),
+                "parsed_responsibilities",
+                job.get("parsed_responsibilities"),
+                "parsed_description",
+                job.get("parsed_description")
+            ),
+            "requirements",
+            requirements,
+            "profile_skills",
+            profileSkills,
+            "resume_skills",
+            resumeSkills,
+            "profile",
+            fields("years_experience", profile.get("years_experience")),
+            "assessment_id",
+            assessment.get("id"),
+            "assessment_scores",
+            assessment.get("skill_scores"),
+            "assessment_input_hash",
+            assessment.get("input_hash")
+        );
+        var recommendationSnapshot = includeReferences ? missingSkillReferences(missing) : fields();
+        recommendationSnapshot.put(
+            "input_context",
+            fields(
+                "jd_source",
+                jobId == null ? "PASTED" : "CATALOG",
+                "job_id",
+                jobId,
+                "resume_id",
+                resumeId,
+                "assessment_id",
+                assessment.get("id"),
+                "context_key",
+                contextKey
+            )
+        );
         Map<String, Object> input = fields(
             "learning_scope",
             MissingSkillAnalysis.SCOPE,
@@ -190,7 +283,12 @@ public class LearningService {
             !assessment.isEmpty() ? "ASSESSMENT" : !cv.isEmpty() ? "RESUME" : "JOB",
             missing,
             recommendationSnapshot,
-            input
+            input,
+            jobId,
+            resumeId,
+            contextKey,
+            LearningInputContext.hash(sourceSnapshot),
+            sourceSnapshot
         );
     }
 
@@ -240,24 +338,32 @@ public class LearningService {
 
         db.getUsersByIdForUpdate(owner);
         // Inference can take minutes. Do not publish against a JD/CV/assessment that became unavailable meanwhile.
-        db.getMarketJobPostsById(request.jobId());
-        if (request.resumeId() != null && !"READY".equals(resumes.owned(request.resumeId()).get("status"))) {
-            throw ApiException.conflict("Confirm CV data first");
+        PreparedRoadmap latestInputs = prepareRoadmap(request, false);
+        if (!prepared.inputHash().equals(latestInputs.inputHash())) {
+            throw ApiException.conflict("Learning inputs changed while generating the roadmap; review and retry");
         }
-        if (assessment.get("id") != null) {
-            db.getAssessmentSessionsById(assessment.get("id"), owner);
+        int version = ((Number) (prepared.jobId() == null
+            ? db.readGapVersionByContext(owner, prepared.contextKey())
+            : db.readGapAnalysesByUserId(owner, prepared.jobId()))).intValue();
+        if (prepared.jobId() == null) {
+            db.retireGapContext(owner, prepared.contextKey());
+        } else {
+            db.updateGapAnalysesByUserId(owner, prepared.jobId());
         }
-        int version = ((Number) db.readGapAnalysesByUserId(owner, request.jobId())).intValue();
-
-        db.updateGapAnalysesByUserId(owner, request.jobId());
         UUID gapId = db.insertGapAnalyses(
             fields(
                 "user_id",
                 owner,
                 "market_job_id",
-                request.jobId(),
+                prepared.jobId(),
                 "resume_id",
-                request.resumeId(),
+                prepared.resumeId(),
+                "context_key",
+                prepared.contextKey(),
+                "input_hash",
+                prepared.inputHash(),
+                "context_snapshot",
+                db.json(prepared.snapshot()),
                 "assessment_session_id",
                 assessment.get("id"),
                 "target_job_title",
@@ -305,7 +411,7 @@ public class LearningService {
                 "user_id",
                 owner,
                 "market_job_id",
-                request.jobId(),
+                prepared.jobId(),
                 "gap_analysis_id",
                 gapId,
                 "target_job_title",
@@ -384,7 +490,12 @@ public class LearningService {
         String inputSource,
         List<Map<String, Object>> missing,
         Map<String, Object> recommendations,
-        Map<String, Object> input
+        Map<String, Object> input,
+        UUID jobId,
+        UUID resumeId,
+        String contextKey,
+        String inputHash,
+        Map<String, Object> snapshot
     ) {
     }
 
@@ -402,6 +513,9 @@ public class LearningService {
         List<Map<String, Object>> roadmaps = db.listRoadmapsByUserId(user.id());
         roadmaps.forEach(roadmap -> {
             var snapshot = object(roadmap.remove("learning_recommendations_snapshot"));
+            if (snapshot.containsKey("input_context")) {
+                roadmap.put("input_context", snapshot.get("input_context"));
+            }
             roadmap.put(
                 "learning_scope",
                 MissingSkillAnalysis.SCOPE.equals(snapshot.get("learning_scope"))
@@ -426,6 +540,9 @@ public class LearningService {
         var gaps = db.listGapAnalysisSkillsByGapAnalysisId(roadmap.get("gap_analysis_id"));
         roadmap.put("skill_gaps", gaps);
         Object snapshot = roadmap.remove("learning_recommendations_snapshot");
+        if (object(snapshot).containsKey("input_context")) {
+            roadmap.put("input_context", object(snapshot).get("input_context"));
+        }
         boolean targeted = MissingSkillAnalysis.SCOPE.equals(object(snapshot).get("learning_scope"));
         roadmap.put("learning_scope", targeted ? MissingSkillAnalysis.SCOPE : "LEGACY_FULL_ROADMAP");
         if (targeted) {

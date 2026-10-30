@@ -38,6 +38,9 @@ final class LearningResponseSchema {
             fields.put("explanation", textSchema(1, 200));
             fields.put("correct_option", Map.of("type", "string", "enum", List.of("A", "B", "C", "D")));
             fields.put("jd_evidence", textSchema(8, 250));
+            if (input.containsKey("resume")) {
+                fields.put("cv_evidence", textSchema(0, 250));
+            }
             Map<String, Object> question = objectSchema(fields);
             return objectSchema(Map.of("questions", arraySchema(question, 10, 10)));
         }

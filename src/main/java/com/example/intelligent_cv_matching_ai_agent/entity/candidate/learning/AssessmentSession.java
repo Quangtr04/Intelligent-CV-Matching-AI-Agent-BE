@@ -49,6 +49,19 @@ public class AssessmentSession {
     @Column(name = "market_job_id", nullable = true)
     private UUID marketJobId;
 
+    @JsonProperty("resume_id")
+    @Column(name = "resume_id")
+    private UUID resumeId;
+
+    @JsonProperty("input_hash")
+    @Column(name = "input_hash", length = 64)
+    private String inputHash;
+
+    @JsonIgnore
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "context_snapshot", columnDefinition = "jsonb")
+    private Object contextSnapshot;
+
     @JsonProperty("job_role_category_snapshot")
     @Column(name = "job_role_category_snapshot", nullable = true, length = 100)
     private String jobRoleCategorySnapshot;

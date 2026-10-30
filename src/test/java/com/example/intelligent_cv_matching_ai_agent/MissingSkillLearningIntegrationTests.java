@@ -3,6 +3,8 @@ package com.example.intelligent_cv_matching_ai_agent;
 import com.example.intelligent_cv_matching_ai_agent.repository.shared.SqlStore;
 import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiService;
 import com.example.intelligent_cv_matching_ai_agent.service.shared.identity.TokenService;
+import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.learning.AssessmentRequest;
+import com.example.intelligent_cv_matching_ai_agent.service.candidate.learning.AssessmentService;
 import java.time.OffsetDateTime;
 import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,6 +58,9 @@ class MissingSkillLearningIntegrationTests {
     private TokenService tokens;
 
     @Autowired
+    private AssessmentService assessments;
+
+    @Autowired
     private JsonMapper mapper;
 
     @MockitoBean
@@ -75,6 +80,33 @@ class MissingSkillLearningIntegrationTests {
             owner,
             "Unrelated old career"
         );
+    }
+
+    @Test
+    void aCvPathRequiresItsOwnCompletedAssessmentButTheNoCvPathCanGenerateDirectly() throws Exception {
+        UUID job = job("Docker");
+        UUID resume = db.insert(
+            "resumes",
+            fields(
+                "user_id",
+                owner,
+                "title",
+                "Confirmed CV",
+                "source",
+                "MANUAL",
+                "status",
+                "READY",
+                "raw_content",
+                "Built a Java service."
+            )
+        );
+        mvc.perform(
+            post("/api/v1/roadmaps").header("Authorization", authorization).contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(fields("jobId", job, "resumeId", resume)))
+        ).andExpect(status().isConflict());
+        verifyNoInteractions(ai);
+        when(ai.generate(eq("ROADMAP_GENERATE"), anyMap())).thenReturn(generated("Docker"));
+        assertEquals(1, array(create(fields("jobId", job)).get("nodes")).size());
     }
 
     @Test
@@ -131,6 +163,7 @@ class MissingSkillLearningIntegrationTests {
                 "private-cv-content".repeat(5000)
             )
         );
+        completedCvAssessment(job, resume);
         when(ai.generate(eq("ROADMAP_GENERATE"), anyMap())).thenAnswer(call -> {
             assertFalse(TransactionSynchronizationManager.isActualTransactionActive());
             Map<String, Object> input = call.getArgument(1);
@@ -176,9 +209,21 @@ class MissingSkillLearningIntegrationTests {
         declared("Java");
         UUID cv = db.insert(
             "resumes",
-            fields("user_id", owner, "title", "Confirmed CV", "source", "MANUAL", "status", "READY")
+            fields(
+                "user_id",
+                owner,
+                "title",
+                "Confirmed CV",
+                "source",
+                "MANUAL",
+                "status",
+                "READY",
+                "raw_content",
+                "I use SQL to query application data."
+            )
         );
         db.update("INSERT INTO resume_skills(resume_id,skill_id) VALUES(?,?)", cv, skill("SQL"));
+        completedCvAssessment(job, cv);
 
         var result = create(fields("jobId", job, "resumeId", cv));
 
@@ -298,6 +343,35 @@ class MissingSkillLearningIntegrationTests {
                 "CANDIDATE",
                 "status",
                 "ACTIVE"
+            )
+        );
+    }
+
+    private void completedCvAssessment(
+        UUID job,
+        UUID resume) {
+        var prepared = assessments.prepareForOwner(owner, new AssessmentRequest(null, job, resume, null));
+        db.insert(
+            "assessment_sessions",
+            fields(
+                "user_id",
+                owner,
+                "market_job_id",
+                job,
+                "resume_id",
+                resume,
+                "status",
+                "completed",
+                "target_job_title",
+                prepared.target(),
+                "input_hash",
+                prepared.inputHash(),
+                "context_snapshot",
+                db.json(prepared.snapshot()),
+                "skill_scores",
+                db.json(List.of()),
+                "submitted_at",
+                OffsetDateTime.now()
             )
         );
     }

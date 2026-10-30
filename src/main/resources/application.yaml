@@ -81,6 +81,12 @@ server:
   port: ${SERVER_PORT}
 app:
   frontend-reset-url: ${APP_FRONTEND_RESET_URL}
+  resume:
+    pdf:
+      browser-path: ${APP_PDF_BROWSER_PATH:}
+      timeout-seconds: ${APP_PDF_TIMEOUT_SECONDS:45}
+      max-concurrent: ${APP_PDF_MAX_CONCURRENT:2}
+      no-sandbox: ${APP_PDF_NO_SANDBOX:false}
   jobs:
     salary-exchange:
       enabled: ${SALARY_EXCHANGE_ENABLED:true}
