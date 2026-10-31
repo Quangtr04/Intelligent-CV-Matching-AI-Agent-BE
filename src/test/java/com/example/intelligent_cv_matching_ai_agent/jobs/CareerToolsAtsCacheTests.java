@@ -63,6 +63,7 @@ class CareerToolsAtsCacheTests {
     @BeforeEach
     void configure() {
         when(user.id()).thenReturn(actor);
+        when(ai.enabled()).thenReturn(true);
         cv.putAll(
             Map.of(
                 "id",
@@ -309,25 +310,64 @@ class CareerToolsAtsCacheTests {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"provider-error", "invalid-score", "missing-score"})
-    void aiErrorsAndInvalidScoresDoNotPersistOrCacheAnAnalysis(
+    @ValueSource(strings = {"provider-error", "timeout"})
+    void providerFailuresFallBackToRuleFeedbackWithTheSameScore(
         String failure) {
-        if ("provider-error".equals(failure)) {
-            when(ai.generate(eq("JOB_ATS"), anyMap())).thenThrow(new ApiException(503, "AI unavailable"));
-        } else {
-            Map<String, Object> invalid = new LinkedHashMap<>(generated());
-            if ("invalid-score".equals(failure))
-                invalid.put("ats_score", 101);
-            else
-                invalid.remove("ats_score");
-            when(ai.generate(eq("JOB_ATS"), anyMap())).thenReturn(invalid);
-        }
+        Map<String, Object> withAi = service.ats(job, new CvRequest(firstCv));
+        memory.clear();
+        cv.put("structured_data", Map.of("summary", "Java developer", "skills", List.of("Java")));
+        int status = "timeout".equals(failure) ? 504 : 502;
+        when(ai.generate(eq("JOB_ATS"), anyMap())).thenThrow(new ApiException(status, "AI unavailable"));
+
+        Map<String, Object> fallback = service.ats(job, new CvRequest(firstCv));
+
+        Map<String, Object> report = (Map<String, Object>) fallback.get("ats_report");
+        assertEquals("RULES", report.get("feedback_source"));
+        assertEquals("ats-v1", fallback.get("model_name"));
+        assertFalse(((List<?>) fallback.get("improvement_suggestions_json")).isEmpty());
+        assertEquals("AI", ((Map<String, Object>) withAi.get("ats_report")).get("feedback_source"));
+        verify(db, times(2)).insert(eq("job_resume_analyses"), anyMap());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"invalid-score", "missing-score"})
+    void modelScoresAreIgnoredBecauseTheRubricOwnsTheScore(
+        String failure) {
+        Map<String, Object> modelOutput = new LinkedHashMap<>(generated());
+        if ("invalid-score".equals(failure))
+            modelOutput.put("ats_score", 101);
+        else
+            modelOutput.remove("ats_score");
+        when(ai.generate(eq("JOB_ATS"), anyMap())).thenReturn(modelOutput);
+
+        Map<String, Object> result = service.ats(job, new CvRequest(firstCv));
+
+        Map<String, Object> report = (Map<String, Object>) result.get("ats_report");
+        assertEquals(report.get("score"), result.get("ats_score"));
+        double score = ((Number) result.get("ats_score")).doubleValue();
+        assertTrue(score >= 0 && score <= 100);
+    }
+
+    @Test
+    void quotaErrorsStillFailWithoutPersistingOrCaching() {
+        when(ai.generate(eq("JOB_ATS"), anyMap())).thenThrow(new ApiException(429, "Quota exceeded"));
 
         assertThrows(ApiException.class, () -> service.ats(job, new CvRequest(firstCv)));
 
         verify(db, never()).insert(eq("job_resume_analyses"), anyMap());
         verify(values, never()).set(anyString(), anyString(), any(Duration.class));
         assertTrue(memory.isEmpty());
+    }
+
+    @Test
+    void disabledAiStillScoresWithRulesOnly() {
+        when(ai.enabled()).thenReturn(false);
+
+        Map<String, Object> result = service.ats(job, new CvRequest(firstCv));
+
+        assertEquals("RULES", ((Map<String, Object>) result.get("ats_report")).get("feedback_source"));
+        assertEquals("ats-v1", result.get("model_name"));
+        verify(ai, never()).generate(eq("JOB_ATS"), anyMap());
     }
 
     @Test

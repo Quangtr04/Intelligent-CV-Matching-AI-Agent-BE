@@ -60,8 +60,8 @@ public final class ResumeContent {
         result.put("ats_score", null);
         result.put(
             "summary",
-            ("Kiểm tra mức độ đầy đủ của các mục CV bằng quy tắc. Chưa đánh giá ATS,"
-                + " chất lượng nội dung hoặc độ phù hợp với vị trí tuyển dụng.")
+            ("Kiểm tra mức độ đầy đủ của các mục CV và điểm ATS bằng quy tắc. Chưa đánh giá"
+                + " chất lượng nội dung bằng AI hoặc độ phù hợp với vị trí tuyển dụng.")
         );
         result.put("strengths", strengths);
         result.put("issues", issues);

@@ -31,16 +31,7 @@ final class ApplicationReviewResponseSchema {
         properties.put("summary", text(1, 800));
         properties.put(
             "scores",
-            Map.of(
-                "type",
-                "object",
-                "properties",
-                scores,
-                "required",
-                SCORE_CODES,
-                "additionalProperties",
-                false
-            )
+            Map.of("type", "object", "properties", scores, "required", SCORE_CODES, "additionalProperties", false)
         );
         properties.put("strengths", Map.of("type", "array", "maxItems", 6, "items", text(1, 300)));
         properties.put(

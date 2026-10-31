@@ -178,6 +178,8 @@ public final class ResumeWritingQuality {
         Object quality = analysis.get("writing_quality_json");
         result.put("writing_quality", quality instanceof Map<?, ?> ? quality : null);
         result.put("content_score", quality instanceof Map<?, ?> map ? map.get("content_score") : null);
+        Object ats = analysis.get("ats_report_json");
+        result.put("ats_report", ats instanceof Map<?, ?> ? ats : null);
         return result;
     }
 

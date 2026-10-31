@@ -20,6 +20,8 @@ import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiExceptio
 
 import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiService;
 import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiResponseCache;
+import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AtsEvaluation;
+import com.example.intelligent_cv_matching_ai_agent.util.shared.resume.AtsScoring;
 
 import com.example.intelligent_cv_matching_ai_agent.service.candidate.resume.ResumeService;
 import java.util.*;
@@ -106,19 +108,29 @@ public class CareerToolsService {
 
         var cv = confirmed(request.resumeId());
         var job = activeJob(jobId);
+        var skills = db.listMarketJobSkillsByMarketJobId(jobId);
+        String language = CareerToolsSupport.languageOf(cv.get("language"));
+        String resumeText = resumes.canonicalText(cv);
         Map<String, Object> input = fields(
             "resume",
             cv.get("structured_data"),
             "resume_text",
-            resumes.canonicalText(cv),
+            resumeText,
+            "resume_source",
+            fields("source", cv.get("source"), "mime_type", cv.get("mime_type"), "file_name", cv.get("file_name")),
+            "raw_content",
+            cv.get("raw_content"),
             "job",
             job,
+            "required_skills",
+            skills,
             "language",
-            CareerToolsSupport.languageOf(cv.get("language"))
+            language
         );
+        boolean useAi = ai.enabled();
         String inputHash = FlowSupport.hash(
-            "job-ats-response-v1\n" + CACHE_JSON.writeValueAsString(input) + "\n" + ai.provider() + "\n" + ai.model()
-                + "\n" + text(ai.cacheFingerprint("JOB_ATS"))
+            "job-ats-response-v2\n" + AtsScoring.RUBRIC_VERSION + "\n" + CACHE_JSON.writeValueAsString(input) + "\n"
+                + (useAi ? ai.provider() + "\n" + ai.model() + "\n" + text(ai.cacheFingerprint("JOB_ATS")) : "rules")
         );
         String cacheKey =
             "edunexus:ats:response:v1:" + user.id() + ":" + request.resumeId() + ":" + jobId + ":" + inputHash;
@@ -145,8 +157,7 @@ public class CareerToolsService {
             return response;
         }
 
-        Map<String, Object> generated = ai.generate("JOB_ATS", input);
-        double score = FlowSupport.score(generated.get("ats_score"), 100, "ATS score");
+        Map<String, Object> evaluation = AtsEvaluation.evaluate(ai, cv, resumeText, job, skills, language);
 
         UUID id = db.insertJobResumeAnalyses(
             fields(
@@ -157,15 +168,24 @@ public class CareerToolsService {
                 "market_job_id",
                 jobId,
                 "ats_score",
-                score,
+                evaluation.get("ats_score"),
                 "strengths_json",
-                db.json(array(generated.get("strengths"))),
+                db.json(evaluation.get("strengths")),
                 "missing_skills_json",
-                db.json(array(generated.get("missing_skills"))),
+                db.json(evaluation.get("missing_skills")),
                 "improvement_suggestions_json",
-                db.json(fields("input_hash", inputHash, "items", array(generated.get("improvement_suggestions")))),
+                db.json(
+                    fields(
+                        "input_hash",
+                        inputHash,
+                        "items",
+                        evaluation.get("improvement_suggestions"),
+                        "ats_report",
+                        evaluation.get("ats_report")
+                    )
+                ),
                 "model_name",
-                ai.model()
+                evaluation.get("model_name")
             )
         );
 

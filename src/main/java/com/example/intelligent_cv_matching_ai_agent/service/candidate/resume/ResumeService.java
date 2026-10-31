@@ -1,5 +1,6 @@
 package com.example.intelligent_cv_matching_ai_agent.service.candidate.resume;
 
+import com.example.intelligent_cv_matching_ai_agent.util.shared.resume.AtsScoring;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.resume.ResumeFileExtractor;
 
 import com.example.intelligent_cv_matching_ai_agent.util.shared.resume.ResumeData;
@@ -364,6 +365,9 @@ public class ResumeService {
                     useAi ? Objects.toString(ai.cacheFingerprint("CV_ANALYZE"), "") : "",
                     ResumeWritingQuality.RUBRIC_VERSION,
                     ResumeContentQuality.RUBRIC_VERSION,
+                    AtsScoring.RUBRIC_VERSION,
+                    Objects.toString(resume.get("raw_content"), ""),
+                    Objects.toString(resume.get("mime_type"), ""),
                     input
                 )
             )
@@ -406,6 +410,9 @@ public class ResumeService {
         } else {
             result = ResumeContent.baseline(resume);
         }
+        // The ATS score is always rule-based so the same CV keeps the same score; model output never sets it.
+        Map<String, Object> atsReport = AtsScoring.score(resume);
+        result.put("ats_score", atsReport.get("score"));
         Map<String, Object> fields = new LinkedHashMap<>();
         fields.put("resume_id", id);
         fields.put("analysis_type", mode);
@@ -413,6 +420,7 @@ public class ResumeService {
         fields.put("overall_score", result.get("overall_score"));
         fields.put("ats_score", result.get("ats_score"));
         fields.put("summary", result.get("summary"));
+        fields.put("ats_report_json", db.json(atsReport));
         fields.put("strengths_json", db.json(result.getOrDefault("strengths", List.of())));
         fields.put("issues_json", db.json(result.getOrDefault("issues", List.of())));
         if (useAi) {

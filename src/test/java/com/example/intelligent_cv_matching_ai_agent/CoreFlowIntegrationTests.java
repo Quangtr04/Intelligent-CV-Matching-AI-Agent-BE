@@ -549,6 +549,7 @@ class CoreFlowIntegrationTests {
     @Test
     void atsCacheDraftsAndAssistantKeepOwnedContext() throws Exception {
         UUID cv = confirmedCv(), job = importedJob();
+        when(ai.enabled()).thenReturn(true);
         when(ai.generate(eq("JOB_ATS"), anyMap())).thenReturn(
             Map.of(
                 "ats_score",
@@ -1325,8 +1326,16 @@ class CoreFlowIntegrationTests {
         assertEquals(candidateId.toString(), ats.get("user_id"));
         assertEquals(resumeId.toString(), ats.get("resume_id"));
         assertEquals(jobId.toString(), ats.get("market_job_id"));
-        assertEquals(79, ((Number) ats.get("ats_score")).intValue());
-        assertEquals(List.of("Docker"), ats.get("missing_skills_json"));
+        var atsReport = (Map<String, Object>) ats.get("ats_report");
+        assertEquals("ats-v1", atsReport.get("rubric_version"));
+        assertEquals("AI", atsReport.get("feedback_source"));
+        assertEquals(
+            ((Number) atsReport.get("score")).doubleValue(),
+            ((Number) ats.get("ats_score")).doubleValue(),
+            0.001,
+            "The model's own ats_score must be ignored"
+        );
+        assertEquals(List.of(), ats.get("missing_skills_json"));
         assertEquals(List.of("Show production deployment evidence"), ats.get("improvement_suggestions_json"));
         assertFalse(json(ats).contains("PRIVATE_MODEL_TRACE"));
         assertFalse(json(ats).contains("input_hash"));
@@ -1449,14 +1458,25 @@ class CoreFlowIntegrationTests {
     @Test
     void consultantEvaluationRejectsClosedThreadsDeletedCandidatesAndDisabledAi() throws Exception {
         UUID threadId = assignedConsultation(), resumeId = confirmedCv(), jobId = importedJob();
-        assertConsultantEvaluationDenied(threadId, resumeId, jobId, consultant, 503, false);
+        String base = "/api/v1/consultations/" + threadId;
+        mvc.perform(post(base + "/resumes/" + resumeId + "/analyze").header("Authorization", "Bearer " + consultant))
+            .andExpect(status().isServiceUnavailable());
+        // Job ATS no longer needs the model: the rubric scores it and supplies its own feedback.
+        var ats = postJson(base + "/jobs/" + jobId + "/ats", consultant, Map.of("resumeId", resumeId));
+        var atsReport = (Map<String, Object>) ats.get("ats_report");
+        assertEquals("RULES", atsReport.get("feedback_source"));
+        assertEquals(
+            ((Number) atsReport.get("score")).doubleValue(),
+            ((Number) ats.get("ats_score")).doubleValue(),
+            0.001
+        );
         verify(ai, never()).generate(anyString(), anyMap());
         assertEquals(
             0,
             ((Number) db.scalar("SELECT count(*) FROM resume_analyses WHERE resume_id=?", resumeId)).intValue()
         );
         assertEquals(
-            0,
+            1,
             ((Number) db.scalar("SELECT count(*) FROM job_resume_analyses WHERE resume_id=?", resumeId)).intValue()
         );
 
@@ -1547,44 +1567,37 @@ class CoreFlowIntegrationTests {
 
         var invalidAts = fields(
             "ats_score",
-            75,
+            -1,
             "strengths",
             List.of(),
             "missing_skills",
-            List.of(),
+            List.of(Map.of("_internal", "PRIVATE_MODEL_TRACE")),
             "improvement_suggestions",
             "Invalid array"
         );
         when(ai.generate(eq("JOB_ATS"), anyMap())).thenReturn(invalidAts);
-        mvc.perform(
-            post(base + "/jobs/" + jobId + "/ats").header("Authorization", "Bearer " + consultant)
-                .contentType(MediaType.APPLICATION_JSON).content(json(Map.of("resumeId", resumeId)))
-        ).andExpect(status().isBadGateway());
-        invalidAts.put("improvement_suggestions", List.of());
-        invalidAts.put("ats_score", -1);
-        mvc.perform(
-            post(base + "/jobs/" + jobId + "/ats").header("Authorization", "Bearer " + consultant)
-                .contentType(MediaType.APPLICATION_JSON).content(json(Map.of("resumeId", resumeId)))
-        ).andExpect(status().isBadGateway());
-        invalidAts.put("ats_score", 75);
-        invalidAts.put("missing_skills", List.of(Map.of("_internal", "PRIVATE_MODEL_TRACE")));
-        mvc.perform(
-            post(base + "/jobs/" + jobId + "/ats").header("Authorization", "Bearer " + consultant)
-                .contentType(MediaType.APPLICATION_JSON).content(json(Map.of("resumeId", resumeId)))
-        ).andExpect(status().isBadGateway());
+        // The model only words the feedback: a malformed reply is ignored and the rubric score stands.
+        var ats = postJson(base + "/jobs/" + jobId + "/ats", consultant, Map.of("resumeId", resumeId));
+        var atsReport = (Map<String, Object>) ats.get("ats_report");
+        assertEquals(
+            ((Number) atsReport.get("score")).doubleValue(),
+            ((Number) ats.get("ats_score")).doubleValue(),
+            0.001
+        );
+        assertFalse(json(ats).contains("PRIVATE_MODEL_TRACE"));
+        assertFalse(((List<?>) ats.get("improvement_suggestions_json")).isEmpty());
         assertEquals(
             0,
             ((Number) db.scalar("SELECT count(*) FROM resume_analyses WHERE resume_id=?", resumeId)).intValue()
         );
         assertEquals(
-            0,
+            1,
             ((Number) db.scalar("SELECT count(*) FROM job_resume_analyses WHERE resume_id=?", resumeId)).intValue()
         );
         assertEquals(
             0,
             ((Number) db.scalar(
-                "SELECT count(*) FROM audit_logs WHERE entity_id=? AND action IN "
-                    + "('CONSULTATION_CV_ANALYZE', 'CONSULTATION_JOB_ATS')",
+                "SELECT count(*) FROM audit_logs WHERE entity_id=? AND action='CONSULTATION_CV_ANALYZE'",
                 threadId
             )).intValue()
         );

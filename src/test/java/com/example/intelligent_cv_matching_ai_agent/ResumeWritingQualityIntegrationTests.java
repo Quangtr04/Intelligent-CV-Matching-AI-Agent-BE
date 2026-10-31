@@ -158,14 +158,15 @@ class ResumeWritingQualityIntegrationTests {
     }
 
     @Test
-    void disabledAiUsesCompletenessRulesWithoutFabricatingWritingOrAtsGrades() throws Exception {
+    void disabledAiUsesRulesForCompletenessAndAtsWithoutFabricatingWritingGrades() throws Exception {
         UUID resume = resume("READY");
         mvc.perform(post(path(resume)).header("Authorization", candidate)).andExpect(status().isOk())
             .andExpect(jsonPath("$.analysis_type").value("RULE_BASED"))
             .andExpect(jsonPath("$.model_name").value("rules-v1"))
             .andExpect(jsonPath("$.writing_quality").value(org.hamcrest.Matchers.nullValue()))
             .andExpect(jsonPath("$.content_score").value(org.hamcrest.Matchers.nullValue()))
-            .andExpect(jsonPath("$.ats_score").value(org.hamcrest.Matchers.nullValue()));
+            .andExpect(jsonPath("$.ats_score").isNumber())
+            .andExpect(jsonPath("$.ats_report.rubric_version").value("ats-v1"));
         assertNull(db.scalar("SELECT writing_quality_json FROM resume_analyses WHERE resume_id=?", resume));
         verify(ai, never()).generate(anyString(), anyMap());
     }

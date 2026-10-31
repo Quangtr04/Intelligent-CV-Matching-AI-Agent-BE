@@ -6,6 +6,8 @@ import com.example.intelligent_cv_matching_ai_agent.repository.consultant.consul
 import com.example.intelligent_cv_matching_ai_agent.security.shared.CurrentUser;
 import com.example.intelligent_cv_matching_ai_agent.service.candidate.resume.ResumeService;
 import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiService;
+import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AtsEvaluation;
+import com.example.intelligent_cv_matching_ai_agent.util.shared.resume.AtsScoring;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.FlowSupport;
 import com.example.intelligent_cv_matching_ai_agent.util.consultant.consultation.ConsultationEvaluationData;
 import com.example.intelligent_cv_matching_ai_agent.util.candidate.resume.ResumeWritingQuality;
@@ -22,7 +24,7 @@ import static com.example.intelligent_cv_matching_ai_agent.util.shared.Values.te
 @Service
 public class ConsultantEvaluationService {
 
-    private static final String ATS_VERSION = "consultation-ats-v1";
+    private static final String ATS_VERSION = "consultation-ats-v2";
 
     private final ConsultationEvaluationRepository repository;
 
@@ -76,7 +78,8 @@ public class ConsultantEvaluationService {
             resume
         );
         double overall = FlowSupport.score(generated.get("overall_score"), 100, "CV overall score");
-        double ats = FlowSupport.score(generated.get("ats_score"), 100, "CV ATS score");
+        Map<String, Object> atsReport = AtsScoring.score(resume);
+        Object ats = atsReport.get("score");
         String summary = aiText(generated.get("summary"), "CV summary", 100000, true);
         List<String> strengths = aiStrings(generated, "strengths");
         List<String> issues = aiStrings(generated, "issues");
@@ -102,6 +105,8 @@ public class ConsultantEvaluationService {
                 repository.json(issues),
                 "writing_quality_json",
                 repository.json(generated.get("writing_quality")),
+                "ats_report_json",
+                repository.json(atsReport),
                 "model_name",
                 modelOf(generated)
             )
@@ -126,40 +131,16 @@ public class ConsultantEvaluationService {
         List<Map<String, Object>> skills = repository.jobSkills(jobId);
         String canonical = resumes.canonicalText(resume);
         String inputHash = FlowSupport.hash(
-            ATS_VERSION + "\n" + canonical + "\n" + languageOf(resume) + "\n" + job + "\n" + skills + "\n"
-                + ai.provider() + "\n" + ai.model()
+            ATS_VERSION + "\n" + AtsScoring.RUBRIC_VERSION + "\n" + canonical + "\n" + resume.get("raw_content") + "\n"
+                + resume.get("source") + "\n" + resume.get("mime_type") + "\n" + languageOf(resume) + "\n" + job + "\n"
+                + skills + "\n" + ai.provider() + "\n" + ai.model()
         );
         var cached = repository.findAtsAnalysis(candidateId, resumeId, jobId, inputHash);
         if (cached.isPresent()) {
             return atsResponse(cached.get(), true);
         }
-        requireAi();
 
-        Map<String, Object> generated = ai.generate(
-            "JOB_ATS",
-            fields(
-                "resume",
-                resume.get("structured_data"),
-                "resume_text",
-                canonical,
-                "job",
-                job,
-                "required_skills",
-                skills,
-                "language",
-                languageOf(resume),
-                "evaluation_guidance",
-                "Assess how well this reviewed CV meets this job's explicit requirements. "
-                    + "Consider required and preferred skills separately, relevant experience, seniority and duties. "
-                    + "Use evidence from the CV and JD. Related technologies are not automatically equivalent. "
-                    + "Distinguish missing evidence from a confirmed lack of competence. Explain uncertainty in "
-                    + "missing_skills and improvement_suggestions. Return an advisory ATS score from 0 to 100."
-            )
-        );
-        double score = FlowSupport.score(generated.get("ats_score"), 100, "ATS score");
-        List<String> strengths = aiStrings(generated, "strengths");
-        List<String> missing = aiStrings(generated, "missing_skills");
-        List<String> suggestions = aiStrings(generated, "improvement_suggestions");
+        Map<String, Object> evaluation = AtsEvaluation.evaluate(ai, resume, canonical, job, skills, languageOf(resume));
         UUID analysisId = repository.insertAtsAnalysis(
             fields(
                 "user_id",
@@ -169,15 +150,24 @@ public class ConsultantEvaluationService {
                 "market_job_id",
                 jobId,
                 "ats_score",
-                score,
+                evaluation.get("ats_score"),
                 "strengths_json",
-                repository.json(strengths),
+                repository.json(evaluation.get("strengths")),
                 "missing_skills_json",
-                repository.json(missing),
+                repository.json(evaluation.get("missing_skills")),
                 "improvement_suggestions_json",
-                repository.json(fields("input_hash", inputHash, "items", suggestions)),
+                repository.json(
+                    fields(
+                        "input_hash",
+                        inputHash,
+                        "items",
+                        evaluation.get("improvement_suggestions"),
+                        "ats_report",
+                        evaluation.get("ats_report")
+                    )
+                ),
                 "model_name",
-                modelOf(generated)
+                evaluation.get("model_name")
             )
         );
         audit(consultationId, candidateId, resumeId, jobId, analysisId, "CONSULTATION_JOB_ATS");

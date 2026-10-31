@@ -45,8 +45,7 @@ public final class AiResponseData {
                 + "suggestions:[string]}]}");
             case "JOB_MATCH_RERANK" -> ("{results:[{job_id:uuid,score:number_0_to_1,reason:string,"
                 + "strengths:[string],skill_gaps:[string]}]}");
-            case "JOB_ATS" -> ("{ats_score:number_0_to_100,strengths:[string],missing_skills:[string],"
-                + "improvement_suggestions:[string]}");
+            case "JOB_ATS" -> "{strengths:[string],improvement_suggestions:[string]}";
             case "ASSESSMENT_GENERATE" -> ("{questions:[{part:1_or_2,question_text:string,options:{A:string,"
                 + "B:string,C:string,D:string},correct_option:A_B_C_or_D,"
                 + "related_skill_name:string,jd_evidence:string,explanation:string}]}");
@@ -199,6 +198,14 @@ public final class AiResponseData {
                 + "Keep an application email within 160 words and a cover letter within 250 words. For email, "
                 + "the answer may begin with Subject: and a blank line before the body. Do not replace the document "
                 + "with instructions for writing it. Omit unavailable candidate facts instead of inventing them.";
+        if ("JOB_ATS".equals(feature))
+            return "ats_report holds the final ATS score computed by fixed rules. Never compute, output or "
+                + "change a score. Using only facts in the CV and the job, return up to 5 strengths that cite "
+                + "concrete CV evidence relevant to this job, and up to 8 improvement_suggestions ordered by impact. "
+                + "Focus suggestions on the failed_checks of the lowest-scoring categories and on missing_skills. "
+                + "Each suggestion is one concrete action, ideally a rewritten CV bullet built from the "
+                + "candidate's real facts. Never invent experience, numbers, employers or skills; for a missing "
+                + "skill, tell the candidate to add it only if they really have it. ";
         if ("APPLICATION_EMAIL".equals(feature))
             return "Write both an application email and a cover letter for the ONE supplied job, using only "
                 + "the supplied candidate facts. Return all three fields: subject, email and cover_letter. "
@@ -319,9 +326,7 @@ public final class AiResponseData {
             case "CV_PROFILE_ALIGNMENT" -> ResumeProfileAlignment.validateModelResponse(result);
             case "JOB_MATCH_RERANK" -> array(result, "results");
             case "JOB_ATS" -> {
-                score(result, "ats_score", 100);
                 array(result, "strengths");
-                array(result, "missing_skills");
                 array(result, "improvement_suggestions");
             }
             case "ASSESSMENT_GENERATE" -> array(result, "questions");
