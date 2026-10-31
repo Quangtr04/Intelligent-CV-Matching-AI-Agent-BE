@@ -1,5 +1,7 @@
 package com.example.intelligent_cv_matching_ai_agent.controller.candidate.jobs;
 
+import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.jobs.ApplicationDraftCreateRequest;
+import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.jobs.ApplicationDraftReviewRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.jobs.ApplicationDraftUpdateRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.jobs.CvRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.jobs.DraftRequest;
@@ -99,6 +101,30 @@ public class CareerToolsController {
         @RequestParam(required = false)
         UUID jobId) {
         return service.drafts(jobId);
+    }
+
+    @PostMapping("/application-drafts")
+    public Map<String, Object> createManualDraft(
+        @Valid
+        @RequestBody
+        ApplicationDraftCreateRequest input) {
+        return service.createManualDraft(input);
+    }
+
+    @PostMapping("/application-drafts/review")
+    public Map<String, Object> reviewDraft(
+        @Valid
+        @RequestBody
+        ApplicationDraftReviewRequest input) {
+        return service.reviewDraft(input);
+    }
+
+    @DeleteMapping("/application-drafts/{id}")
+    @ResponseStatus(org.springframework.http.HttpStatus.NO_CONTENT)
+    public void deleteDraft(
+        @PathVariable
+        UUID id) {
+        service.deleteDraft(id);
     }
 
     @PatchMapping("/application-drafts/{id}")

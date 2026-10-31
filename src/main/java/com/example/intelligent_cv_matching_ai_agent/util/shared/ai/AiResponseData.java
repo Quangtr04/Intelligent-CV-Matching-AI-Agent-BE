@@ -54,6 +54,11 @@ public final class AiResponseData {
                 ("{title:string,estimated_total_hours:integer,summary:string," + "nodes:[{skill_name:string,"
                     + "description:string,estimated_hours:integer," + "prerequisites:[integer_sequence_order]}]}");
             case "APPLICATION_EMAIL" -> "{subject:string,email:string,cover_letter:string}";
+            case "APPLICATION_REVIEW" -> ("{summary:string,scores:{relevance:int_0_100,clarity:int_0_100,"
+                + "tone:int_0_100,language:int_0_100,structure:int_0_100},strengths:[string],"
+                + "issues:[{category:SPELLING_or_GRAMMAR_or_TONE_or_CLARITY_or_RELEVANCE_or_STRUCTURE_or_FACT_or_LENGTH,"
+                + "severity:HIGH_or_MEDIUM_or_LOW,original:string,suggestion:string,explanation:string}],"
+                + "missing_keywords:[string]}");
             case "CAREER_CHAT" -> "{answer:string}";
             case "SALARY_ESTIMATE" -> "{estimated_min:number,estimated_max:number,currency:string,reasoning:string}";
             default -> throw ApiException.badRequest("Unsupported AI feature");
@@ -202,6 +207,21 @@ public final class AiResponseData {
                 + "to the job's stated requirements. Do not invent a recipient name, contact details, experience, "
                 + "achievements, qualifications or attachments. If the contact is unknown use a neutral greeting; "
                 + "omit missing candidate details instead of fabricating them. Follow the requested language.";
+        if ("APPLICATION_REVIEW".equals(feature))
+            return "Review the document the CANDIDATE wrote (document_type APPLICATION_EMAIL or COVER_LETTER) "
+                + "for the ONE supplied job. Do not rewrite the whole document. Score 0 to 100: relevance (links "
+                + "the candidate's real evidence to the job requirements), clarity, tone (professional and suited "
+                + "to the job), language (spelling, grammar, punctuation in the document's language) and structure "
+                + "(greeting, opening, body, closing, sign-off; an email also needs a clear subject). "
+                + "List concrete issues ordered by severity. For each issue, original must be copied verbatim "
+                + "from content or subject (a short exact phrase or sentence, same characters and punctuation) "
+                + "and suggestion is the corrected replacement for exactly that text. Use an empty original only "
+                + "for something missing, and then put the text to add in suggestion. Use category FACT when a "
+                + "claim is not supported by the supplied CV, and LENGTH when an email is over about 160 words or "
+                + "a cover letter over about 350 words. Never suggest adding experience, numbers or skills the "
+                + "CV does not contain. strengths lists what is already good. missing_keywords lists job "
+                + "requirement terms the candidate could honestly mention because the CV supports them. "
+                + "Write summary, explanation and suggestion in the requested language.";
         if (!"CV_ANALYZE".equals(feature))
             return "";
         return "Both content_quality rubric cv-content-v1 and writing_quality rubric cv-writing-v1 are mandatory. "
@@ -262,6 +282,7 @@ public final class AiResponseData {
             case "ASSESSMENT_GENERATE", "ROADMAP_GENERATE" -> LearningResponseSchema.schema(feature, input);
             case "JOB_MATCH_RERANK" -> JobMatchResponseSchema.schema(input);
             case "APPLICATION_EMAIL" -> ApplicationWritingResponseSchema.schema();
+            case "APPLICATION_REVIEW" -> ApplicationReviewResponseSchema.schema();
             case "CAREER_CHAT" -> Map.of(
                 "type",
                 "object",
@@ -312,6 +333,17 @@ public final class AiResponseData {
                 string(result, "subject");
                 string(result, "email");
                 string(result, "cover_letter");
+            }
+            case "APPLICATION_REVIEW" -> {
+                string(result, "summary");
+                if (!(result.get("scores") instanceof Map<?, ?> scores))
+                    throw new IllegalArgumentException("Invalid scores");
+                for (String code : ApplicationReviewResponseSchema.SCORE_CODES)
+                    if (!(scores.get(code) instanceof Number n) || n.doubleValue() < 0 || n.doubleValue() > 100)
+                        throw new IllegalArgumentException("Invalid score " + code);
+                array(result, "strengths");
+                array(result, "issues");
+                array(result, "missing_keywords");
             }
             case "CAREER_CHAT" -> string(result, "answer");
             case "SALARY_ESTIMATE" -> {

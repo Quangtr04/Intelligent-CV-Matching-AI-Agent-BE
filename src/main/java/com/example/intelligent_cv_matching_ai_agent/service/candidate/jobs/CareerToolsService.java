@@ -1,5 +1,7 @@
 package com.example.intelligent_cv_matching_ai_agent.service.candidate.jobs;
 
+import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.jobs.ApplicationDraftCreateRequest;
+import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.jobs.ApplicationDraftReviewRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.jobs.ApplicationDraftUpdateRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.jobs.CvRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.jobs.DraftRequest;
@@ -284,6 +286,134 @@ public class CareerToolsService {
         db.updateApplicationDraftsById(input.content(), id);
 
         return db.getApplicationDraftsById2(id);
+    }
+
+    /** Saves a letter or email the candidate wrote themselves, without calling the AI. */
+    @Transactional
+    public Map<String, Object> createManualDraft(
+        ApplicationDraftCreateRequest request) {
+        user.requireRole("CANDIDATE");
+
+        activeJob(request.jobId());
+        Map<String, Object> row = fields(
+            "user_id",
+            user.id(),
+            "market_job_id",
+            request.jobId(),
+            "draft_type",
+            request.draftType(),
+            "content",
+            request.content()
+        );
+        if (request.resumeId() != null) {
+            resumes.owned(request.resumeId());
+            row.put("resume_id", request.resumeId());
+        }
+
+        return db.getApplicationDraftsById2(db.insertApplicationDrafts(row));
+    }
+
+    public void deleteDraft(
+        UUID id) {
+        db.getApplicationDraftsById(id, user.id());
+        db.deleteApplicationDraftsById(id, user.id());
+    }
+
+    /**
+     * Checks a letter the candidate wrote against the job (and CV, when given) and returns scores and
+     * concrete fixes. Nothing is stored; the overall score is the mean of the five criterion scores.
+     */
+    public Map<String, Object> reviewDraft(
+        ApplicationDraftReviewRequest request) {
+        user.requireRole("CANDIDATE");
+
+        var job = activeJob(request.jobId());
+        String subject = request.subject() == null ? "" : request.subject().trim();
+        String content = request.content().trim();
+        Map<String, Object> input = fields(
+            "document_type",
+            request.draftType(),
+            "subject",
+            subject,
+            "content",
+            content,
+            "job",
+            job,
+            "job_requirements",
+            db.listMarketJobSkillsByMarketJobId(request.jobId()),
+            "language",
+            request.language() == null ? "vi" : request.language()
+        );
+        if (request.resumeId() != null) {
+            var cv = resumes.owned(request.resumeId());
+            input.put("resume", cv.get("structured_data"));
+            input.put("resume_text", resumes.canonicalText(cv));
+        } else {
+            input.put("resume", "Not supplied: do not judge facts against a CV.");
+        }
+
+        var result = ai.generate("APPLICATION_REVIEW", input);
+
+        Map<String, Object> scores = new LinkedHashMap<>();
+        double total = 0;
+        if (result.get("scores") instanceof Map<?, ?> raw)
+            for (var entry : raw.entrySet()) {
+                if (!(entry.getValue() instanceof Number number))
+                    continue;
+                int value = (int) Math.round(Math.max(0, Math.min(100, number.doubleValue())));
+                scores.put(String.valueOf(entry.getKey()), value);
+                total += value;
+            }
+
+        List<Map<String, Object>> issues = new ArrayList<>();
+        if (result.get("issues") instanceof List<?> list)
+            for (Object item : list) {
+                if (!(item instanceof Map<?, ?> issue))
+                    continue;
+                String original = text(issue.get("original")).trim();
+                String suggestion = text(issue.get("suggestion")).trim();
+                if (original.isEmpty() && suggestion.isEmpty() && text(issue.get("explanation")).isBlank())
+                    continue;
+                String location = original.isEmpty()
+                    ? "MISSING"
+                    : content.contains(original) ? "CONTENT" : subject.contains(original) ? "SUBJECT" : "UNKNOWN";
+                issues.add(
+                    fields(
+                        "category",
+                        text(issue.get("category")),
+                        "severity",
+                        text(issue.get("severity")),
+                        "original",
+                        original,
+                        "suggestion",
+                        suggestion,
+                        "explanation",
+                        text(issue.get("explanation")).trim(),
+                        "location",
+                        location
+                    )
+                );
+            }
+
+        int words = content.isEmpty() ? 0 : content.split("\\s+").length;
+        return fields(
+            "overall_score",
+            scores.isEmpty() ? 0 : (int) Math.round(total / scores.size()),
+            "scores",
+            scores,
+            "summary",
+            text(result.get("summary")),
+            "strengths",
+            result.get("strengths"),
+            "issues",
+            issues,
+            "missing_keywords",
+            result.get("missing_keywords"),
+            "word_count",
+            words,
+            "model_used",
+            ai.model()
+        );
     }
 
     public Map<String, Object> apply(

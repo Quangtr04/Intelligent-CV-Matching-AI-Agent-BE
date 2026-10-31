@@ -128,6 +128,11 @@ public class CareerToolsRepository {
         return db.one("SELECT * FROM application_drafts WHERE id=?", args);
     }
 
+    public int deleteApplicationDraftsById(
+        Object... args) {
+        return db.update("DELETE FROM application_drafts WHERE id=? AND user_id=?", args);
+    }
+
     public UUID insertExternalApplyEvents(
         Map<String, Object> fields) {
         return db.insert("external_apply_events", fields);
