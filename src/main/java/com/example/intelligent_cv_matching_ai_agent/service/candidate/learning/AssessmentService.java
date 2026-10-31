@@ -92,7 +92,8 @@ public class AssessmentService {
         user.requireRole("CANDIDATE");
         UUID owner = user.id();
         Prepared prepared = transactions.execute(status -> prepareForOwner(owner, request));
-        Map<String, Object> generated = ai.generate("ASSESSMENT_GENERATE", prepared.input());
+        Map<String, Object> generated =
+            generateValidated(prepared, () -> ai.generate("ASSESSMENT_GENERATE", prepared.input()));
         return transactions.execute(status -> persist(prepared, generated));
     }
 
@@ -348,7 +349,45 @@ public class AssessmentService {
 
     public Map<String, Object> generate(
         Prepared prepared) {
-        return ai.generateForUser(prepared.owner(), "ASSESSMENT_GENERATE", prepared.input());
+        return generateValidated(
+            prepared,
+            () -> ai.generateForUser(prepared.owner(), "ASSESSMENT_GENERATE", prepared.input())
+        );
+    }
+
+    /** Small local models sometimes repeat a question or an answer choice; ask again before giving up. */
+    static final int GENERATION_ATTEMPTS = 3;
+
+    static Map<String, Object> generateValidated(
+        Prepared prepared,
+        java.util.function.Supplier<Map<String, Object>> call) {
+        ApiException last = null;
+        for (int attempt = 1; attempt <= GENERATION_ATTEMPTS; attempt++) {
+            try {
+                Map<String, Object> generated = call.get();
+                validateGenerated(prepared, generated);
+                return generated;
+            } catch (ApiException ex) {
+                if (ex.status() != 502) {
+                    throw ex;
+                }
+                last = ex;
+            }
+        }
+        throw last;
+    }
+
+    private static void validateGenerated(
+        Prepared prepared,
+        Map<String, Object> generated) {
+        List<?> questions = array(generated.get("questions"));
+        AssessmentValidator.validateQuestions(questions, prepared.skills(), prepared.sources());
+        if (prepared.resumeId() != null) {
+            AssessmentValidator.validateCandidateEvidence(
+                questions,
+                text(object(prepared.snapshot().get("resume")).get("canonical_text"))
+            );
+        }
     }
 
     /** Caller supplies the short publication transaction; no model call is made here. */
