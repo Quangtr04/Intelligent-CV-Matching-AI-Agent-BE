@@ -534,6 +534,69 @@ class CoreFlowIntegrationTests {
         ).andExpect(status().isConflict());
     }
 
+    @Test
+    @SuppressWarnings("unchecked")
+    void directChatGoesStraightToChosenConsultantWithInboxSummary() throws Exception {
+        var consultants = (List<Map<String, Object>>) mapper.readValue(
+            mvc.perform(get("/api/v1/consultations/consultants").header("Authorization", "Bearer " + candidate))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(),
+            List.class
+        );
+        assertTrue(consultants.stream().anyMatch(c -> consultantId.toString().equals(c.get("id"))));
+
+        var thread = postJson(
+            "/api/v1/consultations",
+            candidate,
+            Map.of(
+                "subject",
+                "Direct chat",
+                "requestType",
+                "DIRECT_CHAT",
+                "description",
+                "Frontend or Fullstack?",
+                "consultantId",
+                consultantId
+            )
+        );
+        String id = thread.get("id").toString();
+        assertEquals(consultantId.toString(), thread.get("consultant_user_id").toString());
+        assertEquals(1, consultationNotifications(consultantId, "CONSULTATION_ASSIGNED", id));
+        assertEquals(0, consultationNotifications(adminId, "CONSULTATION_REQUEST", id));
+
+        postJson("/api/v1/consultations/" + id + "/messages", candidate, Map.of("content", "First"));
+        postJson("/api/v1/consultations/" + id + "/messages", candidate, Map.of("content", "Second"));
+        postJson("/api/v1/consultations/" + id + "/messages", candidate, Map.of("content", "Third"));
+
+        var inbox = (List<Map<String, Object>>) mapper.readValue(
+            mvc.perform(get("/api/v1/consultations").header("Authorization", "Bearer " + consultant))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(),
+            List.class
+        );
+        var row = inbox.stream().filter(t -> id.equals(t.get("id"))).findFirst().orElseThrow();
+        assertEquals("Third", row.get("last_message"));
+        assertEquals(3, ((Number) row.get("unread_count")).intValue());
+        assertNotNull(row.get("candidate_name"));
+
+        var latest = (List<Map<String, Object>>) mapper.readValue(
+            mvc.perform(
+                get("/api/v1/consultations/" + id + "/messages").param("limit", "2").param("latest", "true")
+                    .header("Authorization", "Bearer " + consultant)
+            ).andExpect(status().isOk()).andReturn().getResponse().getContentAsString(),
+            List.class
+        );
+        assertEquals(List.of("Second", "Third"), latest.stream().map(m -> m.get("content")).toList());
+
+        var read = response(
+            mvc.perform(post("/api/v1/consultations/" + id + "/read").header("Authorization", "Bearer " + consultant))
+        );
+        assertEquals(3, ((Number) read.get("updated")).intValue());
+        mvc.perform(post("/api/v1/consultations/" + id + "/read").header("Authorization", "Bearer " + other))
+            .andExpect(status().isNotFound());
+
+        mvc.perform(get("/api/v1/consultations/" + id + "/events").param("access_token", "not-a-token"))
+            .andExpect(status().isUnauthorized());
+    }
+
     private int consultationNotifications(
         UUID userId,
         String type,

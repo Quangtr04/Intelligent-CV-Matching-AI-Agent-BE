@@ -13,6 +13,8 @@ public record CreateConsultationRequest(
     String requestType,
     @NotBlank
     @Size(max = 10000)
-    String description
+    String description,
+    /** Optional: send the request straight to this active consultant instead of waiting for an admin. */
+    UUID consultantId
 ) {
 }

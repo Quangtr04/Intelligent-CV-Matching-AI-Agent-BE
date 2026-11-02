@@ -16,9 +16,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 @Component
 public class BearerFilter extends OncePerRequestFilter {
+
+    private static final Pattern EVENT_STREAM = Pattern.compile("^/api/v1/consultations/[0-9a-fA-F-]{36}/events$");
 
     private final TokenService tokens;
 
@@ -45,6 +48,12 @@ public class BearerFilter extends OncePerRequestFilter {
         throws ServletException,
         IOException {
         String header = request.getHeader("Authorization");
+        String queryToken = request.getParameter("access_token");
+
+        // EventSource cannot send headers, so the consultation event stream may pass the token in the query.
+        if (header == null && queryToken != null && "GET".equals(request.getMethod())
+            && EVENT_STREAM.matcher(request.getRequestURI().substring(request.getContextPath().length())).matches())
+            header = "Bearer " + queryToken;
 
         if (header != null) {
             try {

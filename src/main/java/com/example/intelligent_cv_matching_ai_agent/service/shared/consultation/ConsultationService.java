@@ -57,21 +57,31 @@ public class ConsultationService {
     public Map<String, Object> create(
         CreateConsultationRequest input) {
         user.requireRole("CANDIDATE");
+        UUID consultant = input.consultantId();
+        if (consultant != null)
+            db.getUsersById2(consultant);
 
-        UUID id = db.insertConsultationThreads(
-            fields(
-                "candidate_user_id",
-                user.id(),
-                "subject",
-                input.subject(),
-                "request_type",
-                input.requestType(),
-                "request_description",
-                input.description(),
-                "priority",
-                "NORMAL"
-            )
+        var thread = fields(
+            "candidate_user_id",
+            user.id(),
+            "subject",
+            input.subject(),
+            "request_type",
+            input.requestType(),
+            "request_description",
+            input.description(),
+            "priority",
+            "NORMAL"
         );
+        if (consultant != null)
+            thread.put("consultant_user_id", consultant);
+        UUID id = db.insertConsultationThreads(thread);
+
+        if (consultant != null) {
+            inform(consultant, "CONSULTATION_ASSIGNED", "Ứng viên nhắn trực tiếp cho bạn", text(input.subject()), id);
+
+            return access(id);
+        }
 
         for (var admin : db.listActiveAdmins())
             inform(
@@ -87,9 +97,32 @@ public class ConsultationService {
 
     public List<Map<String, Object>> list() {
         if (user.hasRole("ADMIN"))
-            return db.listConsultationThreads();
+            return db.listConsultationThreads(user.id());
 
-        return db.listConsultationThreadsByCandidateUserId(user.id(), user.id());
+        return db.listConsultationThreadsByCandidateUserId(user.id(), user.id(), user.id());
+    }
+
+    /** Active consultants a candidate can message directly, least busy first. */
+    public List<Map<String, Object>> consultants() {
+        return db.listActiveConsultants();
+    }
+
+    /** The newest {@code limit} messages, oldest first. */
+    public List<Map<String, Object>> latestMessages(
+        UUID id,
+        int limit) {
+        access(id);
+
+        return db.listLatestConsultationMessagesByThreadId(id, pageSize(limit));
+    }
+
+    /** Marks every message from the other participants as read. */
+    public Map<String, Object> readAll(
+        UUID id) {
+        access(id);
+        int updated = db.updateConsultationMessagesByThreadId(id, user.id());
+
+        return Map.of("id", id, "updated", updated);
     }
 
     public Map<String, Object> thread(

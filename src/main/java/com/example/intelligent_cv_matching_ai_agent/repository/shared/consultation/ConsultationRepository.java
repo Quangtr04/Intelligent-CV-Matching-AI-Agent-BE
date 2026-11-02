@@ -30,18 +30,25 @@ public class ConsultationRepository {
         return db.insert("consultation_threads", fields);
     }
 
+    private static final String THREAD_SUMMARY =
+        "SELECT t.*,cu.full_name AS candidate_name,co.full_name AS consultant_name,"
+            + "lm.content AS last_message,lm.sent_at AS last_message_at,lm.sender_user_id AS last_sender_user_id,"
+            + "(SELECT count(*) FROM consultation_messages um WHERE um.thread_id=t.id AND um.read_at IS NULL "
+            + "AND um.sender_user_id<>?) AS unread_count FROM consultation_threads t "
+            + "JOIN users cu ON cu.id=t.candidate_user_id LEFT JOIN users co ON co.id=t.consultant_user_id "
+            + "LEFT JOIN LATERAL (SELECT content,sent_at,sender_user_id FROM consultation_messages m "
+            + "WHERE m.thread_id=t.id ORDER BY m.sent_at DESC,m.id DESC LIMIT 1) lm ON true ";
+
+    private static final String THREAD_ORDER = "ORDER BY COALESCE(lm.sent_at,t.created_at) DESC LIMIT 100";
+
     public List<Map<String, Object>> listConsultationThreads(
         Object... args) {
-        return db.list("SELECT * FROM consultation_threads ORDER BY created_at DESC LIMIT 100", args);
+        return db.list(THREAD_SUMMARY + THREAD_ORDER, args);
     }
 
     public List<Map<String, Object>> listConsultationThreadsByCandidateUserId(
         Object... args) {
-        return db.list(
-            ("SELECT * FROM consultation_threads WHERE candidate_user_id=? OR "
-                + "consultant_user_id=? ORDER BY created_at DESC LIMIT 100"),
-            args
-        );
+        return db.list(THREAD_SUMMARY + "WHERE t.candidate_user_id=? OR t.consultant_user_id=? " + THREAD_ORDER, args);
     }
 
     public Optional<Map<String, Object>> findCandidateProfilesByUserId(
@@ -167,6 +174,35 @@ public class ConsultationRepository {
         return db.optional(
             ("SELECT 1 FROM notifications WHERE user_id=? AND type=? AND reference_type='CONSULTATION' "
                 + "AND reference_id=? AND NOT is_read LIMIT 1"),
+            args
+        );
+    }
+
+    public List<Map<String, Object>> listLatestConsultationMessagesByThreadId(
+        Object... args) {
+        return db.list(
+            ("SELECT * FROM (SELECT m.*,u.full_name,u.role FROM consultation_messages m JOIN users u "
+                + "ON u.id=m.sender_user_id WHERE thread_id=? ORDER BY sent_at DESC,id DESC LIMIT ?) x "
+                + "ORDER BY sent_at,id"),
+            args
+        );
+    }
+
+    public int updateConsultationMessagesByThreadId(
+        Object... args) {
+        return db.update(
+            ("UPDATE consultation_messages SET read_at=now() WHERE thread_id=? AND sender_user_id<>? "
+                + "AND read_at IS NULL"),
+            args
+        );
+    }
+
+    public List<Map<String, Object>> listActiveConsultants(
+        Object... args) {
+        return db.list(
+            ("SELECT u.id,u.full_name,u.avatar_url,u.last_login_at,(SELECT count(*) FROM consultation_threads t "
+                + "WHERE t.consultant_user_id=u.id AND t.status='OPEN') AS open_threads FROM users u "
+                + "WHERE u.role='CAREER_CONSULTANT' AND u.status='ACTIVE' ORDER BY open_threads,u.full_name"),
             args
         );
     }

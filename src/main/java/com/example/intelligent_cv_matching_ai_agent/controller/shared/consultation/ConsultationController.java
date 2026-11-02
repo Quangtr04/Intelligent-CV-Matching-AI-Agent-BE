@@ -26,6 +26,11 @@ public class ConsultationController {
         return service.list();
     }
 
+    @GetMapping("/consultants")
+    public List<Map<String, Object>> consultants() {
+        return service.consultants();
+    }
+
     @GetMapping("/{id}")
     public Map<String, Object> thread(
         @PathVariable
@@ -40,8 +45,17 @@ public class ConsultationController {
         @RequestParam(defaultValue = "50")
         int limit,
         @RequestParam(defaultValue = "0")
-        int offset) {
-        return service.messages(id, limit, offset);
+        int offset,
+        @RequestParam(defaultValue = "false")
+        boolean latest) {
+        return latest ? service.latestMessages(id, limit) : service.messages(id, limit, offset);
+    }
+
+    @PostMapping("/{id}/read")
+    public Map<String, Object> readAll(
+        @PathVariable
+        UUID id) {
+        return service.readAll(id);
     }
 
     @PostMapping("/{id}/messages")
