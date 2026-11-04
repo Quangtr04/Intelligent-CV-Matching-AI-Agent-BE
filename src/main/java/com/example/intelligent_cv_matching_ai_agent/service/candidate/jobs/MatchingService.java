@@ -14,6 +14,7 @@ import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiResponse
 import com.example.intelligent_cv_matching_ai_agent.service.candidate.resume.ResumeService;
 import com.example.intelligent_cv_matching_ai_agent.util.candidate.jobs.SalaryExpectation;
 import com.example.intelligent_cv_matching_ai_agent.util.candidate.jobs.JobMatchRerank;
+import com.example.intelligent_cv_matching_ai_agent.util.candidate.jobs.QuickJobMatcher;
 import com.example.intelligent_cv_matching_ai_agent.service.shared.jobs.MatchingSalaryPolicyService;
 import com.example.intelligent_cv_matching_ai_agent.service.shared.jobs.SalaryExchangeRateService;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobSalaryParser;
@@ -91,11 +92,25 @@ public class MatchingService {
         String basis,
         List<UUID> selected,
         int limit) {
+        return match(basis, selected, limit, "DETAILED");
+    }
+
+    @Transactional
+    public Map<String, Object> match(
+        String basis,
+        List<UUID> selected,
+        int limit,
+        String requestedMode) {
         user.requireRole("CANDIDATE");
 
         pageSize(limit);
         if (!Set.of("CAREER_PROFILE", "ALL_CVS", "SELECTED_CV").contains(basis))
             throw ApiException.badRequest("Invalid matching basis");
+        if (requestedMode == null)
+            requestedMode = "DETAILED";
+        if (!Set.of("QUICK", "DETAILED").contains(requestedMode))
+            throw ApiException.badRequest("Invalid matching mode");
+        boolean quick = "QUICK".equals(requestedMode);
 
         MatchingSalaryPolicy settings = salaryPolicies.effective();
         List<Map<String, Object>> cvs = new ArrayList<>();
@@ -118,6 +133,7 @@ public class MatchingService {
         }
 
         StringBuilder candidate = new StringBuilder();
+        QuickJobMatcher.Evidence quickEvidence = null;
         Optional<Map<String, Object>> storedProfile = db.findCandidateProfilesByUserId(user.id());
         Map<String, Object> profile = new LinkedHashMap<>(storedProfile.orElse(Map.of()));
         profile.remove("expected_salary_min");
@@ -130,13 +146,24 @@ public class MatchingService {
             if (salary.isEmpty())
                 throw ApiException
                     .badRequest("Set expectedSalary in your career profile before requesting job recommendations");
-            candidate.append(profile);
-            candidate.append(db.listCandidateProfileSkillsByUserId(user.id()));
+            var profileSkills = db.listCandidateProfileSkillsByUserId(user.id());
+            if (quick) {
+                quickEvidence = QuickJobMatcher.fromProfile(profile, profileSkills);
+                candidate.append(quickEvidence);
+            } else {
+                candidate.append(profile);
+                candidate.append(profileSkills);
+            }
         } else {
             if (cvs.isEmpty())
                 throw ApiException.badRequest("At least one confirmed CV is required");
 
-            cvs.forEach(cv -> candidate.append(resumes.canonicalText(cv)).append('\n'));
+            if (quick) {
+                quickEvidence = QuickJobMatcher.combine(cvs.stream().map(QuickJobMatcher::fromResume).toList());
+                candidate.append(quickEvidence);
+            } else {
+                cvs.forEach(cv -> candidate.append(resumes.canonicalText(cv)).append('\n'));
+            }
             salary.ifPresent(
                 expectation -> candidate.append("\nMonthly salary preference: ").append(expectation.policy())
             );
@@ -183,19 +210,21 @@ public class MatchingService {
             salaryMatches.values().stream().filter(match -> Boolean.FALSE.equals(match.get("verified"))).count()
         );
         String eligibleIds = jobIds(jobs);
-        if (salary.isPresent() && !ai.enabled() && !jobs.isEmpty())
+        boolean useAi = !quick && ai.enabled();
+        if (salary.isPresent() && !useAi && !jobs.isEmpty())
             jobs = salaryEligible(db.listMarketJobSkillsByIds(eligibleIds), salary.get(), salaryMatches);
 
-        String mode = ai.enabled() ? "SEMANTIC_LLM" : "SKILL_OVERLAP";
+        String mode = quick ? "SKILL_OVERLAP_QUICK" : useAi ? "SEMANTIC_LLM" : "SKILL_OVERLAP";
         String catalogFingerprint = text(db.readMarketJobPostsByStatus());
         String vectorFingerprint =
-            ai.enabled() ? text(db.readMarketJobEmbeddingsByStatus(ai.provider(), ai.embeddingModel())) : "";
+            useAi ? text(db.readMarketJobEmbeddingsByStatus(ai.provider(), ai.embeddingModel())) : "";
         List<String> resumeIds = cvs.stream().map(cv -> cv.get("id").toString()).sorted().toList();
         String cacheHash = FlowSupport.hash(
             basis + "\n" + resumeIds + "\n" + candidate + "\n" + catalogFingerprint + "\n" + vectorFingerprint + "\n"
-                + mode + "\n" + ai.provider() + "\n" + ai.model() + "\n" + ai.embeddingModel() + "\n" + limit + "\n"
-                + salaryPolicy + "\n" + salary.map(SalaryExpectation::exchangeRates) + "\n"
-                + text(ai.cacheFingerprint("JOB_MATCH_RERANK"))
+                + mode + "\n" + (quick ? "RULE_BASED" : ai.provider()) + "\n"
+                + (quick ? QuickJobMatcher.VERSION : ai.model()) + "\n" + (quick ? "" : ai.embeddingModel()) + "\n"
+                + limit + "\n" + salaryPolicy + "\n" + salary.map(SalaryExpectation::exchangeRates) + "\n"
+                + (quick ? QuickJobMatcher.VERSION : text(ai.cacheFingerprint("JOB_MATCH_RERANK")))
         );
         String cacheKey = "edunexus:matching:response:v1:" + user.id() + ":" + cacheHash;
         Map<String, String> cacheIdentity = Map.of("user_id", user.id().toString(), "request_hash", cacheHash);
@@ -240,9 +269,9 @@ public class MatchingService {
                     )
                 ),
                 "provider",
-                ai.enabled() ? ai.provider() : "RULE_BASED",
+                useAi ? ai.provider() : "RULE_BASED",
                 "model",
-                ai.enabled() ? ai.model() : "skill-overlap-v1",
+                quick ? QuickJobMatcher.VERSION : useAi ? ai.model() : "skill-overlap-v1",
                 "status",
                 "PROCESSING",
                 "started_at",
@@ -258,7 +287,7 @@ public class MatchingService {
 
         if (jobs.isEmpty()) {
             ranked = new ArrayList<>();
-        } else if (ai.enabled()) {
+        } else if (useAi) {
             if (vectorFingerprint.isBlank()) {
                 ranked = new ArrayList<>();
             } else {
@@ -342,13 +371,26 @@ public class MatchingService {
             }
         } else {
             ranked = new ArrayList<>(jobs);
-
-            rankSkills(candidate.toString(), ranked);
+            if (quick) {
+                for (var job : ranked) {
+                    var assessment = QuickJobMatcher.assess(quickEvidence, job);
+                    job.put("final_score", assessment.get("score"));
+                    job.put("explanation", assessment);
+                }
+                ranked.removeIf(job -> !Boolean.TRUE.equals(object(job.get("explanation")).get("eligible")));
+            } else {
+                rankSkills(candidate.toString(), ranked);
+            }
         }
 
         ranked
             .sort(
                 Comparator.<Map<String, Object>>comparingDouble(j -> number(j.get("final_score"), 0)).reversed()
+                    .thenComparing(
+                        Comparator.<Map<String, Object>>comparingInt(
+                            j -> quick ? array(object(j.get("explanation")).get("strengths")).size() : 0
+                        ).reversed()
+                    )
                     .thenComparingInt(
                         j -> Boolean.FALSE
                             .equals(salaryMatches.getOrDefault(uuid(j.get("id")), Map.of()).get("verified")) ? 1 : 0
@@ -385,6 +427,19 @@ public class MatchingService {
                             job.get("vector_score") == null ? "SKILL" : "VECTOR",
                             "reason",
                             explanation.get("reason"),
+                            "assessment",
+                            quick
+                                ? fields(
+                                    "skill_coverage",
+                                    explanation.get("skill_coverage"),
+                                    "experience_status",
+                                    explanation.get("experience_status"),
+                                    "candidate_years",
+                                    explanation.get("candidate_years"),
+                                    "required_years",
+                                    explanation.get("required_years")
+                                )
+                                : null,
                             "salary_match",
                             salaryMatches.get(uuid(job.get("id")))
                         )

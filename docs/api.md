@@ -73,6 +73,21 @@ Content-Type: application/json
 
 `basis` nhận `CAREER_PROFILE`, `ALL_CVS`, `SELECTED_CV`. `SELECTED_CV` cần đúng 1 CV của người dùng; `ALL_CVS` hỗ trợ tối đa 100 CV đã xác nhận. Kết quả có run ID, điểm 0–1, giải thích, kỹ năng khớp/thiếu và thông tin job. `GET /matching/{id}` xem lại, `GET /matching` xem lịch sử. Cache phụ thuộc nội dung CV/profile, danh mục job, provider/model và request; thay nội dung làm mất hiệu lực kết quả cũ. Kết quả tắt AI ghi `SKILL_OVERLAP`, không có vector/LLM score giả.
 
+Body có thêm `mode` tùy chọn:
+
+- `QUICK`: dùng cho danh sách đề xuất. So khớp kỹ năng từ CV đã xác nhận hoặc hồ sơ cùng điều kiện lương,
+  trả kết quả không gọi embedding/LLM. Run ghi `provider=RULE_BASED`, `model=quick-skill-evidence-v2`,
+  `profile_snapshot.mode=SKILL_OVERLAP_QUICK`; điểm vector và LLM để `null`.
+- `DETAILED`: giữ luồng embedding và AI xếp hạng lại. Bỏ `mode` vẫn dùng `DETAILED` để tương thích API cũ.
+
+Ví dụ tải danh sách theo CV chính: `{"basis":"SELECTED_CV","resumeIds":["<resume_id>"],"limit":50,"mode":"QUICK"}`.
+Hai chế độ có cache riêng. `QUICK` vẫn kiểm tra quyền sở hữu, trạng thái CV `READY` và điều kiện lương của hồ sơ.
+Kỹ năng QUICK lấy từ dữ liệu thực tế đã lưu; tên file CV, vị trí mong muốn và mục tiêu nghề nghiệp không được coi
+là bằng chứng kỹ năng. Job không khớp kỹ năng hoặc có yêu cầu kinh nghiệm/cấp bậc không phù hợp với bằng chứng
+hiện tại được loại khỏi đề xuất. Kinh nghiệm chưa đủ dữ liệu được ghi `UNVERIFIED`, không tự suy ra số năm.
+Mỗi kết quả QUICK có `match_reason_json.assessment` gồm `skill_coverage`, `experience_status`,
+`candidate_years`, `required_years`. Phần trăm trên danh sách là độ khớp kỹ năng, không phải xác suất tuyển dụng.
+
 | Method | Path | Body / hành vi |
 | --- | --- | --- |
 | PUT | `/matching/results/{id}/feedback` | `feedbackType` LIKE/DISLIKE, `rating` 1–5, `comment` |
@@ -190,6 +205,28 @@ trả `400`; hội thoại không tồn tại/không có quyền hoặc CV khôn
 `GET /consultations/{id}/events` phát SSE `connected` và `message`. Dùng fetch streaming có bearer header; khi reconnect, tải lại lịch sử từ `/messages`. SSE có thời hạn 5 phút, hoạt động trong cùng process; triển khai nhiều instance cần một adapter phát sự kiện chung.
 
 Trợ lý AI: tạo `/assistant/conversations`, sau đó gửi `POST /assistant/conversations/{id}/messages` với `{ "message": "...", "retrieve": true }`. Context có thể liên kết `related_job_id`, `related_resume_id`, `related_gap_analysis_id`, `related_roadmap_id`; quyền sở hữu được kiểm tra. `retrieve=true` dùng pgvector RAG và trả các nguồn đã thực sự truy xuất. Guest có endpoint tương ứng dưới `/guest/assistant/conversations`, dùng session header và chịu quota trial.
+
+Các thao tác của khung trợ lý nghề nghiệp dùng bearer token và tiền tố `/api/v1`:
+
+| Method | Path | Body / kết quả |
+| --- | --- | --- |
+| GET | `/assistant/conversations` | Danh sách hội thoại; FE hiển thị các bản ghi `ACTIVE`. |
+| POST | `/assistant/conversations` | Tạo hội thoại với `title`, `related_resume_id`, `related_job_id` tùy chọn. |
+| GET | `/assistant/conversations/{id}` | Hội thoại đầy đủ, `messages`, `sources`; mỗi tin có `feedback`: `like`, `dislike` hoặc `null`. |
+| PATCH | `/assistant/conversations/{id}` | Đổi `title` hoặc cập nhật `related_resume_id`, `related_job_id`; trả hội thoại đầy đủ. Bỏ trường để giữ nguyên, truyền `null` để gỡ CV/việc làm. |
+| POST | `/assistant/conversations/{id}/messages` | `{ "message": "...", "retrieve": false, "language": "vi" }`; `language` tùy chọn (`vi`/`en`), tin nhắn tối đa 8.000 ký tự; trả tin ASSISTANT cùng `sources`. |
+| DELETE | `/assistant/conversations/{id}/messages` | `204`, xóa tin nhắn, nguồn và đánh giá; giữ tên và ngữ cảnh hội thoại. |
+| DELETE | `/assistant/conversations/{id}` | `204`, lưu trữ hội thoại bằng trạng thái `ARCHIVED`. |
+| POST | `/assistant/messages/{id}/feedback` | `{ "is_helpful": true, "rating": 5 }`; thay thế đánh giá trước đó của người gửi. ID thuộc tin ASSISTANT. |
+| DELETE | `/assistant/messages/{id}/feedback` | `204`, bỏ đánh giá của người gửi. |
+
+CV phải thuộc người gửi; việc làm gắn mới phải đang hoạt động. Các thao tác đổi hội thoại,
+xóa nội dung và gửi tin yêu cầu hội thoại `ACTIVE`. Hội thoại thay đổi trong lúc AI sinh
+câu trả lời sẽ trả `409` để tránh lưu câu trả lời dựa trên ngữ cảnh hoặc lịch sử cũ.
+FE tạo bản nháp tại trình duyệt và chỉ tạo hội thoại trên backend khi gửi câu hỏi đầu tiên.
+Đổi CV/việc làm sau đó phải chờ PATCH thành công trước khi gửi câu hỏi tiếp theo.
+Danh sách việc đã lưu/ứng tuyển trên FE chỉ phục vụ bộ chọn; AI nhận việc làm đang gắn,
+hồ sơ đã lưu và CV đang gắn từ backend.
 
 ## Admin, RAG và thanh toán
 

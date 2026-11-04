@@ -204,7 +204,7 @@ class MatchingFullResponseCacheTests {
         @SuppressWarnings("unchecked")
         Fixture() {
             when(user.id()).thenReturn(owner);
-            when(ai.provider()).thenReturn("ollama");
+            when(ai.provider()).thenReturn("openai");
             when(ai.model()).thenAnswer(ignored -> model.get());
             when(ai.embeddingModel()).thenReturn("test-embedding");
             when(ai.cacheFingerprint("JOB_MATCH_RERANK")).thenAnswer(ignored -> prompt.get());

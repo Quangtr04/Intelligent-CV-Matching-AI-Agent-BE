@@ -119,6 +119,16 @@ public class AdminController {
         return service.configurations();
     }
 
+    @GetMapping("/ai/runtime")
+    public Map<String, Object> runtimeConfiguration() {
+        return service.runtimeConfiguration();
+    }
+
+    @GetMapping("/ai/features")
+    public List<Map<String, Object>> features() {
+        return service.features();
+    }
+
     @PostMapping("/ai/configurations")
     public Map<String, Object> configure(
         @Valid

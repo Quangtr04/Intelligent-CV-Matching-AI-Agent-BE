@@ -6,6 +6,7 @@ import java.math.RoundingMode;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -89,6 +90,35 @@ public final class ResumeWritingQuality {
         result.put("content_authority", reviewed(resume) ? "REVIEWED_STRUCTURED" : "RAW_TEXT");
         result.put("formatting_limitations", sourceLimitations(resume));
         return result;
+    }
+
+    public static List<String> evidenceOptions(
+        Map<String, Object> source) {
+        Map<String, Object> resume = new LinkedHashMap<>(source);
+        resume.put("raw_content", source.getOrDefault("raw_text", source.getOrDefault("raw_content", "")));
+        LinkedHashSet<String> result = new LinkedHashSet<>();
+        for (String text : authoritativeText(resume)) {
+            for (String line : text.split("\\R")) {
+                for (int start = 0; start < line.length();) {
+                    int end = Math.min(line.length(), start + 240);
+                    if (end < line.length()) {
+                        int boundary = line.lastIndexOf(' ', end);
+                        if (boundary > start + 80) {
+                            end = boundary;
+                        }
+                        if (Character.isHighSurrogate(line.charAt(end - 1))) {
+                            end--;
+                        }
+                    }
+                    String quote = line.substring(start, end).strip();
+                    if (!quote.isBlank()) {
+                        result.add(quote);
+                    }
+                    start = end;
+                }
+            }
+        }
+        return List.copyOf(result);
     }
 
     public static Map<String, Object> normalize(

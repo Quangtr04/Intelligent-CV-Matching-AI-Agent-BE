@@ -114,7 +114,7 @@ Thông báo hỗ trợ audience `ALL`, `ROLE`, `USER`. Chỉ bản nháp đượ
 | `GUEST_TOKEN_LIMIT` | Ngân sách token của guest session mới, mặc định 5000 |
 | `PAYMENT_PROVIDER`, `PAYMENT_WEBHOOK_SECRET` | Provider của đơn mới và secret xác minh webhook |
 | `CORS_ALLOWED_ORIGINS` | Danh sách origin frontend cách nhau bằng dấu phẩy |
-| `AI_ENABLED`, `AI_CHAT_PROVIDER`, `AI_EMBEDDING_PROVIDER`, `OPENAI_API_KEY` | Bật AI và khởi tạo provider tại startup |
+| `AI_ENABLED`, `AI_CHAT_PROVIDER`, `AI_EMBEDDING_PROVIDER`, `GEMINI_API_KEY` | Bật AI và khởi tạo provider tại startup |
 | `AI_CHAT_MODEL`, `AI_EMBEDDING_MODEL`, `AI_MAX_OUTPUT_TOKENS` | Model khởi tạo và giới hạn output; embedding phải có 1536 chiều |
 | `BILLING_MAINTENANCE_ENABLED` / `app.billing.maintenance-enabled` | Bật/tắt job bảo trì, mặc định true |
 | `app.billing.maintenance-cron` | Mặc định `0 0 8 * * *` |

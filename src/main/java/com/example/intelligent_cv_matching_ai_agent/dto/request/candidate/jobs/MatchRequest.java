@@ -11,6 +11,19 @@ public record MatchRequest(
     List<UUID> resumeIds,
     @Min(1)
     @Max(100)
-    int limit
+    int limit,
+    @Pattern(regexp = "QUICK|DETAILED")
+    String mode
 ) {
+
+    public MatchRequest {
+        mode = mode == null ? "DETAILED" : mode;
+    }
+
+    public MatchRequest(
+        String basis,
+        List<UUID> resumeIds,
+        int limit) {
+        this(basis, resumeIds, limit, "DETAILED");
+    }
 }

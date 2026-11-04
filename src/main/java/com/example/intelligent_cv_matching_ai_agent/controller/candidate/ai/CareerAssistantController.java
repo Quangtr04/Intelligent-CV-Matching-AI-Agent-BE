@@ -2,6 +2,7 @@ package com.example.intelligent_cv_matching_ai_agent.controller.candidate.ai;
 
 import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.ai.AssistantFeedbackRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.ai.CreateAssistantConversationRequest;
+import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.ai.UpdateAssistantConversationRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.shared.ai.AssistantMessageRequest;
 
 import com.example.intelligent_cv_matching_ai_agent.service.candidate.ai.CareerAssistantService;
@@ -42,6 +43,16 @@ public class CareerAssistantController {
         return service.get(id);
     }
 
+    @PatchMapping("/conversations/{id}")
+    public Object update(
+        @PathVariable
+        UUID id,
+        @Valid
+        @RequestBody
+        UpdateAssistantConversationRequest body) {
+        return service.update(id, body.toInputMap());
+    }
+
     @PostMapping("/conversations/{id}/messages")
     public Object send(
         @PathVariable
@@ -60,6 +71,14 @@ public class CareerAssistantController {
         service.archive(id);
     }
 
+    @DeleteMapping("/conversations/{id}/messages")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void clearMessages(
+        @PathVariable
+        UUID id) {
+        service.clearMessages(id);
+    }
+
     @PostMapping("/messages/{id}/feedback")
     public Object feedback(
         @PathVariable
@@ -68,5 +87,13 @@ public class CareerAssistantController {
         @RequestBody
         AssistantFeedbackRequest body) {
         return service.feedback(id, body.toInputMap());
+    }
+
+    @DeleteMapping("/messages/{id}/feedback")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void clearFeedback(
+        @PathVariable
+        UUID id) {
+        service.clearFeedback(id);
     }
 }

@@ -1850,7 +1850,7 @@ sequenceDiagram
     participant AI as AiService
     participant Quota as EntitlementService / GuestAccess
     participant DB as PostgreSQL
-    participant Model as Ollama ChatModel
+    participant Model as Gemini ChatModel
 
     Service->>AI: generate, generateForUser hoặc generateForGuest
     AI->>AI: Kiểm tra AI được bật và schema của feature
@@ -1894,7 +1894,7 @@ User đăng nhập dùng `ai_token_reservations`, kiểm tra tier và subscripti
 
 [Mở PNG](diagrams/sequence/sd-13-class.png) · [Mở SVG](diagrams/sequence/sd-13-class.svg) · [Nguồn Mermaid](diagrams/sequence/sd-13-class.mmd)
 
-Các lớp quota user và guest là hai đường kế toán khác nhau. ChatModel là interface Spring AI được AiService gọi qua ObjectProvider; không phải một lớp Java mang tên Ollama server. Chỉ hiện các phương thức liên quan; chữ ký dài được lược tham số và kiểu generic.
+Các lớp quota user và guest là hai đường kế toán khác nhau. ChatModel là interface Spring AI được AiService gọi qua ObjectProvider; không phải một lớp Java của model server. Chỉ hiện các phương thức liên quan; chữ ký dài được lược tham số và kiểu generic.
 
 <details>
 <summary>Mã Mermaid và lớp đối chiếu của SD-13</summary>
@@ -1989,7 +1989,7 @@ sequenceDiagram
     participant AI as AiService
     participant Quota as EntitlementService
     participant DB as PostgreSQL pgvector
-    participant Model as Ollama EmbeddingModel
+    participant Model as Gemini EmbeddingModel
 
     C->>Client: Yêu cầu tạo vector CV
     Client->>API: POST /resumes/{id}/embedding

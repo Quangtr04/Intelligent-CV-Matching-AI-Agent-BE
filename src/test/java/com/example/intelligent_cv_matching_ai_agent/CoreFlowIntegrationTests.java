@@ -774,14 +774,13 @@ class CoreFlowIntegrationTests {
 
     @Test
     void configurationRestoreCreatesNewActiveVersionAndPreservesTypedHistory() throws Exception {
-        String configType =
-            "TEST_" + UUID.randomUUID().toString().replace("-", "").replaceAll("[0-9]", "X").toUpperCase(Locale.ROOT);
+        String configType = "CHAT";
+        int initialVersion = ((Number) db
+            .scalar("SELECT COALESCE(max(version),0) FROM ai_configurations WHERE config_type=?", configType))
+            .intValue();
         Map<String, Object> originalConfiguration = new LinkedHashMap<>();
         originalConfiguration.put("temperature", 0.2);
-        originalConfiguration.put("stream", true);
-        originalConfiguration.put("limits", Map.of("max_output_tokens", 512));
-        originalConfiguration.put("labels", List.of("baseline", "Vietnamese\n\"prompt\""));
-        originalConfiguration.put("optional", null);
+        originalConfiguration.put("maxOutputTokens", 2000);
 
         var first = postJson(
             "/api/v1/admin/ai/configurations",
@@ -790,9 +789,9 @@ class CoreFlowIntegrationTests {
                 "configType",
                 configType,
                 "provider",
-                "first-provider",
+                "gemini",
                 "modelName",
-                "first-model",
+                "gemini-2.5-flash-lite",
                 "configuration",
                 originalConfiguration
             )
@@ -804,11 +803,11 @@ class CoreFlowIntegrationTests {
                 "configType",
                 configType,
                 "provider",
-                "second-provider",
+                "gemini",
                 "modelName",
-                "second-model",
+                "gemini-2.5-flash-lite",
                 "configuration",
-                Map.of("temperature", 0.8, "stream", false)
+                Map.of("temperature", 0.8, "numPredict", 4000)
             )
         );
         var unrelated = postJson(
@@ -816,13 +815,13 @@ class CoreFlowIntegrationTests {
             admin,
             Map.of(
                 "configType",
-                configType + "_OTHER",
+                "ASSESSMENT",
                 "provider",
-                "other-provider",
+                "gemini",
                 "modelName",
-                "other-model",
+                "gemini-2.5-flash-lite",
                 "configuration",
-                Map.of("dimensions", 1024)
+                Map.of("temperature", 0.2, "numPredict", 12000)
             )
         );
         UUID unrelatedId = UUID.fromString(unrelated.get("id").toString());
@@ -837,7 +836,7 @@ class CoreFlowIntegrationTests {
 
         assertNotEquals(first.get("id"), restored.get("id"));
         assertNotEquals(second.get("id"), restored.get("id"));
-        assertEquals(3, ((Number) restored.get("version")).intValue());
+        assertEquals(initialVersion + 3, ((Number) restored.get("version")).intValue());
         assertEquals(true, restored.get("is_active"));
         assertEquals(configType, restored.get("config_type"));
         assertEquals(first.get("provider"), restored.get("provider"));
@@ -849,12 +848,11 @@ class CoreFlowIntegrationTests {
         var persisted = db.one("SELECT * FROM ai_configurations WHERE id=?", restoredId);
         assertEquals(restored.get("config_json"), persisted.get("config_json"));
         var restoredConfiguration = (Map<?, ?>) persisted.get("config_json");
-        assertEquals(true, restoredConfiguration.get("stream"));
         assertInstanceOf(Number.class, restoredConfiguration.get("temperature"));
-        assertInstanceOf(Map.class, restoredConfiguration.get("limits"));
-        assertInstanceOf(List.class, restoredConfiguration.get("labels"));
-        assertTrue(restoredConfiguration.containsKey("optional"));
-        assertNull(restoredConfiguration.get("optional"));
+        assertFalse(restoredConfiguration.containsKey("numCtx"));
+        assertEquals(2000, ((Number) restoredConfiguration.get("numPredict")).intValue());
+        assertFalse(restoredConfiguration.containsKey("num_ctx"));
+        assertFalse(restoredConfiguration.containsKey("maxOutputTokens"));
 
         for (var original : List.of(first, second)) {
             var historical =
@@ -866,17 +864,32 @@ class CoreFlowIntegrationTests {
             assertEquals(original.get("config_json"), historical.get("config_json"));
         }
 
-        var history = db.list("SELECT * FROM ai_configurations WHERE config_type=? ORDER BY version", configType);
+        var history = db.list(
+            "SELECT * FROM ai_configurations WHERE config_type=? AND id IN (?,?,?) ORDER BY version",
+            configType,
+            UUID.fromString(first.get("id").toString()),
+            UUID.fromString(second.get("id").toString()),
+            restoredId
+        );
         assertEquals(3, history.size());
         assertEquals(1L, history.stream().filter(row -> Boolean.TRUE.equals(row.get("is_active"))).count());
         assertEquals(restoredId, history.getLast().get("id"));
+        assertEquals(
+            1L,
+            ((Number) db
+                .scalar("SELECT count(*) FROM ai_configurations WHERE config_type=? AND is_active=true", configType))
+                .longValue()
+        );
         assertEquals(unrelatedBefore, db.one("SELECT * FROM ai_configurations WHERE id=?", unrelatedId));
         assertRestoreAudit("RESTORE_AI_CONFIGURATION", "AI_CONFIGURATION", first.get("id").toString(), restoredId);
     }
 
     @Test
     void promptRestoreCreatesNewActiveVersionAndKeepsOtherFeaturesUnchanged() throws Exception {
-        String featureCode = "RESTORE_TEST_" + UUID.randomUUID().toString().replace("-", "").toUpperCase(Locale.ROOT);
+        String featureCode = "CAREER_CHAT";
+        int initialVersion = ((Number) db
+            .scalar("SELECT COALESCE(max(version),0) FROM ai_prompt_templates WHERE feature_code=?", featureCode))
+            .intValue();
         var first = postJson(
             "/api/v1/admin/ai/prompts",
             admin,
@@ -910,7 +923,7 @@ class CoreFlowIntegrationTests {
             admin,
             Map.of(
                 "featureCode",
-                featureCode + "_OTHER",
+                "CV_ANALYZE",
                 "name",
                 "Other feature prompt",
                 "systemPrompt",
@@ -931,7 +944,7 @@ class CoreFlowIntegrationTests {
 
         assertNotEquals(first.get("id"), restored.get("id"));
         assertNotEquals(second.get("id"), restored.get("id"));
-        assertEquals(3, ((Number) restored.get("version")).intValue());
+        assertEquals(initialVersion + 3, ((Number) restored.get("version")).intValue());
         assertEquals(true, restored.get("is_active"));
         assertEquals(featureCode, restored.get("feature_code"));
         assertEquals(first.get("name"), restored.get("name"));
@@ -952,16 +965,29 @@ class CoreFlowIntegrationTests {
         var persisted = db.one("SELECT * FROM ai_prompt_templates WHERE id=?", restoredId);
         assertEquals(first.get("system_prompt"), persisted.get("system_prompt"));
         assertEquals(first.get("user_prompt_template"), persisted.get("user_prompt_template"));
-        var history = db.list("SELECT * FROM ai_prompt_templates WHERE feature_code=? ORDER BY version", featureCode);
+        var history = db.list(
+            "SELECT * FROM ai_prompt_templates WHERE feature_code=? AND id IN (?,?,?) ORDER BY version",
+            featureCode,
+            UUID.fromString(first.get("id").toString()),
+            UUID.fromString(second.get("id").toString()),
+            restoredId
+        );
         assertEquals(3, history.size());
         assertEquals(1L, history.stream().filter(row -> Boolean.TRUE.equals(row.get("is_active"))).count());
         assertEquals(restoredId, history.getLast().get("id"));
+        assertEquals(
+            1L,
+            ((Number) db.scalar(
+                "SELECT count(*) FROM ai_prompt_templates WHERE feature_code=? AND is_active=true",
+                featureCode
+            )).longValue()
+        );
         assertEquals(unrelatedBefore, db.one("SELECT * FROM ai_prompt_templates WHERE id=?", unrelatedId));
         assertRestoreAudit("RESTORE_AI_PROMPT", "AI_PROMPT", first.get("id").toString(), restoredId);
     }
 
     @Test
-    void aiRestorePreservesLegacySqlNullFields() throws Exception {
+    void aiRestoreRejectsUnsupportedLegacyVersionsWithoutChangingHistory() throws Exception {
         String legacyKey =
             "LEGACY_" + UUID.randomUUID().toString().replace("-", "").replaceAll("[0-9]", "X").toUpperCase(Locale.ROOT);
         UUID configurationId =
@@ -969,56 +995,36 @@ class CoreFlowIntegrationTests {
         UUID promptId =
             db.insert("ai_prompt_templates", Map.of("feature_code", legacyKey, "version", 7, "is_active", false));
 
-        var configuration = response(
-            mvc.perform(
-                post("/api/v1/admin/ai/configurations/" + configurationId + "/restore")
-                    .header("Authorization", "Bearer " + admin)
-            )
-        );
-        var prompt = response(
-            mvc.perform(
-                post("/api/v1/admin/ai/prompts/" + promptId + "/restore").header("Authorization", "Bearer " + admin)
-            )
-        );
+        var configurationBefore = db.one("SELECT * FROM ai_configurations WHERE id=?", configurationId);
+        var promptBefore = db.one("SELECT * FROM ai_prompt_templates WHERE id=?", promptId);
+        mvc.perform(
+            post("/api/v1/admin/ai/configurations/" + configurationId + "/restore")
+                .header("Authorization", "Bearer " + admin)
+        ).andExpect(status().isBadRequest());
+        mvc.perform(
+            post("/api/v1/admin/ai/prompts/" + promptId + "/restore").header("Authorization", "Bearer " + admin)
+        ).andExpect(status().isBadRequest());
 
-        assertEquals(5, ((Number) configuration.get("version")).intValue());
-        assertEquals(true, configuration.get("is_active"));
-        assertNull(configuration.get("provider"));
-        assertNull(configuration.get("model_name"));
-        assertNull(configuration.get("config_json"));
-        UUID restoredConfigurationId = UUID.fromString(configuration.get("id").toString());
+        assertEquals(configurationBefore, db.one("SELECT * FROM ai_configurations WHERE id=?", configurationId));
+        assertEquals(promptBefore, db.one("SELECT * FROM ai_prompt_templates WHERE id=?", promptId));
         assertEquals(
-            true,
-            db.scalar(
-                "SELECT provider IS NULL AND model_name IS NULL AND config_json IS NULL "
-                    + "FROM ai_configurations WHERE id=?",
-                restoredConfigurationId
-            )
+            1L,
+            ((Number) db.scalar("SELECT count(*) FROM ai_configurations WHERE config_type=?", legacyKey)).longValue()
         );
-
-        assertEquals(8, ((Number) prompt.get("version")).intValue());
-        assertEquals(true, prompt.get("is_active"));
-        assertNull(prompt.get("name"));
-        assertNull(prompt.get("system_prompt"));
-        assertNull(prompt.get("user_prompt_template"));
-        UUID restoredPromptId = UUID.fromString(prompt.get("id").toString());
         assertEquals(
-            true,
-            db.scalar(
-                "SELECT name IS NULL AND system_prompt IS NULL AND user_prompt_template IS NULL "
-                    + "FROM ai_prompt_templates WHERE id=?",
-                restoredPromptId
-            )
+            1L,
+            ((Number) db.scalar("SELECT count(*) FROM ai_prompt_templates WHERE feature_code=?", legacyKey)).longValue()
         );
         assertEquals(false, db.scalar("SELECT is_active FROM ai_configurations WHERE id=?", configurationId));
         assertEquals(false, db.scalar("SELECT is_active FROM ai_prompt_templates WHERE id=?", promptId));
-        assertRestoreAudit(
-            "RESTORE_AI_CONFIGURATION",
-            "AI_CONFIGURATION",
-            configurationId.toString(),
-            restoredConfigurationId
+        assertEquals(
+            0L,
+            ((Number) db.scalar(
+                "SELECT count(*) FROM audit_logs WHERE actor_user_id=? AND action IN "
+                    + "('RESTORE_AI_CONFIGURATION','RESTORE_AI_PROMPT')",
+                adminId
+            )).longValue()
         );
-        assertRestoreAudit("RESTORE_AI_PROMPT", "AI_PROMPT", promptId.toString(), restoredPromptId);
     }
 
     @Test

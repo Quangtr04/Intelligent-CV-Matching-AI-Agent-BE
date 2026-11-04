@@ -1,6 +1,7 @@
 package com.example.intelligent_cv_matching_ai_agent.util.admin.resume;
 
 import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException;
+import com.example.intelligent_cv_matching_ai_agent.util.shared.resume.PdfSignature;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -137,7 +138,7 @@ public class ResumeTemplateDocumentConverter {
         byte[] bytes,
         Draft draft)
         throws IOException {
-        if (!starts(bytes, "%PDF-".getBytes(StandardCharsets.US_ASCII))) {
+        if (!PdfSignature.isValid(bytes)) {
             throw ApiException.badRequest("Invalid PDF document signature");
         }
         try (PDDocument document = Loader.loadPDF(bytes)) {

@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
-/** Profile saves enqueue in their transaction. The dedicated worker calls Ollama only after commit. */
+/** Profile saves enqueue in their transaction. The dedicated worker calls the AI provider only after commit. */
 @Service
 public class ResumeProfileAlignmentRefreshService {
 

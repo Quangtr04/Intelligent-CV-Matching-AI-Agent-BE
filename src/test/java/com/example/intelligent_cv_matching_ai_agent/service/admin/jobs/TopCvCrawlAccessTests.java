@@ -42,7 +42,7 @@ class TopCvCrawlAccessTests {
             jsoup.when(() -> Jsoup.connect(SEARCH)).thenReturn(fixture.connection);
             fixture.service.crawl(new CrawlRequest("TOPCV", "Java", "Backend", null, null, 20, 3));
 
-            fixture.assertSearchFailure(status, "Cloudflare verification");
+            fixture.assertSearchFailure(status, "SEARCH_BLOCKED", "Cloudflare verification");
             verify(fixture.connection).execute();
             jsoup.verify(() -> Jsoup.connect(SEARCH));
             jsoup.verifyNoMoreInteractions();
@@ -57,7 +57,7 @@ class TopCvCrawlAccessTests {
         try (var jsoup = mockStatic(Jsoup.class)) {
             jsoup.when(() -> Jsoup.connect(SEARCH)).thenReturn(fixture.connection);
             fixture.service.crawl(new CrawlRequest("TOPCV", "Java", "Backend", null, null, 20, 3));
-            fixture.assertSearchFailure(403, "Search returned HTTP 403");
+            fixture.assertSearchFailure(403, "SEARCH_FETCH_FAILED", "Search returned HTTP 403");
         }
     }
 
@@ -70,7 +70,7 @@ class TopCvCrawlAccessTests {
             jsoup.when(() -> Jsoup.connect(SEARCH)).thenReturn(fixture.connection);
             jsoup.when(() -> Jsoup.parse(CHALLENGE)).thenReturn(org.jsoup.parser.Parser.parse(CHALLENGE, SEARCH));
             fixture.service.crawl(new CrawlRequest("TOPCV", "Java", "Backend", null, null, 20, 3));
-            fixture.assertSearchFailure(200, "Cloudflare verification");
+            fixture.assertSearchFailure(200, "SEARCH_BLOCKED", "Cloudflare verification");
             verifyNoInteractions(fixture.jobs);
         }
     }
@@ -82,7 +82,7 @@ class TopCvCrawlAccessTests {
         try (var jsoup = mockStatic(Jsoup.class)) {
             jsoup.when(() -> Jsoup.connect(SEARCH)).thenReturn(fixture.connection);
             fixture.service.crawl(new CrawlRequest("TOPCV", "Java", "Backend", null, null, 20, 3));
-            fixture.assertSearchFailure(429, "rate limit");
+            fixture.assertSearchFailure(429, "SEARCH_BLOCKED", "rate limit");
             verify(fixture.connection).execute();
         }
     }
@@ -98,7 +98,7 @@ class TopCvCrawlAccessTests {
             verify(fixture.db).insert(
                 eq("market_crawl_items"),
                 argThat(
-                    item -> "FETCH_FAILED".equals(item.get("item_status"))
+                    item -> "SOURCE_BLOCKED".equals(item.get("item_status"))
                         && Integer.valueOf(403).equals(item.get("http_status"))
                         && item.get("message").toString().contains("Cloudflare verification")
                 )
@@ -150,11 +150,12 @@ class TopCvCrawlAccessTests {
 
         void assertSearchFailure(
             int status,
+            String expectedStatus,
             String message) {
             verify(db).insert(
                 eq("market_crawl_items"),
                 argThat(
-                    item -> "SEARCH_FETCH_FAILED".equals(item.get("item_status"))
+                    item -> expectedStatus.equals(item.get("item_status"))
                         && Integer.valueOf(status).equals(item.get("http_status"))
                         && item.get("message").toString().contains(message)
                 )

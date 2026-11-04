@@ -96,8 +96,9 @@ public class StartupStatusListener implements ApplicationListener<SpringApplicat
             return "Cong dang bi dung: tat backend dang chay khac hoac doi SERVER_PORT trong .env.";
         if (message.contains("APP_JWT_SECRET") || message.contains("Could not resolve placeholder"))
             return "Thieu bien trong .env: so sanh .env voi .env.example va bo sung key con thieu.";
-        if (message.contains("Ollama") || message.contains("embedding model must match"))
-            return "Cau hinh AI sai: dat AI_PROVIDER=ollama va AI_EMBEDDING_DIMENSIONS=1024 trong .env.";
+        if (message.contains("Gemini") || message.contains("gemini") || message.contains("OpenAI")
+            || message.contains("embedding model must match"))
+            return "Cau hinh AI sai: kiem tra GEMINI_API_KEY, AI_PROVIDER=gemini va AI_EMBEDDING_DIMENSIONS=1024.";
         return null;
     }
 }

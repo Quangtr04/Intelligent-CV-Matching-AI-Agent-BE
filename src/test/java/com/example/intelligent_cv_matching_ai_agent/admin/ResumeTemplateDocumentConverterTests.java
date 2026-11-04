@@ -24,6 +24,8 @@ import org.apache.poi.xwpf.usermodel.ParagraphAlignment;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.jsoup.Jsoup;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.mock.web.MockMultipartFile;
 
 class ResumeTemplateDocumentConverterTests {
@@ -67,6 +69,30 @@ class ResumeTemplateDocumentConverterTests {
         assertFalse(((List<?>) result.get("warnings")).isEmpty());
         assertBlocksMatch(result);
         assertDoesNotThrow(() -> ResumeTemplateHtml.normalizeDraft((String) result.get("html_content")));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"\n", "\r\n", " \t\r\n\f", "\uFEFF", "\uFEFF\r\n"})
+    void convertsPdfWithExportWhitespaceOrBomBeforeHeader(
+        String prefix)
+        throws Exception {
+        byte[] bytes = prefixedPdf(prefix);
+        Map<String, Object> result = converter.convert(file("resume.pdf", "application/pdf", bytes), "en");
+        assertEquals(1, result.get("page_count"));
+        assertTrue(Jsoup.parse((String) result.get("html_content")).body().text().contains("Backend developer"));
+    }
+
+    @Test
+    void rejectsEmbeddedPdfAfterNonWhitespaceAndExcessivePadding() throws Exception {
+        for (String prefix : new String[]{"<html>\n", "not a PDF\n", "\u0000", " ".repeat(1025)}) {
+            byte[] bytes = prefixedPdf(prefix);
+            ApiException error = assertThrows(
+                ApiException.class,
+                () -> converter.convert(file("resume.pdf", "application/pdf", bytes), "en")
+            );
+            assertEquals(400, error.status());
+            assertEquals("Invalid PDF document signature", error.getMessage());
+        }
     }
 
     @Test
@@ -321,6 +347,16 @@ class ResumeTemplateDocumentConverterTests {
         String mime,
         byte[] bytes) {
         return new MockMultipartFile("file", filename, mime, bytes);
+    }
+
+    private byte[] prefixedPdf(
+        String prefix)
+        throws Exception {
+        try (ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+            output.write(prefix.getBytes(StandardCharsets.UTF_8));
+            output.write(pdf(1, "Backend developer", false));
+            return output.toByteArray();
+        }
     }
 
     private byte[] pdf(

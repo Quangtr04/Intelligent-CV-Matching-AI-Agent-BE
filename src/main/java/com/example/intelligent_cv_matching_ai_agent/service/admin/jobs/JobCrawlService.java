@@ -10,11 +10,14 @@ import com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobNormaliz
 import com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobPostingParser;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobUrlDiscovery;
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.net.URI;
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.*;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
@@ -36,14 +39,27 @@ public class JobCrawlService {
 
     private final TransactionTemplate tx;
 
+    private final JobCrawlSourceAccess sourceAccess;
+
     public JobCrawlService(
         JobCrawlRepository db,
         CurrentUser user,
         JobService jobs,
         PlatformTransactionManager transactions) {
+        this(db, user, jobs, transactions, new JobCrawlSourceAccess());
+    }
+
+    @Autowired
+    public JobCrawlService(
+        JobCrawlRepository db,
+        CurrentUser user,
+        JobService jobs,
+        PlatformTransactionManager transactions,
+        JobCrawlSourceAccess sourceAccess) {
         this.db = db;
         this.user = user;
         this.jobs = jobs;
+        this.sourceAccess = sourceAccess;
         tx = new TransactionTemplate(transactions);
         tx.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     }
@@ -76,6 +92,17 @@ public class JobCrawlService {
             .map(url -> JobUrlDiscovery.canonicalUrl(site, url)).distinct().toList();
         if (urls.size() > 20)
             throw ApiException.badRequest("At most 20 detail URLs are allowed");
+        try (var lease = sourceAccess.open(site)) {
+            return collectSource(input, actor, scheduled, site, urls);
+        }
+    }
+
+    private Map<String, Object> collectSource(
+        CrawlRequest input,
+        UUID actor,
+        boolean scheduled,
+        String site,
+        List<String> urls) {
         int requestedLimit = urls.isEmpty() ? input.effectiveLimit() : urls.size();
         UUID run = tx.execute(
             status -> db.insertMarketCrawlRuns(
@@ -103,6 +130,7 @@ public class JobCrawlService {
         );
         int searchPages = 0, rejected = 0;
         String discoveryFailure = null;
+        String sourceStop = null;
         if (urls.isEmpty()) {
             Set<String> found = new LinkedHashSet<>();
             for (int pageNumber = 1; pageNumber <= input.effectiveMaxPages()
@@ -113,6 +141,8 @@ public class JobCrawlService {
                     HttpPage page = fetch(site, searchUrl);
                     searchPages++;
                     searchHttpStatus = page.status();
+                    if (page.status() == 429)
+                        throw blockedFailure(site, page.status(), null, false);
                     if (page.status() < 200 || page.status() >= 300)
                         throw new FetchFailure("Search returned HTTP " + page.status(), page.status());
                     List<String> links =
@@ -140,21 +170,38 @@ public class JobCrawlService {
                         searchPages++;
                     }
                     discoveryFailure = ex.getMessage();
-                    recordItem(run, searchUrl, "SEARCH_FETCH_FAILED", searchHttpStatus, null, null, discoveryFailure);
-                    rejected++;
+                    boolean blocked = ex instanceof FetchFailure failure && failure.sourceBlocked;
+                    boolean notFetched = ex instanceof IOException io && deferredBeforeFetch(io);
+                    String itemStatus =
+                        notFetched ? "SEARCH_DEFERRED" : blocked ? "SEARCH_BLOCKED" : "SEARCH_FETCH_FAILED";
+                    recordItem(run, searchUrl, itemStatus, searchHttpStatus, null, null, discoveryFailure);
+                    if (!notFetched)
+                        rejected++;
+                    if (blocked || notFetched || Thread.currentThread().isInterrupted()
+                        || ex.getCause() instanceof JobCrawlSourceAccess.CooldownException)
+                        sourceStop = discoveryFailure;
                     break;
                 }
             }
             urls = List.copyOf(found);
         }
         int fetched = 0, parsed = 0, imported = 0, duplicates = 0, wrongRegion = 0, importedSkills = 0;
+        int checked = 0, deferred = 0;
         for (String requestedUrl : urls) {
+            if (sourceStop != null) {
+                recordItem(run, requestedUrl, "DEFERRED", null, null, null, "Not fetched: " + sourceStop);
+                deferred++;
+                continue;
+            }
             Integer httpStatus = null;
             String title = null, hash = null, finalUrl = requestedUrl;
             try {
+                checked++;
                 HttpPage page = fetch(site, requestedUrl);
-                fetched++;
                 httpStatus = page.status();
+                if (httpStatus == 429)
+                    throw blockedFailure(site, httpStatus, null, false);
+                fetched++;
                 finalUrl = JobUrlDiscovery.canonicalUrl(site, page.url());
                 if (httpStatus == 404 || httpStatus == 410) {
                     expireSource(site, requestedUrl);
@@ -234,13 +281,32 @@ public class JobCrawlService {
                     importedSkills += posting.job().skills().size();
                 }
             } catch (IOException ex) {
+                if (deferredBeforeFetch(ex)) {
+                    checked--;
+                    deferred++;
+                    sourceStop = ex.getMessage();
+                    recordItem(run, finalUrl, "DEFERRED", null, null, null, "Not fetched: " + sourceStop);
+                    continue;
+                }
                 if (ex instanceof FetchFailure failure) {
                     httpStatus = failure.httpStatus;
                     if (httpStatus != null)
                         fetched++;
                 }
-                recordItem(run, finalUrl, "FETCH_FAILED", httpStatus, title, hash, ex.getMessage());
+                boolean blocked = ex instanceof FetchFailure failure && failure.sourceBlocked;
+                recordItem(
+                    run,
+                    finalUrl,
+                    blocked ? "SOURCE_BLOCKED" : "FETCH_FAILED",
+                    httpStatus,
+                    title,
+                    hash,
+                    ex.getMessage()
+                );
                 rejected++;
+                if (blocked || Thread.currentThread().isInterrupted()
+                    || ex.getCause() instanceof JobCrawlSourceAccess.CooldownException)
+                    sourceStop = ex.getMessage();
             } catch (ApiException ex) {
                 recordItem(run, finalUrl, "REJECTED", httpStatus, title, hash, ex.getMessage());
                 rejected++;
@@ -257,13 +323,16 @@ public class JobCrawlService {
                 rejected++;
             }
         }
-        String outcome = rejected == 0 ? "COMPLETED" : imported + duplicates == 0 ? "FAILED" : "PARTIAL";
-        String summary = "Imported " + imported + "; duplicates " + duplicates + "; rejected " + rejected
-            + (discoveryFailure == null ? "" : "; " + discoveryFailure);
+        String outcome = rejected == 0 && deferred == 0 && sourceStop == null
+            ? "COMPLETED"
+            : imported + duplicates == 0 ? "FAILED" : "PARTIAL";
+        String summary =
+            "Imported " + imported + "; duplicates " + duplicates + "; rejected " + rejected + "; deferred " + deferred
+                + (sourceStop != null ? "; " + sourceStop : discoveryFailure == null ? "" : "; " + discoveryFailure);
         int fetchedCount = fetched, parsedCount = parsed, importedCount = imported, duplicateCount = duplicates,
             rejectedCount = rejected, wrongRegionCount = wrongRegion, searchCount = searchPages,
             discoveredCount = input.urls() == null || input.urls().isEmpty() ? urls.size() : 0,
-            skillCount = importedSkills, checkedCount = urls.size();
+            skillCount = importedSkills, checkedCount = checked;
         tx.executeWithoutResult(status -> {
             db.updateMarketCrawlRunsById(
                 outcome,
@@ -295,6 +364,12 @@ public class JobCrawlService {
         var result = db.getMarketCrawlRunsById(run);
         result.put("items", db.listMarketCrawlItemsByCrawlRunId(run));
         return result;
+    }
+
+    private static boolean deferredBeforeFetch(
+        IOException failure) {
+        return failure instanceof JobCrawlSourceAccess.CooldownException
+            || failure instanceof InterruptedIOException && Thread.currentThread().isInterrupted();
     }
 
     private void expireSource(
@@ -382,6 +457,20 @@ public class JobCrawlService {
             Connection.Response response;
 
             try {
+                sourceAccess.beforeRequest(source);
+            } catch (IOException ex) {
+                if (lastResponseStatus != null) {
+                    FetchFailure failure = new FetchFailure(
+                        "Collection stopped after a source redirect: " + ex.getMessage(),
+                        lastResponseStatus
+                    );
+                    failure.initCause(ex);
+                    throw failure;
+                }
+                throw ex;
+            }
+
+            try {
                 response = Jsoup.connect(current.toASCIIString()).followRedirects(false).ignoreHttpErrors(true)
                     .ignoreContentType(true).timeout(5000).maxBodySize(MAX_BODY_BYTES + 1)
                     .userAgent("EduNexus Job Import/1.0").header("Accept", "text/html,application/xhtml+xml")
@@ -416,12 +505,12 @@ public class JobCrawlService {
                 continue;
             }
 
+            if ("challenge".equalsIgnoreCase(response.header("cf-mitigated")))
+                throw blockedFailure(source, status, response.header("Retry-After"), true);
+            if (status == 429)
+                throw blockedFailure(source, status, response.header("Retry-After"), false);
             if (response.bodyAsBytes().length > MAX_BODY_BYTES)
                 throw new FetchFailure("Source response exceeds 2 MiB", status);
-            if ("challenge".equalsIgnoreCase(response.header("cf-mitigated")))
-                throw sourceChallenge(status);
-            if (status == 429)
-                throw new FetchFailure("Source rate limit reached (HTTP 429); wait before another crawl", status);
             if (status < 200 || status >= 300)
                 return new HttpPage(current.toASCIIString(), status, "");
 
@@ -433,19 +522,27 @@ public class JobCrawlService {
             String html = response.body();
             if (html != null && (html.contains("/cdn-cgi/challenge-platform/") || html.contains("_cf_chl_opt"))
                 && Jsoup.parse(html).title().toLowerCase(Locale.ROOT).contains("just a moment"))
-                throw sourceChallenge(status);
+                throw blockedFailure(source, status, response.header("Retry-After"), true);
             return new HttpPage(current.toASCIIString(), status, html);
         }
 
         throw new FetchFailure("Source exceeded three redirects", null);
     }
 
-    private static FetchFailure sourceChallenge(
-        int status) {
+    private FetchFailure blockedFailure(
+        String source,
+        int status,
+        String retryAfter,
+        boolean challenge) {
+        Instant retryAt = sourceAccess.blocked(source, retryAfter, challenge);
+        String reason = challenge
+            ? "Source access blocked by Cloudflare verification (HTTP " + status + "). "
+                + "Automated HTML collection is unavailable; use a source-authorized API/feed or manual job import."
+            : "Source rate limit reached (HTTP " + status + "); wait before another crawl.";
         return new FetchFailure(
-            "Source access blocked by Cloudflare verification (HTTP " + status + "). "
-                + "Automated HTML collection is unavailable; use a source-authorized API/feed or manual job import.",
-            status
+            reason + " Source " + source + " is cooling down until " + retryAt + "; remaining URLs were not fetched.",
+            status,
+            true
         );
     }
 
@@ -453,11 +550,21 @@ public class JobCrawlService {
 
         private final Integer httpStatus;
 
+        private final boolean sourceBlocked;
+
         FetchFailure(
             String message,
             Integer httpStatus) {
+            this(message, httpStatus, false);
+        }
+
+        FetchFailure(
+            String message,
+            Integer httpStatus,
+            boolean sourceBlocked) {
             super(message);
             this.httpStatus = httpStatus;
+            this.sourceBlocked = sourceBlocked;
         }
     }
 

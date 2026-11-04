@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class EmbeddingVectorTests {
 
     @Test
-    void acceptsQwenDimensionsAndRejectsLegacyOrNonFiniteVectors() {
+    void acceptsDatabaseDimensionsAndRejectsLegacyOrNonFiniteVectors() {
         float[] vector = new float[1024];
         vector[0] = 1;
         String serialized = FlowSupport.vector(vector);

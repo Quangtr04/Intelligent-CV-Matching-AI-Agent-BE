@@ -147,7 +147,7 @@ class MatchingSalaryPolicyCacheTests {
             when(user.id()).thenReturn(owner);
             when(policies.effective()).thenAnswer(ignored -> settings.get());
             when(ai.enabled()).thenReturn(aiEnabled);
-            when(ai.provider()).thenReturn("ollama");
+            when(ai.provider()).thenReturn("openai");
             when(ai.model()).thenReturn("test-chat");
             when(ai.embeddingModel()).thenReturn("test-embedding");
             float[] vector = new float[1024];

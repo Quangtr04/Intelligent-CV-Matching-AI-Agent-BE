@@ -82,7 +82,7 @@ public class ResumeFileExtractor {
 
             switch (extension) {
                 case "pdf" -> {
-                    if (!starts(bytes, "%PDF-".getBytes(StandardCharsets.US_ASCII)))
+                    if (!PdfSignature.isValid(bytes))
                         throw ApiException.badRequest("Invalid PDF signature");
 
                     try (PDDocument pdf = Loader.loadPDF(bytes)) {

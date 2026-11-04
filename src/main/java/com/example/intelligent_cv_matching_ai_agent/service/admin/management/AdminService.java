@@ -8,8 +8,12 @@ import com.example.intelligent_cv_matching_ai_agent.dto.request.admin.billing.Su
 import com.example.intelligent_cv_matching_ai_agent.dto.request.admin.management.AccountCreateRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.admin.management.AccountUpdateRequest;
 import com.example.intelligent_cv_matching_ai_agent.service.admin.monitoring.AuditService;
+import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiService;
+import com.example.intelligent_cv_matching_ai_agent.util.shared.ai.AiFeatureCatalog;
+import com.example.intelligent_cv_matching_ai_agent.util.shared.ai.AiRuntimeSettings;
 
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException;
 import com.example.intelligent_cv_matching_ai_agent.security.shared.CurrentUser;
 import com.example.intelligent_cv_matching_ai_agent.repository.admin.management.AdminRepository;
@@ -36,17 +40,31 @@ public class AdminService {
 
     private final PasswordEncoder encoder;
 
+    private final AiService ai;
+
     public AdminService(
         AdminRepository db,
         CurrentUser user,
         AuditService audit,
         TokenService tokens,
         PasswordEncoder encoder) {
+        this(db, user, audit, tokens, encoder, null);
+    }
+
+    @Autowired
+    public AdminService(
+        AdminRepository db,
+        CurrentUser user,
+        AuditService audit,
+        TokenService tokens,
+        PasswordEncoder encoder,
+        AiService ai) {
         this.db = db;
         this.user = user;
         this.audit = audit;
         this.tokens = tokens;
         this.encoder = encoder;
+        this.ai = ai;
     }
 
     private void admin() {
@@ -284,31 +302,45 @@ public class AdminService {
         return db.listAiConfigurations();
     }
 
+    public Map<String, Object> runtimeConfiguration() {
+        admin();
+        if (ai == null) {
+            throw new ApiException(503, "AI runtime configuration is unavailable");
+        }
+        return ai.runtimeConfiguration();
+    }
+
+    public List<Map<String, Object>> features() {
+        admin();
+        return AiFeatureCatalog.descriptors();
+    }
+
     @Transactional
     public Map<String, Object> configure(
         AiConfigurationRequest body) {
         admin();
-        String json = body.configuration().toString().toLowerCase(java.util.Locale.ROOT);
-        if (json.contains("api_key") || json.contains("apikey") || json.contains("secret") || json.contains("password"))
-            throw ApiException.badRequest("Configure credentials through environment variables");
+        String configType = configurationType(body.configType());
+        String model = modelName(body.modelName());
+        Map<String, Object> configuration = AiRuntimeSettings.normalizeConfiguration(configType, body.configuration());
+        String provider = provider(body.provider());
 
-        db.lockAiConfigurationType(body.configType());
-        int version = db.getNextAiConfigurationVersion(body.configType());
+        db.lockAiConfigurationType(configType);
+        int version = db.getNextAiConfigurationVersion(configType);
 
-        db.updateAiConfigurationsByConfigType(body.configType());
+        db.updateAiConfigurationsByConfigType(configType);
 
         OffsetDateTime now = OffsetDateTime.now();
 
         UUID id = db.insertAiConfigurations(
             Map.of(
                 "config_type",
-                body.configType(),
+                configType,
                 "provider",
-                body.provider(),
+                provider,
                 "model_name",
-                body.modelName(),
+                model,
                 "config_json",
-                db.json(body.configuration()),
+                db.json(configuration),
                 "version",
                 version,
                 "is_active",
@@ -335,20 +367,28 @@ public class AdminService {
         admin();
 
         Map<String, Object> oldConfiguration = db.getAiConfigurationsById(oldVersionId);
-        String configType = (String) oldConfiguration.get("config_type");
+        String configType = configurationType((String) oldConfiguration.get("config_type"));
+        String model = modelName((String) oldConfiguration.get("model_name"));
+        Map<String, Object> configuration = AiRuntimeSettings.resolve(
+            configType,
+            (String) oldConfiguration.get("provider"),
+            model,
+            Map.of(),
+            java.util.Optional.of(oldConfiguration)
+        ).overrides();
+        String provider = provider((String) oldConfiguration.get("provider"));
 
         db.lockAiConfigurationType(configType);
         int newVersion = db.getNextAiConfigurationVersion(configType);
         db.updateAiConfigurationsByConfigType(configType);
 
         OffsetDateTime now = OffsetDateTime.now();
-        Object configuration = oldConfiguration.get("config_json");
 
         Map<String, Object> fields = new LinkedHashMap<>();
         fields.put("config_type", configType);
-        fields.put("provider", oldConfiguration.get("provider"));
-        fields.put("model_name", oldConfiguration.get("model_name"));
-        fields.put("config_json", configuration == null ? null : db.json(configuration));
+        fields.put("provider", provider);
+        fields.put("model_name", model);
+        fields.put("config_json", db.json(configuration));
         fields.put("version", newVersion);
         fields.put("is_active", true);
         fields.put("updated_by_user_id", user.id());
@@ -373,17 +413,18 @@ public class AdminService {
     public Map<String, Object> prompt(
         AiPromptRequest body) {
         admin();
-        db.lockAiPromptFeatureCode(body.featureCode());
-        int version = db.getNextAiPromptVersion(body.featureCode());
+        String featureCode = AiFeatureCatalog.requireSupported(body.featureCode());
+        db.lockAiPromptFeatureCode(featureCode);
+        int version = db.getNextAiPromptVersion(featureCode);
 
-        db.updateAiPromptTemplatesByFeatureCode(body.featureCode());
+        db.updateAiPromptTemplatesByFeatureCode(featureCode);
 
         OffsetDateTime now = OffsetDateTime.now();
 
         UUID id = db.insertAiPromptTemplates(
             Map.of(
                 "feature_code",
-                body.featureCode(),
+                featureCode,
                 "name",
                 body.name(),
                 "system_prompt",
@@ -416,7 +457,7 @@ public class AdminService {
         admin();
 
         Map<String, Object> oldPrompt = db.getAiPromptTemplatesById(oldVersionId);
-        String featureCode = (String) oldPrompt.get("feature_code");
+        String featureCode = AiFeatureCatalog.requireSupported((String) oldPrompt.get("feature_code"));
 
         db.lockAiPromptFeatureCode(featureCode);
         int newVersion = db.getNextAiPromptVersion(featureCode);
@@ -441,6 +482,42 @@ public class AdminService {
         audit.record("RESTORE_AI_PROMPT", "AI_PROMPT", newId, oldPrompt, restoredPrompt);
 
         return restoredPrompt;
+    }
+
+    private String configurationType(
+        String value) {
+        String type = value == null ? "" : value.strip().toUpperCase(java.util.Locale.ROOT);
+        if ("EMBEDDING".equals(type)) {
+            throw ApiException.conflict("Embedding configuration is read-only; changing the model requires reindexing");
+        }
+        if (!List.of("CHAT", "ASSESSMENT").contains(type)) {
+            throw ApiException.badRequest("Supported editable AI configuration types: CHAT, ASSESSMENT");
+        }
+        return type;
+    }
+
+    private String provider(
+        String value) {
+        String selected = value == null ? "" : value.strip().toLowerCase(java.util.Locale.ROOT);
+        if (!"gemini".equals(selected)) {
+            throw ApiException.badRequest("Only the Gemini API provider is supported");
+        }
+        if (ai == null) {
+            throw new ApiException(503, "AI runtime configuration is unavailable");
+        }
+        if (!selected.equalsIgnoreCase(ai.provider())) {
+            throw ApiException.badRequest("AI provider must match the provider configured in the backend environment");
+        }
+        return selected;
+    }
+
+    private String modelName(
+        String value) {
+        String model = value == null ? "" : value.strip();
+        if (!model.matches("[A-Za-z0-9][A-Za-z0-9._:/-]{0,149}")) {
+            throw ApiException.badRequest("Enter a valid AI model name");
+        }
+        return model;
     }
 
     public List<Map<String, Object>> monitor(

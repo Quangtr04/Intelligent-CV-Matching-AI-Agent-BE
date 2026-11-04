@@ -73,8 +73,12 @@ class MatchingCatalogCacheIntegrationTests {
         jdbc.execute("""
             CREATE TABLE market_job_posts(
                 id uuid PRIMARY KEY,raw_content_hash text,job_title text,company_name text,location text,
-                salary_text text,valid_through timestamptz,source_url text,source_site text,status text
+                salary_text text,valid_through timestamptz,source_url text,source_site text,status text,
+                parsed_requirements text,parsed_seniority text
             )
+            """);
+        jdbc.execute("""
+            CREATE TABLE market_job_skills(market_job_id uuid,normalized_skill text,is_required boolean)
             """);
         jdbc.execute("""
             CREATE TABLE market_job_sources(
@@ -83,7 +87,8 @@ class MatchingCatalogCacheIntegrationTests {
             )
             """);
         jdbc.update(
-            "INSERT INTO market_job_posts VALUES(?,?,?,?,?,?,now()+interval '2 days',?,?,?)",
+            "INSERT INTO market_job_posts(id,raw_content_hash,job_title,company_name,location,salary_text,"
+                + "valid_through,source_url,source_site,status) VALUES(?,?,?,?,?,?,now()+interval '2 days',?,?,?)",
             job,
             "unchanged-raw-hash",
             "Java developer",
@@ -111,12 +116,31 @@ class MatchingCatalogCacheIntegrationTests {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"job_title", "company_name", "location", "salary_text", "source_url"})
+    @ValueSource(
+        strings = {
+            "job_title",
+            "company_name",
+            "location",
+            "salary_text",
+            "source_url",
+            "parsed_requirements",
+            "parsed_seniority"}
+    )
     void displayedMetadataInvalidatesCacheWithoutChangingTheJdHash(
         String column) {
         Object before = repository.readMarketJobPostsByStatus();
         jdbc.update("UPDATE market_job_posts SET " + column + "=? WHERE id=?", "Changed display value", job);
         assertNotEquals(before, repository.readMarketJobPostsByStatus());
+    }
+
+    @Test
+    void changingRequiredSkillsInvalidatesCacheWithoutChangingTheJdHash() {
+        Object before = repository.readMarketJobPostsByStatus();
+        jdbc.update("INSERT INTO market_job_skills VALUES(?,'java',true)", job);
+        Object withSkill = repository.readMarketJobPostsByStatus();
+        assertNotEquals(before, withSkill);
+        jdbc.update("UPDATE market_job_skills SET is_required=false WHERE market_job_id=?", job);
+        assertNotEquals(withSkill, repository.readMarketJobPostsByStatus());
     }
 
     @Test

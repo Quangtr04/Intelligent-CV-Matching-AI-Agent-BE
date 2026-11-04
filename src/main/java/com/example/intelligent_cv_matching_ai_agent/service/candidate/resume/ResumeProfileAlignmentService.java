@@ -177,7 +177,7 @@ public class ResumeProfileAlignmentService {
         if (existing == null && !ai.enabled()) {
             throw new ApiException(
                 503,
-                "AI is disabled. Enable the self-hosted Ollama model to compare CV and profile."
+                "AI is disabled. Configure the AI provider and enable AI to compare CV and profile."
             );
         }
 

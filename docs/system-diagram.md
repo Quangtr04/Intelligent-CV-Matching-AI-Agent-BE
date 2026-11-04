@@ -26,7 +26,7 @@ Frontend trong sơ đồ là giao diện theo core-flow; repository này triển
 | PostgreSQL + pgvector | Lưu dữ liệu nghiệp vụ, JSONB, vector 1536 chiều, matching cache và kết quả phân tích. |
 | Redis tùy chọn | Cache ATS CV–job bằng analysis ID TTL 24 giờ và matching run ID TTL 1 giờ; kết quả được đối chiếu với database. |
 | CV file storage | Lưu file upload ở `UPLOAD_DIR` hoặc volume; trích xuất bằng PDFBox/POI, OCR local bằng Tesseract khi được cấu hình. |
-| OpenAI | Cung cấp chat/embedding qua adapter Spring AI hiện có, khi đã bật và cấu hình AI. |
+| Gemini | Cung cấp chat/embedding qua adapter Spring AI hiện có, khi đã bật và cấu hình AI. |
 | ITviec / TopCV | Nguồn crawl job qua HTTPS; ứng viên mở URL gốc để ứng tuyển. |
 | SMTP | Gửi OTP xác minh email khi được cấu hình; thông báo nghiệp vụ được lưu trong ứng dụng. |
 | Google Identity | Backend xác minh ID token và lấy JWKS qua HTTPS khi bật Google login. |

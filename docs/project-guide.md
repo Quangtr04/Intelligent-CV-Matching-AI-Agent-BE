@@ -2,9 +2,9 @@
 
 Tài liệu đối chiếu với repository `INTELLIGENT_CV_MATCHING_AI_AGENT` ngày **13/10/2026**, bao gồm toàn bộ backend: API, bảo mật, database, CV, AI, việc làm, học tập, tư vấn, thanh toán và quản trị. Repository cung cấp Swagger UI; frontend web/mobile cần gọi các API này.
 
-Cấu hình AI runtime được cập nhật ngày **21/10/2026**: Spring AI Ollama native,
-chat `qwen2.5:7b`, embedding `qwen3-embedding:0.6b` 1024 chiều, không cần API key inference.
-Xem [hướng dẫn Ollama](ollama.md) và [schema V10](schema.md). Các số liệu kiểm chứng có mốc cũ
+Cấu hình AI runtime được cập nhật ngày **04/11/2026**: Spring AI kết nối Gemini: chat qua giao thức tương thích OpenAI, embedding qua native REST,
+chat `gemini-2.5-flash-lite`, embedding `gemini-embedding-001` 1024 chiều, cần GEMINI_API_KEY.
+Xem [hướng dẫn Gemini](gemini.md) và [schema V10](schema.md). Các số liệu kiểm chứng có mốc cũ
 và mô tả schema V1/V5 là lịch sử, không thay cho kết quả kiểm thử runtime hiện tại.
 
 Ví dụ dùng `http://localhost:8080`. Thay UUID, token, email, mật khẩu và key mẫu bằng dữ liệu của môi trường chạy. Giữ đúng tên trường DTO; dự án dùng cả `camelCase` và `snake_case` tùy API.
@@ -38,7 +38,7 @@ EduNexus hỗ trợ chuẩn bị CV, tìm việc phù hợp, đánh giá kỹ n�
 | --- | --- | --- |
 | Java / Maven | Java 25 | Runtime và build |
 | Spring Boot | 4.1.1 | REST, dependency injection, cấu hình, scheduling |
-| Spring AI | 2.0.1, adapter Ollama native | `ChatModel`/`EmbeddingModel` gọi Ollama cục bộ |
+| Spring AI | 2.0.1, adapter chat giao thức OpenAI và adapter embedding native để gọi Gemini | `ChatModel`/`EmbeddingModel` gọi Gemini API |
 | Spring Security | JWT bearer + kiểm tra database | Xác thực, phân quyền, thu hồi phiên |
 | PostgreSQL / pgvector | Compose PostgreSQL 17, embedding hiện tại 1024 chiều | Dữ liệu nghiệp vụ, semantic matching, RAG; V10 giữ vector legacy 1536 |
 | Flyway | V1–V10 | Schema, constraint, seed, ingestion automation và chuyển embedding |
@@ -187,7 +187,7 @@ Sau V5 có 78 bảng ứng dụng, ngoài lịch sử Flyway (V1 có74, V3 thêm
 
 Đó là mốc schema V5. Hiện tại V1–V19 có **83 bảng ứng dụng**; V10 giữ vector cũ trong
 `embedding_legacy_1536` và thêm cột `embedding vector(1024)`. Vector cũ không còn current;
-RAG đã hoàn tất với vector cũ chuyển về `PENDING`, cần index lại bằng model Ollama mới.
+RAG đã hoàn tất với vector cũ chuyển về `PENDING`, cần index lại bằng model Gemini mới.
 V11 từng thêm mô tả và cấu hình trình bày cho mẫu CV; V19 chuyển toàn bộ mẫu sang HTML/CSS trong `html_content`,
 bỏ cấu hình layout JSON và giữ nguyên tham chiếu CV cũ. Chi tiết migration hiện tại nằm ở [schema.md](schema.md).
 
@@ -253,9 +253,8 @@ Dừng backend bằng Ctrl+C. Database/cache là process/container riêng.
 | Security | `CORS_ALLOWED_ORIGINS` | Origin frontend cách nhau bằng dấu phẩy; mẫu localhost 3000/5173 |
 | Identity | `AUTH_EXPOSE_DEV_OTP`, `GOOGLE_CLIENT_ID` | Dev OTP và Google audience |
 | Mail | `MAIL_ENABLED`, `MAIL_FROM`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_SMTP_AUTH`, `MAIL_STARTTLS` | SMTP OTP |
-| AI | `AI_ENABLED`, `AI_PROVIDER`, `AI_CHAT_PROVIDER`, `AI_EMBEDDING_PROVIDER`, `OLLAMA_BASE_URL` | Bật AI/cấu hình provider `ollama` và địa chỉ model server |
+| AI | `AI_ENABLED`, `AI_PROVIDER`, `AI_CHAT_PROVIDER`, `AI_EMBEDDING_PROVIDER`, `GEMINI_BASE_URL` | Bật AI/cấu hình provider `gemini` và endpoint API |
 | AI | `AI_CHAT_MODEL`, `AI_EMBEDDING_MODEL`, `AI_EMBEDDING_DIMENSIONS`, `AI_MAX_OUTPUT_TOKENS` | Model, embedding 1024 chiều và output limit |
-| AI | `OLLAMA_KEEP_ALIVE`, `OLLAMA_CONTEXT_LENGTH`, `OLLAMA_EMBEDDING_CONTEXT_LENGTH` | Giữ model trong bộ nhớ và cấu hình context |
 | Guest | `GUEST_TOKEN_LIMIT` | Ngân sách session mới; giá trị mẫu 5000 |
 | Payment | `PAYMENT_PROVIDER`, `PAYMENT_WEBHOOK_SECRET` | Provider generic và HMAC secret |
 | Billing | `BILLING_MAINTENANCE_ENABLED`, `BILLING_MAINTENANCE_BATCH_SIZE` | Bật expiry/reminder job và giới hạn mỗi lượt |
@@ -284,22 +283,22 @@ key trùng. Sửa `.env` rồi restart backend.
 
 ~~~dotenv
 AI_ENABLED=true
-AI_PROVIDER=ollama
-AI_CHAT_PROVIDER=ollama
-AI_EMBEDDING_PROVIDER=ollama
-AI_CHAT_MODEL=qwen2.5:7b
-AI_EMBEDDING_MODEL=qwen3-embedding:0.6b
+AI_PROVIDER=gemini
+AI_CHAT_PROVIDER=openai
+AI_EMBEDDING_PROVIDER=gemini
+AI_CHAT_MODEL=gemini-2.5-flash-lite
+AI_EMBEDDING_MODEL=gemini-embedding-001
 AI_EMBEDDING_DIMENSIONS=1024
-OLLAMA_BASE_URL=http://localhost:11434
+GEMINI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai
 AI_MAX_OUTPUT_TOKENS=2000
 ~~~
 
-`AI_ENABLED=true` vẫn cần Ollama đang chạy, model đã tải và bean chat/embedding tương ứng.
-Runtime dùng `spring.ai.model.chat=ollama`, `spring.ai.model.embedding=ollama`,
-`spring.ai.ollama.base-url`, `spring.ai.ollama.chat.model` và `spring.ai.ollama.embedding.model`;
-không cần `OPENAI_API_KEY`. Constructor chỉ nhận provider `ollama` và embedding dimension 1024.
-Lưu config admin không khởi động Ollama hoặc tải model. Đổi model embedding cần restart/index lại;
-model có số chiều khác cần migration phù hợp. Xem lệnh Docker/init/smoke tại [ollama.md](ollama.md).
+`AI_ENABLED=true` cần `GEMINI_API_KEY` hợp lệ, model được tài khoản cấp quyền và bean chat/embedding tương ứng.
+Runtime dùng `spring.ai.model.chat=openai`, `spring.ai.model.embedding=none`,
+`spring.ai.openai.base-url`, `spring.ai.openai.chat.model` và `app.ai.embedding-model`;
+cần `GEMINI_API_KEY`. Constructor chỉ nhận provider `gemini` và embedding dimension 1024.
+Lưu config admin không kiểm tra hoặc thay thế API key. Đổi model embedding cần restart/index lại;
+model có số chiều khác cần migration phù hợp. Xem lệnh Docker/init/smoke tại [gemini.md](gemini.md).
 
 ### 4.4. Redis, container và OCR
 
@@ -656,7 +655,7 @@ Nếu provider đã trả response, settle usage thực tế không vượt rese
 | CV/job/RAG index, RAG retrieval | Cần embedding provider |
 | Tư vấn người thật/billing/admin/support | Không cần AI |
 
-AI dùng adapter Ollama native; chat mặc định `qwen2.5:7b`, embedding `qwen3-embedding:0.6b`.
+AI dùng adapter chat giao thức OpenAI và adapter embedding native để gọi Gemini; chat mặc định `gemini-2.5-flash-lite`, embedding `gemini-embedding-001`.
 Embedding phải có đúng 1024 giá trị hữu hạn để khớp schema V10; vector legacy 1536 được giữ riêng
 và không dùng trong truy vấn hiện tại. Runtime không nhận provider khác chỉ bằng đổi tên cấu hình.
 
@@ -991,8 +990,8 @@ Config input:
 ~~~json
 {
   "configType":"CHAT",
-  "provider":"ollama",
-  "modelName":"qwen2.5:7b",
+  "provider":"gemini",
+  "modelName":"gemini-2.5-flash-lite",
   "configuration": {}
 }
 ~~~
@@ -1012,8 +1011,8 @@ Không lưu API key/password/secret vào configuration; code stringify toàn b�
 
 Save/restore lock group, deactivate phiên bản cũ, tạo UUID mới với version=max+1 và active. Restore v1 khi có v2 tạo v3 chứa nội dung v1, không ghi đè v1/v2. oldVersionId là UUID record, không phải số version.
 
-Lưu/restore không gọi model, không bật AI, không khởi động Ollama hay tải model. CHAT config đúng
-provider `ollama` áp dụng lần chat kế tiếp; model phải đã tải. Prompt active theo feature áp dụng lần sinh tiếp.
+Lưu/restore không gọi model, không bật AI, không kiểm tra hoặc thay thế API key. CHAT config đúng
+provider `gemini` áp dụng lần chat kế tiếp; model phải được tài khoản cấp quyền. Prompt active theo feature áp dụng lần sinh tiếp.
 
 ### 13.3. Announcement và notification
 

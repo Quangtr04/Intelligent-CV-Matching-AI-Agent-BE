@@ -51,27 +51,22 @@ spring:
       mail.smtp.timeout: ${MAIL_TIMEOUT}
   ai:
     model:
-      chat: ${AI_CHAT_PROVIDER:ollama}
-      embedding: ${AI_EMBEDDING_PROVIDER:ollama}
+      chat: ${AI_CHAT_PROVIDER:openai}
+      embedding: none
       audio:
         speech: ${AI_SPEECH_PROVIDER}
         transcription: ${AI_TRANSCRIPTION_PROVIDER}
       image: ${AI_IMAGE_PROVIDER}
       moderation: ${AI_MODERATION_PROVIDER}
-    ollama:
-      base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
-      init:
-        pull-model-strategy: never
+    openai:
+      api-key: ${GEMINI_API_KEY:}
+      base-url: ${GEMINI_BASE_URL:https://generativelanguage.googleapis.com/v1beta/openai}
+      timeout: ${AI_REQUEST_TIMEOUT:PT2M}
+      max-retries: 0
       chat:
-        model: ${AI_CHAT_MODEL:qwen2.5:7b}
+        model: ${AI_CHAT_MODEL:gemini-2.5-flash-lite}
         temperature: ${AI_CHAT_TEMPERATURE:0.2}
-        num-predict: ${AI_MAX_OUTPUT_TOKENS:2000}
-        num-ctx: ${OLLAMA_CONTEXT_LENGTH:8192}
-        keep-alive: ${OLLAMA_KEEP_ALIVE:5m}
-      embedding:
-        model: ${AI_EMBEDDING_MODEL:qwen3-embedding:0.6b}
-        keep-alive: ${OLLAMA_KEEP_ALIVE:5m}
-        truncate: false
+        max-tokens: ${AI_MAX_OUTPUT_TOKENS:2000}
     vectorstore:
       qdrant:
         enabled: ${QDRANT_VECTORSTORE_ENABLED}
@@ -88,6 +83,10 @@ app:
       max-concurrent: ${APP_PDF_MAX_CONCURRENT:2}
       no-sandbox: ${APP_PDF_NO_SANDBOX:false}
   jobs:
+    crawl:
+      request-delay: ${JOB_CRAWL_REQUEST_DELAY:PT3S}
+      rate-limit-cooldown: ${JOB_CRAWL_RATE_LIMIT_COOLDOWN:PT5M}
+      challenge-cooldown: ${JOB_CRAWL_CHALLENGE_COOLDOWN:PT15M}
     salary-exchange:
       enabled: ${SALARY_EXCHANGE_ENABLED:true}
       url: ${SALARY_EXCHANGE_URL:https://open.er-api.com/v6/latest/USD}
@@ -121,15 +120,16 @@ app:
       retry-seconds: ${JOB_EMBEDDING_RETRY_SECONDS}
   ai:
     enabled: ${AI_ENABLED}
-    provider: ${AI_PROVIDER:ollama}
+    provider: ${AI_PROVIDER:gemini}
+    reasoning-effort: ${AI_REASONING_EFFORT:none}
+    gemini-native-base-url: ${GEMINI_NATIVE_BASE_URL:https://generativelanguage.googleapis.com/v1beta}
+    embedding-provider: ${AI_EMBEDDING_PROVIDER:gemini}
+    embedding-model: ${AI_EMBEDDING_MODEL:gemini-embedding-001}
     embedding-dimensions: ${AI_EMBEDDING_DIMENSIONS:1024}
-    embedding-context-length: ${OLLAMA_EMBEDDING_CONTEXT_LENGTH:8192}
     max-output-tokens: ${AI_MAX_OUTPUT_TOKENS}
     assessment-max-output-tokens: ${AI_ASSESSMENT_MAX_OUTPUT_TOKENS:12000}
-    assessment-context-length: ${AI_ASSESSMENT_CONTEXT_LENGTH:16384}
-    assessment-model: ${AI_ASSESSMENT_MODEL:qwen3.5:4b}
-    assessment-think: ${AI_ASSESSMENT_THINK:true}
-    request-timeout: ${AI_REQUEST_TIMEOUT:PT15M}
+    assessment-model: ${AI_ASSESSMENT_MODEL:gemini-2.5-flash-lite}
+    request-timeout: ${AI_REQUEST_TIMEOUT:PT2M}
     learning-max-output-tokens: ${AI_LEARNING_MAX_OUTPUT_TOKENS:4000}
   ocr:
     enabled: ${APP_OCR_ENABLED}

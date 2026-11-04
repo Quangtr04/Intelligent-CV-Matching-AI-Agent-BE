@@ -23,8 +23,17 @@ public class AiRepository {
     public Optional<Map<String, Object>> findAiConfigurationsByConfigType(
         Object... args) {
         return db.optional(
-            ("SELECT model_name FROM ai_configurations WHERE config_type='CHAT' AND "
+            ("SELECT model_name,config_json,version FROM ai_configurations WHERE config_type='CHAT' AND "
                 + "is_active=true AND lower(provider)=lower(?) ORDER BY version DESC " + "LIMIT 1"),
+            args
+        );
+    }
+
+    public Optional<Map<String, Object>> findAiAssessmentConfiguration(
+        Object... args) {
+        return db.optional(
+            "SELECT model_name,config_json,version FROM ai_configurations WHERE config_type='ASSESSMENT' "
+                + "AND is_active=true AND lower(provider)=lower(?) ORDER BY version DESC LIMIT 1",
             args
         );
     }

@@ -15,7 +15,7 @@
 | P0089, P0191, P0194 | AI hỗ trợ và parsing/OCR | Có boundary Spring AI chat/embedding, structured output validation, quota/usage và extraction/OCR tùy cấu hình. Không tự coi AI tắt hoặc phản hồi mock là chứng minh chất lượng AI thật. `AiService.java:110`, `:238`, `ResumeFileExtractor.java`. | Đã có code; chất lượng/provider cần nghiệm thu |
 | P0090, P0131 | Mở job gốc để ứng tuyển ngoài hệ thống | `POST /jobs/{id}/external-apply` kiểm tra ACTIVE/source URL và trả URL kèm event. Frontend phải điều hướng bằng URL trả về; backend không gửi HTTP redirect. `CareerToolsService.java:263`, `JobSourceValidator.java`. | Đáp ứng backend; cần nối frontend |
 | P0178 so với P0192 | Qdrant hoặc pgvector / semantic search with Qdrant | Runtime dùng pgvector, Qdrant auto-configuration bị tắt. P0178 cho phép pgvector nhưng P0192 vẫn ghi Qdrant; cần thống nhất tài liệu. `application.yaml:68`, `MatchingRepository.java:127`, `V2__workflow_integrity_and_vector_indexes.sql:107`. | Khác câu chữ giữa hai mục DOCX |
-| P0190 | text-embedding-3-small / large | Có model từ env, runtime và database cố định vector 1536 chiều; large chỉ tương thích nếu model được cấu hình trả đúng 1536 chiều. `application.yaml:65`, `AiService.java:264`. | Đã có ràng buộc, cần kiểm chứng cấu hình provider |
+| P0190 | gemini-embedding-001 / large | Có model từ env, runtime và database cố định vector 1536 chiều; large chỉ tương thích nếu model được cấu hình trả đúng 1536 chiều. `application.yaml:65`, `AiService.java:264`. | Đã có ràng buộc, cần kiểm chứng cấu hình provider |
 
 ### Kiểm chứng lỗi cập nhật metadata của job
 

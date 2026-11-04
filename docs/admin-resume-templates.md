@@ -202,7 +202,7 @@ POST `{{baseUrl}}/resumes`, **Bearer `{{candidateAccessToken}}`**, JSON:
 }
 ```
 
-Expected `200`, `source="MANUAL"`, `status="DRAFT"`, `template_id` đúng. Lưu `id` vào `templateFixtureResumeId`; không ghi đè CV chính đang kiểm thử trong `resumeId`. Chưa cần confirm để kiểm FK này. [Luồng CV đầy đủ](postman-test-order.md#tao-cv-ollama) xử lý review/confirm khi muốn dùng CV cho matching.
+Expected `200`, `source="MANUAL"`, `status="DRAFT"`, `template_id` đúng. Lưu `id` vào `templateFixtureResumeId`; không ghi đè CV chính đang kiểm thử trong `resumeId`. Chưa cần confirm để kiểm FK này. [Luồng CV đầy đủ](postman-test-order.md#tao-cv-ai) xử lý review/confirm khi muốn dùng CV cho matching.
 
 ```javascript
 pm.test("CV fixture tham chieu dung template", () => {

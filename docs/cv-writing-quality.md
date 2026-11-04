@@ -1,6 +1,6 @@
 # Đánh giá cách viết CV bằng AI
 
-Phân tích chất lượng CV đánh giá thêm **cách viết bullet point (gạch đầu dòng), dấu câu, ngôn từ, độ cô đọng và cách mô tả đóng góp**. Model Ollama đang cấu hình được dùng trong luồng `CV_ANALYZE`; không có bước gọi dịch vụ AI thương mại hoặc huấn luyện model trong luồng này.
+Phân tích chất lượng CV đánh giá thêm **cách viết bullet point (gạch đầu dòng), dấu câu, ngôn từ, độ cô đọng và cách mô tả đóng góp**. Model Gemini đang cấu hình được gọi qua API trong luồng `CV_ANALYZE`.
 
 Đây là đánh giá trên văn bản và cấu trúc CV đã được người dùng xác nhận. Hệ thống không suy ra font, căn lề, vị trí trên trang hoặc chất lượng bố cục PDF từ văn bản trích xuất. Điểm này cũng không chứng minh CV được một nhà cung cấp ATS cụ thể chấp nhận.
 
@@ -29,7 +29,7 @@ overall_score = round(content_score × 0.80 + writing_quality.score × 0.20, 2)
 
 AI cần tôn trọng CV tiếng Việt/tiếng Anh và đặc thù thuật ngữ kỹ thuật. Nhận xét phải chỉ ra vấn đề trong văn bản thật; không trích ví dụ do model tự nghĩ ra như thể đã có trong CV. Gợi ý viết lại giữ nguyên dữ kiện, không thêm kỹ năng, thành tích, số người dùng, tỷ lệ cải thiện hoặc kinh nghiệm chưa được xác nhận.
 
-Ollama nhận JSON Schema bắt buộc đủ các trường đánh giá, bao gồm `evidence` ở từng tiêu chí. Backend tiếp tục kiểm tra mã tiêu chí không trùng, quan hệ trạng thái–điểm và trích dẫn khớp nội dung CV; JSON hợp lệ tự nó chưa chứng minh nhận xét đúng. Điểm và góp ý là kết quả tham khảo từ model, cần người dùng đối chiếu trước khi sửa CV.
+Backend yêu cầu JSON object từ provider trước và đưa schema đủ các trường đánh giá, bao gồm `evidence` ở từng tiêu chí, vào system prompt. Backend tiếp tục kiểm tra mã tiêu chí không trùng, quan hệ trạng thái–điểm và trích dẫn khớp nội dung CV; JSON hợp lệ tự nó chưa chứng minh nhận xét đúng. Điểm và góp ý là kết quả tham khảo từ model, cần người dùng đối chiếu trước khi sửa CV.
 
 ## Hợp đồng API
 
@@ -214,30 +214,6 @@ Ghi thời điểm, model hiệu lực, ID CV/báo cáo, điểm từng tiêu ch
 
 ## Kiểm chứng
 
-Các ví dụ và assertion ở trên mô tả dữ liệu và kết quả cần kiểm tra. Chất lượng nhận xét thực tế cần được xác nhận qua output Ollama và review dữ kiện; kiểm tra JSON/công thức thành công chưa chứng minh model chấm đúng.
+Các ví dụ và assertion ở trên mô tả dữ liệu và kết quả cần kiểm tra. Chất lượng nhận xét thực tế cần được xác nhận qua output Gemini và review dữ kiện; kiểm tra JSON/công thức thành công chưa chứng minh model chấm đúng.
 
-Kết quả chạy ngày **22/10/2026**, giờ Việt Nam:
-
-| Kiểm tra | Kết quả | Bằng chứng |
-| --- | --- | --- |
-| Backend `mvn -B verify`, bật phép thử Ollama local | **BUILD SUCCESS** lúc 22:04; 659 test được ghi nhận, **606 đạt**, 0 failure/error, **53 bỏ qua**; thời gian Maven 2 phút 27 giây | [Log verify](../target/cv-writing-verify.log), [JUnit XML](../target/surefire-reports) |
-| Rubric và API candidate mới | **17 kiểm tra utility và 7 integration đạt**, gồm tính điểm, thiếu bằng chứng, dữ liệu lỗi, trích dẫn, lưu/đọc lại, quyền sở hữu và chế độ tắt AI | [Log kiểm tra phần mới](../target/cv-writing-targeted-tests.log) |
-| API consultant trên DB tạm riêng | **3 kiểm tra đạt, không bỏ qua**: tạo báo cáo, từ chối phản hồi lỗi và đọc báo cáo theo quyền truy cập | [Log consultant](../target/cv-writing-consultant-integration.log) |
-| Ollama đang cài trên máy, CV giả lập | Model trả JSON đủ rubric và trích dẫn vượt qua kiểm tra khớp nguồn; đã dùng JSON Schema native như luồng ứng dụng | [Output gốc](../target/cv-writing-ollama-synthetic-output.json), [kết quả chuẩn hóa](../target/cv-writing-ollama-synthetic-normalized.json) |
-| Frontend | TypeScript/Vite build thành công; **17 kiểm tra adapter/render mới** và **11 kiểm tra hồi quy CV** đạt; lint các file liên quan đạt. Build còn cảnh báo bundle lớn | [Build](../../../FE/FA26SE119-FE/resume-writing-build.log), [kiểm tra mới](../../../FE/FA26SE119-FE/resume-writing-contract-tests.log), [hồi quy CV](../../../FE/FA26SE119-FE/resume-writing-candidate-regression.log), [lint](../../../FE/FA26SE119-FE/resume-writing-lint.log) |
-| Docker backend local | Đã cập nhật container; health `UP`, hash JAR chạy trong container khớp JAR đã verify | [Log cập nhật](../target/cv-writing-docker-update.log), [metadata runtime](../target/cv-writing-app-runtime.json) |
-| DB ứng dụng | Flyway **V13**, 0 migration lỗi; giữ nguyên 2 CV và 2 báo cáo cũ, các báo cáo cũ có `writing_quality_json = null` | [Metadata DB](../target/cv-writing-app-runtime.json) |
-
-Đã [sao lưu PostgreSQL trước migration](../target/pre-cv-writing-20261022-214342.dump) và kiểm tra đọc được danh mục archive; [metadata backup](../target/cv-writing-app-backup.json) lưu hash và trạng thái DB V12. Chưa thử phục hồi archive lên DB riêng.
-
-53 test bỏ qua ở lượt verify đầy đủ bao gồm các suite yêu cầu cấu hình DB riêng; ba kiểm tra consultant ở trên chạy riêng trên container pgvector tạm, không dùng DB ứng dụng. Không cộng hai lượt chạy thành số test duy nhất hoặc ghi toàn bộ 659 test đều đạt.
-
-Phép thử model dùng một CV tổng hợp, chỉ xác nhận phản hồi có cấu trúc hợp lệ và các trích dẫn khớp nguồn. Chưa hiệu chuẩn thang điểm hoặc đo độ đúng của từng nhận xét trên bộ CV gán nhãn; nhận xét ngôn từ/dấu câu vẫn cần review. Chưa kiểm thử thao tác bằng trình duyệt hoặc gọi API phân tích bằng tài khoản thật trên container; các API có xác thực được kiểm tra bằng MockMvc với DB thật và AI mock. Sau cập nhật, các endpoint công khai trả `200`, request phân tích không có token trả `401`.
-
-Có thể chạy lại phép thử model đã cài tại `127.0.0.1:11434` từ thư mục backend; script không tải weights hoặc gọi dịch vụ AI thương mại:
-
-```powershell
-$env:RUN_OLLAMA_WRITING_SMOKE = 'true'
-mvn -B '-Dtest=CvWritingOllamaSmokeTests' test
-$env:RUN_OLLAMA_WRITING_SMOKE = $null
-```
+Sau khi đổi provider, chạy lại kiểm tra nghiệp vụ và một request bằng dữ liệu CV giả lập với API key được cấu hình. Các test dùng mock chỉ xác minh contract, quota và persistence; cần review độc lập nội dung model trả về để đánh giá chất lượng.

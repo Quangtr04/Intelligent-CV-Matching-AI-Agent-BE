@@ -55,6 +55,7 @@ public final class AiResponseData {
                     + "description:string,estimated_hours:integer," + "prerequisites:[integer_sequence_order]}]}");
             case "APPLICATION_EMAIL" -> "{subject:string,email:string,cover_letter:string}";
             case "CAREER_CHAT" -> "{answer:string}";
+            case "CV_AI_SUPPORT" -> "{answer:string,suggestions:[{original_content,suggested_content,explanation}]}";
             case "SALARY_ESTIMATE" -> "{estimated_min:number,estimated_max:number,currency:string,reasoning:string}";
             default -> throw ApiException.badRequest("Unsupported AI feature");
         };
@@ -73,6 +74,25 @@ public final class AiResponseData {
 
     public static String taskInstructions(
         String feature) {
+        if ("CV_AI_SUPPORT".equals(feature)) {
+            return "Help the candidate draft or rewrite only the requested CV section. "
+                + "The answer is the finished text ready to review and paste into the CV, without a greeting, "
+                + "Markdown fences or an explanation outside the suggestions array. For summary use two to four "
+                + "short sentences; for experience use up to five concise action bullets on separate lines; for a "
+                + "project use two or three sentences. Use only supplied candidate facts from the section and "
+                + "authoritative resume. A target position is a goal, not evidence of current employment or skills. "
+                + "Never invent employers, technologies, qualifications, dates, achievements or measurements. "
+                + "Do not add design, testing, deployment, maintenance, RESTful or performance responsibilities "
+                + "merely because they are common for a technology; include them only when explicitly supplied. "
+                + "Do not add placeholder numbers, fictional employers or missing credentials. If facts are "
+                + "insufficient, explain briefly what information is needed rather than fabricate a CV. "
+                + "Return at most three specific suggestions; original_content must be one allowed literal source "
+                + "excerpt, or empty when proposing genuinely new wording from provided facts. Never paraphrase "
+                + "or translate original_content. Urgent means prioritize a shorter useful answer; it does not "
+                + "promise expedited processing. Write answer, suggested_content and explanation in the requested "
+                + "Vietnamese or English response language only. These are proposals for the candidate to review; "
+                + "never claim the stored CV was changed.";
+        }
         if ("CV_PROFILE_ALIGNMENT".equals(feature)) {
             return "Compare the supplied authoritative CV with this SAME candidate's saved career_profile. "
                 + "Measure how the CV reflects the person's goals and self-declared background, independently of "
@@ -205,6 +225,10 @@ public final class AiResponseData {
         if (!"CV_ANALYZE".equals(feature))
             return "";
         return "Both content_quality rubric cv-content-v1 and writing_quality rubric cv-writing-v1 are mandatory. "
+            + "Return each rubric's criteria in the exact code order listed below. Keep feedback to one short "
+            + "sentence, evidence to at most one short exact quote, and summary to at most two short sentences. "
+            + "Select evidence and nonempty original_content only from the literal snippets allowed by the native "
+            + "schema. Never join headings or paraphrase source text inside a quote. "
             + "Content quality must contain each of these six codes exactly once: SKILL_RELEVANCE, EXPERIENCE_DEPTH, "
             + "PROJECT_COMPLEXITY, ACHIEVEMENT_IMPACT, EDUCATION_RELEVANCE, CONTENT_COMPLETENESS. "
             + "Assess factual completeness and relevance independently of writing style. For each content criterion "
@@ -257,7 +281,8 @@ public final class AiResponseData {
         String feature,
         Map<String, Object> input) {
         return switch (feature) {
-            case "CV_ANALYZE" -> CvWritingResponseSchema.schema();
+            case "CV_ANALYZE" -> CvWritingResponseSchema.schema(input);
+            case "CV_AI_SUPPORT" -> CvSupportResponseSchema.schema(input);
             case "CV_PROFILE_ALIGNMENT" -> CvProfileAlignmentResponseSchema.schema(input);
             case "ASSESSMENT_GENERATE", "ROADMAP_GENERATE" -> LearningResponseSchema.schema(feature, input);
             case "JOB_MATCH_RERANK" -> JobMatchResponseSchema.schema(input);
@@ -295,6 +320,7 @@ public final class AiResponseData {
                 array(result, "issues");
                 array(result, "suggestions");
             }
+            case "CV_AI_SUPPORT" -> CvSupportResponseSchema.validate(result);
             case "CV_PROFILE_ALIGNMENT" -> ResumeProfileAlignment.validateModelResponse(result);
             case "JOB_MATCH_RERANK" -> array(result, "results");
             case "JOB_ATS" -> {

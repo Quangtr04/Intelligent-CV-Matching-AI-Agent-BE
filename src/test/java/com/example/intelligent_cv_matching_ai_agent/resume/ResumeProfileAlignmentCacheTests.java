@@ -119,7 +119,7 @@ class ResumeProfileAlignmentCacheTests {
                 ).findFirst()
         );
         when(ai.enabled()).thenReturn(true);
-        when(ai.provider()).thenReturn("ollama");
+        when(ai.provider()).thenReturn("openai");
         when(ai.model()).thenReturn("comparison-model");
         when(ai.cacheFingerprint(FEATURE)).thenReturn("prompt-v1");
         when(ai.generate(eq(FEATURE), anyMap())).thenAnswer(call -> generated(call.getArgument(1)));

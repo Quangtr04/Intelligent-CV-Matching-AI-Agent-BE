@@ -18,7 +18,7 @@ có nguồn catalog và ngày xác minh để đối chiếu. Nội dung bài vi
 cung cấp không được đưa vào snapshot này.
 
 Backend xác định danh sách kỹ năng bắt buộc của JD cần bổ sung từ hồ sơ, CV đã xác nhận và bài đánh giá
-cùng JD. Ollama chỉ viết nội dung luyện tập cho những kỹ năng đó. Các node, prerequisite và thời lượng
+cùng JD. Gemini chỉ viết nội dung luyện tập cho những kỹ năng đó. Các node, prerequisite và thời lượng
 thuộc kế hoạch học bù; URL tài nguyên được lưu từ catalog đã kiểm soát thay vì lấy URL do model tự sinh.
 
 Các liên kết đến roadmap.sh dẫn người dùng sang trang nguồn để xem nội dung đầy đủ. Tài nguyên từ

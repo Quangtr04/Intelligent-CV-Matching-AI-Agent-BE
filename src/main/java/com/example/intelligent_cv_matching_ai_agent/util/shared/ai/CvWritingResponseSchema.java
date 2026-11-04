@@ -1,67 +1,36 @@
 package com.example.intelligent_cv_matching_ai_agent.util.shared.ai;
 
 import com.example.intelligent_cv_matching_ai_agent.util.candidate.resume.ResumeContentQuality;
+import com.example.intelligent_cv_matching_ai_agent.util.candidate.resume.ResumeWritingQuality;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
+import com.example.intelligent_cv_matching_ai_agent.util.shared.Values;
 
-/** Native Ollama JSON schema: require the rubric fields while keeping the response concise. */
+/** JSON schema requiring the rubric fields while keeping the response concise. */
 final class CvWritingResponseSchema {
 
     private CvWritingResponseSchema() {
     }
 
-    static Map<String, Object> schema() {
-        Map<String, Object> criterion = object(
-            Map.of(
-                "code",
-                Map.of(
-                    "type",
-                    "string",
-                    "enum",
-                    List.of(
-                        "BULLET_STRUCTURE",
-                        "PUNCTUATION_CONSISTENCY",
-                        "PROFESSIONAL_WORDING",
-                        "CONCISENESS",
-                        "ACHIEVEMENT_CLARITY"
-                    )
-                ),
-                "status",
-                Map.of("type", "string", "enum", List.of("ASSESSED", "NOT_APPLICABLE", "INSUFFICIENT_EVIDENCE")),
-                "score",
-                Map.of("type", List.of("number", "null"), "minimum", 0, "maximum", 100),
-                "feedback",
-                text(1, 600),
-                "evidence",
-                array(text(1, 300), 0, 2)
-            )
-        );
+    static Map<String, Object> schema(
+        Map<String, Object> input) {
+        List<String> quotes = ResumeWritingQuality.evidenceOptions(Values.object(input.get("resume")));
+        Map<String, Object> evidence = quotes.isEmpty() ? text(1, 300) : Map.of("type", "string", "enum", quotes);
+        List<String> originals = new ArrayList<>(quotes);
+        originals.add("");
         Map<String, Object> suggestion = object(
             Map.of(
                 "category",
-                text(1, 100),
+                generatedText(1, 100),
                 "severity",
                 Map.of("type", "string", "enum", List.of("LOW", "MEDIUM", "HIGH")),
                 "original_content",
-                text(0, 2000),
+                quotes.isEmpty() ? text(0, 2000) : Map.of("type", "string", "enum", originals),
                 "suggested_content",
-                text(0, 2000),
+                generatedText(0, 2000),
                 "explanation",
-                text(1, 1000)
-            )
-        );
-        Map<String, Object> contentCriterion = object(
-            Map.of(
-                "code",
-                Map.of("type", "string", "enum", ResumeContentQuality.CODES),
-                "status",
-                Map.of("type", "string", "enum", List.of("ASSESSED", "NOT_APPLICABLE", "INSUFFICIENT_EVIDENCE")),
-                "score",
-                Map.of("type", List.of("number", "null"), "minimum", 0, "maximum", 100),
-                "feedback",
-                text(1, 600),
-                "evidence",
-                array(text(1, 300), 0, 2)
+                generatedText(1, 1000)
             )
         );
         return object(
@@ -71,11 +40,11 @@ final class CvWritingResponseSchema {
                 "ats_score",
                 score(),
                 "summary",
-                text(1, 1000),
+                generatedText(1, 1000),
                 "strengths",
-                array(text(1, 500), 0, 10),
+                array(generatedText(1, 500), 0, 10),
                 "issues",
-                array(text(1, 500), 0, 10),
+                array(generatedText(1, 500), 0, 10),
                 "suggestions",
                 array(suggestion, 0, 3),
                 "content_quality",
@@ -84,7 +53,7 @@ final class CvWritingResponseSchema {
                         "rubric_version",
                         Map.of("type", "string", "enum", List.of(ResumeContentQuality.RUBRIC_VERSION)),
                         "criteria",
-                        array(contentCriterion, ResumeContentQuality.CODES.size(), ResumeContentQuality.CODES.size())
+                        criteria(ResumeContentQuality.CODES, 1, evidence)
                     )
                 ),
                 "writing_quality",
@@ -93,11 +62,50 @@ final class CvWritingResponseSchema {
                         "rubric_version",
                         Map.of("type", "string", "enum", List.of("cv-writing-v1")),
                         "criteria",
-                        array(criterion, 5, 5),
+                        criteria(ResumeWritingQuality.CODES, 0, evidence),
                         "limitations",
-                        array(text(1, 500), 0, 5)
+                        array(generatedText(1, 500), 0, 5)
                     )
                 )
+            )
+        );
+    }
+
+    private static Map<String, Object> criteria(
+        List<String> codes,
+        int minimumAssessedEvidence,
+        Map<String, Object> evidence) {
+        List<Map<String, Object>> slots = codes.stream().map(
+            code -> Map.<String, Object>of(
+                "oneOf",
+                List.of(criterion(code, true, minimumAssessedEvidence, evidence), criterion(code, false, 0, evidence))
+            )
+        ).toList();
+        return Map.of("type", "array", "prefixItems", slots, "minItems", codes.size(), "maxItems", codes.size());
+    }
+
+    private static Map<String, Object> criterion(
+        String code,
+        boolean assessed,
+        int minimumEvidence,
+        Map<String, Object> evidence) {
+        return object(
+            Map.of(
+                "code",
+                Map.of("type", "string", "enum", List.of(code)),
+                "status",
+                Map.of(
+                    "type",
+                    "string",
+                    "enum",
+                    assessed ? List.of("ASSESSED") : List.of("NOT_APPLICABLE", "INSUFFICIENT_EVIDENCE")
+                ),
+                "score",
+                assessed ? score() : Map.of("type", "null"),
+                "feedback",
+                generatedText(1, 600),
+                "evidence",
+                array(evidence, minimumEvidence, 2)
             )
         );
     }
@@ -124,6 +132,21 @@ final class CvWritingResponseSchema {
 
     private static Map<String, Object> score() {
         return Map.of("type", "number", "minimum", 0, "maximum", 100);
+    }
+
+    private static Map<String, Object> generatedText(
+        int minimum,
+        int maximum) {
+        return Map.of(
+            "type",
+            "string",
+            "minLength",
+            minimum,
+            "maxLength",
+            maximum,
+            "pattern",
+            CvAnalysisLanguage.textPattern(minimum, maximum)
+        );
     }
 
     private static Map<String, Object> array(
