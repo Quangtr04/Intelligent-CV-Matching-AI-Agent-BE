@@ -145,4 +145,28 @@ public class MarketJobPost {
     @Column(name = "status", nullable = false, length = 32)
     private String status;
 
+    @JsonProperty("created_by_user_id")
+    @Column(name = "created_by_user_id")
+    private UUID createdByUserId;
+
+    @JsonProperty("ingestion_method")
+    @Column(name = "ingestion_method", nullable = false, length = 32)
+    private String ingestionMethod;
+
+    @JsonProperty("task_id")
+    @Column(name = "task_id")
+    private UUID taskId;
+
+    @JsonProperty("reviewed_by_user_id")
+    @Column(name = "reviewed_by_user_id")
+    private UUID reviewedByUserId;
+
+    @JsonProperty("reviewed_at")
+    @Column(name = "reviewed_at", columnDefinition = "timestamptz")
+    private OffsetDateTime reviewedAt;
+
+    @JsonProperty("review_note")
+    @Column(name = "review_note", columnDefinition = "text")
+    private String reviewNote;
+
 }

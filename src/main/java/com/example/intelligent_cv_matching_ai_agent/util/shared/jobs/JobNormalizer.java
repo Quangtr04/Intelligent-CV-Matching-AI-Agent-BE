@@ -149,7 +149,8 @@ public final class JobNormalizer {
             optionalLines(input.responsibilities()),
             optionalLines(input.benefits()),
             input.postedAt(),
-            input.validThrough()
+            input.validThrough(),
+            input.taskId()
         );
     }
 

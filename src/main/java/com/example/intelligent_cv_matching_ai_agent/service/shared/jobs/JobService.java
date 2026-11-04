@@ -63,12 +63,59 @@ public class JobService {
         String normalizedLocation = JobNormalizer.fold(JobNormalizer.normalizeLocationFilter(requestedLocation));
         String locationPattern =
             "%" + normalizedLocation.replace("!", "!!").replace("%", "!%").replace("_", "!_") + "%";
+        if (user.hasRole("ADMIN"))
+            return db.listMarketJobPostsWithCreatorByStatus(
+                "%" + query + "%",
+                locationPattern,
+                pageSize(limit),
+                offset(offset)
+            );
         return db.listMarketJobPostsByStatus("%" + query + "%", locationPattern, pageSize(limit), offset(offset));
+    }
+
+    public List<Map<String, Object>> managedJobs(
+        String q,
+        String status,
+        UUID createdBy,
+        UUID taskId,
+        String ingestionMethod,
+        int limit,
+        int offset) {
+        user.requireRole("ADMIN");
+        String query = text(q);
+        if (query.length() > 255)
+            throw ApiException.badRequest("Search value too long");
+        String normalizedStatus = status == null || status.isBlank() ? null : status.strip().toUpperCase(Locale.ROOT);
+        if (normalizedStatus != null
+            && !Set.of("PENDING", "ACTIVE", "REJECTED", "EXPIRED", "REMOVED", "INVALID").contains(normalizedStatus))
+            throw ApiException.badRequest("Invalid job status filter");
+        String normalizedMethod = ingestionMethod == null || ingestionMethod.isBlank()
+            ? null
+            : ingestionMethod.strip().toUpperCase(Locale.ROOT);
+        if (normalizedMethod != null && !Set.of("MANUAL", "CRAWL", "SCHEDULED_CRAWL").contains(normalizedMethod))
+            throw ApiException.badRequest("Invalid ingestion method filter");
+        return db.listManagedJobs(
+            "%" + query + "%",
+            normalizedStatus,
+            createdBy,
+            taskId,
+            normalizedMethod,
+            pageSize(limit),
+            offset(offset)
+        );
     }
 
     public Map<String, Object> job(
         UUID id) {
-        var job = db.getMarketJobPostsById(id);
+        var job = user.hasRole("ADMIN") ? db.getMarketJobPostsWithCreatorById(id) : db.getMarketJobPostsById(id);
+        job.put("skills", db.listMarketJobSkillsByMarketJobId(id));
+        job.put("sources", db.sources(id));
+        return job;
+    }
+
+    private Map<String, Object> jobWithCreator(
+        UUID id) {
+        var job = db.getMarketJobPostsWithCreatorById(id);
         job.put("skills", db.listMarketJobSkillsByMarketJobId(id));
         job.put("sources", db.sources(id));
         return job;
@@ -78,7 +125,14 @@ public class JobService {
     public Map<String, Object> importJob(
         ImportJobRequest input) {
         user.requireRole("ADMIN");
-        return importPrepared(input, user.id());
+        return importPrepared(input, user.id(), "MANUAL");
+    }
+
+    @Transactional
+    public Map<String, Object> importCrawledJob(
+        ImportJobRequest input) {
+        user.requireRole("ADMIN");
+        return importPrepared(input, user.id(), "CRAWL");
     }
 
     /** Internal scheduler entry point, authorized against the persisted administrator. */
@@ -87,18 +141,29 @@ public class JobService {
         ImportJobRequest input,
         UUID actor) {
         db.requireActiveAdmin(actor);
-        return importPrepared(input, actor);
+        return importPrepared(input, actor, "SCHEDULED_CRAWL");
     }
 
     private Map<String, Object> importPrepared(
         ImportJobRequest raw,
         UUID actor) {
+        return importPrepared(raw, actor, "MANUAL");
+    }
+
+    private Map<String, Object> importPrepared(
+        ImportJobRequest raw,
+        UUID actor,
+        String ingestionMethod) {
         ImportJobRequest input = JobNormalizer.normalize(raw);
         if (input.validThrough() != null && !input.validThrough().isAfter(OffsetDateTime.now()))
             throw ApiException.badRequest("Cannot import an expired job");
         String normalized = Jsoup.parse(input.content()).text().strip();
         if (normalized.length() < 30)
             throw ApiException.badRequest("Job description must contain at least 30 characters");
+        boolean staffActor = db.isStaffActor(actor);
+        if (input.taskId() != null)
+            db.validateAndTouchTask(input.taskId(), actor, !staffActor);
+        String initialStatus = staffActor ? "PENDING" : "ACTIVE";
         String hash = JobNormalizer.contentHash(input);
         String fingerprint = JobNormalizer.fingerprint(input);
         // A consistent lock order serializes concurrent imports across sources.
@@ -110,14 +175,16 @@ public class JobService {
         if (same.isEmpty())
             same = db.findMarketJobPostsByRawContentHash(hash);
         if (same.isPresent()) {
-            if (!"ACTIVE".equals(same.get().get("status")))
+            String existingStatus = text(same.get().get("status"));
+            if (!"ACTIVE".equals(existingStatus) && !"PENDING".equals(existingStatus))
                 throw ApiException.conflict("Previously imported job is inactive; change its status explicitly");
             UUID id = uuid(same.get().get("id"));
             lockSourceJobs(previousSource, id);
             db.saveSource(id, input.sourceSite(), input.sourceUrl(), hash, input.validThrough());
             retirePrevious(previousSource, id);
-            enqueue(id, text(same.get().get("raw_content_hash")), actor);
-            var result = job(id);
+            if ("ACTIVE".equals(existingStatus))
+                enqueue(id, text(same.get().get("raw_content_hash")), actor);
+            var result = jobWithCreator(id);
             result.put("deduplicated", true);
             return result;
         }
@@ -127,7 +194,8 @@ public class JobService {
             lockSourceJobs(previousSource, id);
             db.saveSource(id, input.sourceSite(), input.sourceUrl(), hash, input.validThrough());
             retirePrevious(previousSource, id);
-            enqueue(id, text(crossSource.get().get("raw_content_hash")), actor);
+            if ("ACTIVE".equals(crossSource.get().get("status")))
+                enqueue(id, text(crossSource.get().get("raw_content_hash")), actor);
             db.insertAuditLogs(
                 fields(
                     "actor_user_id",
@@ -140,62 +208,67 @@ public class JobService {
                     id
                 )
             );
-            var result = job(id);
+            var result = jobWithCreator(id);
             result.put("deduplicated", true);
             return result;
         }
-        UUID id = db.insertMarketJobPosts(
-            fields(
-                "source_site",
-                input.sourceSite(),
-                "source_url",
-                input.sourceUrl(),
-                "raw_content_hash",
-                hash,
-                "content_fingerprint",
-                fingerprint,
-                "job_title",
-                input.jobTitle(),
-                "company_name",
-                input.companyName(),
-                "location",
-                input.location(),
-                "salary_text",
-                input.salaryText(),
-                "role_category",
-                input.roleCategory(),
-                "employment_type",
-                input.employmentType(),
-                "valid_through",
-                input.validThrough(),
-                "raw_content",
-                normalized,
-                "original_content",
-                input.content(),
-                "original_content_format",
-                "html",
-                "original_content_quality",
-                "provided",
-                "original_content_extracted_at",
-                OffsetDateTime.now(),
-                "parsed_description",
-                JobNormalizer.lines(input.content()),
-                "parsed_requirements",
-                input.requirements(),
-                "parsed_responsibilities",
-                input.responsibilities(),
-                "parsed_benefits",
-                input.benefits(),
-                "parsed_at",
-                OffsetDateTime.now(),
-                "posted_at",
-                input.postedAt(),
-                "collected_at",
-                OffsetDateTime.now(),
-                "status",
-                "ACTIVE"
-            )
+        Map<String, Object> postFields = fields(
+            "source_site",
+            input.sourceSite(),
+            "source_url",
+            input.sourceUrl(),
+            "raw_content_hash",
+            hash,
+            "content_fingerprint",
+            fingerprint,
+            "job_title",
+            input.jobTitle(),
+            "company_name",
+            input.companyName(),
+            "location",
+            input.location(),
+            "salary_text",
+            input.salaryText(),
+            "role_category",
+            input.roleCategory(),
+            "employment_type",
+            input.employmentType(),
+            "valid_through",
+            input.validThrough(),
+            "raw_content",
+            normalized,
+            "original_content",
+            input.content(),
+            "original_content_format",
+            "html",
+            "original_content_quality",
+            "provided",
+            "original_content_extracted_at",
+            OffsetDateTime.now(),
+            "parsed_description",
+            JobNormalizer.lines(input.content()),
+            "parsed_requirements",
+            input.requirements(),
+            "parsed_responsibilities",
+            input.responsibilities(),
+            "parsed_benefits",
+            input.benefits(),
+            "parsed_at",
+            OffsetDateTime.now(),
+            "posted_at",
+            input.postedAt(),
+            "collected_at",
+            OffsetDateTime.now(),
+            "status",
+            initialStatus,
+            "created_by_user_id",
+            actor,
+            "ingestion_method",
+            ingestionMethod
         );
+        if (input.taskId() != null)
+            postFields.put("task_id", input.taskId());
+        UUID id = db.insertMarketJobPosts(postFields);
         for (JobSkillRequest skill : input.skills() == null ? List.<JobSkillRequest>of() : input.skills()) {
             UUID skillId = skill.skillId();
             if (skillId != null)
@@ -215,11 +288,12 @@ public class JobService {
         retirePrevious(previousSource, id);
         db.updateMarketJobEmbeddingsByMarketJobId(input.sourceUrl(), id);
         db.updateMarketJobPostsBySourceUrl(input.sourceUrl(), id);
-        enqueue(id, hash, actor);
+        if ("ACTIVE".equals(initialStatus))
+            enqueue(id, hash, actor);
         db.insertAuditLogs(
             fields("actor_user_id", actor, "action", "JOB_IMPORT", "entity_type", "market_job_posts", "entity_id", id)
         );
-        var result = job(id);
+        var result = jobWithCreator(id);
         result.put("deduplicated", false);
         return result;
     }
@@ -307,9 +381,15 @@ public class JobService {
         UUID id,
         Map<String, Object> input) {
         user.requireRole("ADMIN");
+        if (db.isStaffActor(user.id()))
+            throw ApiException.forbidden("Only administrators and managers can approve or change job status");
         String status = required(input, "status", 20);
-        if (!Set.of("ACTIVE", "EXPIRED", "REMOVED", "INVALID").contains(status))
+        if (!Set.of("PENDING", "ACTIVE", "REJECTED", "EXPIRED", "REMOVED", "INVALID").contains(status))
             throw ApiException.badRequest("Invalid job status");
+        String rawNote = text(input.get("reviewNote")).strip();
+        if (rawNote.length() > 2000)
+            throw ApiException.badRequest("reviewNote maximum 2000 characters");
+        String reviewNote = rawNote.isEmpty() ? null : rawNote;
         var existing = db.getMarketJobPostsById3(id);
         Object deadline = existing.get("valid_through");
         java.time.Instant expiry = deadline == null
@@ -324,7 +404,7 @@ public class JobService {
         if ("ACTIVE".equals(status) && expiry != null && !expiry.isAfter(java.time.Instant.now()))
             throw ApiException.badRequest("Job deadline has elapsed; import a new source version");
         db.getMarketJobPostsById2(id);
-        db.updateMarketJobPostsById(status, id);
+        db.updateMarketJobReviewById(status, user.id(), reviewNote, id);
         db.updateSourceStatus(id, status);
         if (!status.equals("ACTIVE"))
             db.updateMarketJobEmbeddingsByMarketJobId2(id);
@@ -344,7 +424,7 @@ public class JobService {
                 db.json(input)
             )
         );
-        return db.getMarketJobPostsById3(id);
+        return jobWithCreator(id);
     }
 
     static String contentHash(
