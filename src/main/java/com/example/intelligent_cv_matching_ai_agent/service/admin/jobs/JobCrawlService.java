@@ -280,7 +280,7 @@ public class JobCrawlService {
                         );
                     boolean existing = db.findMarketJobPostsByRawContentHash(contentHash(jobInput)).isPresent();
                     Map<String, Object> saved =
-                        scheduled ? jobs.importJobAs(jobInput, actor) : jobs.importCrawledJob(jobInput);
+                        scheduled ? jobs.importJobAs(jobInput, actor) : jobs.importJob(jobInput);
                     boolean reused = existing || Boolean.TRUE.equals(saved.get("deduplicated"));
                     if (!reused)
                         db.updateParsedMetadata(posting.quality(), OffsetDateTime.now(), saved.get("id"));

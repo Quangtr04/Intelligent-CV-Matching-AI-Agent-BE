@@ -72,7 +72,9 @@ public class JobCrawlRepository {
         java.time.OffsetDateTime parsedAt,
         Object id) {
         db.update(
-            "UPDATE market_job_posts SET original_content_quality=?,parsed_at=? WHERE id=?",
+            "UPDATE market_job_posts SET original_content_quality=?,parsed_at=?,"
+                + "ingestion_method=CASE WHEN ingestion_method='MANUAL' THEN 'CRAWL' ELSE ingestion_method END "
+                + "WHERE id=?",
             quality,
             parsedAt,
             id
