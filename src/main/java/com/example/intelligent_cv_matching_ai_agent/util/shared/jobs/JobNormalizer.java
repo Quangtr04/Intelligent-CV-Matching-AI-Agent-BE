@@ -279,7 +279,11 @@ public final class JobNormalizer {
 
     private static String plain(
         String value) {
-        return value == null ? "" : Jsoup.parse(value).text().replaceAll("[\\s\\p{Z}]+", " ").strip();
+        if (value == null) {
+            return "";
+        }
+        String text = HTML_TAG.matcher(value).find() || value.indexOf('&') >= 0 ? Jsoup.parse(value).text() : value;
+        return text.replaceAll("[\\s\\p{Z}]+", " ").strip();
     }
 
     private static String optionalPlain(
