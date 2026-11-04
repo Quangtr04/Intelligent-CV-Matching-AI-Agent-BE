@@ -22,13 +22,13 @@ kết quả chỉ có **Docker — MISSING_EVIDENCE**. Nếu sau đó bài đán
 100 điểm, kết quả học bù chỉ có **SQL — NEEDS_PRACTICE**. Các kỹ năng chưa được hỏi vẫn được đối chiếu với
 bằng chứng hồ sơ/CV; không coi điểm một vài câu là kết luận về toàn bộ kiến thức của người dùng.
 
-Danh sách này được backend xác định trước khi gọi Ollama. AI chỉ viết hướng dẫn cho đúng các kỹ năng
+Danh sách này được backend xác định trước khi gọi Gemini. AI chỉ viết hướng dẫn cho đúng các kỹ năng
 được cho phép; backend từ chối kết quả thêm kỹ năng ngoài danh sách hoặc bỏ sót kỹ năng cần hướng dẫn.
 Tài nguyên học lấy từ catalog/khóa học đã duyệt theo từng skill; AI không tự tạo URL khóa học.
 
 ## Thao tác trên giao diện
 
-1. Khởi động frontend và backend/Ollama, rồi mở `/login`. Chọn **Tài khoản hệ thống** và đăng nhập
+1. Khởi động frontend và backend với Gemini API, rồi mở `/login`. Chọn **Tài khoản hệ thống** và đăng nhập
    bằng tài khoản **Candidate đã xác minh ở backend**. Đây là lựa chọn mặc định khi mở `/login`
    thông thường. `/login?mode=demo` hoặc đường dẫn có tham số `registered` sẽ mở chế độ demo;
    nếu đang ở đó, chuyển lại tab **Tài khoản hệ thống** trước khi đăng nhập.
@@ -36,7 +36,7 @@ Tài nguyên học lấy từ catalog/khóa học đã duyệt theo từng skill
    Phần **Chuẩn bị kiến thức theo JD** hiển thị từng skill, yêu cầu bắt buộc/bổ sung và tài liệu catalog
    để đọc trước. Chọn JD không tự sinh câu hỏi hoặc trừ quota sinh bài.
 3. Bấm **Tạo bài đánh giá theo JD** khi đã sẵn sàng. Backend trả mã tác vụ ngay; giao diện đọc trạng thái
-   bằng các request ngắn, không giữ một request HTTP trong suốt lúc Ollama sinh câu hỏi. Có thể tải lại
+   bằng các request ngắn, không giữ một request HTTP trong suốt lúc Gemini sinh câu hỏi. Có thể tải lại
    trang và tiếp tục theo dõi tác vụ của đúng tài khoản/JD. Khi hoàn thành, chọn đáp án cho từng câu rồi bấm
    **Nộp bài và xem kết quả**; xem điểm theo skill, đáp án và giải thích sau khi nộp đủ bài.
 4. Bấm **Xem kỹ năng thiếu và cách học**. Liên kết sang `/candidate/skill-gap` giữ đúng JD và bài đã
@@ -47,7 +47,7 @@ Tài nguyên học lấy từ catalog/khóa học đã duyệt theo từng skill
    bằng chứng, kèm lý do và nội dung học riêng. Không có skill cần bổ sung thì hiển thị kết quả rỗng.
 
 Tab **Trải nghiệm demo** dùng tài khoản/dữ liệu mẫu và giữ các màn hình demo cũ; kết quả ở chế độ đó
-không phải kết quả Ollama hay dữ liệu học bù của tài khoản hệ thống. Các chức năng khác trên frontend
+không phải kết quả Gemini hay dữ liệu học bù của tài khoản hệ thống. Các chức năng khác trên frontend
 có thể vẫn là demo; hướng dẫn này chỉ mô tả luồng backend đã kết nối ở các route nêu trên.
 Nếu chưa có tài khoản backend, dùng luồng đăng ký/xác minh trong [hướng dẫn Postman](postman-test-order.md)
 hoặc tài khoản Candidate backend đã được cấp. Backend API mặc định ở `http://localhost:8080/api/v1`;
@@ -145,7 +145,7 @@ trích dẫn kiểm tra nội bộ này không phải field được đảm bả
 Đáp án đúng và giải thích bị ẩn khi bài chưa nộp.
 
 `jobId` là bắt buộc. Không còn tạo bài bằng body chỉ có `targetJobTitle`. Nếu gửi thêm `targetJobTitle`,
-nó phải khớp tên JD được chọn; cách đơn giản là chỉ gửi `jobId` như trên. Model local cần đang chạy,
+nó phải khớp tên JD được chọn; cách đơn giản là chỉ gửi `jobId` như trên. API key/model và quota Gemini cần sẵn sàng,
 AI được bật và tài khoản còn quota. Tác vụ nền không đảm bảo AI luôn trả kết quả hợp lệ hoặc nhanh;
 thời gian còn phụ thuộc phần cứng, cold start và tải model. Tác vụ chờ được lưu trong database; tác vụ
 đang chạy bị gián đoạn chuyển lỗi khi hết lease 30 phút, thay vì âm thầm gọi lại model.
@@ -153,17 +153,7 @@ thời gian còn phụ thuộc phần cứng, cold start và tải model. Tác v
 Endpoint đồng bộ cũ `POST /assessments` vẫn được giữ để tương thích Postman/client cũ, nhưng phải chờ model
 trong một request. FE dùng luồng tác vụ nền ở trên để tránh timeout của browser/proxy.
 
-Model riêng cho sinh câu hỏi được cấu hình bằng `AI_ASSESSMENT_MODEL=qwen3.5:4b`,
-`AI_ASSESSMENT_THINK=true`, `AI_ASSESSMENT_MAX_OUTPUT_TOKENS=12000`,
-`AI_ASSESSMENT_CONTEXT_LENGTH=16384`. Ngân sách này dành cho phần suy luận
-và JSON kết quả. Giữ cấu hình hiện có vì thử nghiệm chưa chứng minh được cấu hình thay thế tốt hơn. Model request có
-giới hạn `AI_REQUEST_TIMEOUT=PT15M` và không tự retry lời gọi khi timeout. Việc chuyển sang tác vụ nền tránh
-giữ request HTTP quá lâu; chưa có cam kết tốc độ hoặc độ đúng đáp án.
-Các chức năng CV/chat/hướng dẫn học vẫn dùng `AI_CHAT_MODEL=qwen2.5:7b`;
-embedding không đổi. Model [Qwen3.5 4B trên Ollama](https://ollama.com/library/qwen3.5:4b) có
-[model card chính thức với giấy phép Apache 2.0](https://huggingface.co/Qwen/Qwen3.5-4B).
-Xem [cài đặt và kiểm tra model theo chức năng](ollama.md); cần tải model assessment và khởi động lại
-backend sau khi đổi cấu hình. Chưa thể kết luận model 4B có đáp án đúng chỉ vì đã tải hoặc sinh được JSON.
+Model sinh câu hỏi được cấu hình bằng `AI_ASSESSMENT_MODEL=gemini-2.5-flash-lite` và `AI_ASSESSMENT_MAX_OUTPUT_TOKENS=12000`. Client có timeout `AI_REQUEST_TIMEOUT=PT2M`, không tự retry lời gọi thất bại. Các chức năng CV/chat/hướng dẫn học dùng `AI_CHAT_MODEL=gemini-2.5-flash-lite`; embedding dùng `gemini-embedding-001` với 1024 chiều. Đặt `GEMINI_API_KEY` trong backend `.env` và khởi động lại sau khi đổi cấu hình. Xem [hướng dẫn Gemini](gemini.md).
 
 ### 4. Đọc và trả lời từng câu
 
@@ -282,7 +272,6 @@ trên mọi JD. Chất lượng câu hỏi và hướng dẫn vẫn cần đánh
   đều trở thành mục cần học trong kế hoạch.
 - Validator kiểm số câu, cấu trúc, skill/trích dẫn JD và câu hỏi trùng; chưa kiểm chứng mọi đáp án
   về chuyên môn. Câu hỏi phải kiểm tra kiến thức cần cho JD, không chỉ việc nhớ nội dung JD.
-  Các mẫu Ollama mới nhất ngày 23/10/2026, gồm tiếng Việt và tiếng Anh, vẫn có đáp án sai hoặc câu mơ hồ;
   cần rà soát độc lập đáp án và giải thích trước khi dùng điểm làm bằng chứng năng lực.
   Giao diện ghi rõ điểm dùng để định hướng luyện tập. Chuyển model/prompt không tự chứng minh đã giải quyết giới hạn này.
 
@@ -293,9 +282,6 @@ trên mọi JD. Chất lượng câu hỏi và hướng dẫn vẫn cần đánh
   trong Docker; AI trong những test nghiệp vụ này được mock. Log local: `target/jd-learning-verify.log`.
 - Frontend: **29 kiểm tra adapter/SSR đạt**, lint phần thay đổi và TypeScript/Vite build thành công;
   vẫn có cảnh báo kích thước bundle. Log nằm trong `FE/FA26SE119-FE/skill-learning-*.log`.
-- Inference thật qua Ollama Docker: mẫu bài theo JD đã trả đủ 10 câu với cấu trúc 5 + 5; mẫu học bù chỉ trả
-  Docker khi Docker là skill duy nhất được cho phép. **Kiểm tra cấu trúc đạt không đồng nghĩa đáp án chuyên môn đúng.**
-  Rà soát thủ công các mẫu câu hỏi vẫn phát hiện lỗi như trên, chưa có benchmark chất lượng trên tập JD độc lập.
 - Chưa chạy tương tác trình duyệt hoặc toàn bộ luồng đăng nhập → làm bài → học bù trên tài khoản thật.
   Những kết quả này được kiểm bằng test API tích hợp và render/adapter, không được ghi nhận là browser E2E.
 - Không thêm migration cho chức năng này; hệ thống giữ schema V13 hiện có.

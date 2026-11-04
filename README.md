@@ -87,16 +87,16 @@ mvn spring-boot:run "-Dspring-boot.run.profiles=dev"
 
 Có thể chọn profile bằng biến `SPRING_PROFILES_ACTIVE` hoặc `--spring.profiles.active` khi chạy JAR. Profile `docker` phục vụ Compose local; deployment dùng `prod`. Xem [cấu hình profile, thứ tự ưu tiên và các lệnh chạy](docs/runtime-profiles.md).
 
-Muốn chạy backend trong Compose local, chuẩn bị PostgreSQL có pgvector trên host tại port 5432/database `edunexus`, tạo JAR rồi khởi động app, Redis và Ollama:
+Muốn chạy backend trong Compose local, chuẩn bị PostgreSQL có pgvector trên host tại port 5432/database `edunexus`, đặt `GEMINI_API_KEY` trong `.env`, tạo JAR rồi khởi động app và Redis:
 
 ```powershell
 mvn verify
 docker compose --profile app --profile optional up -d --build app
 ```
 
-Service `app` chờ Redis/Ollama healthy và `ollama-init` tải đủ hai model rồi mới khởi động; lần đầu cần mạng để tải image và weights. CV lưu trong volume `resume_uploads`, model lưu trong `ollama_models`. Lệnh không khởi động Qdrant/RabbitMQ. PostgreSQL trong Compose thuộc profile `database`, không tự khởi động cùng app. Để dùng PostgreSQL container cho backend chạy trên host, gọi `docker compose --profile database up -d --wait postgres` hoặc `run-local.ps1 -WithInfrastructure`. Compose profile `app` chọn service, còn Spring profile `docker` chọn cấu hình bên trong backend.
+Service `app` chờ Redis healthy rồi khởi động và gọi Gemini qua API key trong `.env`. CV lưu trong volume `resume_uploads`. Lệnh không khởi động Qdrant/RabbitMQ. PostgreSQL trong Compose thuộc profile `database`, không tự khởi động cùng app. Để dùng PostgreSQL container cho backend chạy trên host, gọi `docker compose --profile database up -d --wait postgres` hoặc `run-local.ps1 -WithInfrastructure`. Compose profile `app` chọn service, còn Spring profile `docker` chọn cấu hình bên trong backend.
 
-Compose gán rõ `SPRING_PROFILES_ACTIVE=docker`, `DATABASE_URL=jdbc:postgresql://host.docker.internal:5432/edunexus`, Redis `redis:6379` với username/password trống, Ollama `http://ollama:11434` và upload `/app/uploads`. Các key cùng tên trong `.env` không ghi đè các giá trị này. Ollama mặc định không publish cổng ra host. Xem [hướng dẫn profile](docs/runtime-profiles.md) và [hướng dẫn Ollama](docs/ollama.md).
+Compose gán rõ `SPRING_PROFILES_ACTIVE=docker`, `DATABASE_URL=jdbc:postgresql://host.docker.internal:5432/edunexus`, Redis `redis:6379` với username/password trống và upload `/app/uploads`. Provider chat/embedding là `gemini` (adapter giao thức `openai`); key và model lấy từ `.env`. Xem [hướng dẫn profile](docs/runtime-profiles.md) và [hướng dẫn Gemini](docs/gemini.md).
 
 Admin đầu tiên được tạo từ tài khoản đã đăng ký và xác minh, bằng thao tác quản trị đúng database backend đang dùng. Với PostgreSQL trên host:
 
@@ -122,7 +122,7 @@ Nếu backend dùng PostgreSQL container, có thể thay phần `psql ...` bằn
 
 Danh mục mẫu gồm FREE/BASIC/PRO, kỹ năng, template/CV demo và tài nguyên học từ tài liệu chính thức. Giá và quota seed là dữ liệu phát triển, có thể sửa qua API admin.
 
-## AI chat và embedding chạy bằng Ollama
+## AI chat và embedding qua Gemini API
 
 Các luồng bổ sung theo workflow:
 
@@ -131,41 +131,33 @@ Các luồng bổ sung theo workflow:
 - [Learning: JD/profile khi chưa có CV; CV/JD, assessment và roadmap khi có CV](docs/learning-cv-jd-workflow.md).
 - [Redis và cache bền vững cho đối chiếu CV với career profile](docs/cv-profile-cache.md).
 
-Backend dùng model chat và embedding cục bộ qua adapter Ollama native của Spring AI. Không cần API key hoặc dịch vụ inference thương mại. Với backend chạy trong IDE/Maven trên Windows, khởi động model server và kiểm tra cả hai model bằng:
+Backend mặc định gọi Gemini cho chat và embedding qua Spring AI. Điền key của bạn vào `GEMINI_API_KEY` trong file `.env` của backend, rồi khởi động lại ứng dụng. File `.env` đã được loại khỏi Git; không đưa key vào frontend hoặc file YAML.
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-ollama.ps1 -ExposeToHost -SmokeTest
+```dotenv
+GEMINI_API_KEY=your-gemini-api-key
+GEMINI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai
+GEMINI_NATIVE_BASE_URL=https://generativelanguage.googleapis.com/v1beta
+AI_ENABLED=true
+AI_PROVIDER=gemini
+AI_CHAT_PROVIDER=openai
+AI_EMBEDDING_PROVIDER=gemini
+AI_CHAT_MODEL=gemini-2.5-flash-lite
+AI_ASSESSMENT_MODEL=gemini-2.5-flash-lite
+AI_EMBEDDING_MODEL=gemini-embedding-001
+AI_EMBEDDING_DIMENSIONS=1024
+AI_REASONING_EFFORT=none
+AI_REQUEST_TIMEOUT=PT2M
 ```
 
-Lệnh chỉ khởi động Ollama và tải model, không khởi động database hoặc backend. `-ExposeToHost` bật override chỉ bind `127.0.0.1:11434`; cổng thay được bằng `OLLAMA_PORT`. Smoke test thực hiện chat JSON và embedding ở lượt cold/warm, xác nhận vector 1024 chiều và ghi bằng chứng vào `target/ollama-smoke.json`. Bỏ `-ExposeToHost -SmokeTest` khi chỉ cần model server riêng trong mạng Docker.
+`AI_PROVIDER=gemini` là danh tính provider của ứng dụng. Chat dùng adapter `openai` để kết nối giao thức tương thích của Google; embedding dùng adapter `gemini` gọi native REST. Request đi đến Google và dùng quota API của Google. Quota token trong gói ứng dụng không thay đổi.
 
-Mặc định dùng CPU để chạy được trên các máy khác. Với NVIDIA GPU đã được Docker nhận, thêm `-Gpu`:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-ollama.ps1 -ExposeToHost -Gpu -SmokeTest
-```
-
-Switch này ghép `compose.ollama-gpu.yaml`; cần Docker Compose 2.30+ và GPU passthrough. Nếu Docker chưa cấp GPU,
-chạy lại không có `-Gpu` để dùng CPU. Xem [điều kiện NVIDIA/WSL 2](docs/ollama.md#gpu-nvidia-tùy-chọn).
+Compose local chạy app và Redis theo lệnh bên trên; Compose production chỉ đóng gói app, kết nối database/Redis bên ngoài và gọi Gemini.
 
 Career Consultant được phân công có thể gọi AI đánh giá chất lượng CV và độ phù hợp CV–job ngay trong consultation đang mở. Kết quả được lưu vào lịch sử của candidate; usage/quota tính cho consultant thực hiện. Chức năng này dùng nội dung CV đã xác nhận và JD, không yêu cầu embedding. Xem [API và các bước đánh giá CV/ATS cho consultant](docs/consultant-ai-evaluation.md).
 
-Các biến trong `.env` cho backend chạy trực tiếp trên host:
+Model embedding phải trả đúng **1024 chiều**, khớp schema database. Native Gemini request đặt `outputDimensionality=1024`; backend chuẩn hóa L2 kết quả. Vector từ provider cũ hoặc vector OpenAI 1536 chiều cũ không được dùng chung với vector mới: cần index lại CV, job và RAG theo provider/model hiện tại. Không cắt/pad vector cũ để tái sử dụng. Import/crawl job tự enqueue embedding; theo dõi bằng `GET /api/v1/admin/jobs/{id}/index`, dùng POST cùng path để index/retry thủ công.
 
-```dotenv
-AI_ENABLED=true
-AI_PROVIDER=ollama
-AI_CHAT_PROVIDER=ollama
-AI_EMBEDDING_PROVIDER=ollama
-OLLAMA_BASE_URL=http://localhost:11434
-AI_CHAT_MODEL=qwen2.5:7b
-AI_EMBEDDING_MODEL=qwen3-embedding:0.6b
-AI_EMBEDDING_DIMENSIONS=1024
-```
-
-Compose app tự dùng `http://ollama:11434`, ghi đè địa chỉ host ở trên. Ollama đặt `OLLAMA_NO_CLOUD=1`; weights được tải về volume và inference chạy cục bộ. Khi đặt `AI_ENABLED=false`, nhập/sửa/xác nhận CV và so khớp kỹ năng cơ bản vẫn hoạt động; chức năng sinh nội dung trả 503. Giá/quota ứng dụng có thể vẫn được tính theo cấu hình quản trị, không phải hóa đơn provider.
-
-Model embedding mới phải trả đúng **1024 chiều**. Migration bảo toàn vector cũ để chuyển đổi an toàn; cần index lại CV, job và RAG theo provider/model mới trước khi đánh giá semantic matching. Không cắt/pad vector cũ để tái sử dụng. Import/crawl job tự enqueue embedding; theo dõi bằng `GET /api/v1/admin/jobs/{id}/index`, dùng POST cùng path để index/retry thủ công. Prompt/config CHAT có thể cập nhật qua admin; thay provider hoặc embedding model cần khởi động lại với môi trường tương ứng. Xem [model, readiness, migration và kiểm tra vận hành](docs/ollama.md).
+Prompt/config CHAT và ASSESSMENT có thể cập nhật qua admin; thay provider hoặc embedding model cần khởi động lại với môi trường tương ứng. Khi `AI_ENABLED=false`, nhập/sửa/xác nhận CV và so khớp kỹ năng cơ bản vẫn hoạt động; chức năng sinh nội dung trả 503. Xem [cấu hình key, timeout và chuyển đổi embedding](docs/gemini.md).
 
 ### Redis cho cache ATS và matching
 
@@ -231,7 +223,7 @@ docker build -t edunexus-backend:local .
 CI chạy kiểm thử, upload JAR rồi tải artifact vào `target` trước khi build image. `.dockerignore` cho phép `target/*.jar` và loại các output Maven khác. Nếu gặp `COPY target/*.jar` báo không tìm thấy thư mục, kiểm tra JAR đã được tạo hoặc tải về và build context đang là thư mục dự án.
 
 - [Hướng dẫn kiểm thử API bằng Swagger](docs/swagger-testing.md)
-- [Postman: dữ liệu mẫu và thứ tự test với Ollama](docs/postman-test-order.md)
+- [Postman: dữ liệu mẫu và thứ tự test với Gemini](docs/postman-test-order.md)
 - [Postman: danh mục API, body, quyền và script](docs/postman-api-guide.md)
 - [Admin quản lý template CV: API, HTML/CSS và thứ tự test](docs/admin-resume-templates.md)
 - [Một mức lương kỳ vọng và gợi ý job theo ngưỡng cấu hình](docs/salary-based-job-recommendations.md)
@@ -240,7 +232,7 @@ CI chạy kiểm thử, upload JAR rồi tải artifact vào `target` trước k
 - [Cấu trúc controller / DTO / entity / repository / service / util](docs/architecture.md)
 - [Hướng dẫn đọc từng service và helper trong util](docs/service-code-guide.md)
 - [Profile runtime dev/prod/docker và cách chạy local/Compose/production](docs/runtime-profiles.md)
-- [Ollama self-hosted cho chat và embedding, cold/warm smoke test](docs/ollama.md)
+- [Gemini API key cho chat và embedding](docs/gemini.md)
 - [Quy ước Java và lệnh định dạng/kiểm tra](docs/java-coding-style.md)
 - [Schema, migration và ràng buộc](docs/schema.md)
 - [Conceptual Diagram EduNexus: sơ đồ tổng thể một trang](docs/conceptual-diagram.md)
@@ -271,7 +263,7 @@ mvn verify
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/stop-local-test-postgres.ps1
 ```
 
-Script cục bộ chỉ dùng cluster trong `target/local-pg`. PostgreSQL cài trên máy chưa có pgvector nên bản schema thử nghiệm dùng `real[]` và bỏ HNSW; các test này xác minh nghiệp vụ quan hệ, không xác minh semantic/vector search. Migration mới dùng vector 1024 chiều cho Ollama và giữ dữ liệu vector cũ để chuyển đổi; không sửa checksum migration đã áp dụng. Để kiểm thử trên PostgreSQL thật có pgvector, dùng database riêng, đặt thêm `EDUNEXUS_TEST_DATABASE_USER`, `EDUNEXUS_TEST_DATABASE_PASSWORD` và `EDUNEXUS_TEST_FLYWAY=true`.
+Script cục bộ chỉ dùng cluster trong `target/local-pg`. PostgreSQL cài trên máy chưa có pgvector nên bản schema thử nghiệm dùng `real[]` và bỏ HNSW; các test này xác minh nghiệp vụ quan hệ, không xác minh semantic/vector search. Migration mới dùng vector 1024 chiều và giữ dữ liệu vector cũ để chuyển đổi; không sửa checksum migration đã áp dụng. Để kiểm thử trên PostgreSQL thật có pgvector, dùng database riêng, đặt thêm `EDUNEXUS_TEST_DATABASE_USER`, `EDUNEXUS_TEST_DATABASE_PASSWORD` và `EDUNEXUS_TEST_FLYWAY=true`.
 
 ## CI/CD
 
@@ -293,7 +285,7 @@ Create the GitHub **production** environment, then configure the following repos
 | Environment secret `DEPLOY_SSH_KEY` | Private SSH key for `DEPLOY_USER` |
 
 On the server, create `DEPLOY_PATH/.env`. It must contain all runtime Spring secrets and configuration,
-including `DATABASE_URL`, `REDIS_HOST`, `REDIS_PORT`, database credentials and a randomly generated `APP_JWT_SECRET`; there is no JWT secret fallback. Use PostgreSQL and Redis addresses reachable from the app container. `compose.production.yaml` selects Spring profile `prod`, starts a private Ollama server with model initialization, and fixes uploads at `/app/uploads` backed by `resume_uploads`. Model weights persist in `ollama_models`; the first deployment downloads the configured local models. Set `AI_ENABLED=true`, `AI_CHAT_MODEL` and `AI_EMBEDDING_MODEL` for this deployment. Ollama cloud features are disabled, and the app uses the internal Ollama URL. Do not commit the server's `.env` file.
+including `DATABASE_URL`, `REDIS_HOST`, `REDIS_PORT`, database credentials and a randomly generated `APP_JWT_SECRET`; there is no JWT secret fallback. Use PostgreSQL and Redis addresses reachable from the app container. `compose.production.yaml` selects Spring profile `prod` and fixes uploads at `/app/uploads` backed by `resume_uploads`. Set `GEMINI_API_KEY`, `AI_ENABLED=true`, `AI_CHAT_MODEL` and `AI_EMBEDDING_MODEL` in the server environment. The app calls Gemini directly; this topology does not run a model server. Do not commit the server's `.env` file.
 For a private GHCR image, authenticate the server once with a GitHub token that has `read:packages`:
 
 ```sh

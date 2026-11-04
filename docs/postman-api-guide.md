@@ -6,7 +6,7 @@ Ba route crawl settings còn có alias `/api/admin`.
 Health, Swagger và OpenAPI được ghi riêng ở cuối tài liệu.
 
 **Bắt đầu tại [Dữ liệu mẫu và thứ tự test Postman](postman-test-order.md).** Tài liệu đó hướng dẫn từng
-request đăng ký → đăng nhập → tạo CV bằng Ollama → review → confirm → embedding → phân tích, kèm JSON,
+request đăng ký → đăng nhập → tạo CV bằng Gemini → review → confirm → embedding → phân tích, kèm JSON,
 script lưu token/ID và các nhánh test mở rộng. Dùng tài liệu này để tra body và quyền của các API còn lại.
 
 Muốn đánh giá CV có thể hiện đúng mục tiêu trong hồ sơ cá nhân, dùng
@@ -47,20 +47,15 @@ bên ngoài đã được kiểm thử thành công.
 
 Chạy tại thư mục chứa `pom.xml`. Nếu backend đang chạy, kiểm tra `GET http://localhost:8080/actuator/health`
 trước; không khởi động thêm process cùng port. Khi cài mới, chuẩn bị `.env` từ `.env.example`, điền database
-và JWT; giữ nguyên file `.env` đã có. AI hiện dùng **Ollama native**, chat `qwen2.5:7b`, embedding
-`qwen3-embedding:0.6b` **1024 chiều**, không cần API key thương mại.
+và JWT; giữ nguyên file `.env` đã có. AI dùng Gemini: điền `GEMINI_API_KEY` trong backend `.env`, chat `gemini-2.5-flash-lite`, embedding `gemini-embedding-001` **1024 chiều**.
 
-Với backend chạy trên Windows/IDE, khởi động model trước, rồi chạy backend:
+Chạy backend từ thư mục có `pom.xml` bằng IDE hoặc:
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/start-ollama.ps1 -ExposeToHost -Gpu -SmokeTest
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/run-local.ps1 -RuntimeProfile dev
 ```
 
-`-Gpu` chỉ dùng khi Docker có NVIDIA runtime; bỏ switch trên máy CPU. `run-local.ps1 -WithInfrastructure`
-chỉ thêm PostgreSQL Compose, không khởi động Ollama/Redis. Không dùng switch đó khi database host đang chiếm
-cùng port. Backend host dùng `OLLAMA_BASE_URL=http://localhost:11434`; app trong Compose dùng
-`http://ollama:11434`. Cách chạy cả backend trong Docker và điều kiện GPU xem [Ollama](ollama.md).
+`run-local.ps1 -WithInfrastructure` khởi động thêm PostgreSQL Compose; không dùng switch đó khi database host đang chiếm cùng port. Cấu hình host và container dùng cùng Gemini API, xem [Gemini](gemini.md) và [runtime profiles](runtime-profiles.md).
 
 Backend cần Java 25, Maven và PostgreSQL có pgvector. Flyway áp dụng **V1–V19**; V10 giữ vector 1536 cũ
 riêng và thêm cột 1024. Database có embedding cũ phải index lại bằng model mới trước khi test semantic
@@ -71,8 +66,8 @@ matching/RAG. Hướng dẫn môi trường: [README](../README.md) và [cài đ
 | API dữ liệu và quản trị | Backend/database hoạt động; tài khoản có vai trò phù hợp. |
 | Đăng ký/OTP cục bộ | Profile `dev` hoặc `docker`, `AUTH_EXPOSE_DEV_OTP=true` để nhận `developmentCode`; không gửi mail. Profile `prod` luôn tắt việc lộ mã. |
 | OTP qua email | `AUTH_EXPOSE_DEV_OTP=false`, `MAIL_ENABLED=true` và SMTP được cấu hình. |
-| Sinh CV, assessment, roadmap, chat AI | `AI_ENABLED=true`, provider `ollama`, model chat đã tải trong Docker, quota đủ. |
-| Index CV/job/RAG, semantic matching | Model `qwen3-embedding:0.6b` đã tải, vector 1024 chiều và schema V10/pgvector. |
+| Sinh CV, assessment, roadmap, chat AI | `AI_ENABLED=true`, provider `gemini`, model chat được API key cấp quyền, quota đủ. |
+| Index CV/job/RAG, semantic matching | Model `gemini-embedding-001` đã tải, vector 1024 chiều và schema V10/pgvector. |
 | Gợi ý link học tập | Không cần gọi AI; khóa đã được Admin duyệt mới tham gia gợi ý. |
 | Khóa học xuất hiện trong chat RAG | Khóa đã duyệt, đã index và chat Candidate gửi `retrieve: true`. |
 | Webhook thanh toán thử | Secret test khớp server, ít nhất 32 byte UTF-8; xem [script ký](#webhook-thanh-toan). |
@@ -125,8 +120,8 @@ Sau khi nhập, kiểm tra lại Authorization, ví dụ body và các biến ID
 | `googleIdToken` | Google ID token thật, phù hợp `GOOGLE_CLIENT_ID` của backend. |
 | `guestSession` | Giá trị **`sessionKey`** từ `POST /guest/sessions`, dùng trong `X-Guest-Session`. |
 | `guestSessionId` | UUID `id` của Guest; không dùng thay cho `sessionKey`. |
-| `aiProvider` | `ollama`. Đây là biến đối chiếu kết quả, không thay provider backend. |
-| `aiChatModel`, `aiEmbeddingModel` | Mặc định `qwen2.5:7b`, `qwen3-embedding:0.6b`; khớp runtime thực tế. |
+| `aiProvider` | `gemini`. Đây là biến đối chiếu kết quả, không thay provider backend. |
+| `aiChatModel`, `aiEmbeddingModel` | Mặc định `gemini-2.5-flash-lite`, `gemini-embedding-001`; khớp runtime thực tế. |
 | `sourceJobUrl` | URL HTTPS thật của trang chi tiết việc làm ITviec/TopCV khi thử crawl/import. |
 | `courseUrl` | Link YouTube/Coursera thực tế đã được Admin kiểm tra. |
 | `monitoringCategory` | Ví dụ `audit`; danh sách hợp lệ ở mục 12. |
@@ -860,8 +855,8 @@ Ràng buộc section:
 
 Response `source: "AI_BUILDER"`, `status: "REVIEW_REQUIRED"`; lưu `id` vào `resumeId`, xem lại dữ kiện và confirm. AI builder không tự xác nhận nội dung.
 
-Luồng này gọi `ResumeService.create(..., true)` → `AiService.generate("CV_BUILD", ...)` → Ollama chat.
-Để gửi một bộ dữ liệu nhất quán từ đầu đến cuối, dùng [luồng test CV bằng Ollama](postman-test-order.md#tao-cv-ollama).
+Luồng này gọi `ResumeService.create(..., true)` → `AiService.generate("CV_BUILD", ...)` → Gemini chat.
+Để gửi một bộ dữ liệu nhất quán từ đầu đến cuối, dùng [luồng test CV bằng Gemini](postman-test-order.md#tao-cv-ai).
 Không dùng điểm ATS/nội dung cố định từ frontend mock làm kết quả model; màn hình AI Resume Builder hiện chưa nối API này.
 
 ### 6.4. Upload và bóc tách CV
@@ -925,7 +920,7 @@ Thành công chuyển sang `READY`, lưu các section/skill đã review để d�
 
 Dành cho **CANDIDATE**, Bearer `{{candidateAccessToken}}`, đúng CV của người gọi. Chức năng độc lập với
 `/resumes/{id}/analyses` chấm CV và `/jobs/{jobId}/ats` đối chiếu JD. Hồ sơ nghề nghiệp phải có dữ kiện nghề nghiệp để đối chiếu;
-chỉ đặt lương chưa đủ. CV phải `READY`, Ollama bật và quota đủ. Không cần embedding.
+chỉ đặt lương chưa đủ. CV phải `READY`, Gemini bật và quota đủ. Không cần embedding.
 
 | Method | URL | Body và kết quả |
 | --- | --- | --- |
@@ -956,7 +951,7 @@ từ địa chỉ, công việc cũ hoặc summary; cần đối chiếu với j
 Khi có vị trí mong muốn trong hồ sơ và job title ở experience của CV đã review, `TARGET_ROLE` được chấm
 với trích dẫn hai phía, kể cả hai nghề khác nhau. Điểm thiếu bằng chứng là `null`; lương luôn có `score: null`,
 cần mức trả job để kết luận phù hợp. Phần trăm là suy luận theo rubric, chưa phải xác suất tuyển dụng hoặc
-độ chính xác AI. Schema native giới hạn cấu trúc/trích đoạn nguồn, không bảo đảm mọi nhận xét ngữ nghĩa đúng.
+độ chính xác AI. Schema và validator ở backend kiểm tra cấu trúc/trích đoạn nguồn, không bảo đảm mọi nhận xét ngữ nghĩa đúng.
 
 Hai snapshot và điểm lịch sử được giữ nguyên. `resume_changed`, `profile_changed`, `is_stale` cho biết dữ liệu
 hiện tại khác đầu vào đã dùng; GET không gọi lại model. Nguồn thay đổi khi inference trả `409`; evidence
@@ -2282,8 +2277,8 @@ Các bước approve, archive, đổi mật khẩu, hủy gói hoặc thu hồi 
 | Guest | Tạo session → lưu `sessionKey` → lấy demo/template → build/matching/chat thử bằng cùng header Guest. |
 | Tài khoản | Register → lấy OTP → verify → login → lưu token → `/me` → cập nhật career profile. |
 | Admin/Consultant | Login Admin đã có → tạo account Consultant → login Consultant → lưu token vào biến riêng. |
-| CV/Ollama | Login → kiểm tra quota → build AI hoặc tạo thủ công/upload → xem/sửa dữ liệu → confirm `READY` → đặt primary → embedding 1024 → phân tích/tải CV → đối chiếu AI usage. |
-| Tìm việc | Admin import job active → index bằng embedding Ollama → xem skills/jobs → chọn `jobId` → matching theo CV `READY` → mở run/result → feedback → ATS hoặc draft ứng tuyển. |
+| CV/Gemini | Login → kiểm tra quota → build AI hoặc tạo thủ công/upload → xem/sửa dữ liệu → confirm `READY` → đặt primary → embedding 1024 → phân tích/tải CV → đối chiếu AI usage. |
+| Tìm việc | Admin import job active → index bằng embedding Gemini → xem skills/jobs → chọn `jobId` → matching theo CV `READY` → mở run/result → feedback → ATS hoặc draft ứng tuyển. |
 | Đánh giá kỹ năng | Tạo assessment → lấy các câu hỏi → trả lời đầy đủ → submit → xem kết quả → tạo roadmap liên quan. |
 | Lộ trình | Tạo roadmap → lưu ID → mở chi tiết → cập nhật node sau khi đủ prerequisite → kiểm tra tiến độ. |
 | Khóa học đã duyệt | Admin tạo course → xác nhận chưa xuất hiện trong gợi ý → approve → xem recommendations theo skill. |
@@ -2481,7 +2476,7 @@ Kiểm tra HTTP status trước khi đọc field; response download/SSE không p
 | `409` | Trùng dữ liệu, course trùng sau chuẩn hóa, trạng thái đã đóng/archived, dữ liệu chưa READY | Kiểm tra trạng thái hiện tại; không lặp thao tác tạo bằng cùng dữ liệu ngoài ý muốn. |
 | `413` | Upload vượt giới hạn | Kiểm tra `MULTIPART_MAX_FILE_SIZE`/`MULTIPART_MAX_REQUEST_SIZE` và giới hạn file của service. |
 | `429` | Hết quota token/trial hoặc giới hạn tần suất OTP/login | Xem usage/quota, chờ kỳ giới hạn hoặc dùng tài khoản test/gói phù hợp. |
-| `502` | Ollama thất bại hoặc JSON/field đầu ra không đúng hợp đồng | Kiểm tra model đã tải, container, bộ nhớ, log; phản hồi JSON lỗi vẫn có thể bị tính token đã dùng. |
+| `502` | Gemini thất bại hoặc JSON/field đầu ra không đúng hợp đồng | Kiểm tra API key, quyền model, quota provider và log; phản hồi JSON lỗi vẫn có thể bị tính token đã dùng. |
 | `503` | Database/SMTP/AI embedding/webhook chưa cấu hình hoặc chưa sẵn sàng | Kiểm tra các dependency và biến môi trường liên quan. |
 
 ### 16.3. Phạm vi hiện tại để tránh thử nhầm chức năng

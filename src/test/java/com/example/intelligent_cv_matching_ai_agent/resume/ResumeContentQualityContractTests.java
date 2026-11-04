@@ -2,6 +2,7 @@ package com.example.intelligent_cv_matching_ai_agent.resume;
 
 import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException;
 import com.example.intelligent_cv_matching_ai_agent.util.candidate.resume.ResumeContentQuality;
+import com.example.intelligent_cv_matching_ai_agent.util.candidate.resume.ResumeWritingQuality;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.ai.AiResponseData;
 import java.math.BigDecimal;
 import java.util.List;
@@ -23,15 +24,83 @@ class ResumeContentQualityContractTests {
         Map<?, ?> criteria = (Map<?, ?>) properties.get("criteria");
         assertEquals(6, criteria.get("minItems"));
         assertEquals(6, criteria.get("maxItems"));
-        Map<?, ?> criterion = (Map<?, ?>) criteria.get("items");
-        Map<?, ?> fields = (Map<?, ?>) criterion.get("properties");
-        assertEquals(ResumeContentQuality.CODES, ((Map<?, ?>) fields.get("code")).get("enum"));
-        assertTrue(((List<?>) criterion.get("required")).containsAll(List.of("status", "score", "evidence")));
+        assertCriterionSlots(criteria, ResumeContentQuality.CODES, 1);
         String rules = AiResponseData.taskInstructions("CV_ANALYZE");
         assertTrue(rules.contains(ResumeContentQuality.RUBRIC_VERSION));
         ResumeContentQuality.CODES.forEach(code -> assertTrue(rules.contains(code), code));
         assertTrue(rules.contains("at least one exact short quote"));
         assertTrue(AiResponseData.schema("CV_ANALYZE").contains("content_quality"));
+    }
+
+    @Test
+    void nativeWritingSchemaPreventsDuplicateCodesAndIncompatibleStatusScorePairs() {
+        Map<?, ?> schema = (Map<?, ?>) AiResponseData.outputFormat("CV_ANALYZE");
+        Map<?, ?> quality = (Map<?, ?>) ((Map<?, ?>) schema.get("properties")).get("writing_quality");
+        Map<?, ?> properties = (Map<?, ?>) quality.get("properties");
+        assertCriterionSlots((Map<?, ?>) properties.get("criteria"), ResumeWritingQuality.CODES, 0);
+    }
+
+    @Test
+    void nativeEvidenceRejectsInventedJoinedHeadingsAndUsesReviewedStringsOnly() {
+        Map<String, Object> source = ResumeWritingQuality
+            .source(Map.of("structured_data", Map.of(), "raw_content", "Experience\nProjects\nEducation\nSkills."));
+        Map<?, ?> schema = (Map<?, ?>) AiResponseData.outputFormat("CV_ANALYZE", Map.of("resume", source));
+        Map<?, ?> properties = (Map<?, ?>) schema.get("properties");
+        for (String rubric : List.of("content_quality", "writing_quality")) {
+            Map<?, ?> quality = (Map<?, ?>) properties.get(rubric);
+            Map<?, ?> criteria = (Map<?, ?>) ((Map<?, ?>) quality.get("properties")).get("criteria");
+            Map<?, ?> slot = (Map<?, ?>) ((List<?>) criteria.get("prefixItems")).getFirst();
+            Map<?, ?> assessed = (Map<?, ?>) ((List<?>) slot.get("oneOf")).getFirst();
+            Map<?, ?> fields = (Map<?, ?>) assessed.get("properties");
+            Map<?, ?> evidence = (Map<?, ?>) fields.get("evidence");
+            List<?> quotes = (List<?>) ((Map<?, ?>) evidence.get("items")).get("enum");
+            assertEquals(List.of("Experience", "Projects", "Education", "Skills."), quotes);
+            assertFalse(quotes.contains("Experience, Projects, Education, Skills."));
+        }
+        Map<?, ?> suggestions = (Map<?, ?>) properties.get("suggestions");
+        Map<?, ?> suggestion = (Map<?, ?>) suggestions.get("items");
+        Map<?, ?> original = (Map<?, ?>) ((Map<?, ?>) suggestion.get("properties")).get("original_content");
+        assertEquals(List.of("Experience", "Projects", "Education", "Skills.", ""), original.get("enum"));
+
+        Map<String, Object> reviewed = ResumeWritingQuality.source(
+            Map.of(
+                "structured_data",
+                Map.of("summary", "Reviewed Java experience", "years_experience", 2),
+                "raw_content",
+                "Stale unreviewed content"
+            )
+        );
+        assertEquals(List.of("Reviewed Java experience"), ResumeWritingQuality.evidenceOptions(reviewed));
+    }
+
+    private void assertCriterionSlots(
+        Map<?, ?> criteria,
+        List<String> codes,
+        int minimumAssessedEvidence) {
+        assertFalse(criteria.containsKey("items"), "Tuple schemas omit boolean items");
+        List<?> slots = (List<?>) criteria.get("prefixItems");
+        assertEquals(codes.size(), slots.size());
+        assertEquals(codes.size(), criteria.get("minItems"));
+        assertEquals(codes.size(), criteria.get("maxItems"));
+        for (int index = 0; index < codes.size(); index++) {
+            List<?> branches = (List<?>) ((Map<?, ?>) slots.get(index)).get("oneOf");
+            assertEquals(2, branches.size());
+            for (int branch = 0; branch < branches.size(); branch++) {
+                Map<?, ?> criterion = (Map<?, ?>) branches.get(branch);
+                Map<?, ?> fields = (Map<?, ?>) criterion.get("properties");
+                assertEquals(List.of(codes.get(index)), ((Map<?, ?>) fields.get("code")).get("enum"));
+                assertTrue(((List<?>) criterion.get("required")).containsAll(List.of("status", "score", "evidence")));
+                assertEquals(
+                    branch == 0 ? List.of("ASSESSED") : List.of("NOT_APPLICABLE", "INSUFFICIENT_EVIDENCE"),
+                    ((Map<?, ?>) fields.get("status")).get("enum")
+                );
+                assertEquals(branch == 0 ? "number" : "null", ((Map<?, ?>) fields.get("score")).get("type"));
+                assertEquals(
+                    branch == 0 ? minimumAssessedEvidence : 0,
+                    ((Map<?, ?>) fields.get("evidence")).get("minItems")
+                );
+            }
+        }
     }
 
     @Test

@@ -17,7 +17,7 @@ class AiGenerationContractTests {
         Map<?, ?> properties = (Map<?, ?>) schema.get("properties");
         assertFalse(properties.containsKey("skill_gaps"));
         Map<?, ?> nodes = (Map<?, ?>) properties.get("nodes");
-        // Ollama rejects boolean items schemas; exact min/max length bounds the positional array.
+        // Exact min/max length bounds the positional array.
         assertFalse(nodes.containsKey("items"));
         assertEquals(3, nodes.get("minItems"));
         assertEquals(3, nodes.get("maxItems"));

@@ -38,7 +38,7 @@ public final class ResumeWritingTestData {
         result.put("suggestions", List.of());
         result.put("content_quality", content(85, "Reviewed Java experience"));
         result.put("writing_quality", writing());
-        result.put("_model", "ollama-test");
+        result.put("_model", "api-test");
         return result;
     }
 

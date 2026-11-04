@@ -59,7 +59,7 @@ Mảng `skills` mới thay toàn bộ danh sách kỹ năng; bỏ field hoặc g
 
 ### 2. Tạo một CV thủ công
 
-Có thể upload hoặc dùng AI builder rồi review theo [luồng CV hiện có](postman-test-order.md#tao-cv-ollama).
+Có thể upload hoặc dùng AI builder rồi review theo [luồng CV hiện có](postman-test-order.md#tao-cv-ai).
 Để kiểm tra riêng phép đối chiếu mà không tiêu quota sinh CV, gửi `POST {{baseUrl}}/resumes`:
 
 ```json
@@ -128,7 +128,7 @@ Không bắt buộc đặt CV chính hoặc tạo embedding để đối chiếu
 
 Gửi `POST {{baseUrl}}/resumes/{{resumeId}}/profile-alignments`, **Body → none**.
 Backend đọc CV và hồ sơ từ database theo tài khoản đăng nhập; không nhận hồ sơ, điểm, người sở hữu hoặc
-lương do client gửi trong request so sánh. Đặt timeout đủ cho model Ollama local.
+lương do client gửi trong request so sánh. Đặt timeout đủ cho model Gemini API.
 
 Kỳ vọng `200` khi inference và xác thực kết quả thành công. Response là object trực tiếp, có `id`,
 `resume_id`, `user_id`, `resume_content_hash`, `profile_hash`, `profile_snapshot`, `resume_snapshot`,
@@ -283,27 +283,22 @@ hoặc tự tạo phần trăm phù hợp lương. Muốn kết luận lương p
 và kỳ trả lương so sánh được. Matching job vẫn dùng [biên độ lương do Admin cấu hình](admin-salary-policy.md).
 Lương không tham gia mẫu số điểm hoặc coverage của phép đối chiếu CV–hồ sơ.
 
-## Ollama, quota và giới hạn đầu vào
+## Gemini, quota và giới hạn đầu vào
 
-Inference dùng model chat **Ollama self-hosted** đang được cấu hình; không có fallback gọi API thương mại.
+Inference dùng model chat **Gemini API** đang được cấu hình; kết quả được kiểm tra ở backend trước khi lưu.
 Chức năng này dành cho Candidate, không mở route Guest hoặc route chạy thay của Admin/Consultant.
 AI tắt trả `503`, không tạo báo cáo giả bằng rule-based.
 
-Backend gửi JSON Schema qua `format` native của Ollama, ràng buộc trạng thái/kiểu điểm và danh sách
-trích đoạn hợp lệ lấy từ nguồn đầu vào. Model chọn evidence từ các đoạn nguyên văn này; backend tiếp tục
-kiểm tra trích dẫn và tính lại điểm tổng. Schema giới hạn `feedback` tối đa 300 ký tự, `suggestions`
-tối đa hai mục, mỗi mục tối đa 240 ký tự để hạn chế độ dài output. Cách truyền schema được mô tả trong
-[tài liệu Structured Outputs của Ollama](https://docs.ollama.com/capabilities/structured-outputs).
-Đúng cấu trúc và đúng đoạn trích không tự chứng minh điểm hoặc diễn giải có chất lượng ngữ nghĩa hoàn hảo.
+Backend yêu cầu JSON object qua Gemini, đưa schema vào system prompt và kiểm tra trạng thái/kiểu điểm, trích dẫn và tính lại điểm tổng sau khi nhận phản hồi. Đúng cấu trúc và đúng đoạn trích không tự chứng minh điểm hoặc diễn giải có chất lượng ngữ nghĩa hoàn hảo.
 
 V17 seed quota feature `CV_PROFILE_ALIGNMENT` bằng cách sao chép `quota_value` và `quota_period` của
 `CV_ANALYZE` cho từng tier hiện có, giữ nguyên giá trị quản trị đã cấu hình; không tự ghi đè quota feature
 đã tồn tại. Việc giữ chỗ/tiêu token vẫn đi qua feature quota và tổng **`AI_TOTAL_TOKENS`** của ứng dụng.
 Đọc `GET {{baseUrl}}/subscriptions/me` và `GET {{baseUrl}}/ai/usage?limit=20&offset=0` bằng cùng token
 để kiểm tra cấu hình/thực dùng; không mặc định mọi database có cùng quota seed.
-Ollama local không có số dư API thương mại, nhưng ứng dụng vẫn áp dụng quota do Admin đặt.
+Quota do Admin đặt trong ứng dụng độc lập với số dư và giới hạn API của Google.
 
-Lượt đối chiếu đặt `num_predict = 4000` và `num_ctx = 16384`. Trước khi giữ chỗ quota, backend tính
+Lượt đối chiếu đặt giới hạn đầu ra 4000 token. Trước khi giữ chỗ quota, backend tính
 budget bảo thủ bằng **byte UTF-8 của system prompt + byte UTF-8 của JSON đầu vào + 512 + 4000**.
 Nếu vượt 16384, trả `400` yêu cầu rút gọn nội dung, không tự cắt dữ kiện và không gọi model.
 Đây là kiểm tra giới hạn bảo thủ, không phải số token tokenizer thực tế; văn bản nhiều dấu có thể
@@ -323,7 +318,7 @@ chạm ngưỡng sớm hơn. Giới hạn chung JSON đầu vào 250.000 ký t�
 | Không đủ tổng/feature quota để giữ chỗ | `429`; số token output dự kiến nhỏ không có nghĩa budget đủ. |
 | CV hoặc hồ sơ đổi trong khi đang suy luận | `409`, không lưu báo cáo mới. |
 | POST thủ công khi CV có lượt tự động `QUEUED`/`RUNNING` | `409`; chờ trạng thái kết thúc rồi xem lịch sử trước khi thử lại. |
-| Ollama lỗi, sai schema, điểm/trạng thái sai hoặc evidence không phải trích dẫn đúng nguồn | `502`, không lưu báo cáo mới. |
+| Gemini lỗi, sai schema, điểm/trạng thái sai hoặc evidence không phải trích dẫn đúng nguồn | `502`, không lưu báo cáo mới. |
 
 Trích dẫn được đối chiếu sau chuẩn hóa Unicode/khoảng trắng; paraphrase, dịch lại, ghép nhiều field hoặc
 trích nội dung không có trong nguồn có thể bị từ chối. Không sửa báo cáo cũ để che lỗi model.
@@ -367,37 +362,6 @@ Xem [bằng chứng runtime V18](../target/cv-profile-refresh-app-runtime.json).
 Lượt runtime không tạo yêu cầu đánh giá hoặc dùng dữ liệu/quota tài khoản thật trên DB ứng dụng;
 luồng có đăng nhập, chạy worker và ATS độc lập đã được kiểm chứng trên DB test riêng.
 
-## Lịch sử kiểm tra V17 ngày 24/10/2026
+## Kiểm chứng sau khi đổi provider
 
-| Kiểm tra | Kết quả |
-| --- | --- |
-| Backend `mvn -B formatter:format verify`, kết thúc 01:22 giờ Việt Nam | `BUILD SUCCESS`: 857 test được ghi nhận, **799 đạt, 0 failure, 0 error, 58 bỏ qua**. |
-| Bộ kiểm tra tập trung của tính năng | **59/59 đạt**, gồm 17 kiểm tra rubric/schema, 18 kiểm tra `AiService`, 22 kiểm tra tích hợp và 2 lượt Ollama thật. |
-| Tích hợp đối chiếu CV với PostgreSQL/pgvector | **22/22 đạt**, không bỏ qua; kiểm tra quyền truy cập, snapshot, lịch sử, thay đổi đầu vào và migration V17 trên DB test riêng. |
-| Frontend | **22 kiểm tra adapter/render đạt**, ESLint các file tính năng đạt; TypeScript/Vite build thành công. Bản build có cảnh báo kích thước bundle hiện hữu. |
-
-Log backend: [verify đầy đủ](../target/cv-profile-alignment-verify.log) và
-[kiểm tra tập trung có Ollama](../target/cv-profile-alignment-focused.log).
-Hai test Ollama được bật ở lượt tập trung; lượt verify đầy đủ không gọi lại model nên ghi nhận chúng trong số test bỏ qua.
-Không diễn giải kết quả thành “857 test pass” hoặc toàn bộ integration của dự án đều đã chạy.
-
-Hai lượt gọi model dùng **CV/hồ sơ giả lập**, model local `qwen2.5:7b`, không dùng dữ liệu người dùng thật hoặc quota tài khoản.
-Thời gian phản hồi ghi nhận cho hai lượt lần lượt khoảng **84,96 giây** và **46,41 giây**, có ảnh hưởng bởi việc nạp model.
-Đây là kiểm tra cấu trúc kết quả và dẫn chứng, không phải benchmark chất lượng hoặc cam kết thời gian phản hồi.
-Các artifact nằm trong `target/cv-profile-alignment-ollama-compatible-java-backend.json` và
-`target/cv-profile-alignment-ollama-different-graphic-designer-role.json`.
-
-Nội dung tự do do AI viết vẫn cần được người dùng đọc lại; việc vượt kiểm tra schema/trích dẫn không chứng minh mọi diễn giải đều đúng.
-Snapshot loại các trường tài khoản không cần thiết, nhưng địa điểm và nội dung CV người dùng tự viết vẫn có thể chứa thông tin cá nhân.
-
-Container `edunexus-app-1` được cập nhật và kiểm tra lúc **01:24 ngày 24/10/2026**, giờ Việt Nam:
-
-- Health `UP`; SHA-256 của JAR đang chạy khớp artifact vừa `verify`.
-- Flyway xác nhận áp dụng V17 trên database ứng dụng hiện tại, không tạo lại database.
-- Swagger có đủ POST, GET danh sách và GET chi tiết; POST không yêu cầu body hồ sơ từ client.
-- Cả ba API trả `401` khi chưa đăng nhập; API jobs công khai vẫn trả `200`.
-
-Chi tiết: [runtime JSON](../target/cv-profile-alignment-app-runtime.json).
-Lượt kiểm tra runtime này không tạo CV/báo cáo hoặc tiêu quota của tài khoản thật trên database ứng dụng.
-Luồng có đăng nhập và việc lưu lịch sử đã được kiểm tra trên PostgreSQL/pgvector test riêng;
-hai lượt model thật dùng dữ liệu giả lập và gọi trực tiếp Ollama local.
+Các kết quả kiểm thử cũ không xác nhận chất lượng phản hồi hoặc thời gian chạy của Gemini. Chạy lại kiểm tra nghiệp vụ và kiểm tra một request với dữ liệu giả lập khi đã cấu hình API key.

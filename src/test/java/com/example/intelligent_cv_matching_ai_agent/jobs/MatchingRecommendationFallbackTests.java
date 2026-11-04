@@ -8,6 +8,7 @@ import com.example.intelligent_cv_matching_ai_agent.service.candidate.resume.Res
 import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiService;
 import com.example.intelligent_cv_matching_ai_agent.service.shared.jobs.MatchingSalaryPolicyService;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.MatchingSalaryPolicy;
+import com.example.intelligent_cv_matching_ai_agent.util.candidate.jobs.QuickJobMatcher;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -21,12 +22,135 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.mockito.ArgumentCaptor;
 import static com.example.intelligent_cv_matching_ai_agent.util.shared.Values.fields;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 class MatchingRecommendationFallbackTests {
+
+    @ParameterizedTest
+    @ValueSource(strings = {"CAREER_PROFILE", "SELECTED_CV"})
+    void quickRecommendationsUseReviewedSkillsWithoutCallingTheModelEvenWhenVectorsExist(
+        String basis) {
+        Fixture fixture = new Fixture();
+        when(fixture.db.readMarketJobEmbeddingsByStatus(any(), any())).thenReturn("indexed-jobs-available");
+
+        var run =
+            fixture.service.match(basis, basis.equals("SELECTED_CV") ? List.of(fixture.cv) : List.of(), 10, "QUICK");
+
+        assertEquals("RULE_BASED", run.get("provider"));
+        assertEquals(QuickJobMatcher.VERSION, run.get("model"));
+        assertEquals("SKILL_OVERLAP_QUICK", ((Map<?, ?>) run.get("profile_snapshot")).get("mode"));
+        assertEquals(basis.equals("SELECTED_CV") ? 2 : 1, fixture.savedResults.size());
+        for (Map<String, Object> saved : fixture.savedResults) {
+            assertNull(saved.get("llm_rerank_score"));
+            assertNull(saved.get("vector_similarity_score"));
+            assertEquals("SKILL_OVERLAP_QUICK", ((Map<?, ?>) saved.get("match_reason_json")).get("method"));
+        }
+        UUID best = basis.equals("SELECTED_CV") ? fixture.javaKnown : fixture.python;
+        UUID missing = basis.equals("SELECTED_CV") ? fixture.python : fixture.javaKnown;
+        assertEquals(1.0, ((Number) fixture.result(best).get("final_score")).doubleValue());
+        assertTrue(fixture.savedResults.stream().noneMatch(row -> missing.equals(row.get("market_job_id"))));
+        assertFalse(((List<?>) fixture.result(best).get("strengths_json")).isEmpty());
+        verifyNoInteractions(fixture.ai);
+        verify(fixture.db, never()).readMarketJobEmbeddingsByStatus(any(), any());
+        verify(fixture.db, never()).listMarketJobEmbeddingsByStatusForIds(any(), any(), any(), any(), any(), any());
+        verify(fixture.user).requireRole("CANDIDATE");
+    }
+
+    @Test
+    void quickRecommendationsKeepSalaryEligibilityAndUndisclosedSalaryDiagnostics() {
+        Fixture fixture = new Fixture();
+        when(fixture.db.listActiveJobSalaryMetadata()).thenReturn(
+            List.of(
+                fixture.job(fixture.javaKnown, "1000000 VND/month", "java"),
+                fixture.job(fixture.javaUnknown, "Negotiable", "java"),
+                fixture.job(fixture.python, "20000000 VND/month", "python")
+            )
+        );
+        when(fixture.db.listMarketJobSkillsByIds(anyString())).thenReturn(
+            List.of(
+                fixture.job(fixture.javaUnknown, "Negotiable", "java"),
+                fixture.job(fixture.python, "20000000 VND/month", "python")
+            )
+        );
+
+        var run = fixture.service.match("SELECTED_CV", List.of(fixture.cv), 10, "QUICK");
+
+        assertEquals(1, fixture.savedResults.size());
+        assertTrue(fixture.savedResults.stream().noneMatch(row -> fixture.javaKnown.equals(row.get("market_job_id"))));
+        Map<?, ?> salary = (Map<?, ?>) run.get("salary_filter");
+        assertEquals(3, salary.get("examined_jobs"));
+        assertEquals(2, salary.get("eligible_jobs"));
+        Map<?, ?> reason = (Map<?, ?>) fixture.result(fixture.javaUnknown).get("match_reason_json");
+        assertEquals(false, ((Map<?, ?>) reason.get("salary_match")).get("verified"));
+        verifyNoInteractions(fixture.ai);
+    }
+
+    @Test
+    void quickAndDetailedRunsCannotShareTheSameResponseCacheIdentity() {
+        Fixture fixture = new Fixture();
+        fixture.service.match("SELECTED_CV", List.of(fixture.cv), 10, "QUICK");
+        fixture.savedResults.clear();
+        var detailed = fixture.service.match("SELECTED_CV", List.of(fixture.cv), 10);
+
+        ArgumentCaptor<String> fingerprints = ArgumentCaptor.forClass(String.class);
+        verify(fixture.db, times(2)).findJobMatchingRunsByUserId(eq(fixture.owner), fingerprints.capture());
+        assertNotEquals(fingerprints.getAllValues().get(0), fingerprints.getAllValues().get(1));
+        assertEquals("SKILL_OVERLAP_UNINDEXED_JOBS", ((Map<?, ?>) detailed.get("profile_snapshot")).get("mode"));
+        verify(fixture.ai).enabled();
+        verify(fixture.ai).cacheFingerprint("JOB_MATCH_RERANK");
+    }
+
+    @Test
+    void quickMatchingStillRejectsAnotherAccountsCvAndMissingProfileSalary() {
+        Fixture foreign = new Fixture();
+        when(foreign.resumes.owned(foreign.cv)).thenThrow(ApiException.notFound("CV not found"));
+        assertEquals(
+            404,
+            assertThrows(
+                ApiException.class,
+                () -> foreign.service.match("SELECTED_CV", List.of(foreign.cv), 10, "QUICK")
+            ).status()
+        );
+        verifyNoInteractions(foreign.ai);
+        verify(foreign.db, never()).insertJobMatchingRuns(anyMap());
+
+        Fixture missingSalary = new Fixture();
+        when(missingSalary.db.findCandidateProfilesByUserId(missingSalary.owner))
+            .thenReturn(Optional.of(Map.of("target_job_title", "Java Developer")));
+        assertEquals(
+            400,
+            assertThrows(
+                ApiException.class,
+                () -> missingSalary.service.match("CAREER_PROFILE", List.of(), 10, "QUICK")
+            ).status()
+        );
+        verifyNoInteractions(missingSalary.ai);
+        verify(missingSalary.db, never()).insertJobMatchingRuns(anyMap());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"DRAFT", "UPLOADED", "PARSING"})
+    void quickMatchingRequiresAConfirmedCv(
+        String status) {
+        Fixture fixture = new Fixture();
+        when(fixture.resumes.owned(fixture.cv)).thenReturn(Map.of("id", fixture.cv, "status", status));
+
+        assertEquals(
+            409,
+            assertThrows(
+                ApiException.class,
+                () -> fixture.service.match("SELECTED_CV", List.of(fixture.cv), 10, "QUICK")
+            ).status()
+        );
+
+        verifyNoInteractions(fixture.ai);
+        verify(fixture.resumes, never()).canonicalText(anyMap());
+        verify(fixture.db, never()).insertJobMatchingRuns(anyMap());
+    }
 
     @ParameterizedTest
     @ValueSource(strings = {"CAREER_PROFILE", "SELECTED_CV"})
@@ -110,7 +234,7 @@ class MatchingRecommendationFallbackTests {
         });
 
         var run = fixture.service.match("SELECTED_CV", List.of(fixture.cv), 10);
-        assertEquals("ollama", run.get("provider"));
+        assertEquals("openai", run.get("provider"));
         assertEquals("SEMANTIC_LLM", ((Map<?, ?>) run.get("profile_snapshot")).get("mode"));
         assertEquals(3, fixture.savedResults.size());
         assertEquals(1, fixture.result(fixture.javaKnown).get("rank_position"));
@@ -177,7 +301,14 @@ class MatchingRecommendationFallbackTests {
 
         final ResumeService resumes = mock(ResumeService.class);
 
-        final Map<String, Object> resume = Map.of("id", cv, "status", "READY");
+        final Map<String, Object> resume = Map.of(
+            "id",
+            cv,
+            "status",
+            "READY",
+            "structured_data",
+            Map.of("summary", "Java reviewed CV", "skills", List.of(Map.of("name", "Java")))
+        );
 
         final List<Map<String, Object>> savedResults = new ArrayList<>();
 
@@ -187,7 +318,7 @@ class MatchingRecommendationFallbackTests {
         Fixture() {
             when(user.id()).thenReturn(owner);
             when(ai.enabled()).thenReturn(true);
-            when(ai.provider()).thenReturn("ollama");
+            when(ai.provider()).thenReturn("openai");
             when(ai.model()).thenReturn("test-chat");
             when(ai.embeddingModel()).thenReturn("test-embedding");
             float[] vector = new float[1024];

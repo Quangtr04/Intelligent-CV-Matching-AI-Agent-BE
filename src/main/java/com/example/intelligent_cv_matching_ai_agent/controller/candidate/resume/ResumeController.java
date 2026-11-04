@@ -1,7 +1,6 @@
 package com.example.intelligent_cv_matching_ai_agent.controller.candidate.resume;
 
 import com.example.intelligent_cv_matching_ai_agent.service.candidate.resume.ResumeService;
-import com.example.intelligent_cv_matching_ai_agent.service.candidate.resume.ResumePdfExportService;
 
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
@@ -9,6 +8,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import jakarta.validation.Valid;
+
+import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.ai.AISupportRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.resume.ResumeWriteRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.response.candidate.resume.ResumeDownloadResponse;
 
@@ -18,13 +19,9 @@ public class ResumeController {
 
     private final ResumeService service;
 
-    private final ResumePdfExportService pdfExports;
-
     public ResumeController(
-        ResumeService service,
-        ResumePdfExportService pdfExports) {
+        ResumeService service) {
         this.service = service;
-        this.pdfExports = pdfExports;
     }
 
     @GetMapping("/templates")
@@ -142,7 +139,7 @@ public class ResumeController {
         UUID id,
         @RequestParam(defaultValue = "false")
         boolean text) {
-        ResumeDownloadResponse file = text ? service.download(id, true) : pdfExports.download(id);
+        ResumeDownloadResponse file = service.download(id, text);
         return ResponseEntity.ok().contentType(MediaType.parseMediaType(file.mimeType()))
             .header(
                 HttpHeaders.CONTENT_DISPOSITION,
@@ -150,10 +147,11 @@ public class ResumeController {
             ).header("X-Content-Type-Options", "nosniff").body(file.content());
     }
 
-    @PostMapping("/{id}/export")
-    public Map<String, Object> export(
-        @PathVariable
-        UUID id) {
-        return pdfExports.export(id);
+    @PostMapping({"AI-support", "ai-support"})
+    public Object aiSupport(
+        @Valid
+        @RequestBody
+        AISupportRequest body) {
+        return service.aiSupport(body);
     }
 }

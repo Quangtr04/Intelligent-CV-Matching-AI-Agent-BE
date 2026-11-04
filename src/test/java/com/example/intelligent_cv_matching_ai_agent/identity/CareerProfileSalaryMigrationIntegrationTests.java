@@ -48,7 +48,7 @@ class CareerProfileSalaryMigrationIntegrationTests {
         }
         jdbc.update(
             "INSERT INTO career_profile_embeddings(user_id,provider,model,embedding,is_current) "
-                + "VALUES(?,'ollama','qwen3-embedding:0.6b',?::vector,true)",
+                + "VALUES(?,'openai','text-embedding-3-small',?::vector,true)",
             users[0],
             "[1," + String.join(",", Collections.nCopies(1023, "0")) + "]"
         );

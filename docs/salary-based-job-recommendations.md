@@ -215,7 +215,7 @@ Có catalog job nhưng tất cả đều có lương đã đối chiếu đượ
 `eligible_jobs: 0`; không tạo job giả hoặc nới ngưỡng. Nếu không có job active nào được nhập, API trả `409`.
 Khi bật AI mà không có embedding hợp lệ cho tập job đủ điều kiện, matching chuyển sang
 `SKILL_OVERLAP_UNINDEXED_JOBS`, provider `RULE_BASED`, `llm_rerank_score = null` và không gọi rerank AI.
-Đây là fallback do chưa có vector phù hợp; không phải bằng chứng rằng Ollama đã đánh giá các job này.
+Đây là fallback do chưa có vector phù hợp; không phải bằng chứng rằng Gemini đã đánh giá các job này.
 
 Khi chỉ một phần job đã có vector, backend bổ sung tối đa 20 job còn lại có kỹ năng trùng với hồ sơ/CV,
 rồi đưa cùng tập truy xuất vào các nhóm rerank AI tối đa 3 JD. Tổng tập rerank tối đa 100 job.
@@ -272,7 +272,7 @@ không chỉ mở lại ID của run từng trả 0 job.
 Bộ đối chiếu lương chạy bằng quy tắc xác định trước bước chọn job theo vector và AI rerank.
 Model không được quyền giữ lại job có max đã quy đổi dưới ngưỡng. Job chưa xác minh lương được giữ theo chính sách v3,
 không phải do model bỏ qua điều kiện. Khi tắt AI, matching dùng skill overlap; khi bật AI và có vector hợp lệ,
-backend dùng Ollama self-hosted. Nếu tập job chưa có vector hợp lệ thì dùng fallback đã mô tả ở trên.
+backend dùng Gemini API. Nếu tập job chưa có vector hợp lệ thì dùng fallback đã mô tả ở trên.
 `JOB_EMBEDDING_ENABLED=true` cho phép worker lập chỉ mục job theo cấu hình model hiện tại;
 việc bật worker không chứng minh tất cả job đã index xong. Thay đổi này không thêm model thương mại hoặc fallback AI trả phí.
 

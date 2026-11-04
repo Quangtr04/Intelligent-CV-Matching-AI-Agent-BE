@@ -71,8 +71,13 @@ public class GoogleLoginService {
 
             id = db.insertUsers(fields);
             db.updateCandidateProfiles(id);
-            if (!authoritative)
-                return auth.resend(email);
+            if (!authoritative) {
+                Map<String, Object> response = new LinkedHashMap<>(auth.resend(email));
+                response.put("emailVerificationRequired", true);
+                response.put("email", email);
+                response.put("verificationCodeSent", true);
+                return response;
+            }
         } else {
             id = (UUID) existing.get().get("id");
             String status = existing.get().get("status").toString();
@@ -81,7 +86,11 @@ public class GoogleLoginService {
                     "message",
                     "Verify this account's email before signing in; use /auth/resend-code if needed",
                     "emailVerificationRequired",
-                    true
+                    true,
+                    "email",
+                    existing.get().get("email").toString(),
+                    "verificationCodeSent",
+                    false
                 );
             }
             if (!"ACTIVE".equals(status))

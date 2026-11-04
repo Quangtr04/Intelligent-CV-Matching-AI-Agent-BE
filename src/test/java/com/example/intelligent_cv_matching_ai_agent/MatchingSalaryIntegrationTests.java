@@ -87,9 +87,9 @@ class MatchingSalaryIntegrationTests {
                 "https://rates.example.test"
             )
         );
-        when(ai.provider()).thenReturn("ollama");
-        when(ai.model()).thenReturn("qwen2.5:7b");
-        when(ai.embeddingModel()).thenReturn("qwen3-embedding:0.6b");
+        when(ai.provider()).thenReturn("openai");
+        when(ai.model()).thenReturn("gpt-4.1-mini");
+        when(ai.embeddingModel()).thenReturn("text-embedding-3-small");
         db.update("UPDATE market_job_posts SET status='REMOVED' WHERE status='ACTIVE'");
         owner = db.insert(
             "users",
@@ -439,7 +439,7 @@ class MatchingSalaryIntegrationTests {
         vector[1] = second;
         db.update(
             "INSERT INTO market_job_embeddings(market_job_id,provider,model,embedding,content_hash,is_current) "
-                + "SELECT id,'ollama','qwen3-embedding:0.6b',?::vector,raw_content_hash,true "
+                + "SELECT id,'openai','text-embedding-3-small',?::vector,raw_content_hash,true "
                 + "FROM market_job_posts WHERE id=?",
             Arrays.toString(vector),
             job

@@ -92,7 +92,7 @@ pm.test("CV luu dung mau va HTML", () => {
 });
 ```
 
-GET `{{baseUrl}}/resumes/{{templateFixtureResumeId}}` bằng cùng token: expected `200`, cùng ID mẫu/HTML. Với CV AI, dùng bộ dữ kiện đầy đủ trong [luồng Ollama](postman-test-order.md#tao-cv-ollama), không dùng mẫu CV này làm bằng chứng chất lượng model.
+GET `{{baseUrl}}/resumes/{{templateFixtureResumeId}}` bằng cùng token: expected `200`, cùng ID mẫu/HTML. Với CV AI, dùng bộ dữ kiện đầy đủ trong [luồng Gemini](postman-test-order.md#tao-cv-ai), không dùng mẫu CV này làm bằng chứng chất lượng model.
 
 ### 3. Đổi mẫu và bỏ mẫu
 
@@ -116,7 +116,7 @@ Tạo CV test tham chiếu một mẫu test, rồi Admin tắt mẫu đó. Expec
 
 ## Phạm vi kiểm tra
 
-Sau khi chạy, ghi riêng kết quả build/kiểm thử tự động, thao tác browser và request Postman. Kiểm thử backend dùng AI mock chỉ xác minh contract/persistence và quyền truy cập, không chứng minh Ollama đã sinh CV đúng. Các log trong `target` là artifact cục bộ, có thể không tồn tại trong checkout khác.
+Sau khi chạy, ghi riêng kết quả build/kiểm thử tự động, thao tác browser và request Postman. Kiểm thử backend dùng AI mock chỉ xác minh contract/persistence và quyền truy cập, không chứng minh Gemini đã sinh CV đúng. Các log trong `target` là artifact cục bộ, có thể không tồn tại trong checkout khác.
 
 Các số liệu ngày 22/10/2026 bên dưới là lịch sử trước V19 và trước khi bỏ cấu hình layout JSON.
 
@@ -131,9 +131,9 @@ Kiểm tra frontend cho thay đổi Candidate ngày **22/10/2026**:
 
 **Backend:** `mvn verify` khi Docker sẵn sàng hoàn tất lúc **18:10:03 ngày 22/10/2026, giờ Việt Nam**, thời gian Maven **2 phút 01 giây**, **BUILD SUCCESS**. Toàn backend ghi nhận **488 test: 435 đạt, 0 failure/error, 53 skip**; không ghi 488 test pass. Xem [log verify](../target/candidate-template-verify.log).
 
-Hai suite riêng cho lựa chọn mẫu có **16 test đạt và không skip**: [ResumeTemplateSelectionIntegrationTests: 13 ca](../target/surefire-reports/TEST-com.example.intelligent_cv_matching_ai_agent.ResumeTemplateSelectionIntegrationTests.xml) chạy MockMvc với PostgreSQL/pgvector qua Testcontainers, và [ResumeTemplateSelectionTests: 3 ca](../target/surefire-reports/TEST-com.example.intelligent_cv_matching_ai_agent.resume.ResumeTemplateSelectionTests.xml) kiểm logic/DTO. Các ca bao phủ lưu mẫu khi tạo thủ công/AI, trả cấu hình ở chi tiết CV, mẫu đã tắt, đổi/bỏ mẫu giữ dữ liệu dẫn xuất, kiểm ownership/xác thực/archive và UUID không hợp lệ. Ca AI builder dùng mock để kiểm contract; không đo suy luận Ollama hay chất lượng CV thật.
+Hai suite riêng cho lựa chọn mẫu có **16 test đạt và không skip**: [ResumeTemplateSelectionIntegrationTests: 13 ca](../target/surefire-reports/TEST-com.example.intelligent_cv_matching_ai_agent.ResumeTemplateSelectionIntegrationTests.xml) chạy MockMvc với PostgreSQL/pgvector qua Testcontainers, và [ResumeTemplateSelectionTests: 3 ca](../target/surefire-reports/TEST-com.example.intelligent_cv_matching_ai_agent.resume.ResumeTemplateSelectionTests.xml) kiểm logic/DTO. Các ca bao phủ lưu mẫu khi tạo thủ công/AI, trả cấu hình ở chi tiết CV, mẫu đã tắt, đổi/bỏ mẫu giữ dữ liệu dẫn xuất, kiểm ownership/xác thực/archive và UUID không hợp lệ. Ca AI builder dùng mock để kiểm contract; không đo suy luận Gemini hay chất lượng CV thật.
 
 Container backend local đã được rebuild và kiểm tra lúc **18:16:10 ngày 22/10/2026, giờ Việt Nam**: health `UP`, JAR đang chạy khớp bản đã verify, API public trả `200` với **5 mẫu active** có `layout_config`, API danh sách CV riêng không token vẫn trả `401`. Xem [bằng chứng runtime](../target/candidate-template-app-runtime.json). Không dùng token người dùng để tạo/sửa CV trên database ứng dụng trong lượt xác minh runtime này; các ca ghi dữ liệu chạy trên database thử nghiệm.
 
-- [Thứ tự kiểm thử CV bằng Ollama](postman-test-order.md#tao-cv-ollama)
+- [Thứ tự kiểm thử CV bằng Gemini](postman-test-order.md#tao-cv-ai)
 - [Admin quản lý mẫu](admin-resume-templates.md)

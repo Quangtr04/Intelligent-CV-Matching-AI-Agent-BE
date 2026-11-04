@@ -1,0 +1,1267 @@
+{
+  "description": "Synthetic input-only token measurement samples for the current backend. No real user data, no model output fixtures, no inactive CV_PARSE request. English source facts with language vi reflect a Vietnamese UI requesting Vietnamese output. Baseline candidate prose is approximately 500 words and JD approximately 300 words. Length variants use explicitly disclosed artificial repetition. Input objects approximate current server-side snapshots; they are not public API request bodies or end-to-end fixtures.",
+  "scenarios": [
+    {
+      "id": "cv-build-baseline",
+      "feature": "CV_BUILD",
+      "label": "Build CV from approximately 500 words of supplied candidate facts",
+      "variant": "baseline",
+      "input": {
+        "title": "Minh An Demo - Java Backend Developer",
+        "language": "vi",
+        "raw_content": "Fictional junior Java backend developer with two years of experience building internal business services and supervised student projects. Comfortable translating a small requirement into an API contract, database change, tests and deployment notes. Uses Java, Spring Boot, PostgreSQL and Git in daily development. Looking for a backend role with code review, clear ownership and opportunities to improve reliability. Communicates progress in writing, asks for missing acceptance criteria early and documents limitations rather than presenting unverified assumptions as completed work.\n\nDeveloped REST endpoints for a fictional inventory application used by an internal training team. Implemented request validation, pagination and role checks with Spring Boot and Spring Security. Designed PostgreSQL tables for products, warehouses and stock movements, added database constraints and reviewed query plans with a mentor. Reduced a report endpoint from approximately 1200 milliseconds to 450 milliseconds in a controlled sample environment by replacing repeated queries with one aggregate query. Wrote JUnit and Mockito tests for validation, permissions and failed transactions. Added structured logs and correlation identifiers so the team could investigate failed requests without logging customer content. Participated in weekly code review, clarified API response fields with a frontend colleague and updated OpenAPI examples before release. Supported a supervised Docker deployment and documented rollback steps; did not own production infrastructure or on-call operations.\n\nCompleted a backend internship at a fictional learning organization. Built a task management module with filtering by assignee, status and due date. Used Git branches and pull requests to keep changes small and reviewable. Added integration tests against a disposable PostgreSQL database and corrected timezone handling for task deadlines. Investigated duplicate submissions and introduced an idempotency key for one create endpoint. Compared expected and actual responses with Postman and described reproduction steps in issue reports. Worked with a mentor to understand transactions, indexes and common HTTP error codes. Wrote a short onboarding guide explaining local setup, sample data and how to run the focused tests.\n\nBuilt a capstone appointment booking service with three other students. Owned backend endpoints for available slots, booking confirmation and cancellation. Prevented double booking with a database uniqueness rule and a transaction rather than a browser-only check. Implemented access and refresh token flows for a demonstration account system. Kept configuration in environment variables and excluded secrets from version control. Containerized the application and database for reproducible local demonstrations. Created sample fixtures for overlapping bookings and permission boundaries. Measured response time with a synthetic dataset and recorded the environment used; the result was a classroom demonstration rather than a production capacity benchmark. Helped write the final API handbook and showed teammates how to reproduce a failed test. Redis was used only for an optional short-lived cache; the database remained authoritative.\n\nCompleted a fictional Bachelor of Software Engineering program in 2024. Coursework covered object oriented programming, relational database design, software testing, basic computer networks and team delivery. The final project emphasized written requirements, API design, data integrity and peer review. No professional certification is claimed. Reads English technical documentation and can explain a familiar implementation in a short written summary.",
+        "career_profile": {
+          "target_job_title": "Java Backend Developer",
+          "career_goal": "Build reliable backend APIs and develop database and automated testing skills.",
+          "current_job_title": "Junior Java Backend Developer",
+          "current_company": "Example Inventory Lab (fictional)",
+          "years_experience": 2,
+          "profile_summary": "Fictional junior Java backend developer with two years of experience building internal business services and supervised student projects. Comfortable translating a small requirement into an API contract, database change, tests and deployment notes. Uses Java, Spring Boot, PostgreSQL and Git in daily development. Looking for a backend role with code review, clear ownership and opportunities to improve reliability. Communicates progress in writing, asks for missing acceptance criteria early and documents limitations rather than presenting unverified assumptions as completed work.",
+          "preferred_location": "Ho Chi Minh City",
+          "workplace_preference": "HYBRID",
+          "employment_type": "FULL_TIME",
+          "expected_salary": 22000000,
+          "salary_currency": "VND",
+          "skills": [
+            {
+              "name": "Java",
+              "proficiency_level": "INTERMEDIATE",
+              "years_experience": 2
+            },
+            {
+              "name": "Spring Boot",
+              "proficiency_level": "INTERMEDIATE",
+              "years_experience": 2
+            },
+            {
+              "name": "PostgreSQL",
+              "proficiency_level": "INTERMEDIATE",
+              "years_experience": 2
+            },
+            {
+              "name": "JUnit",
+              "proficiency_level": "INTERMEDIATE",
+              "years_experience": 2
+            },
+            {
+              "name": "Docker",
+              "proficiency_level": "BASIC",
+              "years_experience": 1
+            },
+            {
+              "name": "Git",
+              "proficiency_level": "INTERMEDIATE",
+              "years_experience": 2
+            }
+          ]
+        }
+      },
+      "notes": [
+        "All names, employers, dates and achievements are fictional; no additional facts should be invented."
+      ]
+    },
+    {
+      "id": "cv-analyze-baseline",
+      "feature": "CV_ANALYZE",
+      "label": "Analyze a reviewed Java backend CV",
+      "variant": "baseline",
+      "input": {
+        "resume": {
+          "title": "Minh An Demo - Java Backend Developer",
+          "language": "vi",
+          "source": "MANUAL",
+          "structured_data": {
+            "full_name": "Minh An Demo",
+            "email": "minh.an.demo@example.invalid",
+            "phone": "",
+            "location": "Ho Chi Minh City, Vietnam",
+            "summary": "Fictional junior Java backend developer with two years of experience building internal business services and supervised student projects. Comfortable translating a small requirement into an API contract, database change, tests and deployment notes. Uses Java, Spring Boot, PostgreSQL and Git in daily development. Looking for a backend role with code review, clear ownership and opportunities to improve reliability. Communicates progress in writing, asks for missing acceptance criteria early and documents limitations rather than presenting unverified assumptions as completed work.",
+            "experience": [
+              {
+                "start_date": "2024-09-01",
+                "end_date": null,
+                "is_current": true,
+                "description": "Developed REST endpoints for a fictional inventory application used by an internal training team. Implemented request validation, pagination and role checks with Spring Boot and Spring Security. Designed PostgreSQL tables for products, warehouses and stock movements, added database constraints and reviewed query plans with a mentor. Reduced a report endpoint from approximately 1200 milliseconds to 450 milliseconds in a controlled sample environment by replacing repeated queries with one aggregate query. Wrote JUnit and Mockito tests for validation, permissions and failed transactions. Added structured logs and correlation identifiers so the team could investigate failed requests without logging customer content. Participated in weekly code review, clarified API response fields with a frontend colleague and updated OpenAPI examples before release. Supported a supervised Docker deployment and documented rollback steps; did not own production infrastructure or on-call operations.",
+                "company_name": "Example Inventory Lab (fictional)",
+                "job_title": "Junior Java Backend Developer"
+              },
+              {
+                "start_date": "2024-03-01",
+                "end_date": "2024-08-01",
+                "is_current": false,
+                "description": "Completed a backend internship at a fictional learning organization. Built a task management module with filtering by assignee, status and due date. Used Git branches and pull requests to keep changes small and reviewable. Added integration tests against a disposable PostgreSQL database and corrected timezone handling for task deadlines. Investigated duplicate submissions and introduced an idempotency key for one create endpoint. Compared expected and actual responses with Postman and described reproduction steps in issue reports. Worked with a mentor to understand transactions, indexes and common HTTP error codes. Wrote a short onboarding guide explaining local setup, sample data and how to run the focused tests.",
+                "company_name": "Example Learning Studio (fictional)",
+                "job_title": "Backend Intern"
+              }
+            ],
+            "education": [
+              {
+                "degree": "Bachelor of Software Engineering",
+                "start_date": "2020-09-01",
+                "end_date": "2024-06-01",
+                "description": "Completed a fictional Bachelor of Software Engineering program in 2024. Coursework covered object oriented programming, relational database design, software testing, basic computer networks and team delivery. The final project emphasized written requirements, API design, data integrity and peer review. No professional certification is claimed. Reads English technical documentation and can explain a familiar implementation in a short written summary.",
+                "school_name": "Example Engineering College (fictional)",
+                "major": "Software Engineering"
+              }
+            ],
+            "skills": [
+              {
+                "name": "Java",
+                "proficiency_level": "INTERMEDIATE"
+              },
+              {
+                "name": "Spring Boot",
+                "proficiency_level": "INTERMEDIATE"
+              },
+              {
+                "name": "PostgreSQL",
+                "proficiency_level": "INTERMEDIATE"
+              },
+              {
+                "name": "JUnit",
+                "proficiency_level": "INTERMEDIATE"
+              },
+              {
+                "name": "Docker",
+                "proficiency_level": "BASIC"
+              },
+              {
+                "name": "Git",
+                "proficiency_level": "INTERMEDIATE"
+              }
+            ],
+            "projects": [
+              {
+                "role": "Backend developer",
+                "description": "Built a capstone appointment booking service with three other students. Owned backend endpoints for available slots, booking confirmation and cancellation. Prevented double booking with a database uniqueness rule and a transaction rather than a browser-only check. Implemented access and refresh token flows for a demonstration account system. Kept configuration in environment variables and excluded secrets from version control. Containerized the application and database for reproducible local demonstrations. Created sample fixtures for overlapping bookings and permission boundaries. Measured response time with a synthetic dataset and recorded the environment used; the result was a classroom demonstration rather than a production capacity benchmark. Helped write the final API handbook and showed teammates how to reproduce a failed test. Redis was used only for an optional short-lived cache; the database remained authoritative.",
+                "technologies": [
+                  "Java",
+                  "Spring Boot",
+                  "PostgreSQL",
+                  "Redis",
+                  "Docker"
+                ],
+                "project_name": "Appointment Booking Capstone (fictional)"
+              }
+            ],
+            "certifications": []
+          },
+          "raw_text": "",
+          "content_authority": "REVIEWED_STRUCTURED",
+          "formatting_limitations": [
+            "Reviewed text and structured sections do not preserve exact visual layout, spacing or page breaks."
+          ]
+        },
+        "resume_text": "Minh An Demo - Java Backend Developer\n{\"full_name\":\"Minh An Demo\",\"email\":\"minh.an.demo@example.invalid\",\"phone\":\"\",\"location\":\"Ho Chi Minh City, Vietnam\",\"summary\":\"Fictional junior Java backend developer with two years of experience building internal business services and supervised student projects. Comfortable translating a small requirement into an API contract, database change, tests and deployment notes. Uses Java, Spring Boot, PostgreSQL and Git in daily development. Looking for a backend role with code review, clear ownership and opportunities to improve reliability. Communicates progress in writing, asks for missing acceptance criteria early and documents limitations rather than presenting unverified assumptions as completed work.\",\"experience\":[{\"start_date\":\"2024-09-01\",\"end_date\":null,\"is_current\":true,\"description\":\"Developed REST endpoints for a fictional inventory application used by an internal training team. Implemented request validation, pagination and role checks with Spring Boot and Spring Security. Designed PostgreSQL tables for products, warehouses and stock movements, added database constraints and reviewed query plans with a mentor. Reduced a report endpoint from approximately 1200 milliseconds to 450 milliseconds in a controlled sample environment by replacing repeated queries with one aggregate query. Wrote JUnit and Mockito tests for validation, permissions and failed transactions. Added structured logs and correlation identifiers so the team could investigate failed requests without logging customer content. Participated in weekly code review, clarified API response fields with a frontend colleague and updated OpenAPI examples before release. Supported a supervised Docker deployment and documented rollback steps; did not own production infrastructure or on-call operations.\",\"company_name\":\"Example Inventory Lab (fictional)\",\"job_title\":\"Junior Java Backend Developer\"},{\"start_date\":\"2024-03-01\",\"end_date\":\"2024-08-01\",\"is_current\":false,\"description\":\"Completed a backend internship at a fictional learning organization. Built a task management module with filtering by assignee, status and due date. Used Git branches and pull requests to keep changes small and reviewable. Added integration tests against a disposable PostgreSQL database and corrected timezone handling for task deadlines. Investigated duplicate submissions and introduced an idempotency key for one create endpoint. Compared expected and actual responses with Postman and described reproduction steps in issue reports. Worked with a mentor to understand transactions, indexes and common HTTP error codes. Wrote a short onboarding guide explaining local setup, sample data and how to run the focused tests.\",\"company_name\":\"Example Learning Studio (fictional)\",\"job_title\":\"Backend Intern\"}],\"education\":[{\"degree\":\"Bachelor of Software Engineering\",\"start_date\":\"2020-09-01\",\"end_date\":\"2024-06-01\",\"description\":\"Completed a fictional Bachelor of Software Engineering program in 2024. Coursework covered object oriented programming, relational database design, software testing, basic computer networks and team delivery. The final project emphasized written requirements, API design, data integrity and peer review. No professional certification is claimed. Reads English technical documentation and can explain a familiar implementation in a short written summary.\",\"school_name\":\"Example Engineering College (fictional)\",\"major\":\"Software Engineering\"}],\"skills\":[{\"name\":\"Java\",\"proficiency_level\":\"INTERMEDIATE\"},{\"name\":\"Spring Boot\",\"proficiency_level\":\"INTERMEDIATE\"},{\"name\":\"PostgreSQL\",\"proficiency_level\":\"INTERMEDIATE\"},{\"name\":\"JUnit\",\"proficiency_level\":\"INTERMEDIATE\"},{\"name\":\"Docker\",\"proficiency_level\":\"BASIC\"},{\"name\":\"Git\",\"proficiency_level\":\"INTERMEDIATE\"}],\"projects\":[{\"role\":\"Backend developer\",\"description\":\"Built a capstone appointment booking service with three other students. Owned backend endpoints for available slots, booking confirmation and cancellation. Prevented double booking with a database uniqueness rule and a transaction rather than a browser-only check. Implemented access and refresh token flows for a demonstration account system. Kept configuration in environment variables and excluded secrets from version control. Containerized the application and database for reproducible local demonstrations. Created sample fixtures for overlapping bookings and permission boundaries. Measured response time with a synthetic dataset and recorded the environment used; the result was a classroom demonstration rather than a production capacity benchmark. Helped write the final API handbook and showed teammates how to reproduce a failed test. Redis was used only for an optional short-lived cache; the database remained authoritative.\",\"technologies\":[\"Java\",\"Spring Boot\",\"PostgreSQL\",\"Redis\",\"Docker\"],\"project_name\":\"Appointment Booking Capstone (fictional)\"}],\"certifications\":[]}",
+        "language": "vi"
+      },
+      "notes": [
+        "Matches ResumeWritingQuality.source and ResumeContent.canonicalText: reviewed structured content is sent both as an object and canonical JSON text; raw_text is empty."
+      ]
+    },
+    {
+      "id": "cv-profile-alignment-baseline",
+      "feature": "CV_PROFILE_ALIGNMENT",
+      "label": "Compare confirmed CV with career profile",
+      "variant": "baseline",
+      "input": {
+        "resume": {
+          "structured_data": {
+            "location": "Ho Chi Minh City, Vietnam",
+            "summary": "Fictional junior Java backend developer with two years of experience building internal business services and supervised student projects. Comfortable translating a small requirement into an API contract, database change, tests and deployment notes. Uses Java, Spring Boot, PostgreSQL and Git in daily development. Looking for a backend role with code review, clear ownership and opportunities to improve reliability. Communicates progress in writing, asks for missing acceptance criteria early and documents limitations rather than presenting unverified assumptions as completed work.",
+            "experience": [
+              {
+                "start_date": "2024-09-01",
+                "end_date": null,
+                "is_current": true,
+                "description": "Developed REST endpoints for a fictional inventory application used by an internal training team. Implemented request validation, pagination and role checks with Spring Boot and Spring Security. Designed PostgreSQL tables for products, warehouses and stock movements, added database constraints and reviewed query plans with a mentor. Reduced a report endpoint from approximately 1200 milliseconds to 450 milliseconds in a controlled sample environment by replacing repeated queries with one aggregate query. Wrote JUnit and Mockito tests for validation, permissions and failed transactions. Added structured logs and correlation identifiers so the team could investigate failed requests without logging customer content. Participated in weekly code review, clarified API response fields with a frontend colleague and updated OpenAPI examples before release. Supported a supervised Docker deployment and documented rollback steps; did not own production infrastructure or on-call operations.",
+                "company_name": "Example Inventory Lab (fictional)",
+                "job_title": "Junior Java Backend Developer"
+              },
+              {
+                "start_date": "2024-03-01",
+                "end_date": "2024-08-01",
+                "is_current": false,
+                "description": "Completed a backend internship at a fictional learning organization. Built a task management module with filtering by assignee, status and due date. Used Git branches and pull requests to keep changes small and reviewable. Added integration tests against a disposable PostgreSQL database and corrected timezone handling for task deadlines. Investigated duplicate submissions and introduced an idempotency key for one create endpoint. Compared expected and actual responses with Postman and described reproduction steps in issue reports. Worked with a mentor to understand transactions, indexes and common HTTP error codes. Wrote a short onboarding guide explaining local setup, sample data and how to run the focused tests.",
+                "company_name": "Example Learning Studio (fictional)",
+                "job_title": "Backend Intern"
+              }
+            ],
+            "education": [
+              {
+                "degree": "Bachelor of Software Engineering",
+                "start_date": "2020-09-01",
+                "end_date": "2024-06-01",
+                "description": "Completed a fictional Bachelor of Software Engineering program in 2024. Coursework covered object oriented programming, relational database design, software testing, basic computer networks and team delivery. The final project emphasized written requirements, API design, data integrity and peer review. No professional certification is claimed. Reads English technical documentation and can explain a familiar implementation in a short written summary.",
+                "school_name": "Example Engineering College (fictional)",
+                "major": "Software Engineering"
+              }
+            ],
+            "skills": [
+              {
+                "name": "Java",
+                "proficiency_level": "INTERMEDIATE"
+              },
+              {
+                "name": "Spring Boot",
+                "proficiency_level": "INTERMEDIATE"
+              },
+              {
+                "name": "PostgreSQL",
+                "proficiency_level": "INTERMEDIATE"
+              },
+              {
+                "name": "JUnit",
+                "proficiency_level": "INTERMEDIATE"
+              },
+              {
+                "name": "Docker",
+                "proficiency_level": "BASIC"
+              },
+              {
+                "name": "Git",
+                "proficiency_level": "INTERMEDIATE"
+              }
+            ],
+            "projects": [
+              {
+                "role": "Backend developer",
+                "description": "Built a capstone appointment booking service with three other students. Owned backend endpoints for available slots, booking confirmation and cancellation. Prevented double booking with a database uniqueness rule and a transaction rather than a browser-only check. Implemented access and refresh token flows for a demonstration account system. Kept configuration in environment variables and excluded secrets from version control. Containerized the application and database for reproducible local demonstrations. Created sample fixtures for overlapping bookings and permission boundaries. Measured response time with a synthetic dataset and recorded the environment used; the result was a classroom demonstration rather than a production capacity benchmark. Helped write the final API handbook and showed teammates how to reproduce a failed test. Redis was used only for an optional short-lived cache; the database remained authoritative.",
+                "technologies": [
+                  "Java",
+                  "Spring Boot",
+                  "PostgreSQL",
+                  "Redis",
+                  "Docker"
+                ],
+                "project_name": "Appointment Booking Capstone (fictional)"
+              }
+            ],
+            "certifications": []
+          },
+          "raw_content": "",
+          "content_authority": "REVIEWED_STRUCTURED",
+          "language": "vi"
+        },
+        "career_profile": {
+          "target_job_title": "Java Backend Developer",
+          "career_goal": "Build reliable backend APIs and develop database and automated testing skills.",
+          "current_job_title": "Junior Java Backend Developer",
+          "current_company": "Example Inventory Lab (fictional)",
+          "years_experience": 2,
+          "profile_summary": "Fictional junior Java backend developer with two years of experience building internal business services and supervised student projects. Comfortable translating a small requirement into an API contract, database change, tests and deployment notes. Uses Java, Spring Boot, PostgreSQL and Git in daily development. Looking for a backend role with code review, clear ownership and opportunities to improve reliability. Communicates progress in writing, asks for missing acceptance criteria early and documents limitations rather than presenting unverified assumptions as completed work.",
+          "preferred_location": "Ho Chi Minh City",
+          "workplace_preference": "HYBRID",
+          "employment_type": "FULL_TIME",
+          "expected_salary": 22000000,
+          "salary_currency": "VND",
+          "skills": [
+            {
+              "name": "Java",
+              "proficiency_level": "INTERMEDIATE",
+              "years_experience": 2
+            },
+            {
+              "name": "Spring Boot",
+              "proficiency_level": "INTERMEDIATE",
+              "years_experience": 2
+            },
+            {
+              "name": "PostgreSQL",
+              "proficiency_level": "INTERMEDIATE",
+              "years_experience": 2
+            },
+            {
+              "name": "JUnit",
+              "proficiency_level": "INTERMEDIATE",
+              "years_experience": 2
+            },
+            {
+              "name": "Docker",
+              "proficiency_level": "BASIC",
+              "years_experience": 1
+            },
+            {
+              "name": "Git",
+              "proficiency_level": "INTERMEDIATE",
+              "years_experience": 2
+            }
+          ]
+        },
+        "language": "vi"
+      },
+      "notes": [
+        "Resume snapshot excludes contact fields in the same way as the service."
+      ]
+    },
+    {
+      "id": "cv-support-baseline",
+      "feature": "CV_AI_SUPPORT",
+      "label": "Improve one summary using reviewed source facts",
+      "variant": "baseline",
+      "input": {
+        "question": "Make the summary clearer for a junior Java backend role without adding skills or achievements.",
+        "is_urgent": false,
+        "language": "vi",
+        "resume": {
+          "title": "Minh An Demo - Java Backend Developer",
+          "language": "vi",
+          "source": "MANUAL",
+          "structured_data": {
+            "full_name": "Minh An Demo",
+            "email": "minh.an.demo@example.invalid",
+            "phone": "",
+            "location": "Ho Chi Minh City, Vietnam",
+            "summary": "Fictional junior Java backend developer with two years of experience building internal business services and supervised student projects. Comfortable translating a small requirement into an API contract, database change, tests and deployment notes. Uses Java, Spring Boot, PostgreSQL and Git in daily development. Looking for a backend role with code review, clear ownership and opportunities to improve reliability. Communicates progress in writing, asks for missing acceptance criteria early and documents limitations rather than presenting unverified assumptions as completed work.",
+            "experience": [
+              {
+                "start_date": "2024-09-01",
+                "end_date": null,
+                "is_current": true,
+                "description": "Developed REST endpoints for a fictional inventory application used by an internal training team. Implemented request validation, pagination and role checks with Spring Boot and Spring Security. Designed PostgreSQL tables for products, warehouses and stock movements, added database constraints and reviewed query plans with a mentor. Reduced a report endpoint from approximately 1200 milliseconds to 450 milliseconds in a controlled sample environment by replacing repeated queries with one aggregate query. Wrote JUnit and Mockito tests for validation, permissions and failed transactions. Added structured logs and correlation identifiers so the team could investigate failed requests without logging customer content. Participated in weekly code review, clarified API response fields with a frontend colleague and updated OpenAPI examples before release. Supported a supervised Docker deployment and documented rollback steps; did not own production infrastructure or on-call operations.",
+                "company_name": "Example Inventory Lab (fictional)",
+                "job_title": "Junior Java Backend Developer"
+              },
+              {
+                "start_date": "2024-03-01",
+                "end_date": "2024-08-01",
+                "is_current": false,
+                "description": "Completed a backend internship at a fictional learning organization. Built a task management module with filtering by assignee, status and due date. Used Git branches and pull requests to keep changes small and reviewable. Added integration tests against a disposable PostgreSQL database and corrected timezone handling for task deadlines. Investigated duplicate submissions and introduced an idempotency key for one create endpoint. Compared expected and actual responses with Postman and described reproduction steps in issue reports. Worked with a mentor to understand transactions, indexes and common HTTP error codes. Wrote a short onboarding guide explaining local setup, sample data and how to run the focused tests.",
+                "company_name": "Example Learning Studio (fictional)",
+                "job_title": "Backend Intern"
+              }
+            ],
+            "education": [
+              {
+                "degree": "Bachelor of Software Engineering",
+                "start_date": "2020-09-01",
+                "end_date": "2024-06-01",
+                "description": "Completed a fictional Bachelor of Software Engineering program in 2024. Coursework covered object oriented programming, relational database design, software testing, basic computer networks and team delivery. The final project emphasized written requirements, API design, data integrity and peer review. No professional certification is claimed. Reads English technical documentation and can explain a familiar implementation in a short written summary.",
+                "school_name": "Example Engineering College (fictional)",
+                "major": "Software Engineering"
+              }
+            ],
+            "skills": [
+              {
+                "name": "Java",
+                "proficiency_level": "INTERMEDIATE"
+              },
+              {
+                "name": "Spring Boot",
+                "proficiency_level": "INTERMEDIATE"
+              },
+              {
+                "name": "PostgreSQL",
+                "proficiency_level": "INTERMEDIATE"
+              },
+              {
+                "name": "JUnit",
+                "proficiency_level": "INTERMEDIATE"
+              },
+              {
+                "name": "Docker",
+                "proficiency_level": "BASIC"
+              },
+              {
+                "name": "Git",
+                "proficiency_level": "INTERMEDIATE"
+              }
+            ],
+            "projects": [
+              {
+                "role": "Backend developer",
+                "description": "Built a capstone appointment booking service with three other students. Owned backend endpoints for available slots, booking confirmation and cancellation. Prevented double booking with a database uniqueness rule and a transaction rather than a browser-only check. Implemented access and refresh token flows for a demonstration account system. Kept configuration in environment variables and excluded secrets from version control. Containerized the application and database for reproducible local demonstrations. Created sample fixtures for overlapping bookings and permission boundaries. Measured response time with a synthetic dataset and recorded the environment used; the result was a classroom demonstration rather than a production capacity benchmark. Helped write the final API handbook and showed teammates how to reproduce a failed test. Redis was used only for an optional short-lived cache; the database remained authoritative.",
+                "technologies": [
+                  "Java",
+                  "Spring Boot",
+                  "PostgreSQL",
+                  "Redis",
+                  "Docker"
+                ],
+                "project_name": "Appointment Booking Capstone (fictional)"
+              }
+            ],
+            "certifications": []
+          },
+          "content_authority": "REVIEWED_STRUCTURED",
+          "formatting_limitations": [
+            "Reviewed text and structured sections do not preserve exact visual layout, spacing or page breaks."
+          ]
+        },
+        "section": {
+          "field": "summary",
+          "current_text": "Fictional junior Java backend developer with two years of experience building internal business services and supervised student projects. Comfortable translating a small requirement into an API contract, database change, tests and deployment notes. Uses Java, Spring Boot, PostgreSQL and Git in daily development. Looking for a backend role with code review, clear ownership and opportunities to improve reliability. Communicates progress in writing, asks for missing acceptance criteria early and documents limitations rather than presenting unverified assumptions as completed work.",
+          "position": "Java Backend Developer",
+          "title": "Minh An Demo - Java Backend Developer",
+          "background": "Junior developer with two years of experience."
+        }
+      },
+      "notes": []
+    },
+    {
+      "id": "job-ats-baseline",
+      "feature": "JOB_ATS",
+      "label": "Compare confirmed CV with a roughly 300-word JD",
+      "variant": "baseline",
+      "input": {
+        "resume": {
+          "full_name": "Minh An Demo",
+          "email": "minh.an.demo@example.invalid",
+          "phone": "",
+          "location": "Ho Chi Minh City, Vietnam",
+          "summary": "Fictional junior Java backend developer with two years of experience building internal business services and supervised student projects. Comfortable translating a small requirement into an API contract, database change, tests and deployment notes. Uses Java, Spring Boot, PostgreSQL and Git in daily development. Looking for a backend role with code review, clear ownership and opportunities to improve reliability. Communicates progress in writing, asks for missing acceptance criteria early and documents limitations rather than presenting unverified assumptions as completed work.",
+          "experience": [
+            {
+              "start_date": "2024-09-01",
+              "end_date": null,
+              "is_current": true,
+              "description": "Developed REST endpoints for a fictional inventory application used by an internal training team. Implemented request validation, pagination and role checks with Spring Boot and Spring Security. Designed PostgreSQL tables for products, warehouses and stock movements, added database constraints and reviewed query plans with a mentor. Reduced a report endpoint from approximately 1200 milliseconds to 450 milliseconds in a controlled sample environment by replacing repeated queries with one aggregate query. Wrote JUnit and Mockito tests for validation, permissions and failed transactions. Added structured logs and correlation identifiers so the team could investigate failed requests without logging customer content. Participated in weekly code review, clarified API response fields with a frontend colleague and updated OpenAPI examples before release. Supported a supervised Docker deployment and documented rollback steps; did not own production infrastructure or on-call operations.",
+              "company_name": "Example Inventory Lab (fictional)",
+              "job_title": "Junior Java Backend Developer"
+            },
+            {
+              "start_date": "2024-03-01",
+              "end_date": "2024-08-01",
+              "is_current": false,
+              "description": "Completed a backend internship at a fictional learning organization. Built a task management module with filtering by assignee, status and due date. Used Git branches and pull requests to keep changes small and reviewable. Added integration tests against a disposable PostgreSQL database and corrected timezone handling for task deadlines. Investigated duplicate submissions and introduced an idempotency key for one create endpoint. Compared expected and actual responses with Postman and described reproduction steps in issue reports. Worked with a mentor to understand transactions, indexes and common HTTP error codes. Wrote a short onboarding guide explaining local setup, sample data and how to run the focused tests.",
+              "company_name": "Example Learning Studio (fictional)",
+              "job_title": "Backend Intern"
+            }
+          ],
+          "education": [
+            {
+              "degree": "Bachelor of Software Engineering",
+              "start_date": "2020-09-01",
+              "end_date": "2024-06-01",
+              "description": "Completed a fictional Bachelor of Software Engineering program in 2024. Coursework covered object oriented programming, relational database design, software testing, basic computer networks and team delivery. The final project emphasized written requirements, API design, data integrity and peer review. No professional certification is claimed. Reads English technical documentation and can explain a familiar implementation in a short written summary.",
+              "school_name": "Example Engineering College (fictional)",
+              "major": "Software Engineering"
+            }
+          ],
+          "skills": [
+            {
+              "name": "Java",
+              "proficiency_level": "INTERMEDIATE"
+            },
+            {
+              "name": "Spring Boot",
+              "proficiency_level": "INTERMEDIATE"
+            },
+            {
+              "name": "PostgreSQL",
+              "proficiency_level": "INTERMEDIATE"
+            },
+            {
+              "name": "JUnit",
+              "proficiency_level": "INTERMEDIATE"
+            },
+            {
+              "name": "Docker",
+              "proficiency_level": "BASIC"
+            },
+            {
+              "name": "Git",
+              "proficiency_level": "INTERMEDIATE"
+            }
+          ],
+          "projects": [
+            {
+              "role": "Backend developer",
+              "description": "Built a capstone appointment booking service with three other students. Owned backend endpoints for available slots, booking confirmation and cancellation. Prevented double booking with a database uniqueness rule and a transaction rather than a browser-only check. Implemented access and refresh token flows for a demonstration account system. Kept configuration in environment variables and excluded secrets from version control. Containerized the application and database for reproducible local demonstrations. Created sample fixtures for overlapping bookings and permission boundaries. Measured response time with a synthetic dataset and recorded the environment used; the result was a classroom demonstration rather than a production capacity benchmark. Helped write the final API handbook and showed teammates how to reproduce a failed test. Redis was used only for an optional short-lived cache; the database remained authoritative.",
+              "technologies": [
+                "Java",
+                "Spring Boot",
+                "PostgreSQL",
+                "Redis",
+                "Docker"
+              ],
+              "project_name": "Appointment Booking Capstone (fictional)"
+            }
+          ],
+          "certifications": []
+        },
+        "resume_text": "Minh An Demo - Java Backend Developer\n{\"full_name\":\"Minh An Demo\",\"email\":\"minh.an.demo@example.invalid\",\"phone\":\"\",\"location\":\"Ho Chi Minh City, Vietnam\",\"summary\":\"Fictional junior Java backend developer with two years of experience building internal business services and supervised student projects. Comfortable translating a small requirement into an API contract, database change, tests and deployment notes. Uses Java, Spring Boot, PostgreSQL and Git in daily development. Looking for a backend role with code review, clear ownership and opportunities to improve reliability. Communicates progress in writing, asks for missing acceptance criteria early and documents limitations rather than presenting unverified assumptions as completed work.\",\"experience\":[{\"start_date\":\"2024-09-01\",\"end_date\":null,\"is_current\":true,\"description\":\"Developed REST endpoints for a fictional inventory application used by an internal training team. Implemented request validation, pagination and role checks with Spring Boot and Spring Security. Designed PostgreSQL tables for products, warehouses and stock movements, added database constraints and reviewed query plans with a mentor. Reduced a report endpoint from approximately 1200 milliseconds to 450 milliseconds in a controlled sample environment by replacing repeated queries with one aggregate query. Wrote JUnit and Mockito tests for validation, permissions and failed transactions. Added structured logs and correlation identifiers so the team could investigate failed requests without logging customer content. Participated in weekly code review, clarified API response fields with a frontend colleague and updated OpenAPI examples before release. Supported a supervised Docker deployment and documented rollback steps; did not own production infrastructure or on-call operations.\",\"company_name\":\"Example Inventory Lab (fictional)\",\"job_title\":\"Junior Java Backend Developer\"},{\"start_date\":\"2024-03-01\",\"end_date\":\"2024-08-01\",\"is_current\":false,\"description\":\"Completed a backend internship at a fictional learning organization. Built a task management module with filtering by assignee, status and due date. Used Git branches and pull requests to keep changes small and reviewable. Added integration tests against a disposable PostgreSQL database and corrected timezone handling for task deadlines. Investigated duplicate submissions and introduced an idempotency key for one create endpoint. Compared expected and actual responses with Postman and described reproduction steps in issue reports. Worked with a mentor to understand transactions, indexes and common HTTP error codes. Wrote a short onboarding guide explaining local setup, sample data and how to run the focused tests.\",\"company_name\":\"Example Learning Studio (fictional)\",\"job_title\":\"Backend Intern\"}],\"education\":[{\"degree\":\"Bachelor of Software Engineering\",\"start_date\":\"2020-09-01\",\"end_date\":\"2024-06-01\",\"description\":\"Completed a fictional Bachelor of Software Engineering program in 2024. Coursework covered object oriented programming, relational database design, software testing, basic computer networks and team delivery. The final project emphasized written requirements, API design, data integrity and peer review. No professional certification is claimed. Reads English technical documentation and can explain a familiar implementation in a short written summary.\",\"school_name\":\"Example Engineering College (fictional)\",\"major\":\"Software Engineering\"}],\"skills\":[{\"name\":\"Java\",\"proficiency_level\":\"INTERMEDIATE\"},{\"name\":\"Spring Boot\",\"proficiency_level\":\"INTERMEDIATE\"},{\"name\":\"PostgreSQL\",\"proficiency_level\":\"INTERMEDIATE\"},{\"name\":\"JUnit\",\"proficiency_level\":\"INTERMEDIATE\"},{\"name\":\"Docker\",\"proficiency_level\":\"BASIC\"},{\"name\":\"Git\",\"proficiency_level\":\"INTERMEDIATE\"}],\"projects\":[{\"role\":\"Backend developer\",\"description\":\"Built a capstone appointment booking service with three other students. Owned backend endpoints for available slots, booking confirmation and cancellation. Prevented double booking with a database uniqueness rule and a transaction rather than a browser-only check. Implemented access and refresh token flows for a demonstration account system. Kept configuration in environment variables and excluded secrets from version control. Containerized the application and database for reproducible local demonstrations. Created sample fixtures for overlapping bookings and permission boundaries. Measured response time with a synthetic dataset and recorded the environment used; the result was a classroom demonstration rather than a production capacity benchmark. Helped write the final API handbook and showed teammates how to reproduce a failed test. Redis was used only for an optional short-lived cache; the database remained authoritative.\",\"technologies\":[\"Java\",\"Spring Boot\",\"PostgreSQL\",\"Redis\",\"Docker\"],\"project_name\":\"Appointment Booking Capstone (fictional)\"}],\"certifications\":[]}",
+        "job": {
+          "id": "10000000-0000-4000-8000-000000000001",
+          "job_title": "Java Backend Developer",
+          "company_name": "Example Product Systems (fictional)",
+          "location": "Ho Chi Minh City",
+          "role_category": "Backend",
+          "salary_text": "20-28 million VND gross/month",
+          "salary_min": 20000000,
+          "salary_max": 28000000,
+          "salary_currency": "VND",
+          "employment_type": "FULL_TIME",
+          "workplace_type": "HYBRID",
+          "raw_content": "Example Product Systems, a fictional company, is hiring a Java Backend Developer for a small business application team in Ho Chi Minh City. The position is full time with a hybrid schedule and a stated monthly gross salary range of 20 to 28 million VND. The successful applicant will work with a product owner, frontend developers and a technical mentor to deliver maintainable APIs. Responsibilities include clarifying acceptance criteria, implementing REST endpoints, validating requests, writing focused tests and reviewing database changes before release. The service uses Java, Spring Boot, PostgreSQL and Docker. Developers are expected to understand transactions, indexes, HTTP status codes and basic authentication and authorization. Applicants should have one to three years of relevant experience or comparable project evidence. Required skills are Java, Spring Boot, SQL and automated testing. Experience with Kafka is required for the planned event processing module, but the team will provide documentation and supervised onboarding. Redis, cloud services and observability tools are useful additional skills rather than mandatory experience. The role includes investigating reproducible defects, reading logs, preparing a short incident summary and proposing a regression test. Candidates should be able to explain a tradeoff and identify the limits of a measurement. The company does not require an existing professional certificate. Interviews include a practical API design discussion and questions about data integrity. Applicants should describe their own contribution to projects and distinguish classroom examples from production responsibility. The team values clear written communication, small pull requests and factual progress reports. Benefits in this synthetic job include a training budget, code review and regular feedback. This description is invented solely to measure application token consumption; it does not advertise a real vacancy or provide verified labor market evidence.",
+          "parsed_requirements": "Java, Spring Boot, SQL, automated testing and Kafka. One to three years of relevant experience. Redis is optional.",
+          "parsed_responsibilities": "Design REST APIs, maintain PostgreSQL data integrity, write automated tests, review code and investigate defects."
+        },
+        "language": "vi"
+      },
+      "notes": []
+    },
+    {
+      "id": "job-rerank-baseline",
+      "feature": "JOB_MATCH_RERANK",
+      "label": "Rerank one batch of three short job excerpts",
+      "variant": "baseline",
+      "input": {
+        "candidate": "Minh An Demo - Java Backend Developer\n{\"full_name\":\"Minh An Demo\",\"email\":\"minh.an.demo@example.invalid\",\"phone\":\"\",\"location\":\"Ho Chi Minh City, Vietnam\",\"summary\":\"Fictional junior Java backend developer with two years of experience building internal business services and supervised student projects. Comfortable translating a small requirement into an API contract, database change, tests and deployment notes. Uses Java, Spring Boot, PostgreSQL and Git in daily development. Looking for a backend role with code review, clear ownership and opportunities to improve reliability. Communicates progress in writing, asks for missing acceptance criteria early and documents limitations rather than presenting unverified assumptions as completed work.\",\"experience\":[{\"start_date\":\"2024-09-01\",\"end_date\":null,\"is_current\":true,\"description\":\"Developed REST endpoints for a fictional inventory application used by an internal training team. Implemented request validation, pagination and role checks with Spring Boot and Spring Security. Designed PostgreSQL tables for products, warehouses and stock movements, added database constraints and reviewed query plans with a mentor. Reduced a report endpoint from approximately 1200 milliseconds to 450 milliseconds in a controlled sample environment by replacing repeated queries with one aggregate query. Wrote JUnit and Mockito tests for validation, permissions and failed transactions. Added structured logs and correlation identifiers so the team could investigate failed requests without logging customer content. Participated in weekly code review, clarified API response fields with a frontend colleague and updated OpenAPI examples before release. Supported a supervised Docker deployment and documented rollback steps; did not own production infrastructure or on-call operations.\",\"company_name\":\"Example Inventory Lab (fictional)\",\"job_title\":\"Junior Java Backend Developer\"},{\"start_date\":\"2024-03-01\",\"end_date\":\"2024-08-01\",\"is_current\":false,\"description\":\"Completed a backend internship at a fictional learning organization. Built a task management module with filtering by assignee, status and due date. Used Git branches and pull requests to keep changes small and reviewable. Added integration tests against a disposable PostgreSQL database and corrected timezone handling for task deadlines. Investigated duplicate submissions and introduced an idempotency key for one create endpoint. Compared expected and actual responses with Postman and described reproduction steps in issue reports. Worked with a mentor to understand transactions, indexes and common HTTP error codes. Wrote a short onboarding guide explaining local setup, sample data and how to run the focused tests.\",\"company_name\":\"Example Learning Studio (fictional)\",\"job_title\":\"Backend Intern\"}],\"education\":[{\"degree\":\"Bachelor of Software Engineering\",\"start_date\":\"2020-09-01\",\"end_date\":\"2024-06-01\",\"description\":\"Completed a fictional Bachelor of Software Engineering program in 2024. Coursework covered object oriented programming, relational database design, software testing, basic computer networks and team delivery. The final project emphasized written requirements, API design, data integrity and peer review. No professional certification is claimed. Reads English technical documentation and can explain a familiar implementation in a short written summary.\",\"school_name\":\"Example Engineering College (fictional)\",\"major\":\"Software Engineering\"}],\"skills\":[{\"name\":\"Java\",\"proficiency_level\":\"INTERMEDIATE\"},{\"name\":\"Spring Boot\",\"proficiency_level\":\"INTERMEDIATE\"},{\"name\":\"PostgreSQL\",\"proficiency_level\":\"INTERMEDIATE\"},{\"name\":\"JUnit\",\"proficiency_level\":\"INTERMEDIATE\"},{\"name\":\"Docker\",\"proficiency_level\":\"BASIC\"},{\"name\":\"Git\",\"proficiency_level\":\"INTERMEDIATE\"}],\"projects\":[{\"role\":\"Backend developer\",\"description\":\"Built a capstone appointment booking service with three other students. Owned backend endpoints for available slots, booking confirmation and cancellation. Prevented double booking with a database uniqueness rule and a transaction rather than a browser-only check. Implemented access and refresh token flows for a demonstration account system. Kept configuration in environment variables and excluded secrets from version control. Containerized the application and database for reproducible local demonstrations. Created sample fixtures for overlapping bookings and permission boundaries. Measured response time with a synthetic dataset and recorded the environment used; the result was a classroom demonstration rather than a production capacity benchmark. Helped write the final API handbook and showed teammates how to reproduce a failed test. Redis was used only for an optional short-lived cache; the database remained authoritative.\",\"technologies\":[\"Java\",\"Spring Boot\",\"PostgreSQL\",\"Redis\",\"Docker\"],\"project_name\":\"Appointment Booking Capstone (fictional)\"}],\"certifications\":[]}\nCareer profile: {\"target_job_title\":\"Java Backend Developer\",\"career_goal\":\"Build reliable backend APIs and develop database and automated testing skills.\",\"current_job_title\":\"Junior Java Backend Developer\",\"current_company\":\"Example Inventory Lab (fictional)\",\"years_experience\":2,\"profile_summary\":\"Fictional junior Java backend developer with two years of experience building internal business services and supervised student projects. Comfortable translating a small requirement into an API contract, database change, tests and deployment notes. Uses Java, Spring Boot, PostgreSQL and Git in daily development. Looking for a backend role with code review, clear ownership and opportunities to improve reliability. Communicates progress in writing, asks for missing acceptance criteria early and documents limitations rather than presenting unverified assumptions as completed work.\",\"preferred_location\":\"Ho Chi Minh City\",\"workplace_preference\":\"HYBRID\",\"employment_type\":\"FULL_TIME\",\"expected_salary\":22000000,\"salary_currency\":\"VND\",\"skills\":[{\"name\":\"Java\",\"proficiency_level\":\"INTERMEDIATE\",\"years_experience\":2},{\"name\":\"Spring Boot\",\"proficiency_level\":\"INTERMEDIATE\",\"years_experience\":2},{\"name\":\"PostgreSQL\",\"proficiency_level\":\"INTERMEDIATE\",\"years_experience\":2},{\"name\":\"JUnit\",\"proficiency_level\":\"INTERMEDIATE\",\"years_experience\":2},{\"name\":\"Docker\",\"proficiency_level\":\"BASIC\",\"years_experience\":1},{\"name\":\"Git\",\"proficiency_level\":\"INTERMEDIATE\",\"years_experience\":2}]}",
+        "jobs": [
+          {
+            "id": "10000000-0000-4000-8000-000000000001",
+            "job_title": "Java Backend Developer",
+            "location": "Ho Chi Minh City",
+            "salary_text": "20-28 million VND gross/month",
+            "raw_content": "Java backend role. Build Spring Boot REST APIs, maintain PostgreSQL transactions and indexes, write automated tests and learn Kafka event processing. Hybrid work, one to three years of relevant experience.",
+            "skills": [
+              {
+                "name": "Java",
+                "required": true
+              },
+              {
+                "name": "Spring Boot",
+                "required": true
+              },
+              {
+                "name": "SQL",
+                "required": true
+              },
+              {
+                "name": "Kafka",
+                "required": true
+              }
+            ]
+          },
+          {
+            "id": "10000000-0000-4000-8000-000000000002",
+            "job_title": "Backend Developer - Python",
+            "location": "Ho Chi Minh City",
+            "salary_text": "22-30 million VND gross/month",
+            "raw_content": "Python backend role building Django REST services. Requires PostgreSQL, automated testing and two years of Python experience. Docker is useful. The text does not state a requirement for Java.",
+            "skills": [
+              {
+                "name": "Python",
+                "required": true
+              },
+              {
+                "name": "Django",
+                "required": true
+              },
+              {
+                "name": "PostgreSQL",
+                "required": true
+              }
+            ]
+          },
+          {
+            "id": "10000000-0000-4000-8000-000000000003",
+            "job_title": "Java Platform Engineer",
+            "location": "Da Nang",
+            "salary_text": "30-40 million VND gross/month",
+            "raw_content": "Java platform role requiring four years of backend experience, Kubernetes operations and Kafka. Own deployment pipelines and production incident response. Onsite in Da Nang; relocation policy is not supplied.",
+            "skills": [
+              {
+                "name": "Java",
+                "required": true
+              },
+              {
+                "name": "Kubernetes",
+                "required": true
+              },
+              {
+                "name": "Kafka",
+                "required": true
+              }
+            ]
+          }
+        ]
+      },
+      "notes": [
+        "One request batch has exactly three jobs as in JobMatchRerank.batches."
+      ]
+    },
+    {
+      "id": "assessment-baseline",
+      "feature": "ASSESSMENT_GENERATE",
+      "label": "Generate the ten-question assessment for a selected JD",
+      "variant": "baseline",
+      "input": {
+        "target_job_title": "Java Backend Developer",
+        "job": {
+          "job_title": "Java Backend Developer",
+          "role_category": "Backend"
+        },
+        "jd_skills": [
+          {
+            "skill_name": "Java",
+            "is_required": true
+          },
+          {
+            "skill_name": "Spring Boot",
+            "is_required": true
+          },
+          {
+            "skill_name": "SQL",
+            "is_required": true
+          },
+          {
+            "skill_name": "Automated testing",
+            "is_required": true
+          },
+          {
+            "skill_name": "Kafka",
+            "is_required": true
+          }
+        ],
+        "jd_text": "Example Product Systems, a fictional company, is hiring a Java Backend Developer for a small business application team in Ho Chi Minh City. The position is full time with a hybrid schedule and a stated monthly gross salary range of 20 to 28 million VND. The successful applicant will work with a product owner, frontend developers and a technical mentor to deliver maintainable APIs. Responsibilities include clarifying acceptance criteria, implementing REST endpoints, validating requests, writing focused tests and reviewing database changes before release. The service uses Java, Spring Boot, PostgreSQL and Docker. Developers are expected to understand transactions, indexes, HTTP status codes and basic authentication and authorization. Applicants should have one to three years of relevant experience or comparable project evidence. Required skills are Java, Spring Boot, SQL and automated testing. Experience with Kafka is required for the planned event processing module, but the team will provide documentation and supervised onboarding. Redis, cloud services and observability tools are useful additional skills rather than mandatory experience. The role includes investigating reproducible defects, reading logs, preparing a short incident summary and proposing a regression test. Candidates should be able to explain a tradeoff and identify the limits of a measurement. The company does not require an existing professional certificate. Interviews include a practical API design discussion and questions about data integrity. Applicants should describe their own contribution to projects and distinguish classroom examples from production responsibility. The team values clear written communication, small pull requests and factual progress reports. Benefits in this synthetic job include a training budget, code review and regular feedback. This description is invented solely to measure application token consumption; it does not advertise a real vacancy or provide verified labor market evidence.",
+        "jd_text_is_excerpt": false,
+        "profile": {
+          "target_job_title": "Java Backend Developer",
+          "years_experience": 2
+        },
+        "foundation_count": 5,
+        "role_specific_count": 5,
+        "resume": {
+          "title": "Minh An Demo - Java Backend Developer",
+          "language": "vi",
+          "text": "Minh An Demo - Java Backend Developer\n{\"full_name\":\"Minh An Demo\",\"email\":\"minh.an.demo@example.invalid\",\"phone\":\"\",\"location\":\"Ho Chi Minh City, Vietnam\",\"summary\":\"Fictional junior Java backend developer with two years of experience building internal business services and supervised student projects. Comfortable translating a small requirement into an API contract, database change, tests and deployment notes. Uses Java, Spring Boot, PostgreSQL and Git in daily development. Looking for a backend role with code review, clear ownership and opportunities to improve reliability. Communicates progress in writing, asks for missing acceptance criteria early and documents limitations rather than presenting unverified assumptions as completed work.\",\"experience\":[{\"start_date\":\"2024-09-01\",\"end_date\":null,\"is_current\":true,\"description\":\"Developed REST endpoints for a fictional inventory application used by an internal training team. Implemented request validation, pagination and role checks with Spring Boot and Spring Security. Designed PostgreSQL tables for products, warehouses and stock movements, added database constraints and reviewed query plans with a mentor. Reduced a report endpoint from approximately 1200 milliseconds to 450 milliseconds in a controlled sample environment by replacing repeated queries with one aggregate query. Wrote JUnit and Mockito tests for validation, permissions and failed transactions. Added structured logs and correlation identifiers so the team could investigate failed requests without logging customer content. Participated in weekly code review, clarified API response fields with a frontend colleague and updated OpenAPI examples before release. Supported a supervised Docker deployment and documented rollback steps; did not own production infrastructure or on-call operations.\",\"company_name\":\"Example Inventory Lab (fictional)\",\"job_title\":\"Junior Java Backend Developer\"},{\"start_date\":\"2024-03-01\",\"end_date\":\"2024-08-01\",\"is_current\":false,\"description\":\"Completed a backend internship at a fictional learning organization. Built a task management module with filtering by assignee, status and due date. Used Git branches and pull requests to keep changes small and reviewable. Added integration tests against a disposable PostgreSQL database and corrected timezone handling for task deadlines. Investigated duplicate submissions and introduced an idempotency key for one create endpoint. Compared expected and actual responses with Postman and described reproduction steps in issue reports. Worked with a mentor to understand transactions, indexes and common HTTP error codes. Wrote a short onboarding guide explaining local setup, sample data and how to run the focused tests.\",\"company_name\":\"Example Learning Studio (fictional)\",\"job_title\":\"Backend Intern\"}],\"education\":[{\"degree\":\"Bachelor of Software Engineering\",\"start_date\":\"2020-09-01\",\"end_date\":\"2024-06-01\",\"description\":\"Completed a fictional Bachelor of Software Engineering program in 2024. Coursework covered object oriented programming, relational database design, software testing, basic computer networks and team delivery. The final project emphasized written requirements, API design, data integrity and peer review. No professional certification is claimed. Reads English technical documentation and can explain a familiar implementation in a short written summary.\",\"school_name\":\"Example Engineering College (fictional)\",\"major\":\"Software Engineering\"}],\"skills\":[{\"name\":\"Java\",\"proficiency_level\":\"INTERMEDIATE\"},{\"name\":\"Spring Boot\",\"proficiency_level\":\"INTERMEDIATE\"},{\"name\":\"PostgreSQL\",\"proficiency_level\":\"INTERMEDIATE\"},{\"name\":\"JUnit\",\"proficiency_level\":\"INTERMEDIATE\"},{\"name\":\"Docker\",\"proficiency_level\":\"BASIC\"},{\"name\":\"Git\",\"proficiency_level\":\"INTERMEDIATE\"}],\"projects\":[{\"role\":\"Backend developer\",\"description\":\"Built a capstone appointment booking service with three other students. Owned backend endpoints for available slots, booking confirmation and cancellation. Prevented double booking with a database uniqueness rule and a transaction rather than a browser-only check. Implemented access and refresh token flows for a demonstration account system. Kept configuration in environment variables and excluded secrets from version control. Containerized the application and database for reproducible local demonstrations. Created sample fixtures for overlapping bookings and permission boundaries. Measured response time with a synthetic dataset and recorded the environment used; the result was a classroom demonstration rather than a production capacity benchmark. Helped write the final API handbook and showed teammates how to reproduce a failed test. Redis was used only for an optional short-lived cache; the database remained authoritative.\",\"technologies\":[\"Java\",\"Spring Boot\",\"PostgreSQL\",\"Redis\",\"Docker\"],\"project_name\":\"Appointment Booking Capstone (fictional)\"}],\"certifications\":[]}",
+          "text_is_excerpt": false,
+          "declared_skills": [
+            {
+              "name": "Java"
+            },
+            {
+              "name": "Spring Boot"
+            },
+            {
+              "name": "PostgreSQL"
+            },
+            {
+              "name": "JUnit"
+            },
+            {
+              "name": "Docker"
+            },
+            {
+              "name": "Git"
+            }
+          ]
+        },
+        "language": "vi"
+      },
+      "notes": []
+    },
+    {
+      "id": "roadmap-baseline",
+      "feature": "ROADMAP_GENERATE",
+      "label": "Generate targeted learning guidance for one missing required skill",
+      "variant": "baseline",
+      "input": {
+        "learning_scope": "MISSING_SKILLS_ONLY",
+        "allowed_missing_skills": [
+          {
+            "skill_name": "Kafka",
+            "gap_status": "MISSING_EVIDENCE",
+            "reasoning": "This JD requires Kafka, but the selected profile and CV have no declared Kafka evidence; this does not establish lack of ability."
+          }
+        ],
+        "target_job_title": "Java Backend Developer",
+        "jd_text": "Example Product Systems, a fictional company, is hiring a Java Backend Developer for a small business application team in Ho Chi Minh City. The position is full time with a hybrid schedule and a stated monthly gross salary range of 20 to 28 million VND. The successful applicant will work with a product owner, frontend developers and a technical mentor to deliver maintainable APIs. Responsibilities include clarifying acceptance criteria, implementing REST endpoints, validating requests, writing focused tests and reviewing database changes before release. The service uses Java, Spring Boot, PostgreSQL and Docker. Developers are expected to understand transactions, indexes, HTTP status codes and basic authentication and authorization. Applicants should have one to three years of relevant experience or comparable project evidence. Required skills are Java, Spring Boot, SQL and automated testing. Experience with Kafka is required for the planned event processing module, but the team will provide documentation and supervised onboarding. Redis, cloud services and observability tools are useful additional skills rather than mandatory experience. The role includes investigating reproducible defects, reading logs, preparing a short incident summary and proposing a regression test. Candidates should be able to explain a tradeoff and identify the limits of a measurement. The company does not require an existing professional certificate. Interviews include a practical API design discussion and questions about data integrity. Applicants should describe their own contribution to projects and distinguish classroom examples from production responsibility. The team values clear written communication, small pull requests and factual progress reports. Benefits in this synthetic job include a training budget, code review and regular feedback. This description is invented solely to measure application token consumption; it does not advertise a real vacancy or provide verified labor market evidence.",
+        "profile": {
+          "years_experience": 2
+        },
+        "prerequisite_numbering": "1-based sequence; prerequisites must precede their node. Resource URLs are attached by the server.",
+        "language": "vi"
+      },
+      "notes": []
+    },
+    {
+      "id": "application-email-baseline",
+      "feature": "APPLICATION_EMAIL",
+      "label": "Generate application email and cover letter",
+      "variant": "baseline",
+      "input": {
+        "resume": {
+          "full_name": "Minh An Demo",
+          "email": "minh.an.demo@example.invalid",
+          "phone": "",
+          "location": "Ho Chi Minh City, Vietnam",
+          "summary": "Fictional junior Java backend developer with two years of experience building internal business services and supervised student projects. Comfortable translating a small requirement into an API contract, database change, tests and deployment notes. Uses Java, Spring Boot, PostgreSQL and Git in daily development. Looking for a backend role with code review, clear ownership and opportunities to improve reliability. Communicates progress in writing, asks for missing acceptance criteria early and documents limitations rather than presenting unverified assumptions as completed work.",
+          "experience": [
+            {
+              "start_date": "2024-09-01",
+              "end_date": null,
+              "is_current": true,
+              "description": "Developed REST endpoints for a fictional inventory application used by an internal training team. Implemented request validation, pagination and role checks with Spring Boot and Spring Security. Designed PostgreSQL tables for products, warehouses and stock movements, added database constraints and reviewed query plans with a mentor. Reduced a report endpoint from approximately 1200 milliseconds to 450 milliseconds in a controlled sample environment by replacing repeated queries with one aggregate query. Wrote JUnit and Mockito tests for validation, permissions and failed transactions. Added structured logs and correlation identifiers so the team could investigate failed requests without logging customer content. Participated in weekly code review, clarified API response fields with a frontend colleague and updated OpenAPI examples before release. Supported a supervised Docker deployment and documented rollback steps; did not own production infrastructure or on-call operations.",
+              "company_name": "Example Inventory Lab (fictional)",
+              "job_title": "Junior Java Backend Developer"
+            },
+            {
+              "start_date": "2024-03-01",
+              "end_date": "2024-08-01",
+              "is_current": false,
+              "description": "Completed a backend internship at a fictional learning organization. Built a task management module with filtering by assignee, status and due date. Used Git branches and pull requests to keep changes small and reviewable. Added integration tests against a disposable PostgreSQL database and corrected timezone handling for task deadlines. Investigated duplicate submissions and introduced an idempotency key for one create endpoint. Compared expected and actual responses with Postman and described reproduction steps in issue reports. Worked with a mentor to understand transactions, indexes and common HTTP error codes. Wrote a short onboarding guide explaining local setup, sample data and how to run the focused tests.",
+              "company_name": "Example Learning Studio (fictional)",
+              "job_title": "Backend Intern"
+            }
+          ],
+          "education": [
+            {
+              "degree": "Bachelor of Software Engineering",
+              "start_date": "2020-09-01",
+              "end_date": "2024-06-01",
+              "description": "Completed a fictional Bachelor of Software Engineering program in 2024. Coursework covered object oriented programming, relational database design, software testing, basic computer networks and team delivery. The final project emphasized written requirements, API design, data integrity and peer review. No professional certification is claimed. Reads English technical documentation and can explain a familiar implementation in a short written summary.",
+              "school_name": "Example Engineering College (fictional)",
+              "major": "Software Engineering"
+            }
+          ],
+          "skills": [
+            {
+              "name": "Java",
+              "proficiency_level": "INTERMEDIATE"
+            },
+            {
+              "name": "Spring Boot",
+              "proficiency_level": "INTERMEDIATE"
+            },
+            {
+              "name": "PostgreSQL",
+              "proficiency_level": "INTERMEDIATE"
+            },
+            {
+              "name": "JUnit",
+              "proficiency_level": "INTERMEDIATE"
+            },
+            {
+              "name": "Docker",
+              "proficiency_level": "BASIC"
+            },
+            {
+              "name": "Git",
+              "proficiency_level": "INTERMEDIATE"
+            }
+          ],
+          "projects": [
+            {
+              "role": "Backend developer",
+              "description": "Built a capstone appointment booking service with three other students. Owned backend endpoints for available slots, booking confirmation and cancellation. Prevented double booking with a database uniqueness rule and a transaction rather than a browser-only check. Implemented access and refresh token flows for a demonstration account system. Kept configuration in environment variables and excluded secrets from version control. Containerized the application and database for reproducible local demonstrations. Created sample fixtures for overlapping bookings and permission boundaries. Measured response time with a synthetic dataset and recorded the environment used; the result was a classroom demonstration rather than a production capacity benchmark. Helped write the final API handbook and showed teammates how to reproduce a failed test. Redis was used only for an optional short-lived cache; the database remained authoritative.",
+              "technologies": [
+                "Java",
+                "Spring Boot",
+                "PostgreSQL",
+                "Redis",
+                "Docker"
+              ],
+              "project_name": "Appointment Booking Capstone (fictional)"
+            }
+          ],
+          "certifications": []
+        },
+        "resume_text": "Minh An Demo - Java Backend Developer\n{\"full_name\":\"Minh An Demo\",\"email\":\"minh.an.demo@example.invalid\",\"phone\":\"\",\"location\":\"Ho Chi Minh City, Vietnam\",\"summary\":\"Fictional junior Java backend developer with two years of experience building internal business services and supervised student projects. Comfortable translating a small requirement into an API contract, database change, tests and deployment notes. Uses Java, Spring Boot, PostgreSQL and Git in daily development. Looking for a backend role with code review, clear ownership and opportunities to improve reliability. Communicates progress in writing, asks for missing acceptance criteria early and documents limitations rather than presenting unverified assumptions as completed work.\",\"experience\":[{\"start_date\":\"2024-09-01\",\"end_date\":null,\"is_current\":true,\"description\":\"Developed REST endpoints for a fictional inventory application used by an internal training team. Implemented request validation, pagination and role checks with Spring Boot and Spring Security. Designed PostgreSQL tables for products, warehouses and stock movements, added database constraints and reviewed query plans with a mentor. Reduced a report endpoint from approximately 1200 milliseconds to 450 milliseconds in a controlled sample environment by replacing repeated queries with one aggregate query. Wrote JUnit and Mockito tests for validation, permissions and failed transactions. Added structured logs and correlation identifiers so the team could investigate failed requests without logging customer content. Participated in weekly code review, clarified API response fields with a frontend colleague and updated OpenAPI examples before release. Supported a supervised Docker deployment and documented rollback steps; did not own production infrastructure or on-call operations.\",\"company_name\":\"Example Inventory Lab (fictional)\",\"job_title\":\"Junior Java Backend Developer\"},{\"start_date\":\"2024-03-01\",\"end_date\":\"2024-08-01\",\"is_current\":false,\"description\":\"Completed a backend internship at a fictional learning organization. Built a task management module with filtering by assignee, status and due date. Used Git branches and pull requests to keep changes small and reviewable. Added integration tests against a disposable PostgreSQL database and corrected timezone handling for task deadlines. Investigated duplicate submissions and introduced an idempotency key for one create endpoint. Compared expected and actual responses with Postman and described reproduction steps in issue reports. Worked with a mentor to understand transactions, indexes and common HTTP error codes. Wrote a short onboarding guide explaining local setup, sample data and how to run the focused tests.\",\"company_name\":\"Example Learning Studio (fictional)\",\"job_title\":\"Backend Intern\"}],\"education\":[{\"degree\":\"Bachelor of Software Engineering\",\"start_date\":\"2020-09-01\",\"end_date\":\"2024-06-01\",\"description\":\"Completed a fictional Bachelor of Software Engineering program in 2024. Coursework covered object oriented programming, relational database design, software testing, basic computer networks and team delivery. The final project emphasized written requirements, API design, data integrity and peer review. No professional certification is claimed. Reads English technical documentation and can explain a familiar implementation in a short written summary.\",\"school_name\":\"Example Engineering College (fictional)\",\"major\":\"Software Engineering\"}],\"skills\":[{\"name\":\"Java\",\"proficiency_level\":\"INTERMEDIATE\"},{\"name\":\"Spring Boot\",\"proficiency_level\":\"INTERMEDIATE\"},{\"name\":\"PostgreSQL\",\"proficiency_level\":\"INTERMEDIATE\"},{\"name\":\"JUnit\",\"proficiency_level\":\"INTERMEDIATE\"},{\"name\":\"Docker\",\"proficiency_level\":\"BASIC\"},{\"name\":\"Git\",\"proficiency_level\":\"INTERMEDIATE\"}],\"projects\":[{\"role\":\"Backend developer\",\"description\":\"Built a capstone appointment booking service with three other students. Owned backend endpoints for available slots, booking confirmation and cancellation. Prevented double booking with a database uniqueness rule and a transaction rather than a browser-only check. Implemented access and refresh token flows for a demonstration account system. Kept configuration in environment variables and excluded secrets from version control. Containerized the application and database for reproducible local demonstrations. Created sample fixtures for overlapping bookings and permission boundaries. Measured response time with a synthetic dataset and recorded the environment used; the result was a classroom demonstration rather than a production capacity benchmark. Helped write the final API handbook and showed teammates how to reproduce a failed test. Redis was used only for an optional short-lived cache; the database remained authoritative.\",\"technologies\":[\"Java\",\"Spring Boot\",\"PostgreSQL\",\"Redis\",\"Docker\"],\"project_name\":\"Appointment Booking Capstone (fictional)\"}],\"certifications\":[]}",
+        "job": {
+          "id": "10000000-0000-4000-8000-000000000001",
+          "job_title": "Java Backend Developer",
+          "company_name": "Example Product Systems (fictional)",
+          "location": "Ho Chi Minh City",
+          "role_category": "Backend",
+          "salary_text": "20-28 million VND gross/month",
+          "salary_min": 20000000,
+          "salary_max": 28000000,
+          "salary_currency": "VND",
+          "employment_type": "FULL_TIME",
+          "workplace_type": "HYBRID",
+          "raw_content": "Example Product Systems, a fictional company, is hiring a Java Backend Developer for a small business application team in Ho Chi Minh City. The position is full time with a hybrid schedule and a stated monthly gross salary range of 20 to 28 million VND. The successful applicant will work with a product owner, frontend developers and a technical mentor to deliver maintainable APIs. Responsibilities include clarifying acceptance criteria, implementing REST endpoints, validating requests, writing focused tests and reviewing database changes before release. The service uses Java, Spring Boot, PostgreSQL and Docker. Developers are expected to understand transactions, indexes, HTTP status codes and basic authentication and authorization. Applicants should have one to three years of relevant experience or comparable project evidence. Required skills are Java, Spring Boot, SQL and automated testing. Experience with Kafka is required for the planned event processing module, but the team will provide documentation and supervised onboarding. Redis, cloud services and observability tools are useful additional skills rather than mandatory experience. The role includes investigating reproducible defects, reading logs, preparing a short incident summary and proposing a regression test. Candidates should be able to explain a tradeoff and identify the limits of a measurement. The company does not require an existing professional certificate. Interviews include a practical API design discussion and questions about data integrity. Applicants should describe their own contribution to projects and distinguish classroom examples from production responsibility. The team values clear written communication, small pull requests and factual progress reports. Benefits in this synthetic job include a training budget, code review and regular feedback. This description is invented solely to measure application token consumption; it does not advertise a real vacancy or provide verified labor market evidence.",
+          "parsed_requirements": "Java, Spring Boot, SQL, automated testing and Kafka. One to three years of relevant experience. Redis is optional.",
+          "parsed_responsibilities": "Design REST APIs, maintain PostgreSQL data integrity, write automated tests, review code and investigate defects."
+        },
+        "language": "vi"
+      },
+      "notes": []
+    },
+    {
+      "id": "career-chat-baseline",
+      "feature": "CAREER_CHAT",
+      "label": "Career chat with CV, job context and no previous messages",
+      "variant": "baseline",
+      "input": {
+        "message": "Based on my confirmed CV and this job, which two skills should I practice first, and what could I complete in two weeks?",
+        "language": "vi",
+        "history": [],
+        "context": {
+          "career_profile": {
+            "target_job_title": "Java Backend Developer",
+            "career_goal": "Build reliable backend APIs and develop database and automated testing skills.",
+            "current_job_title": "Junior Java Backend Developer",
+            "current_company": "Example Inventory Lab (fictional)",
+            "years_experience": 2,
+            "profile_summary": "Fictional junior Java backend developer with two years of experience building internal business services and supervised student projects. Comfortable translating a small requirement into an API contract, database change, tests and deployment notes. Uses Java, Spring Boot, PostgreSQL and Git in daily development. Looking for a backend role with code review, clear ownership and opportunities to improve reliability. Communicates progress in writing, asks for missing acceptance criteria early and documents limitations rather than presenting unverified assumptions as completed work.",
+            "preferred_location": "Ho Chi Minh City",
+            "workplace_preference": "HYBRID",
+            "employment_type": "FULL_TIME",
+            "expected_salary": 22000000,
+            "salary_currency": "VND",
+            "skills": [
+              {
+                "name": "Java",
+                "proficiency_level": "INTERMEDIATE",
+                "years_experience": 2
+              },
+              {
+                "name": "Spring Boot",
+                "proficiency_level": "INTERMEDIATE",
+                "years_experience": 2
+              },
+              {
+                "name": "PostgreSQL",
+                "proficiency_level": "INTERMEDIATE",
+                "years_experience": 2
+              },
+              {
+                "name": "JUnit",
+                "proficiency_level": "INTERMEDIATE",
+                "years_experience": 2
+              },
+              {
+                "name": "Docker",
+                "proficiency_level": "BASIC",
+                "years_experience": 1
+              },
+              {
+                "name": "Git",
+                "proficiency_level": "INTERMEDIATE",
+                "years_experience": 2
+              }
+            ]
+          },
+          "job": {
+            "id": "10000000-0000-4000-8000-000000000001",
+            "job_title": "Java Backend Developer",
+            "company_name": "Example Product Systems (fictional)",
+            "location": "Ho Chi Minh City",
+            "role_category": "Backend",
+            "salary_text": "20-28 million VND gross/month",
+            "salary_min": 20000000,
+            "salary_max": 28000000,
+            "salary_currency": "VND",
+            "employment_type": "FULL_TIME",
+            "workplace_type": "HYBRID",
+            "raw_content": "Example Product Systems, a fictional company, is hiring a Java Backend Developer for a small business application team in Ho Chi Minh City. The position is full time with a hybrid schedule and a stated monthly gross salary range of 20 to 28 million VND. The successful applicant will work with a product owner, frontend developers and a technical mentor to deliver maintainable APIs. Responsibilities include clarifying acceptance criteria, implementing REST endpoints, validating requests, writing focused tests and reviewing database changes before release. The service uses Java, Spring Boot, PostgreSQL and Docker. Developers are expected to understand transactions, indexes, HTTP status codes and basic authentication and authorization. Applicants should have one to three years of relevant experience or comparable project evidence. Required skills are Java, Spring Boot, SQL and automated testing. Experience with Kafka is required for the planned event processing module, but the team will provide documentation and supervised onboarding. Redis, cloud services and observability tools are useful additional skills rather than mandatory experience. The role includes investigating reproducible defects, reading logs, preparing a short incident summary and proposing a regression test. Candidates should be able to explain a tradeoff and identify the limits of a measurement. The company does not require an existing professional certificate. Interviews include a practical API design discussion and questions about data integrity. Applicants should describe their own contribution to projects and distinguish classroom examples from production responsibility. The team values clear written communication, small pull requests and factual progress reports. Benefits in this synthetic job include a training budget, code review and regular feedback. This description is invented solely to measure application token consumption; it does not advertise a real vacancy or provide verified labor market evidence.",
+            "parsed_requirements": "Java, Spring Boot, SQL, automated testing and Kafka. One to three years of relevant experience. Redis is optional.",
+            "parsed_responsibilities": "Design REST APIs, maintain PostgreSQL data integrity, write automated tests, review code and investigate defects."
+          },
+          "resume_text": "Minh An Demo - Java Backend Developer\n{\"full_name\":\"Minh An Demo\",\"email\":\"minh.an.demo@example.invalid\",\"phone\":\"\",\"location\":\"Ho Chi Minh City, Vietnam\",\"summary\":\"Fictional junior Java backend developer with two years of experience building internal business services and supervised student projects. Comfortable translating a small requirement into an API contract, database change, tests and deployment notes. Uses Java, Spring Boot, PostgreSQL and Git in daily development. Looking for a backend role with code review, clear ownership and opportunities to improve reliability. Communicates progress in writing, asks for missing acceptance criteria early and documents limitations rather than presenting unverified assumptions as completed work.\",\"experience\":[{\"start_date\":\"2024-09-01\",\"end_date\":null,\"is_current\":true,\"description\":\"Developed REST endpoints for a fictional inventory application used by an internal training team. Implemented request validation, pagination and role checks with Spring Boot and Spring Security. Designed PostgreSQL tables for products, warehouses and stock movements, added database constraints and reviewed query plans with a mentor. Reduced a report endpoint from approximately 1200 milliseconds to 450 milliseconds in a controlled sample environment by replacing repeated queries with one aggregate query. Wrote JUnit and Mockito tests for validation, permissions and failed transactions. Added structured logs and correlation identifiers so the team could investigate failed requests without logging customer content. Participated in weekly code review, clarified API response fields with a frontend colleague and updated OpenAPI examples before release. Supported a supervised Docker deployment and documented rollback steps; did not own production infrastructure or on-call operations.\",\"company_name\":\"Example Inventory Lab (fictional)\",\"job_title\":\"Junior Java Backend Developer\"},{\"start_date\":\"2024-03-01\",\"end_date\":\"2024-08-01\",\"is_current\":false,\"description\":\"Completed a backend internship at a fictional learning organization. Built a task management module with filtering by assignee, status and due date. Used Git branches and pull requests to keep changes small and reviewable. Added integration tests against a disposable PostgreSQL database and corrected timezone handling for task deadlines. Investigated duplicate submissions and introduced an idempotency key for one create endpoint. Compared expected and actual responses with Postman and described reproduction steps in issue reports. Worked with a mentor to understand transactions, indexes and common HTTP error codes. Wrote a short onboarding guide explaining local setup, sample data and how to run the focused tests.\",\"company_name\":\"Example Learning Studio (fictional)\",\"job_title\":\"Backend Intern\"}],\"education\":[{\"degree\":\"Bachelor of Software Engineering\",\"start_date\":\"2020-09-01\",\"end_date\":\"2024-06-01\",\"description\":\"Completed a fictional Bachelor of Software Engineering program in 2024. Coursework covered object oriented programming, relational database design, software testing, basic computer networks and team delivery. The final project emphasized written requirements, API design, data integrity and peer review. No professional certification is claimed. Reads English technical documentation and can explain a familiar implementation in a short written summary.\",\"school_name\":\"Example Engineering College (fictional)\",\"major\":\"Software Engineering\"}],\"skills\":[{\"name\":\"Java\",\"proficiency_level\":\"INTERMEDIATE\"},{\"name\":\"Spring Boot\",\"proficiency_level\":\"INTERMEDIATE\"},{\"name\":\"PostgreSQL\",\"proficiency_level\":\"INTERMEDIATE\"},{\"name\":\"JUnit\",\"proficiency_level\":\"INTERMEDIATE\"},{\"name\":\"Docker\",\"proficiency_level\":\"BASIC\"},{\"name\":\"Git\",\"proficiency_level\":\"INTERMEDIATE\"}],\"projects\":[{\"role\":\"Backend developer\",\"description\":\"Built a capstone appointment booking service with three other students. Owned backend endpoints for available slots, booking confirmation and cancellation. Prevented double booking with a database uniqueness rule and a transaction rather than a browser-only check. Implemented access and refresh token flows for a demonstration account system. Kept configuration in environment variables and excluded secrets from version control. Containerized the application and database for reproducible local demonstrations. Created sample fixtures for overlapping bookings and permission boundaries. Measured response time with a synthetic dataset and recorded the environment used; the result was a classroom demonstration rather than a production capacity benchmark. Helped write the final API handbook and showed teammates how to reproduce a failed test. Redis was used only for an optional short-lived cache; the database remained authoritative.\",\"technologies\":[\"Java\",\"Spring Boot\",\"PostgreSQL\",\"Redis\",\"Docker\"],\"project_name\":\"Appointment Booking Capstone (fictional)\"}],\"certifications\":[]}"
+        },
+        "sources": [],
+        "citation_rule": "Only refer to the supplied sources; no other citations have been retrieved or verified."
+      },
+      "notes": []
+    },
+    {
+      "id": "salary-baseline",
+      "feature": "SALARY_ESTIMATE",
+      "label": "Estimate salary for a junior Java backend target",
+      "variant": "baseline",
+      "input": {
+        "profile": {
+          "target_job_title": "Java Backend Developer",
+          "career_goal": "Build reliable backend APIs and develop database and automated testing skills.",
+          "current_job_title": "Junior Java Backend Developer",
+          "current_company": "Example Inventory Lab (fictional)",
+          "years_experience": 2,
+          "profile_summary": "Fictional junior Java backend developer with two years of experience building internal business services and supervised student projects. Comfortable translating a small requirement into an API contract, database change, tests and deployment notes. Uses Java, Spring Boot, PostgreSQL and Git in daily development. Looking for a backend role with code review, clear ownership and opportunities to improve reliability. Communicates progress in writing, asks for missing acceptance criteria early and documents limitations rather than presenting unverified assumptions as completed work.",
+          "preferred_location": "Ho Chi Minh City",
+          "workplace_preference": "HYBRID",
+          "employment_type": "FULL_TIME",
+          "expected_salary": 22000000,
+          "salary_currency": "VND",
+          "skills": [
+            {
+              "name": "Java",
+              "proficiency_level": "INTERMEDIATE",
+              "years_experience": 2
+            },
+            {
+              "name": "Spring Boot",
+              "proficiency_level": "INTERMEDIATE",
+              "years_experience": 2
+            },
+            {
+              "name": "PostgreSQL",
+              "proficiency_level": "INTERMEDIATE",
+              "years_experience": 2
+            },
+            {
+              "name": "JUnit",
+              "proficiency_level": "INTERMEDIATE",
+              "years_experience": 2
+            },
+            {
+              "name": "Docker",
+              "proficiency_level": "BASIC",
+              "years_experience": 1
+            },
+            {
+              "name": "Git",
+              "proficiency_level": "INTERMEDIATE",
+              "years_experience": 2
+            }
+          ]
+        },
+        "career_position": {
+          "target_job_title": "Java Backend Developer",
+          "location": "Ho Chi Minh City",
+          "currency": "VND"
+        },
+        "language": "vi"
+      },
+      "notes": [
+        "No salary source is provided. Any returned estimate is unverified synthetic output and not a market benchmark."
+      ]
+    },
+    {
+      "id": "cv-analyze-expanded",
+      "feature": "CV_ANALYZE",
+      "label": "Analyze approximately twice the source prose",
+      "variant": "expanded",
+      "input": {
+        "resume": {
+          "title": "Minh An Demo - Java Backend Developer",
+          "language": "vi",
+          "source": "MANUAL",
+          "structured_data": {
+            "full_name": "Minh An Demo",
+            "email": "minh.an.demo@example.invalid",
+            "phone": "",
+            "location": "Ho Chi Minh City, Vietnam",
+            "summary": "Fictional junior Java backend developer with two years of experience building internal business services and supervised student projects. Comfortable translating a small requirement into an API contract, database change, tests and deployment notes. Uses Java, Spring Boot, PostgreSQL and Git in daily development. Looking for a backend role with code review, clear ownership and opportunities to improve reliability. Communicates progress in writing, asks for missing acceptance criteria early and documents limitations rather than presenting unverified assumptions as completed work.\n\nFictional junior Java backend developer with two years of experience building internal business services and supervised student projects. Comfortable translating a small requirement into an API contract, database change, tests and deployment notes. Uses Java, Spring Boot, PostgreSQL and Git in daily development. Looking for a backend role with code review, clear ownership and opportunities to improve reliability. Communicates progress in writing, asks for missing acceptance criteria early and documents limitations rather than presenting unverified assumptions as completed work.",
+            "experience": [
+              {
+                "start_date": "2024-09-01",
+                "end_date": null,
+                "is_current": true,
+                "description": "Developed REST endpoints for a fictional inventory application used by an internal training team. Implemented request validation, pagination and role checks with Spring Boot and Spring Security. Designed PostgreSQL tables for products, warehouses and stock movements, added database constraints and reviewed query plans with a mentor. Reduced a report endpoint from approximately 1200 milliseconds to 450 milliseconds in a controlled sample environment by replacing repeated queries with one aggregate query. Wrote JUnit and Mockito tests for validation, permissions and failed transactions. Added structured logs and correlation identifiers so the team could investigate failed requests without logging customer content. Participated in weekly code review, clarified API response fields with a frontend colleague and updated OpenAPI examples before release. Supported a supervised Docker deployment and documented rollback steps; did not own production infrastructure or on-call operations.\n\nDeveloped REST endpoints for a fictional inventory application used by an internal training team. Implemented request validation, pagination and role checks with Spring Boot and Spring Security. Designed PostgreSQL tables for products, warehouses and stock movements, added database constraints and reviewed query plans with a mentor. Reduced a report endpoint from approximately 1200 milliseconds to 450 milliseconds in a controlled sample environment by replacing repeated queries with one aggregate query. Wrote JUnit and Mockito tests for validation, permissions and failed transactions. Added structured logs and correlation identifiers so the team could investigate failed requests without logging customer content. Participated in weekly code review, clarified API response fields with a frontend colleague and updated OpenAPI examples before release. Supported a supervised Docker deployment and documented rollback steps; did not own production infrastructure or on-call operations.",
+                "company_name": "Example Inventory Lab (fictional)",
+                "job_title": "Junior Java Backend Developer"
+              },
+              {
+                "start_date": "2024-03-01",
+                "end_date": "2024-08-01",
+                "is_current": false,
+                "description": "Completed a backend internship at a fictional learning organization. Built a task management module with filtering by assignee, status and due date. Used Git branches and pull requests to keep changes small and reviewable. Added integration tests against a disposable PostgreSQL database and corrected timezone handling for task deadlines. Investigated duplicate submissions and introduced an idempotency key for one create endpoint. Compared expected and actual responses with Postman and described reproduction steps in issue reports. Worked with a mentor to understand transactions, indexes and common HTTP error codes. Wrote a short onboarding guide explaining local setup, sample data and how to run the focused tests.\n\nCompleted a backend internship at a fictional learning organization. Built a task management module with filtering by assignee, status and due date. Used Git branches and pull requests to keep changes small and reviewable. Added integration tests against a disposable PostgreSQL database and corrected timezone handling for task deadlines. Investigated duplicate submissions and introduced an idempotency key for one create endpoint. Compared expected and actual responses with Postman and described reproduction steps in issue reports. Worked with a mentor to understand transactions, indexes and common HTTP error codes. Wrote a short onboarding guide explaining local setup, sample data and how to run the focused tests.",
+                "company_name": "Example Learning Studio (fictional)",
+                "job_title": "Backend Intern"
+              }
+            ],
+            "education": [
+              {
+                "degree": "Bachelor of Software Engineering",
+                "start_date": "2020-09-01",
+                "end_date": "2024-06-01",
+                "description": "Completed a fictional Bachelor of Software Engineering program in 2024. Coursework covered object oriented programming, relational database design, software testing, basic computer networks and team delivery. The final project emphasized written requirements, API design, data integrity and peer review. No professional certification is claimed. Reads English technical documentation and can explain a familiar implementation in a short written summary.\n\nCompleted a fictional Bachelor of Software Engineering program in 2024. Coursework covered object oriented programming, relational database design, software testing, basic computer networks and team delivery. The final project emphasized written requirements, API design, data integrity and peer review. No professional certification is claimed. Reads English technical documentation and can explain a familiar implementation in a short written summary.",
+                "school_name": "Example Engineering College (fictional)",
+                "major": "Software Engineering"
+              }
+            ],
+            "skills": [
+              {
+                "name": "Java",
+                "proficiency_level": "INTERMEDIATE"
+              },
+              {
+                "name": "Spring Boot",
+                "proficiency_level": "INTERMEDIATE"
+              },
+              {
+                "name": "PostgreSQL",
+                "proficiency_level": "INTERMEDIATE"
+              },
+              {
+                "name": "JUnit",
+                "proficiency_level": "INTERMEDIATE"
+              },
+              {
+                "name": "Docker",
+                "proficiency_level": "BASIC"
+              },
+              {
+                "name": "Git",
+                "proficiency_level": "INTERMEDIATE"
+              }
+            ],
+            "projects": [
+              {
+                "role": "Backend developer",
+                "description": "Built a capstone appointment booking service with three other students. Owned backend endpoints for available slots, booking confirmation and cancellation. Prevented double booking with a database uniqueness rule and a transaction rather than a browser-only check. Implemented access and refresh token flows for a demonstration account system. Kept configuration in environment variables and excluded secrets from version control. Containerized the application and database for reproducible local demonstrations. Created sample fixtures for overlapping bookings and permission boundaries. Measured response time with a synthetic dataset and recorded the environment used; the result was a classroom demonstration rather than a production capacity benchmark. Helped write the final API handbook and showed teammates how to reproduce a failed test. Redis was used only for an optional short-lived cache; the database remained authoritative.\n\nBuilt a capstone appointment booking service with three other students. Owned backend endpoints for available slots, booking confirmation and cancellation. Prevented double booking with a database uniqueness rule and a transaction rather than a browser-only check. Implemented access and refresh token flows for a demonstration account system. Kept configuration in environment variables and excluded secrets from version control. Containerized the application and database for reproducible local demonstrations. Created sample fixtures for overlapping bookings and permission boundaries. Measured response time with a synthetic dataset and recorded the environment used; the result was a classroom demonstration rather than a production capacity benchmark. Helped write the final API handbook and showed teammates how to reproduce a failed test. Redis was used only for an optional short-lived cache; the database remained authoritative.",
+                "technologies": [
+                  "Java",
+                  "Spring Boot",
+                  "PostgreSQL",
+                  "Redis",
+                  "Docker"
+                ],
+                "project_name": "Appointment Booking Capstone (fictional)"
+              }
+            ],
+            "certifications": []
+          },
+          "raw_text": "",
+          "content_authority": "REVIEWED_STRUCTURED",
+          "formatting_limitations": [
+            "Reviewed text and structured sections do not preserve exact visual layout, spacing or page breaks."
+          ]
+        },
+        "resume_text": "Minh An Demo - Java Backend Developer\n{\"full_name\":\"Minh An Demo\",\"email\":\"minh.an.demo@example.invalid\",\"phone\":\"\",\"location\":\"Ho Chi Minh City, Vietnam\",\"summary\":\"Fictional junior Java backend developer with two years of experience building internal business services and supervised student projects. Comfortable translating a small requirement into an API contract, database change, tests and deployment notes. Uses Java, Spring Boot, PostgreSQL and Git in daily development. Looking for a backend role with code review, clear ownership and opportunities to improve reliability. Communicates progress in writing, asks for missing acceptance criteria early and documents limitations rather than presenting unverified assumptions as completed work.\\n\\nFictional junior Java backend developer with two years of experience building internal business services and supervised student projects. Comfortable translating a small requirement into an API contract, database change, tests and deployment notes. Uses Java, Spring Boot, PostgreSQL and Git in daily development. Looking for a backend role with code review, clear ownership and opportunities to improve reliability. Communicates progress in writing, asks for missing acceptance criteria early and documents limitations rather than presenting unverified assumptions as completed work.\",\"experience\":[{\"start_date\":\"2024-09-01\",\"end_date\":null,\"is_current\":true,\"description\":\"Developed REST endpoints for a fictional inventory application used by an internal training team. Implemented request validation, pagination and role checks with Spring Boot and Spring Security. Designed PostgreSQL tables for products, warehouses and stock movements, added database constraints and reviewed query plans with a mentor. Reduced a report endpoint from approximately 1200 milliseconds to 450 milliseconds in a controlled sample environment by replacing repeated queries with one aggregate query. Wrote JUnit and Mockito tests for validation, permissions and failed transactions. Added structured logs and correlation identifiers so the team could investigate failed requests without logging customer content. Participated in weekly code review, clarified API response fields with a frontend colleague and updated OpenAPI examples before release. Supported a supervised Docker deployment and documented rollback steps; did not own production infrastructure or on-call operations.\\n\\nDeveloped REST endpoints for a fictional inventory application used by an internal training team. Implemented request validation, pagination and role checks with Spring Boot and Spring Security. Designed PostgreSQL tables for products, warehouses and stock movements, added database constraints and reviewed query plans with a mentor. Reduced a report endpoint from approximately 1200 milliseconds to 450 milliseconds in a controlled sample environment by replacing repeated queries with one aggregate query. Wrote JUnit and Mockito tests for validation, permissions and failed transactions. Added structured logs and correlation identifiers so the team could investigate failed requests without logging customer content. Participated in weekly code review, clarified API response fields with a frontend colleague and updated OpenAPI examples before release. Supported a supervised Docker deployment and documented rollback steps; did not own production infrastructure or on-call operations.\",\"company_name\":\"Example Inventory Lab (fictional)\",\"job_title\":\"Junior Java Backend Developer\"},{\"start_date\":\"2024-03-01\",\"end_date\":\"2024-08-01\",\"is_current\":false,\"description\":\"Completed a backend internship at a fictional learning organization. Built a task management module with filtering by assignee, status and due date. Used Git branches and pull requests to keep changes small and reviewable. Added integration tests against a disposable PostgreSQL database and corrected timezone handling for task deadlines. Investigated duplicate submissions and introduced an idempotency key for one create endpoint. Compared expected and actual responses with Postman and described reproduction steps in issue reports. Worked with a mentor to understand transactions, indexes and common HTTP error codes. Wrote a short onboarding guide explaining local setup, sample data and how to run the focused tests.\\n\\nCompleted a backend internship at a fictional learning organization. Built a task management module with filtering by assignee, status and due date. Used Git branches and pull requests to keep changes small and reviewable. Added integration tests against a disposable PostgreSQL database and corrected timezone handling for task deadlines. Investigated duplicate submissions and introduced an idempotency key for one create endpoint. Compared expected and actual responses with Postman and described reproduction steps in issue reports. Worked with a mentor to understand transactions, indexes and common HTTP error codes. Wrote a short onboarding guide explaining local setup, sample data and how to run the focused tests.\",\"company_name\":\"Example Learning Studio (fictional)\",\"job_title\":\"Backend Intern\"}],\"education\":[{\"degree\":\"Bachelor of Software Engineering\",\"start_date\":\"2020-09-01\",\"end_date\":\"2024-06-01\",\"description\":\"Completed a fictional Bachelor of Software Engineering program in 2024. Coursework covered object oriented programming, relational database design, software testing, basic computer networks and team delivery. The final project emphasized written requirements, API design, data integrity and peer review. No professional certification is claimed. Reads English technical documentation and can explain a familiar implementation in a short written summary.\\n\\nCompleted a fictional Bachelor of Software Engineering program in 2024. Coursework covered object oriented programming, relational database design, software testing, basic computer networks and team delivery. The final project emphasized written requirements, API design, data integrity and peer review. No professional certification is claimed. Reads English technical documentation and can explain a familiar implementation in a short written summary.\",\"school_name\":\"Example Engineering College (fictional)\",\"major\":\"Software Engineering\"}],\"skills\":[{\"name\":\"Java\",\"proficiency_level\":\"INTERMEDIATE\"},{\"name\":\"Spring Boot\",\"proficiency_level\":\"INTERMEDIATE\"},{\"name\":\"PostgreSQL\",\"proficiency_level\":\"INTERMEDIATE\"},{\"name\":\"JUnit\",\"proficiency_level\":\"INTERMEDIATE\"},{\"name\":\"Docker\",\"proficiency_level\":\"BASIC\"},{\"name\":\"Git\",\"proficiency_level\":\"INTERMEDIATE\"}],\"projects\":[{\"role\":\"Backend developer\",\"description\":\"Built a capstone appointment booking service with three other students. Owned backend endpoints for available slots, booking confirmation and cancellation. Prevented double booking with a database uniqueness rule and a transaction rather than a browser-only check. Implemented access and refresh token flows for a demonstration account system. Kept configuration in environment variables and excluded secrets from version control. Containerized the application and database for reproducible local demonstrations. Created sample fixtures for overlapping bookings and permission boundaries. Measured response time with a synthetic dataset and recorded the environment used; the result was a classroom demonstration rather than a production capacity benchmark. Helped write the final API handbook and showed teammates how to reproduce a failed test. Redis was used only for an optional short-lived cache; the database remained authoritative.\\n\\nBuilt a capstone appointment booking service with three other students. Owned backend endpoints for available slots, booking confirmation and cancellation. Prevented double booking with a database uniqueness rule and a transaction rather than a browser-only check. Implemented access and refresh token flows for a demonstration account system. Kept configuration in environment variables and excluded secrets from version control. Containerized the application and database for reproducible local demonstrations. Created sample fixtures for overlapping bookings and permission boundaries. Measured response time with a synthetic dataset and recorded the environment used; the result was a classroom demonstration rather than a production capacity benchmark. Helped write the final API handbook and showed teammates how to reproduce a failed test. Redis was used only for an optional short-lived cache; the database remained authoritative.\",\"technologies\":[\"Java\",\"Spring Boot\",\"PostgreSQL\",\"Redis\",\"Docker\"],\"project_name\":\"Appointment Booking Capstone (fictional)\"}],\"certifications\":[]}",
+        "language": "vi"
+      },
+      "notes": [
+        "Artificial expansion repeats the baseline summary and descriptions once, without claiming new experience; used only to isolate input length."
+      ]
+    },
+    {
+      "id": "career-chat-expanded",
+      "feature": "CAREER_CHAT",
+      "label": "Same chat with ten synthetic previous messages",
+      "variant": "expanded",
+      "input": {
+        "message": "Based on my confirmed CV and this job, which two skills should I practice first, and what could I complete in two weeks?",
+        "language": "vi",
+        "history": [
+          {
+            "sender_type": "USER",
+            "message_text": "I can spend five hours each week studying after work."
+          },
+          {
+            "sender_type": "ASSISTANT",
+            "message_text": "Use a small measurable exercise and record what was tested."
+          },
+          {
+            "sender_type": "USER",
+            "message_text": "I have not used Kafka in a project yet."
+          },
+          {
+            "sender_type": "ASSISTANT",
+            "message_text": "We can start with a producer, consumer and a locally documented retry experiment."
+          },
+          {
+            "sender_type": "USER",
+            "message_text": "My capstone included PostgreSQL transactions and an optional Redis cache."
+          },
+          {
+            "sender_type": "ASSISTANT",
+            "message_text": "Treat those project facts as evidence, but do not infer production operations experience."
+          },
+          {
+            "sender_type": "USER",
+            "message_text": "I prefer practical exercises with a small Java service."
+          },
+          {
+            "sender_type": "ASSISTANT",
+            "message_text": "A short service and focused tests can demonstrate one skill at a time."
+          },
+          {
+            "sender_type": "USER",
+            "message_text": "Please keep the plan focused on the selected job."
+          },
+          {
+            "sender_type": "ASSISTANT",
+            "message_text": "The selected JD requires Kafka; distinguish missing evidence from a proven lack of skill."
+          }
+        ],
+        "context": {
+          "career_profile": {
+            "target_job_title": "Java Backend Developer",
+            "career_goal": "Build reliable backend APIs and develop database and automated testing skills.",
+            "current_job_title": "Junior Java Backend Developer",
+            "current_company": "Example Inventory Lab (fictional)",
+            "years_experience": 2,
+            "profile_summary": "Fictional junior Java backend developer with two years of experience building internal business services and supervised student projects. Comfortable translating a small requirement into an API contract, database change, tests and deployment notes. Uses Java, Spring Boot, PostgreSQL and Git in daily development. Looking for a backend role with code review, clear ownership and opportunities to improve reliability. Communicates progress in writing, asks for missing acceptance criteria early and documents limitations rather than presenting unverified assumptions as completed work.",
+            "preferred_location": "Ho Chi Minh City",
+            "workplace_preference": "HYBRID",
+            "employment_type": "FULL_TIME",
+            "expected_salary": 22000000,
+            "salary_currency": "VND",
+            "skills": [
+              {
+                "name": "Java",
+                "proficiency_level": "INTERMEDIATE",
+                "years_experience": 2
+              },
+              {
+                "name": "Spring Boot",
+                "proficiency_level": "INTERMEDIATE",
+                "years_experience": 2
+              },
+              {
+                "name": "PostgreSQL",
+                "proficiency_level": "INTERMEDIATE",
+                "years_experience": 2
+              },
+              {
+                "name": "JUnit",
+                "proficiency_level": "INTERMEDIATE",
+                "years_experience": 2
+              },
+              {
+                "name": "Docker",
+                "proficiency_level": "BASIC",
+                "years_experience": 1
+              },
+              {
+                "name": "Git",
+                "proficiency_level": "INTERMEDIATE",
+                "years_experience": 2
+              }
+            ]
+          },
+          "job": {
+            "id": "10000000-0000-4000-8000-000000000001",
+            "job_title": "Java Backend Developer",
+            "company_name": "Example Product Systems (fictional)",
+            "location": "Ho Chi Minh City",
+            "role_category": "Backend",
+            "salary_text": "20-28 million VND gross/month",
+            "salary_min": 20000000,
+            "salary_max": 28000000,
+            "salary_currency": "VND",
+            "employment_type": "FULL_TIME",
+            "workplace_type": "HYBRID",
+            "raw_content": "Example Product Systems, a fictional company, is hiring a Java Backend Developer for a small business application team in Ho Chi Minh City. The position is full time with a hybrid schedule and a stated monthly gross salary range of 20 to 28 million VND. The successful applicant will work with a product owner, frontend developers and a technical mentor to deliver maintainable APIs. Responsibilities include clarifying acceptance criteria, implementing REST endpoints, validating requests, writing focused tests and reviewing database changes before release. The service uses Java, Spring Boot, PostgreSQL and Docker. Developers are expected to understand transactions, indexes, HTTP status codes and basic authentication and authorization. Applicants should have one to three years of relevant experience or comparable project evidence. Required skills are Java, Spring Boot, SQL and automated testing. Experience with Kafka is required for the planned event processing module, but the team will provide documentation and supervised onboarding. Redis, cloud services and observability tools are useful additional skills rather than mandatory experience. The role includes investigating reproducible defects, reading logs, preparing a short incident summary and proposing a regression test. Candidates should be able to explain a tradeoff and identify the limits of a measurement. The company does not require an existing professional certificate. Interviews include a practical API design discussion and questions about data integrity. Applicants should describe their own contribution to projects and distinguish classroom examples from production responsibility. The team values clear written communication, small pull requests and factual progress reports. Benefits in this synthetic job include a training budget, code review and regular feedback. This description is invented solely to measure application token consumption; it does not advertise a real vacancy or provide verified labor market evidence.",
+            "parsed_requirements": "Java, Spring Boot, SQL, automated testing and Kafka. One to three years of relevant experience. Redis is optional.",
+            "parsed_responsibilities": "Design REST APIs, maintain PostgreSQL data integrity, write automated tests, review code and investigate defects."
+          },
+          "resume_text": "Minh An Demo - Java Backend Developer\n{\"full_name\":\"Minh An Demo\",\"email\":\"minh.an.demo@example.invalid\",\"phone\":\"\",\"location\":\"Ho Chi Minh City, Vietnam\",\"summary\":\"Fictional junior Java backend developer with two years of experience building internal business services and supervised student projects. Comfortable translating a small requirement into an API contract, database change, tests and deployment notes. Uses Java, Spring Boot, PostgreSQL and Git in daily development. Looking for a backend role with code review, clear ownership and opportunities to improve reliability. Communicates progress in writing, asks for missing acceptance criteria early and documents limitations rather than presenting unverified assumptions as completed work.\",\"experience\":[{\"start_date\":\"2024-09-01\",\"end_date\":null,\"is_current\":true,\"description\":\"Developed REST endpoints for a fictional inventory application used by an internal training team. Implemented request validation, pagination and role checks with Spring Boot and Spring Security. Designed PostgreSQL tables for products, warehouses and stock movements, added database constraints and reviewed query plans with a mentor. Reduced a report endpoint from approximately 1200 milliseconds to 450 milliseconds in a controlled sample environment by replacing repeated queries with one aggregate query. Wrote JUnit and Mockito tests for validation, permissions and failed transactions. Added structured logs and correlation identifiers so the team could investigate failed requests without logging customer content. Participated in weekly code review, clarified API response fields with a frontend colleague and updated OpenAPI examples before release. Supported a supervised Docker deployment and documented rollback steps; did not own production infrastructure or on-call operations.\",\"company_name\":\"Example Inventory Lab (fictional)\",\"job_title\":\"Junior Java Backend Developer\"},{\"start_date\":\"2024-03-01\",\"end_date\":\"2024-08-01\",\"is_current\":false,\"description\":\"Completed a backend internship at a fictional learning organization. Built a task management module with filtering by assignee, status and due date. Used Git branches and pull requests to keep changes small and reviewable. Added integration tests against a disposable PostgreSQL database and corrected timezone handling for task deadlines. Investigated duplicate submissions and introduced an idempotency key for one create endpoint. Compared expected and actual responses with Postman and described reproduction steps in issue reports. Worked with a mentor to understand transactions, indexes and common HTTP error codes. Wrote a short onboarding guide explaining local setup, sample data and how to run the focused tests.\",\"company_name\":\"Example Learning Studio (fictional)\",\"job_title\":\"Backend Intern\"}],\"education\":[{\"degree\":\"Bachelor of Software Engineering\",\"start_date\":\"2020-09-01\",\"end_date\":\"2024-06-01\",\"description\":\"Completed a fictional Bachelor of Software Engineering program in 2024. Coursework covered object oriented programming, relational database design, software testing, basic computer networks and team delivery. The final project emphasized written requirements, API design, data integrity and peer review. No professional certification is claimed. Reads English technical documentation and can explain a familiar implementation in a short written summary.\",\"school_name\":\"Example Engineering College (fictional)\",\"major\":\"Software Engineering\"}],\"skills\":[{\"name\":\"Java\",\"proficiency_level\":\"INTERMEDIATE\"},{\"name\":\"Spring Boot\",\"proficiency_level\":\"INTERMEDIATE\"},{\"name\":\"PostgreSQL\",\"proficiency_level\":\"INTERMEDIATE\"},{\"name\":\"JUnit\",\"proficiency_level\":\"INTERMEDIATE\"},{\"name\":\"Docker\",\"proficiency_level\":\"BASIC\"},{\"name\":\"Git\",\"proficiency_level\":\"INTERMEDIATE\"}],\"projects\":[{\"role\":\"Backend developer\",\"description\":\"Built a capstone appointment booking service with three other students. Owned backend endpoints for available slots, booking confirmation and cancellation. Prevented double booking with a database uniqueness rule and a transaction rather than a browser-only check. Implemented access and refresh token flows for a demonstration account system. Kept configuration in environment variables and excluded secrets from version control. Containerized the application and database for reproducible local demonstrations. Created sample fixtures for overlapping bookings and permission boundaries. Measured response time with a synthetic dataset and recorded the environment used; the result was a classroom demonstration rather than a production capacity benchmark. Helped write the final API handbook and showed teammates how to reproduce a failed test. Redis was used only for an optional short-lived cache; the database remained authoritative.\",\"technologies\":[\"Java\",\"Spring Boot\",\"PostgreSQL\",\"Redis\",\"Docker\"],\"project_name\":\"Appointment Booking Capstone (fictional)\"}],\"certifications\":[]}"
+        },
+        "sources": [],
+        "citation_rule": "Only refer to the supplied sources; no other citations have been retrieved or verified."
+      },
+      "notes": [
+        "Ten messages are constructed input history, not recorded model outputs or quality-test expectations."
+      ]
+    },
+    {
+      "id": "job-rerank-expanded",
+      "feature": "JOB_MATCH_RERANK",
+      "label": "Same three jobs with 1500-character descriptions",
+      "variant": "expanded",
+      "input": {
+        "candidate": "Minh An Demo - Java Backend Developer\n{\"full_name\":\"Minh An Demo\",\"email\":\"minh.an.demo@example.invalid\",\"phone\":\"\",\"location\":\"Ho Chi Minh City, Vietnam\",\"summary\":\"Fictional junior Java backend developer with two years of experience building internal business services and supervised student projects. Comfortable translating a small requirement into an API contract, database change, tests and deployment notes. Uses Java, Spring Boot, PostgreSQL and Git in daily development. Looking for a backend role with code review, clear ownership and opportunities to improve reliability. Communicates progress in writing, asks for missing acceptance criteria early and documents limitations rather than presenting unverified assumptions as completed work.\",\"experience\":[{\"start_date\":\"2024-09-01\",\"end_date\":null,\"is_current\":true,\"description\":\"Developed REST endpoints for a fictional inventory application used by an internal training team. Implemented request validation, pagination and role checks with Spring Boot and Spring Security. Designed PostgreSQL tables for products, warehouses and stock movements, added database constraints and reviewed query plans with a mentor. Reduced a report endpoint from approximately 1200 milliseconds to 450 milliseconds in a controlled sample environment by replacing repeated queries with one aggregate query. Wrote JUnit and Mockito tests for validation, permissions and failed transactions. Added structured logs and correlation identifiers so the team could investigate failed requests without logging customer content. Participated in weekly code review, clarified API response fields with a frontend colleague and updated OpenAPI examples before release. Supported a supervised Docker deployment and documented rollback steps; did not own production infrastructure or on-call operations.\",\"company_name\":\"Example Inventory Lab (fictional)\",\"job_title\":\"Junior Java Backend Developer\"},{\"start_date\":\"2024-03-01\",\"end_date\":\"2024-08-01\",\"is_current\":false,\"description\":\"Completed a backend internship at a fictional learning organization. Built a task management module with filtering by assignee, status and due date. Used Git branches and pull requests to keep changes small and reviewable. Added integration tests against a disposable PostgreSQL database and corrected timezone handling for task deadlines. Investigated duplicate submissions and introduced an idempotency key for one create endpoint. Compared expected and actual responses with Postman and described reproduction steps in issue reports. Worked with a mentor to understand transactions, indexes and common HTTP error codes. Wrote a short onboarding guide explaining local setup, sample data and how to run the focused tests.\",\"company_name\":\"Example Learning Studio (fictional)\",\"job_title\":\"Backend Intern\"}],\"education\":[{\"degree\":\"Bachelor of Software Engineering\",\"start_date\":\"2020-09-01\",\"end_date\":\"2024-06-01\",\"description\":\"Completed a fictional Bachelor of Software Engineering program in 2024. Coursework covered object oriented programming, relational database design, software testing, basic computer networks and team delivery. The final project emphasized written requirements, API design, data integrity and peer review. No professional certification is claimed. Reads English technical documentation and can explain a familiar implementation in a short written summary.\",\"school_name\":\"Example Engineering College (fictional)\",\"major\":\"Software Engineering\"}],\"skills\":[{\"name\":\"Java\",\"proficiency_level\":\"INTERMEDIATE\"},{\"name\":\"Spring Boot\",\"proficiency_level\":\"INTERMEDIATE\"},{\"name\":\"PostgreSQL\",\"proficiency_level\":\"INTERMEDIATE\"},{\"name\":\"JUnit\",\"proficiency_level\":\"INTERMEDIATE\"},{\"name\":\"Docker\",\"proficiency_level\":\"BASIC\"},{\"name\":\"Git\",\"proficiency_level\":\"INTERMEDIATE\"}],\"projects\":[{\"role\":\"Backend developer\",\"description\":\"Built a capstone appointment booking service with three other students. Owned backend endpoints for available slots, booking confirmation and cancellation. Prevented double booking with a database uniqueness rule and a transaction rather than a browser-only check. Implemented access and refresh token flows for a demonstration account system. Kept configuration in environment variables and excluded secrets from version control. Containerized the application and database for reproducible local demonstrations. Created sample fixtures for overlapping bookings and permission boundaries. Measured response time with a synthetic dataset and recorded the environment used; the result was a classroom demonstration rather than a production capacity benchmark. Helped write the final API handbook and showed teammates how to reproduce a failed test. Redis was used only for an optional short-lived cache; the database remained authoritative.\",\"technologies\":[\"Java\",\"Spring Boot\",\"PostgreSQL\",\"Redis\",\"Docker\"],\"project_name\":\"Appointment Booking Capstone (fictional)\"}],\"certifications\":[]}\nCareer profile: {\"target_job_title\":\"Java Backend Developer\",\"career_goal\":\"Build reliable backend APIs and develop database and automated testing skills.\",\"current_job_title\":\"Junior Java Backend Developer\",\"current_company\":\"Example Inventory Lab (fictional)\",\"years_experience\":2,\"profile_summary\":\"Fictional junior Java backend developer with two years of experience building internal business services and supervised student projects. Comfortable translating a small requirement into an API contract, database change, tests and deployment notes. Uses Java, Spring Boot, PostgreSQL and Git in daily development. Looking for a backend role with code review, clear ownership and opportunities to improve reliability. Communicates progress in writing, asks for missing acceptance criteria early and documents limitations rather than presenting unverified assumptions as completed work.\",\"preferred_location\":\"Ho Chi Minh City\",\"workplace_preference\":\"HYBRID\",\"employment_type\":\"FULL_TIME\",\"expected_salary\":22000000,\"salary_currency\":\"VND\",\"skills\":[{\"name\":\"Java\",\"proficiency_level\":\"INTERMEDIATE\",\"years_experience\":2},{\"name\":\"Spring Boot\",\"proficiency_level\":\"INTERMEDIATE\",\"years_experience\":2},{\"name\":\"PostgreSQL\",\"proficiency_level\":\"INTERMEDIATE\",\"years_experience\":2},{\"name\":\"JUnit\",\"proficiency_level\":\"INTERMEDIATE\",\"years_experience\":2},{\"name\":\"Docker\",\"proficiency_level\":\"BASIC\",\"years_experience\":1},{\"name\":\"Git\",\"proficiency_level\":\"INTERMEDIATE\",\"years_experience\":2}]}",
+        "jobs": [
+          {
+            "id": "10000000-0000-4000-8000-000000000001",
+            "job_title": "Java Backend Developer",
+            "location": "Ho Chi Minh City",
+            "salary_text": "20-28 million VND gross/month",
+            "raw_content": "Java backend role. Build Spring Boot REST APIs, maintain PostgreSQL transactions and indexes, write automated tests and learn Kafka event processing. Hybrid work, one to three years of relevant experience. Synthetic length-control detail: document acceptance criteria, tests, data boundaries and deployment limitations. Java backend role. Build Spring Boot REST APIs, maintain PostgreSQL transactions and indexes, write automated tests and learn Kafka event processing. Hybrid work, one to three years of relevant experience. Synthetic length-control detail: document acceptance criteria, tests, data boundaries and deployment limitations. Java backend role. Build Spring Boot REST APIs, maintain PostgreSQL transactions and indexes, write automated tests and learn Kafka event processing. Hybrid work, one to three years of relevant experience. Synthetic length-control detail: document acceptance criteria, tests, data boundaries and deployment limitations. Java backend role. Build Spring Boot REST APIs, maintain PostgreSQL transactions and indexes, write automated tests and learn Kafka event processing. Hybrid work, one to three years of relevant experience. Synthetic length-control detail: document acceptance criteria, tests, data boundaries and deployment limitations. Java backend role. Build Spring Boot REST APIs, maintain PostgreSQL transactions and indexes, write automated tests and learn Kafka event processing. Hybrid work, one to three years of relevant experience. Synthetic leng",
+            "skills": [
+              {
+                "name": "Java",
+                "required": true
+              },
+              {
+                "name": "Spring Boot",
+                "required": true
+              },
+              {
+                "name": "SQL",
+                "required": true
+              },
+              {
+                "name": "Kafka",
+                "required": true
+              }
+            ]
+          },
+          {
+            "id": "10000000-0000-4000-8000-000000000002",
+            "job_title": "Backend Developer - Python",
+            "location": "Ho Chi Minh City",
+            "salary_text": "22-30 million VND gross/month",
+            "raw_content": "Python backend role building Django REST services. Requires PostgreSQL, automated testing and two years of Python experience. Docker is useful. The text does not state a requirement for Java. Synthetic length-control detail: document acceptance criteria, tests, data boundaries and deployment limitations. Python backend role building Django REST services. Requires PostgreSQL, automated testing and two years of Python experience. Docker is useful. The text does not state a requirement for Java. Synthetic length-control detail: document acceptance criteria, tests, data boundaries and deployment limitations. Python backend role building Django REST services. Requires PostgreSQL, automated testing and two years of Python experience. Docker is useful. The text does not state a requirement for Java. Synthetic length-control detail: document acceptance criteria, tests, data boundaries and deployment limitations. Python backend role building Django REST services. Requires PostgreSQL, automated testing and two years of Python experience. Docker is useful. The text does not state a requirement for Java. Synthetic length-control detail: document acceptance criteria, tests, data boundaries and deployment limitations. Python backend role building Django REST services. Requires PostgreSQL, automated testing and two years of Python experience. Docker is useful. The text does not state a requirement for Java. Synthetic length-control detail: document acceptance criteria, tests, data boundarie",
+            "skills": [
+              {
+                "name": "Python",
+                "required": true
+              },
+              {
+                "name": "Django",
+                "required": true
+              },
+              {
+                "name": "PostgreSQL",
+                "required": true
+              }
+            ]
+          },
+          {
+            "id": "10000000-0000-4000-8000-000000000003",
+            "job_title": "Java Platform Engineer",
+            "location": "Da Nang",
+            "salary_text": "30-40 million VND gross/month",
+            "raw_content": "Java platform role requiring four years of backend experience, Kubernetes operations and Kafka. Own deployment pipelines and production incident response. Onsite in Da Nang; relocation policy is not supplied. Synthetic length-control detail: document acceptance criteria, tests, data boundaries and deployment limitations. Java platform role requiring four years of backend experience, Kubernetes operations and Kafka. Own deployment pipelines and production incident response. Onsite in Da Nang; relocation policy is not supplied. Synthetic length-control detail: document acceptance criteria, tests, data boundaries and deployment limitations. Java platform role requiring four years of backend experience, Kubernetes operations and Kafka. Own deployment pipelines and production incident response. Onsite in Da Nang; relocation policy is not supplied. Synthetic length-control detail: document acceptance criteria, tests, data boundaries and deployment limitations. Java platform role requiring four years of backend experience, Kubernetes operations and Kafka. Own deployment pipelines and production incident response. Onsite in Da Nang; relocation policy is not supplied. Synthetic length-control detail: document acceptance criteria, tests, data boundaries and deployment limitations. Java platform role requiring four years of backend experience, Kubernetes operations and Kafka. Own deployment pipelines and production incident response. Onsite in Da Nang; relocation policy is not supplied.",
+            "skills": [
+              {
+                "name": "Java",
+                "required": true
+              },
+              {
+                "name": "Kubernetes",
+                "required": true
+              },
+              {
+                "name": "Kafka",
+                "required": true
+              }
+            ]
+          }
+        ]
+      },
+      "notes": [
+        "Each raw_content is artificially repeated and truncated to exactly 1500 characters, the service excerpt cap; job IDs and skills stay fixed."
+      ]
+    },
+    {
+      "id": "embedding-query",
+      "feature": "EMBEDDING",
+      "label": "Embed a short career search query",
+      "variant": "baseline",
+      "input": {
+        "text": "Java Spring Boot backend jobs in Ho Chi Minh City requiring PostgreSQL and automated testing."
+      },
+      "notes": [
+        "Represents one short retrieval query, not a chat generation."
+      ]
+    },
+    {
+      "id": "embedding-cv",
+      "feature": "EMBEDDING",
+      "label": "Embed reviewed CV canonical text",
+      "variant": "baseline",
+      "input": {
+        "text": "Minh An Demo - Java Backend Developer\n{\"full_name\":\"Minh An Demo\",\"email\":\"minh.an.demo@example.invalid\",\"phone\":\"\",\"location\":\"Ho Chi Minh City, Vietnam\",\"summary\":\"Fictional junior Java backend developer with two years of experience building internal business services and supervised student projects. Comfortable translating a small requirement into an API contract, database change, tests and deployment notes. Uses Java, Spring Boot, PostgreSQL and Git in daily development. Looking for a backend role with code review, clear ownership and opportunities to improve reliability. Communicates progress in writing, asks for missing acceptance criteria early and documents limitations rather than presenting unverified assumptions as completed work.\",\"experience\":[{\"start_date\":\"2024-09-01\",\"end_date\":null,\"is_current\":true,\"description\":\"Developed REST endpoints for a fictional inventory application used by an internal training team. Implemented request validation, pagination and role checks with Spring Boot and Spring Security. Designed PostgreSQL tables for products, warehouses and stock movements, added database constraints and reviewed query plans with a mentor. Reduced a report endpoint from approximately 1200 milliseconds to 450 milliseconds in a controlled sample environment by replacing repeated queries with one aggregate query. Wrote JUnit and Mockito tests for validation, permissions and failed transactions. Added structured logs and correlation identifiers so the team could investigate failed requests without logging customer content. Participated in weekly code review, clarified API response fields with a frontend colleague and updated OpenAPI examples before release. Supported a supervised Docker deployment and documented rollback steps; did not own production infrastructure or on-call operations.\",\"company_name\":\"Example Inventory Lab (fictional)\",\"job_title\":\"Junior Java Backend Developer\"},{\"start_date\":\"2024-03-01\",\"end_date\":\"2024-08-01\",\"is_current\":false,\"description\":\"Completed a backend internship at a fictional learning organization. Built a task management module with filtering by assignee, status and due date. Used Git branches and pull requests to keep changes small and reviewable. Added integration tests against a disposable PostgreSQL database and corrected timezone handling for task deadlines. Investigated duplicate submissions and introduced an idempotency key for one create endpoint. Compared expected and actual responses with Postman and described reproduction steps in issue reports. Worked with a mentor to understand transactions, indexes and common HTTP error codes. Wrote a short onboarding guide explaining local setup, sample data and how to run the focused tests.\",\"company_name\":\"Example Learning Studio (fictional)\",\"job_title\":\"Backend Intern\"}],\"education\":[{\"degree\":\"Bachelor of Software Engineering\",\"start_date\":\"2020-09-01\",\"end_date\":\"2024-06-01\",\"description\":\"Completed a fictional Bachelor of Software Engineering program in 2024. Coursework covered object oriented programming, relational database design, software testing, basic computer networks and team delivery. The final project emphasized written requirements, API design, data integrity and peer review. No professional certification is claimed. Reads English technical documentation and can explain a familiar implementation in a short written summary.\",\"school_name\":\"Example Engineering College (fictional)\",\"major\":\"Software Engineering\"}],\"skills\":[{\"name\":\"Java\",\"proficiency_level\":\"INTERMEDIATE\"},{\"name\":\"Spring Boot\",\"proficiency_level\":\"INTERMEDIATE\"},{\"name\":\"PostgreSQL\",\"proficiency_level\":\"INTERMEDIATE\"},{\"name\":\"JUnit\",\"proficiency_level\":\"INTERMEDIATE\"},{\"name\":\"Docker\",\"proficiency_level\":\"BASIC\"},{\"name\":\"Git\",\"proficiency_level\":\"INTERMEDIATE\"}],\"projects\":[{\"role\":\"Backend developer\",\"description\":\"Built a capstone appointment booking service with three other students. Owned backend endpoints for available slots, booking confirmation and cancellation. Prevented double booking with a database uniqueness rule and a transaction rather than a browser-only check. Implemented access and refresh token flows for a demonstration account system. Kept configuration in environment variables and excluded secrets from version control. Containerized the application and database for reproducible local demonstrations. Created sample fixtures for overlapping bookings and permission boundaries. Measured response time with a synthetic dataset and recorded the environment used; the result was a classroom demonstration rather than a production capacity benchmark. Helped write the final API handbook and showed teammates how to reproduce a failed test. Redis was used only for an optional short-lived cache; the database remained authoritative.\",\"technologies\":[\"Java\",\"Spring Boot\",\"PostgreSQL\",\"Redis\",\"Docker\"],\"project_name\":\"Appointment Booking Capstone (fictional)\"}],\"certifications\":[]}"
+      },
+      "notes": []
+    },
+    {
+      "id": "embedding-jd",
+      "feature": "EMBEDDING",
+      "label": "Embed one job description",
+      "variant": "baseline",
+      "input": {
+        "text": "Example Product Systems, a fictional company, is hiring a Java Backend Developer for a small business application team in Ho Chi Minh City. The position is full time with a hybrid schedule and a stated monthly gross salary range of 20 to 28 million VND. The successful applicant will work with a product owner, frontend developers and a technical mentor to deliver maintainable APIs. Responsibilities include clarifying acceptance criteria, implementing REST endpoints, validating requests, writing focused tests and reviewing database changes before release. The service uses Java, Spring Boot, PostgreSQL and Docker. Developers are expected to understand transactions, indexes, HTTP status codes and basic authentication and authorization. Applicants should have one to three years of relevant experience or comparable project evidence. Required skills are Java, Spring Boot, SQL and automated testing. Experience with Kafka is required for the planned event processing module, but the team will provide documentation and supervised onboarding. Redis, cloud services and observability tools are useful additional skills rather than mandatory experience. The role includes investigating reproducible defects, reading logs, preparing a short incident summary and proposing a regression test. Candidates should be able to explain a tradeoff and identify the limits of a measurement. The company does not require an existing professional certificate. Interviews include a practical API design discussion and questions about data integrity. Applicants should describe their own contribution to projects and distinguish classroom examples from production responsibility. The team values clear written communication, small pull requests and factual progress reports. Benefits in this synthetic job include a training budget, code review and regular feedback. This description is invented solely to measure application token consumption; it does not advertise a real vacancy or provide verified labor market evidence."
+      },
+      "notes": []
+    },
+    {
+      "id": "embedding-rag-chunk",
+      "feature": "EMBEDDING",
+      "label": "Embed one synthetic learning reference chunk",
+      "variant": "baseline",
+      "input": {
+        "text": "Synthetic training reference: PostgreSQL transactions group related changes so that either all changes commit or none become visible. A booking API should validate the requested slot, check the authenticated owner and insert the reservation inside a transaction. A uniqueness constraint is necessary to prevent two concurrent requests from booking the same slot. Application code should translate a conflict into a clear response and avoid claiming success before commit. A useful integration test opens two concurrent transactions, submits the same slot, and verifies that exactly one reservation exists. Tests should also cover rollback after validation or downstream failure. Log a correlation identifier rather than personal booking content. This invented reference is used only as an embedding input sample and is not a verified citation or an external learning URL."
+      },
+      "notes": []
+    }
+  ]
+}

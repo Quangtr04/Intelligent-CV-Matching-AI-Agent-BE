@@ -67,7 +67,7 @@ public class MatchingRepository {
             ("SELECT j.id,j.job_title,j.company_name,j.location,j.salary_text,"
                 + "j.source_url AS original_source_url,") + JobSourceProjection.ACTIVE_URL + " AS source_url,"
                 + JobSourceProjection.ACTIVE_SITE + " AS source_site,"
-                + "j.raw_content_hash,j.raw_content,COALESCE((SELECT "
+                + "j.raw_content_hash,j.raw_content,j.parsed_requirements,j.parsed_seniority,COALESCE((SELECT "
                 + "jsonb_agg(jsonb_build_object('name',s.normalized_skill,'required',"
                 + "s.is_required) ORDER BY s.normalized_skill) FROM market_job_skills s "
                 + "WHERE s.market_job_id=j.id),'[]'::jsonb) AS skills FROM "
@@ -90,7 +90,7 @@ public class MatchingRepository {
             "SELECT j.id,j.job_title,j.company_name,j.location,j.salary_text,j.valid_through,"
                 + "j.source_url AS original_source_url," + JobSourceProjection.ACTIVE_URL + " AS source_url,"
                 + JobSourceProjection.ACTIVE_SITE + " AS source_site,j.raw_content_hash,j.raw_content,"
-                + "COALESCE((SELECT "
+                + "j.parsed_requirements,j.parsed_seniority," + "COALESCE((SELECT "
                 + "jsonb_agg(jsonb_build_object('name',s.normalized_skill,'required',s.is_required) "
                 + "ORDER BY s.normalized_skill) FROM market_job_skills s WHERE s.market_job_id=j.id),'[]'::jsonb) "
                 + "AS skills FROM market_job_posts j WHERE j.status='ACTIVE' "
@@ -105,7 +105,10 @@ public class MatchingRepository {
         return db.scalar(
             "SELECT md5(COALESCE(string_agg(jsonb_build_array(j.id,j.raw_content_hash,j.job_title,"
                 + "j.company_name,j.location,j.salary_text,j.valid_through,j.source_url,"
-                + JobSourceProjection.ACTIVE_URL + "," + JobSourceProjection.ACTIVE_SITE
+                + "j.parsed_requirements,j.parsed_seniority,"
+                + "COALESCE((SELECT jsonb_agg(jsonb_build_array(s.normalized_skill,s.is_required) "
+                + "ORDER BY s.normalized_skill,s.is_required) FROM market_job_skills s WHERE s.market_job_id=j.id),"
+                + "'[]'::jsonb)," + JobSourceProjection.ACTIVE_URL + "," + JobSourceProjection.ACTIVE_SITE
                 + ")::text,',' ORDER BY j.id),'')) FROM market_job_posts j WHERE j.status='ACTIVE' "
                 + "AND (j.valid_through IS NULL OR j.valid_through>now())",
             args

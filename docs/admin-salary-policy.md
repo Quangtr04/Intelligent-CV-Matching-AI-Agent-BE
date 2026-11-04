@@ -47,7 +47,7 @@ khi Candidate đã đặt kỳ vọng lương:
 
 Nguồn là [Open Access ExchangeRate-API](https://www.exchangerate-api.com/docs/free), miễn phí, cập nhật hằng ngày,
 không cần API key. Những trang dùng tỷ giá phải có attribution link đến [ExchangeRate-API](https://www.exchangerate-api.com).
-Đây là API dữ liệu tỷ giá, không phải API model AI; chat/embedding vẫn dùng Ollama tự lưu trữ.
+Đây là API dữ liệu tỷ giá, không phải API model AI; chat/embedding vẫn dùng Gemini API.
 
 Backend dùng `SALARY_EXCHANGE_ENABLED=true` và
 `SALARY_EXCHANGE_URL=https://open.er-api.com/v6/latest/USD` theo `.env.example`.
@@ -141,7 +141,7 @@ quy đổi thay vì mặc định một tỷ giá cố định cho mọi ngày.
 
 Nếu bật AI nhưng tập job đủ điều kiện chưa có embedding hợp lệ theo provider/model hiện tại, backend dùng mode
 `SKILL_OVERLAP_UNINDEXED_JOBS`, provider `RULE_BASED` và `llm_rerank_score = null`.
-Không gán kết quả này thành điểm do model Ollama đánh giá. Cần bật `JOB_EMBEDDING_ENABLED=true` để worker lập chỉ mục;
+Không gán kết quả này thành điểm do model Gemini đánh giá. Cần bật `JOB_EMBEDDING_ENABLED=true` để worker lập chỉ mục;
 vẫn phải kiểm tra tiến độ index, vì bật biến không đồng nghĩa vector đã có ngay.
 
 ## Lưu trữ

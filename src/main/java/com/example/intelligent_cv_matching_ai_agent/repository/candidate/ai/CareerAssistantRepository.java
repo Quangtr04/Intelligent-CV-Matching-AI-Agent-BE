@@ -39,8 +39,41 @@ public class CareerAssistantRepository {
     public List<Map<String, Object>> listCareerAssistantMessagesByConversationId(
         Object... args) {
         return db.list(
-            ("SELECT * FROM career_assistant_messages WHERE conversation_id=? ORDER " + "BY created_at,id"),
+            ("SELECT m.*,(SELECT CASE WHEN f.is_helpful=true THEN 'like' "
+                + "WHEN f.is_helpful=false THEN 'dislike' ELSE NULL END "
+                + "FROM career_assistant_feedback f WHERE f.message_id=m.id "
+                + "ORDER BY f.created_at DESC,f.id DESC LIMIT 1) AS feedback "
+                + "FROM career_assistant_messages m WHERE m.conversation_id=? ORDER BY m.created_at,m.id"),
             args
+        );
+    }
+
+    public int updateConversationDetails(
+        Object... args) {
+        return db.update(
+            "UPDATE career_assistant_conversations SET title=?,context_type=?,related_resume_id=?,"
+                + "related_job_id=?,updated_at=? WHERE id=?",
+            args
+        );
+    }
+
+    public void clearConversationMessages(
+        UUID conversation) {
+        db.update(
+            "DELETE FROM career_assistant_feedback WHERE message_id IN "
+                + "(SELECT id FROM career_assistant_messages WHERE conversation_id=?)",
+            conversation
+        );
+        db.update(
+            "DELETE FROM career_assistant_message_sources WHERE message_id IN "
+                + "(SELECT id FROM career_assistant_messages WHERE conversation_id=?)",
+            conversation
+        );
+        db.update("DELETE FROM career_assistant_messages WHERE conversation_id=?", conversation);
+        db.update(
+            "UPDATE career_assistant_conversations SET last_message_at=NULL,updated_at=? WHERE id=?",
+            java.time.Instant.now(),
+            conversation
         );
     }
 
@@ -139,6 +172,11 @@ public class CareerAssistantRepository {
     public UUID insertCareerAssistantFeedback(
         Map<String, Object> fields) {
         return db.insert("career_assistant_feedback", fields);
+    }
+
+    public int deleteMessageFeedback(
+        Object... args) {
+        return db.update("DELETE FROM career_assistant_feedback WHERE message_id=? AND user_id=?", args);
     }
 
     public Map<String, Object> getMarketJobPostsById(

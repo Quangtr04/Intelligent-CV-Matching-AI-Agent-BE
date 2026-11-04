@@ -194,6 +194,43 @@ class ResumeWritingQualityIntegrationTests {
     }
 
     @Test
+    void historicalChineseSuggestionsAreMarkedForRefreshWithoutChangingSourceText() throws Exception {
+        UUID resume = resume("READY");
+        UUID analysis = db.insert(
+            "resume_analyses",
+            Map.of(
+                "resume_id",
+                resume,
+                "analysis_type",
+                "AI_QUALITY",
+                "overall_score",
+                82,
+                "summary",
+                "CV có kỹ năng phù hợp."
+            )
+        );
+        db.insert(
+            "resume_analysis_suggestions",
+            Map.of(
+                "analysis_id",
+                analysis,
+                "category",
+                "PROJECT_COMPLEXITY",
+                "severity",
+                "LOW",
+                "original_content",
+                "Dự án quản lý hiến máu",
+                "explanation",
+                "增加项目细节有助于展示候选人的能力。"
+            )
+        );
+        mvc.perform(get(path(resume) + "/" + analysis).header("Authorization", candidate)).andExpect(status().isOk())
+            .andExpect(jsonPath("$.language_valid").value(false)).andExpect(jsonPath("$.response_language").value("vi"))
+            .andExpect(jsonPath("$.suggestions[0].original_content").value("Dự án quản lý hiến máu"));
+        verifyNoInteractions(ai);
+    }
+
+    @Test
     void invalidRubricOrInventedEvidenceDoesNotPersistPartialAnalysesOrSuggestions() throws Exception {
         UUID resume = resume("READY");
         Map<String, Object> generated = ResumeWritingTestData.report();

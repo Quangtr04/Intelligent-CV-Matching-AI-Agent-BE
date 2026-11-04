@@ -9,65 +9,30 @@ services:
       APP_PDF_NO_SANDBOX: "true"
       SERVER_PORT: ${SERVER_PORT:?Set SERVER_PORT in .env}
       UPLOAD_DIR: /app/uploads
-      AI_PROVIDER: ollama
-      AI_CHAT_PROVIDER: ollama
-      AI_EMBEDDING_PROVIDER: ollama
-      AI_CHAT_MODEL: ${AI_CHAT_MODEL:-qwen2.5:7b}
-      AI_ASSESSMENT_MODEL: ${AI_ASSESSMENT_MODEL-qwen3.5:4b}
-      AI_ASSESSMENT_THINK: ${AI_ASSESSMENT_THINK:-true}
-      AI_EMBEDDING_MODEL: ${AI_EMBEDDING_MODEL:-qwen3-embedding:0.6b}
-      AI_EMBEDDING_DIMENSIONS: 1024
-      OLLAMA_BASE_URL: http://ollama:11434
+
+      # AI - Gemini through OpenAI-compatible API
+      AI_ENABLED: ${AI_ENABLED:-true}
+      AI_PROVIDER: gemini
+      AI_CHAT_PROVIDER: openai
+      AI_EMBEDDING_PROVIDER: gemini
+
+      GEMINI_API_KEY: ${GEMINI_API_KEY:?Set GEMINI_API_KEY in .env}
+      GEMINI_BASE_URL: ${GEMINI_BASE_URL:-https://generativelanguage.googleapis.com/v1beta/openai}
+      GEMINI_NATIVE_BASE_URL: ${GEMINI_NATIVE_BASE_URL:-https://generativelanguage.googleapis.com/v1beta}
+
+      AI_REASONING_EFFORT: ${AI_REASONING_EFFORT:-none}
+      AI_CHAT_MODEL: ${AI_CHAT_MODEL:-gemini-2.5-flash-lite}
+      AI_ASSESSMENT_MODEL: ${AI_ASSESSMENT_MODEL:-gemini-2.5-flash-lite}
+      AI_EMBEDDING_MODEL: ${AI_EMBEDDING_MODEL:-gemini-embedding-001}
+
+      AI_EMBEDDING_DIMENSIONS: ${AI_EMBEDDING_DIMENSIONS:-1024}
+      AI_MAX_OUTPUT_TOKENS: ${AI_MAX_OUTPUT_TOKENS:-2000}
+      AI_ASSESSMENT_MAX_OUTPUT_TOKENS: ${AI_ASSESSMENT_MAX_OUTPUT_TOKENS:-12000}
+      AI_REQUEST_TIMEOUT: ${AI_REQUEST_TIMEOUT:-PT2M}
     env_file:
       - .env
     volumes:
       - resume_uploads:/app/uploads
-    depends_on:
-      ollama:
-        condition: service_healthy
-      ollama-init:
-        condition: service_completed_successfully
-
-  ollama:
-    image: ${OLLAMA_IMAGE:-ollama/ollama:latest}
-    restart: unless-stopped
-    environment:
-      OLLAMA_HOST: 0.0.0.0:11434
-      OLLAMA_NO_CLOUD: "1"
-      OLLAMA_KEEP_ALIVE: ${OLLAMA_KEEP_ALIVE:-5m}
-    expose:
-      - '11434'
-    volumes:
-      - ollama_models:/root/.ollama
-    healthcheck:
-      test: ['CMD', 'ollama', 'list']
-      interval: 5s
-      timeout: 5s
-      retries: 24
-      start_period: 10s
-
-  ollama-init:
-    image: ${OLLAMA_IMAGE:-ollama/ollama:latest}
-    environment:
-      OLLAMA_HOST: http://ollama:11434
-      AI_CHAT_MODEL: ${AI_CHAT_MODEL:-qwen2.5:7b}
-      AI_ASSESSMENT_MODEL: ${AI_ASSESSMENT_MODEL-qwen3.5:4b}
-      AI_EMBEDDING_MODEL: ${AI_EMBEDDING_MODEL:-qwen3-embedding:0.6b}
-    entrypoint: ['/bin/sh', '-ec']
-    command:
-      - |
-        for model in "$${AI_CHAT_MODEL}" "$${AI_EMBEDDING_MODEL}" "$${AI_ASSESSMENT_MODEL}"; do
-          [ -n "$${model}" ] || continue
-          if ! ollama show "$${model}" >/dev/null 2>&1; then
-            ollama pull "$${model}"
-          fi
-          ollama show "$${model}" >/dev/null
-        done
-    depends_on:
-      ollama:
-        condition: service_healthy
-    restart: 'no'
 
 volumes:
   resume_uploads:
-  ollama_models:

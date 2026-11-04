@@ -4,7 +4,7 @@ sequenceDiagram
     participant AI as AiService
     participant Quota as EntitlementService / GuestAccess
     participant DB as PostgreSQL
-    participant Model as Ollama ChatModel
+    participant Model as Gemini ChatModel
 
     Service->>AI: generate, generateForUser hoặc generateForGuest
     AI->>AI: Kiểm tra AI được bật và schema của feature

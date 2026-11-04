@@ -18,6 +18,8 @@ public final class AssistantMessageRequest {
 
     private boolean retrievePresent;
 
+    private String language;
+
     @JsonSetter("message")
     public void setMessage(
         String value) {
@@ -29,6 +31,12 @@ public final class AssistantMessageRequest {
         Boolean value) {
         retrieve = value;
         retrievePresent = true;
+    }
+
+    @JsonSetter("language")
+    public void setLanguage(
+        String value) {
+        language = value;
     }
 
     @JsonProperty("message")
@@ -47,11 +55,19 @@ public final class AssistantMessageRequest {
         return !retrievePresent || retrieve != null;
     }
 
+    @AssertTrue(message = "language must be vi or en")
+    @JsonIgnore
+    public boolean isLanguageValid() {
+        return language == null || language.trim().equalsIgnoreCase("vi") || language.trim().equalsIgnoreCase("en");
+    }
+
     public Map<String, Object> toInputMap() {
         Map<String, Object> input = new LinkedHashMap<>();
         input.put("message", message);
         if (retrievePresent)
             input.put("retrieve", retrieve);
+        if (language != null)
+            input.put("language", language);
         return input;
     }
 }

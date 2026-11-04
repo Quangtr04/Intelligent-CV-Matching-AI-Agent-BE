@@ -26,6 +26,39 @@ Xem [payload, giới hạn và cách chọn actor](job-collection-setup.md#2-c�
 
 Code được kiểm bằng fixtures, không phải chứng nhận HTML website đang hoạt động. Backend không chạy JavaScript/headless browser, đăng nhập nguồn hay bypass CAPTCHA/challenge. Trang chỉ render qua JavaScript hoặc bị chặn có thể tạo item lỗi.
 
+### Giãn request và tạm dừng nguồn
+
+Crawl thủ công và lịch tự động dùng chung `JobCrawlSourceAccess` trong một app:
+mỗi nguồn chỉ có một lượt đang chạy và các HTTP request (kể cả redirect) cách
+nhau tối thiểu 3 giây theo mặc định. Chu kỳ `fixedDelay` của lịch là khoảng cách
+giữa các lượt, không thay thế khoảng nghỉ từng request.
+
+Khi nguồn trả HTTP 429 hoặc trang xác minh Cloudflare, crawler dừng truy cập
+nguồn trong lượt đó. Tin đã nhập vẫn được giữ; URL chưa gọi được lưu là
+`DEFERRED`, không có mã HTTP và không tính là trang đã xem hay lỗi tải.
+Nếu bị chặn ở trang tìm kiếm sau khi đã tìm thấy một số URL, các URL đó cũng
+được hoãn thay vì tiếp tục gọi trang chi tiết.
+
+Nguồn nghỉ tối thiểu 5 phút với 429 thông thường, hoặc 15 phút với challenge.
+`Retry-After` dạng số giây hoặc HTTP-date được tôn trọng nếu yêu cầu chờ lâu hơn.
+Không tự gửi lại request bị chặn. Crawl mới cùng nguồn trong thời gian nghỉ trả
+HTTP 429 của API nội bộ kèm mốc được thử lại; lượt đang chạy trả HTTP 409 khi
+có yêu cầu khác cùng nguồn. Những yêu cầu này không gọi website hoặc tạo run rỗng.
+Hết thời gian nghỉ không tự tạo lượt mới; lịch vẫn theo `fixedDelay` hoặc admin
+chủ động chạy lại. Lượt theo lịch bị từ chối do nguồn đang chạy/nghỉ vẫn được
+ghi nhận ở scheduler lease và chờ chu kỳ tiếp theo.
+
+| Biến môi trường | Mặc định |
+| --- | --- |
+| `JOB_CRAWL_REQUEST_DELAY` | `PT3S` |
+| `JOB_CRAWL_RATE_LIMIT_COOLDOWN` | `PT5M` |
+| `JOB_CRAWL_CHALLENGE_COOLDOWN` | `PT15M` |
+
+Trạng thái giãn request/nghỉ nguồn nằm trong bộ nhớ của app và được xóa khi
+restart. Nếu triển khai nhiều replica, cần chuyển coordinator này sang kho dùng
+chung. Cấu hình hiện tại chạy một app Docker. Việc giãn request không bảo đảm
+nguồn bỏ challenge; nguồn vẫn cần cho phép truy cập hoặc cung cấp API/feed.
+
 ## 1. Tự tìm URL hoặc dùng URL có sẵn
 
 `POST /api/v1/admin/jobs/crawl` cần Bearer ADMIN. Bỏ `urls`, gửi null hoặc `[]` để discovery:
@@ -148,7 +181,7 @@ lượt kiểm tra tiếp theo dùng snapshot mới.
 
 Import/refresh/status ACTIVE enqueue vào vector_indexing_jobs, unique job/provider/model/content_hash. Worker chạy khi embedding provider bật; quota/usage attributed admin yêu cầu. Enqueue chưa có nghĩa vector đã sẵn sàng.
 
-Để dùng adapter hiện có, cấu hình `AI_ENABLED=true`, `AI_EMBEDDING_PROVIDER=openai`, `OPENAI_API_KEY` và model trả1536 chiều. Worker mặc định bật (`JOB_EMBEDDING_ENABLED=true`), kiểm queue mỗi30000ms (`JOB_EMBEDDING_FIXED_DELAY_MS`), trễ khởi động10000ms (`JOB_EMBEDDING_INITIAL_DELAY_MS`), tối đa10 task/lượt (`JOB_EMBEDDING_BATCH_SIZE`), lease300 giây (`JOB_EMBEDDING_LEASE_SECONDS`). Retry tối đa3 lần với khoảng nghỉ cơ sở30 giây (`JOB_EMBEDDING_RETRY_SECONDS`), tăng theo từng lần lỗi. Có thể tắt worker mà vẫn giữ task trong queue. Admin cần quota EMBEDDING còn đủ; xem error_message khi task lỗi.
+Để dùng adapter hiện có, cấu hình `AI_ENABLED=true`, `AI_EMBEDDING_PROVIDER=gemini`, `GEMINI_API_KEY` và model `gemini-embedding-001` trả1024 chiều. Worker mặc định bật (`JOB_EMBEDDING_ENABLED=true`), kiểm queue mỗi30000ms (`JOB_EMBEDDING_FIXED_DELAY_MS`), trễ khởi động10000ms (`JOB_EMBEDDING_INITIAL_DELAY_MS`), tối đa10 task/lượt (`JOB_EMBEDDING_BATCH_SIZE`), lease300 giây (`JOB_EMBEDDING_LEASE_SECONDS`). Retry tối đa3 lần với khoảng nghỉ cơ sở30 giây (`JOB_EMBEDDING_RETRY_SECONDS`), tăng theo từng lần lỗi. Có thể tắt worker mà vẫn giữ task trong queue. Admin cần quota EMBEDDING còn đủ; xem error_message khi task lỗi.
 
 Claim bằng FOR UPDATE SKIP LOCKED/lease, commit trước provider. Trước gọi provider kiểm admin còn hoạt động và job hợp lệ; sau response kiểm lại job ACTIVE/unexpired/hash/lease trước publish. Job đổi/hết hạn hoặc admin đã mất quyền khi chuẩn bị task → CANCELLED. Vector current cùng hash/provider/model được reuse.
 
@@ -165,7 +198,7 @@ crawl runs mới nhất; alias `/api/v1/admin/crawl-history`. Limit mặc địn
 0/từ 0 đến 100000. Endpoint cũ `GET /api/v1/admin/jobs/crawl` vẫn có hiệu lực; đọc chi tiết và các items
 bằng `GET /api/v1/admin/jobs/crawl/{id}`. Các endpoint lịch sử/chi tiết dành ADMIN.
 
-Search outcomes SEARCH_FETCHED/SEARCH_FETCH_FAILED. Detail outcomes IMPORTED/DUPLICATE/EXPIRED/WRONG_REGION/REJECTED/FETCH_FAILED/IMPORT_FAILED. Run COMPLETED/PARTIAL/FAILED; đọc items ngay cả khi HTTP200. Lỗi item không rollback tin khác.
+Search outcomes SEARCH_FETCHED/SEARCH_FETCH_FAILED/SEARCH_BLOCKED/SEARCH_DEFERRED. Detail outcomes IMPORTED/DUPLICATE/EXPIRED/WRONG_REGION/REJECTED/FETCH_FAILED/IMPORT_FAILED/SOURCE_BLOCKED/DEFERRED. Run COMPLETED/PARTIAL/FAILED; đọc items ngay cả khi HTTP200. Lỗi item không rollback tin khác. SOURCE_BLOCKED/SEARCH_BLOCKED giữ mã HTTP thực tế (có thể là 200 nếu nguồn trả challenge với HTTP 200); DEFERRED/SEARCH_DEFERRED không có HTTP vì chưa gọi nguồn. Số trang chi tiết đã xem chỉ tính URL đã thử tải, không gồm URL hoãn.
 
 Counters gồm search_pages_checked/candidate_urls_discovered/imported_skills và fetched/parsed/imported/duplicates/rejected/region. Imported skills chỉ tăng cho tin mới, không duplicate. Explicit mode không tăng search counters.
 

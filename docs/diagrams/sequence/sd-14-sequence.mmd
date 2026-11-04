@@ -7,7 +7,7 @@ sequenceDiagram
     participant AI as AiService
     participant Quota as EntitlementService
     participant DB as PostgreSQL pgvector
-    participant Model as Ollama EmbeddingModel
+    participant Model as Gemini EmbeddingModel
 
     C->>Client: Yêu cầu tạo vector CV
     Client->>API: POST /resumes/{id}/embedding

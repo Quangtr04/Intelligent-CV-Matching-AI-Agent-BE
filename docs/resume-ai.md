@@ -4,35 +4,13 @@ Các API dưới đây dùng tiền tố `/api/v1`. API riêng của ứng viên
 
 ## Cấu hình AI
 
-Backend hiện dùng adapter Ollama native cho model local trong Docker. `.env.example` bật AI; có thể
-tắt bằng `AI_ENABLED=false`. Ứng dụng import `.env` qua `spring.config.import`; biến môi trường của process
-có thể ghi đè giá trị file. Cấu hình backend host:
+Backend gọi Gemini qua Spring AI. Điền `GEMINI_API_KEY` trong backend `.env`, đặt `AI_ENABLED=true`, `AI_PROVIDER=gemini`, `AI_CHAT_PROVIDER=openai`, `AI_EMBEDDING_PROVIDER=gemini`, rồi khởi động lại backend. Chat mặc định `gemini-2.5-flash-lite`; embedding `gemini-embedding-001` với `AI_EMBEDDING_DIMENSIONS=1024`. Xem [cấu hình Gemini](gemini.md) và [dữ liệu/thứ tự Postman](postman-test-order.md).
 
-```powershell
-$env:AI_ENABLED = 'true'
-$env:AI_PROVIDER = 'ollama'
-$env:AI_CHAT_PROVIDER = 'ollama'
-$env:AI_EMBEDDING_PROVIDER = 'ollama'
-$env:OLLAMA_BASE_URL = 'http://localhost:11434'
-$env:AI_CHAT_MODEL = 'qwen2.5:7b'
-$env:AI_EMBEDDING_MODEL = 'qwen3-embedding:0.6b'
-$env:AI_EMBEDDING_DIMENSIONS = '1024'
-$env:AI_MAX_OUTPUT_TOKENS = '2000'
-```
+Vector PostgreSQL/pgvector phải có **1024 chiều**; V10 giữ vector 1536 cũ ở cột legacy riêng và yêu cầu reindex khi có dữ liệu cũ. Vector sai kích thước/không hữu hạn bị từ chối. Qdrant không nằm trong luồng hiện tại.
 
-Không cần API key thương mại. App trong Compose dùng URL nội bộ `http://ollama:11434`.
-Khởi động model theo [hướng dẫn Ollama](ollama.md); test từng request theo
-[dữ liệu và thứ tự Postman](postman-test-order.md). Backend gọi `ChatModel` và `EmbeddingModel` của
-Spring AI qua adapter Ollama. Vector mới trong PostgreSQL/pgvector có **1024 chiều**; V10 giữ vector
-1536 cũ ở cột legacy riêng và yêu cầu reindex khi có dữ liệu cũ. Vector sai kích thước/không hữu hạn bị từ chối.
-Qdrant không nằm trong luồng hiện tại.
+Admin có thể thay model chat bằng bản ghi `ai_configurations` loại `CHAT`, đang hoạt động và có provider `gemini`; model phải được tài khoản API cấp quyền. Model và prompt active được đọc cho mỗi lời gọi. Thay URL/model embedding cần sửa cấu hình triển khai và khởi động lại backend; model embedding phải khớp schema 1024 và dữ liệu cần index lại.
 
-Admin có thể thay model chat bằng bản ghi `ai_configurations` loại `CHAT`, đang hoạt động và có provider
-`ollama`; model phải có sẵn trên server local. Model này và prompt active được đọc cho mỗi lời gọi.
-Thay URL/model embedding cần sửa cấu hình triển khai và khởi động lại backend; model embedding phải khớp
-schema 1024 và dữ liệu cần index lại. Backend không có fallback sang API thương mại.
-
-Khi AI tắt, upload vẫn trích xuất văn bản và yêu cầu người dùng nhập/review dữ liệu. Phân tích CV trả chế độ `RULE_BASED`, chấm độ đầy đủ của các mục, với `ats_score: null`. Tạo CV bằng AI, chat và embedding trả HTTP 503 khi provider tương ứng chưa bật.
+Upload không gọi model AI: sau khi đọc văn bản/OCR, backend dùng quy tắc tiếng Việt/Anh để điền các trường CV, giữ văn bản gốc và yêu cầu review. Xem [bóc tách CV bằng quy tắc](resume-rule-based-parsing.md). Khi AI tắt, phân tích CV trả chế độ `RULE_BASED`, chấm độ đầy đủ của các mục, với `ats_score: null`. Tạo CV bằng AI, chat và embedding trả HTTP 503 khi provider tương ứng chưa bật.
 
 ## Quota và lỗi provider
 
@@ -149,5 +127,4 @@ Index chuyển `PROCESSING`, tạo embedding thật và ghi `vector_indexing_job
 Các suite CV/AI có thể chạy bằng `mvn '-Dtest=AiServiceTests,RagDocumentServiceTests,ResumeLifecycleTests,ResumeOwnershipTests,ResumeFileExtractorTests,CareerAssistantOwnershipTests,GuestTrialTests' test`.
 Chúng kiểm tra file, dữ liệu, quyền sở hữu, invalidation, retry embedding, chunk RAG và quota; model trong
 các suite này được mock. Test adapter và migration riêng không thay đánh giá chất lượng CV.
-Để kiểm thử inference/semantic retrieval thật, cần Ollama local đã tải model và PostgreSQL có pgvector;
-không cần API key. Xem [luồng Postman](postman-test-order.md) và [các smoke test Ollama](ollama.md).
+Để kiểm thử inference/semantic retrieval thật, cần `GEMINI_API_KEY` hợp lệ, quota provider và PostgreSQL có pgvector. Xem [luồng Postman](postman-test-order.md) và [cấu hình Gemini](gemini.md).

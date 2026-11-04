@@ -93,6 +93,58 @@ public class CareerAssistantService {
         return detail(thread);
     }
 
+    @Transactional
+    public Map<String, Object> update(
+        UUID id,
+        Map<String, Object> body) {
+        Map<String, Object> thread = activeOwnedForUpdate(id);
+        if (body.isEmpty())
+            return detail(thread);
+
+        Map<String, Object> updated = new LinkedHashMap<>(thread);
+        for (String field : List.of("title", "context_type")) {
+            if (!body.containsKey(field))
+                continue;
+            String value = ResumeData.text(body.get(field), field, field.equals("title") ? 255 : 30).trim();
+            if (value.isBlank())
+                throw ApiException.badRequest(field + " must not be blank");
+            updated.put(field, value);
+        }
+        for (String field : List.of("related_resume_id", "related_job_id")) {
+            if (!body.containsKey(field))
+                continue;
+            UUID contextId = CareerAssistantData.contextUuid(body.get(field));
+            if (contextId != null)
+                verifyContext(field, contextId);
+            updated.put(field, contextId);
+        }
+        if (!body.containsKey("context_type")
+            && (body.containsKey("related_resume_id") || body.containsKey("related_job_id"))) {
+            updated.put(
+                "context_type",
+                updated.get("related_job_id") != null
+                    ? "job"
+                    : updated.get("related_resume_id") != null ? "resume" : "general"
+            );
+        }
+        db.updateConversationDetails(
+            updated.get("title"),
+            updated.get("context_type"),
+            updated.get("related_resume_id"),
+            updated.get("related_job_id"),
+            Instant.now(),
+            id
+        );
+        return detail(db.getCareerAssistantConversationsById(id));
+    }
+
+    @Transactional
+    public void clearMessages(
+        UUID id) {
+        activeOwnedForUpdate(id);
+        db.clearConversationMessages(id);
+    }
+
     public Map<String, Object> getGuest(
         UUID id,
         String key) {
@@ -177,6 +229,8 @@ public class CareerAssistantService {
         Map<String, Object> locked = db.getCareerAssistantConversationsByIdForUpdate(id);
         if (!"ACTIVE".equals(locked.get("status")))
             throw ApiException.conflict("Conversation was closed while the response was being generated");
+        if (!Objects.equals(thread.get("updated_at"), locked.get("updated_at")))
+            throw ApiException.conflict("Conversation changed while the response was being generated; please retry");
 
         Instant sentAt = Instant.now(), answeredAt = sentAt.plusMillis(1);
 
@@ -231,13 +285,15 @@ public class CareerAssistantService {
         return output;
     }
 
+    @Transactional
     public void archive(
         UUID id) {
-        owned(id, null);
+        activeOwnedForUpdate(id);
 
         db.updateCareerAssistantConversationsById2(id);
     }
 
+    @Transactional
     public Map<String, Object> feedback(
         UUID message,
         Map<String, Object> body) {
@@ -246,6 +302,8 @@ public class CareerAssistantService {
         Object rating = CareerAssistantData.feedbackRating(body.get("rating"));
 
         Object helpful = CareerAssistantData.feedbackHelpful(body.get("is_helpful"));
+        db.getCareerAssistantConversationsByIdForUpdate(row.get("conversation_id"));
+        db.getCareerAssistantMessagesById2(message);
 
         Map<String, Object> fields = new LinkedHashMap<>();
         fields.put("message_id", message);
@@ -257,7 +315,27 @@ public class CareerAssistantService {
             body.get("feedback_text") == null ? null : ResumeData.text(body.get("feedback_text"), "feedback_text", 4000)
         );
 
+        db.deleteMessageFeedback(message, current.id());
         return db.getCareerAssistantFeedbackById(db.insertCareerAssistantFeedback(fields));
+    }
+
+    @Transactional
+    public void clearFeedback(
+        UUID message) {
+        Map<String, Object> row = db.getCareerAssistantMessagesById2(message);
+        current.owns(row, "user_id");
+        db.getCareerAssistantConversationsByIdForUpdate(row.get("conversation_id"));
+        db.getCareerAssistantMessagesById2(message);
+        db.deleteMessageFeedback(message, current.id());
+    }
+
+    private Map<String, Object> activeOwnedForUpdate(
+        UUID id) {
+        Map<String, Object> thread = db.getCareerAssistantConversationsByIdForUpdate(id);
+        current.owns(thread, "user_id");
+        if (!"ACTIVE".equals(thread.get("status")))
+            throw ApiException.conflict("Conversation is not active");
+        return thread;
     }
 
     private Map<String, Object> owned(

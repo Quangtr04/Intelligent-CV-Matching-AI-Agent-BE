@@ -3,6 +3,7 @@ package com.example.intelligent_cv_matching_ai_agent.service.candidate.resume;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.resume.ResumeFileExtractor;
 
 import com.example.intelligent_cv_matching_ai_agent.util.shared.resume.ResumeData;
+import com.example.intelligent_cv_matching_ai_agent.util.shared.resume.ResumeTextParser;
 
 import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiService;
 import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiResponseCache;
@@ -20,6 +21,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.web.multipart.MultipartFile;
 import tools.jackson.databind.ObjectMapper;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.resume.ExtractedResume;
+import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.ai.AISupportRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.response.candidate.resume.ResumeDownloadResponse;
 
 import java.nio.charset.StandardCharsets;
@@ -32,6 +34,8 @@ import com.example.intelligent_cv_matching_ai_agent.util.candidate.resume.Resume
 import com.example.intelligent_cv_matching_ai_agent.util.candidate.resume.ResumeInput;
 import com.example.intelligent_cv_matching_ai_agent.util.candidate.resume.ResumeWritingQuality;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.FlowSupport;
+import com.example.intelligent_cv_matching_ai_agent.util.shared.ai.CvAnalysisLanguage;
+import com.example.intelligent_cv_matching_ai_agent.util.shared.ai.CvSupportResponseSchema;
 import static com.example.intelligent_cv_matching_ai_agent.util.shared.Values.object;
 
 @Service
@@ -127,19 +131,8 @@ public class ResumeService {
         String extension = extracted.filename().substring(extracted.filename().lastIndexOf('.'));
         String fileKey = UUID.randomUUID() + extension.toLowerCase(Locale.ROOT);
         write(fileKey, extracted.bytes());
-        Map<String, Object> structured = ResumeData.normalize(Map.of());
-        String error = null;
-        String parseStatus = "COMPLETED";
-
-        if (ai.enabled() && !extracted.text().isBlank()) {
-            try {
-                structured = ResumeData
-                    .normalize(ai.generate("CV_PARSE", Map.of("raw_text", extracted.text(), "language", lang)));
-            } catch (ApiException ex) {
-                error = ex.getMessage();
-                parseStatus = "FAILED";
-            }
-        }
+        Map<String, Object> structured = ResumeData.normalize(ResumeTextParser.parse(extracted.text()));
+        String parseStatus = extracted.text().isBlank() ? "FAILED" : "COMPLETED";
 
         Map<String, Object> values = new LinkedHashMap<>();
         values.put("user_id", user);
@@ -160,7 +153,7 @@ public class ResumeService {
 
         Map<String, Object> parse = new LinkedHashMap<>();
         parse.put("resume_id", id);
-        parse.put("parser_name", ai.enabled() ? extracted.parser() + "_AI" : extracted.parser());
+        parse.put("parser_name", extracted.parser() + "_RULES");
         parse.put("parser_version", "1");
         parse.put("ocr_used", extracted.ocrUsed());
         parse.put("raw_text", extracted.text());
@@ -169,9 +162,7 @@ public class ResumeService {
         parse.put("status", parseStatus);
         parse.put(
             "error_message",
-            error != null
-                ? error
-                : extracted.text().isBlank() ? "No text found; enable OCR or enter CV information manually" : null
+            extracted.text().isBlank() ? "No text found; enable OCR or enter CV information manually" : null
         );
 
         db.insertResumeParseResults(parse);
@@ -379,17 +370,6 @@ public class ResumeService {
             return response;
         }
 
-        Optional<Map<String, Object>> saved = db.findResumeAnalysisByInput(id, mode, inputHash, current.id());
-        if (saved.isPresent()) {
-            UUID savedId = ResumeInput.optionalUuid(saved.get().get("id"));
-            Map<String, Object> response = savedId == null ? Map.of() : analysis(savedId, id);
-            if (validCachedAnalysis(response, id, mode)) {
-                response.put("cached", true);
-                responseCache.putAfterCommit(cacheKey, cacheIdentity, response, Duration.ofHours(24));
-                return response;
-            }
-        }
-
         Map<String, Object> result;
         if (useAi) {
             Map<String, Object> generated = ai.generate("CV_ANALYZE", input);
@@ -409,7 +389,6 @@ public class ResumeService {
         Map<String, Object> fields = new LinkedHashMap<>();
         fields.put("resume_id", id);
         fields.put("analysis_type", mode);
-        fields.put("input_hash", inputHash);
         fields.put("overall_score", result.get("overall_score"));
         fields.put("ats_score", result.get("ats_score"));
         fields.put("summary", result.get("summary"));
@@ -451,7 +430,7 @@ public class ResumeService {
         String mode) {
         if (!resumeId.toString().equals(Objects.toString(response.get("resume_id"), ""))
             || !mode.equals(response.get("analysis_type")) || !(response.get("suggestions") instanceof List<?>)
-            || !(response.get("overall_score") instanceof Number))
+            || !(response.get("overall_score") instanceof Number) || !CvAnalysisLanguage.isValid(response))
             return false;
         try {
             UUID.fromString(Objects.toString(response.get("id"), ""));
@@ -471,9 +450,11 @@ public class ResumeService {
     public Map<String, Object> analysis(
         UUID analysisId,
         UUID resumeId) {
-        owned(resumeId);
+        Map<String, Object> resume = owned(resumeId);
         Map<String, Object> result = ResumeWritingQuality.expose(db.getResumeAnalysesById(analysisId, resumeId));
         result.put("suggestions", db.listResumeAnalysisSuggestionsByAnalysisId(analysisId));
+        result.put("response_language", Objects.toString(resume.get("language"), "vi"));
+        result.put("language_valid", CvAnalysisLanguage.isValid(result));
 
         return result;
     }
@@ -678,5 +659,57 @@ public class ResumeService {
             throw ApiException.forbidden("Invalid file path");
 
         return target;
+    }
+
+    public Map<String, Object> aiSupport(
+        AISupportRequest input) {
+        current.id();
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("question", input.question());
+        data.put("is_urgent", input.urgent());
+        Map<String, Object> resume = input.resumeId() == null ? Map.of() : owned(input.resumeId());
+        data.put(
+            "language",
+            ResumeInput.language(input.language() == null ? resume.get("language") : input.language())
+        );
+        if (!resume.isEmpty()) {
+            Map<String, Object> source = ResumeWritingQuality.source(resume);
+            if ("REVIEWED_STRUCTURED".equals(source.get("content_authority"))) {
+                source.remove("raw_text");
+            }
+            data.put("resume", source);
+        }
+        Map<String, Object> section = new LinkedHashMap<>();
+        if (input.field() != null) {
+            section.put("field", input.field());
+        }
+        for (Map.Entry<String, String> entry : Map.of(
+            "current_text",
+            Objects.toString(input.currentText(), ""),
+            "position",
+            Objects.toString(input.position(), ""),
+            "title",
+            Objects.toString(input.title(), ""),
+            "subtitle",
+            Objects.toString(input.subtitle(), ""),
+            "background",
+            Objects.toString(input.background(), "")
+        ).entrySet()) {
+            if (!entry.getValue().isBlank()) {
+                section.put(entry.getKey(), entry.getValue());
+            }
+        }
+        if (input.skills() != null && !input.skills().isEmpty()) {
+            section.put("skills", List.copyOf(input.skills()));
+        }
+        data.put("section", section);
+
+        Map<String, Object> result = ai.generate("CV_AI_SUPPORT", data);
+        try {
+            CvSupportResponseSchema.validateProposal(result, data);
+        } catch (IllegalArgumentException failure) {
+            throw new ApiException(502, "AI CV support returned an invalid proposal: " + failure.getMessage());
+        }
+        return result;
     }
 }

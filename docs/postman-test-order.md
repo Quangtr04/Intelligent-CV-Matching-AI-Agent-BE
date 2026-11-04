@@ -1,4 +1,4 @@
-# Postman: dữ liệu mẫu và thứ tự kiểm thử với Ollama
+# Postman: dữ liệu mẫu và thứ tự kiểm thử với Gemini
 
 Cập nhật **22/10/2026** theo controller, DTO và service trong backend. Bắt đầu bằng luồng tạo CV ở mục 2–3,
 sau đó mở rộng theo bảng thứ tự cuối tài liệu. [Danh mục API đầy đủ](postman-api-guide.md) dùng để tra các
@@ -6,14 +6,14 @@ field tùy chọn, quyền và những nhánh ngoài luồng chính.
 
 | Cần làm | Đọc phần |
 | --- | --- |
-| Tạo CV thật bằng Ollama | Chuẩn bị và đăng nhập ở mục 1–2 → [luồng CV ở mục 3](#tao-cv-ollama) |
+| Tạo CV thật bằng Gemini | Chuẩn bị và đăng nhập ở mục 1–2 → [luồng CV ở mục 3](#tao-cv-ai) |
 | So CV với mục tiêu và hồ sơ nghề nghiệp cá nhân | [Lưu hồ sơ → tạo/review/confirm CV → chủ động đối chiếu lần đầu → sửa hồ sơ → theo dõi đánh giá lại trong nền](cv-profile-alignment.md) |
 | Chạy các nhóm chức năng theo đúng phụ thuộc | [Thứ tự folder ở mục 5](#thu-tu-toan-bo) |
 | Tra body/quyền cho API ngoài ví dụ chính | [Danh mục Postman](postman-api-guide.md) |
 
 Các response/status bên dưới là **kết quả cần kiểm tra**, không phải kết quả đã chạy Postman. Lượt viết
 tài liệu này không tạo tài khoản, gửi mail, gọi model, crawl hoặc tạo giao dịch. Nội dung CV là dữ liệu giả lập.
-Không lấy điểm ATS hoặc nội dung mẫu trên frontend làm bằng chứng Ollama đã sinh CV.
+Không lấy điểm ATS hoặc nội dung mẫu trên frontend làm bằng chứng Gemini đã sinh CV.
 
 ## 1. Chuẩn bị một lượt test
 
@@ -26,28 +26,18 @@ Backend hiện dùng:
 
 ```dotenv
 AI_ENABLED=true
-AI_PROVIDER=ollama
-AI_CHAT_PROVIDER=ollama
-AI_EMBEDDING_PROVIDER=ollama
-AI_CHAT_MODEL=qwen2.5:7b
-AI_EMBEDDING_MODEL=qwen3-embedding:0.6b
+AI_PROVIDER=gemini
+AI_CHAT_PROVIDER=openai
+AI_EMBEDDING_PROVIDER=gemini
+AI_CHAT_MODEL=gemini-2.5-flash-lite
+AI_EMBEDDING_MODEL=gemini-embedding-001
 AI_EMBEDDING_DIMENSIONS=1024
-OLLAMA_BASE_URL=http://localhost:11434
+GEMINI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai
 ```
 
-Đây là cấu hình **backend host/IDE**. App trong Compose dùng `http://ollama:11434`. Không gửi các key này
-trong body `/resumes/build`, và không sửa các credential DB/JWT để chạy test. Nếu thay `.env`, khởi động
-lại đúng process/container để nạp cấu hình. Thay biến Environment của Postman không thay cấu hình backend.
+Cấu hình này dùng cho backend host/IDE và container. Đặt key thật vào `GEMINI_API_KEY` trong backend `.env`, không gửi key trong body API hoặc Postman Environment. Khởi động lại backend sau khi đổi `.env`. Thay biến Environment của Postman không thay cấu hình backend.
 
-Khi cần khởi động model cho backend host, chạy tại thư mục chứa `pom.xml`:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-ollama.ps1 -ExposeToHost -Gpu -SmokeTest
-```
-
-Bỏ `-Gpu` nếu Docker chưa hỗ trợ NVIDIA. Cách chạy backend, PostgreSQL/pgvector và các manifest xem
-[hướng dẫn Ollama](ollama.md). Schema phải áp dụng V10; database có vector 1536 cũ cần index lại bằng
-model 1024 mới. Không cắt/pad vector cũ. Backend và model container là hai thành phần riêng.
+Schema phải áp dụng V10; database có vector cũ cần index lại bằng model 1024 chiều hiện tại. Không cắt/pad vector cũ. Xem [hướng dẫn Gemini](gemini.md).
 
 Để đăng ký bằng email mẫu bên dưới: dùng profile **`dev` hoặc `docker`**, đặt
 `AUTH_EXPOSE_DEV_OTP=true` trước khi khởi động backend. Register sẽ trả `developmentCode`, không gửi mail.
@@ -56,7 +46,7 @@ Nếu đã có tài khoản Candidate active, bỏ qua register/verify và bắt
 
 ### 1.2. Environment và cách gửi request
 
-Tạo Environment **EduNexus Ollama Local**, chọn nó làm Environment đang dùng:
+Tạo Environment **EduNexus Gemini Local**, chọn nó làm Environment đang dùng:
 
 | Biến | Giá trị khởi tạo |
 | --- | --- |
@@ -68,19 +58,19 @@ Tạo Environment **EduNexus Ollama Local**, chọn nó làm Environment đang d
 | `candidateAccessToken`, `candidateRefreshToken`, `activeToken` | Để trống; lấy từ login |
 | `candidateId` | Để trống; lấy từ `GET /me` |
 | `resumeId`, `analysisId`, `resumeEmbeddingId` | Để trống; lấy lần lượt từ build, analyses và embedding |
-| `aiProvider` | `ollama` |
-| `aiChatModel` | `qwen2.5:7b` — đổi nếu runtime đã chủ động cấu hình model local khác |
-| `aiEmbeddingModel` | `qwen3-embedding:0.6b` |
+| `aiProvider` | `gemini` |
+| `aiChatModel` | `gemini-2.5-flash-lite` — đổi nếu runtime đã chủ động cấu hình model khác |
+| `aiEmbeddingModel` | `gemini-embedding-001` |
 | `jobId`, `matchingRunId`, `matchResultId`, `ragDocumentId` | Để trống; chỉ dùng ở nhánh mở rộng |
 | `assistantConversationId`, `assistantMessageId` | Để trống |
 | `adminEmail`, `adminPassword`, `adminAccessToken` | Chỉ điền khi test nhánh quản trị bằng tài khoản thực của bạn |
 
-Tạo Collection **EduNexus — Ollama**, đặt **No Auth** ở cấp Collection. Mỗi request cần đăng nhập chọn
+Tạo Collection **EduNexus — Gemini**, đặt **No Auth** ở cấp Collection. Mỗi request cần đăng nhập chọn
 **Bearer Token**, nhập `{{candidateAccessToken}}` hoặc `{{adminAccessToken}}`, không nhập thêm chữ `Bearer`.
 Request public chọn **No Auth**. JSON dùng **Body → raw → JSON**, `Content-Type: application/json`;
 request ghi **none** không gửi body. Các URL API đã có `/api/v1` trong `baseUrl`, không thêm lần nữa.
 
-Đặt request timeout khoảng **600000 ms** khi thử model local. Gửi tuần tự; lần load model đầu có thể lâu.
+Đặt request timeout lớn hơn `AI_REQUEST_TIMEOUT=PT2M` của backend khi kiểm tra AI và gửi tuần tự.
 Khi timeout, kiểm tra danh sách/lịch sử trước khi gửi lại POST vì server có thể đã hoàn tất request.
 Không cố định ngưỡng 1–2 giây để đánh giá pass/fail inference.
 
@@ -232,9 +222,9 @@ Nếu muốn thêm skill theo catalog, `GET {{baseUrl}}/skills` (No Auth), chọ
 `skills: [{"skillId":"{{skillId}}","proficiencyLevel":"BEGINNER","yearsExperience":0}]`.
 Không cần profile skill để test builder: dữ liệu kỹ năng sẽ được gửi trong CV ở mục sau.
 
-<a id="tao-cv-ollama"></a>
+<a id="tao-cv-ai"></a>
 
-## 3. Tạo CV bằng Ollama — chạy lần lượt
+## 3. Tạo CV bằng Gemini — chạy lần lượt
 
 Trạng thái: **EXPECTED / CHƯA CHẠY**. Luồng được đối chiếu source ngày 22/10/2026; không gọi API, model hoặc sửa dữ liệu trong quá trình soạn. Các assertion dưới đây mô tả kết quả cần kiểm tra, không phải kết quả đã nghiệm thu. Build thành công và JSON đúng schema chưa chứng minh chất lượng nội dung CV.
 
@@ -242,7 +232,7 @@ Trạng thái: **EXPECTED / CHƯA CHẠY**. Luồng được đối chiếu sour
 
 Dùng tài khoản test đã đăng nhập; chọn **Authorization → Bearer Token → `{{candidateAccessToken}}`** cho folder này. `GET /resumes/templates` public; các bước còn lại cần token và CV thuộc chính tài khoản đó. Không dùng header guest cho luồng này.
 
-Backend cần chạy bản có migration V10, native Ollama, model chat và embedding đã tải. Với cấu hình mặc định: provider `ollama`, chat `qwen2.5:7b`, embedding `qwen3-embedding:0.6b`, vector 1024 chiều. Model chat active do Admin lưu có thể ghi đè model trong môi trường; `aiChatModel` phải phản ánh model hiệu lực. Endpoint của Postman là **backend**, không phải port Ollama 11434.
+Backend cần migration V10, `GEMINI_API_KEY` hợp lệ và quota ứng dụng đủ. Mặc định provider `gemini`, chat `gemini-2.5-flash-lite`, embedding `gemini-embedding-001`, vector 1024 chiều. Model chat active do Admin lưu có thể ghi đè model trong môi trường; `aiChatModel` phải phản ánh model hiệu lực. Endpoint Postman là backend của ứng dụng.
 
 Tăng request timeout trong Postman đủ cho suy luận local lần đầu, ví dụ 600000 ms nếu môi trường cần. Giới hạn output 256 token của smoke chào hỏi không phù hợp để sinh một CV đầy đủ; đối chiếu `AI_MAX_OUTPUT_TOKENS` của backend khi gặp output bị cắt. Cấu hình mặc định là 2000 token, context chat 8192; model vẫn phải trả JSON hoàn chỉnh.
 
@@ -255,12 +245,12 @@ Tăng request timeout trong Postman đủ cho suy luận local lần đầu, ví
 | `reviewedStructuredData` | JSON object đầy đủ từ GET CV, sau khi người kiểm tra đã sửa/đối chiếu dữ kiện |
 | `resumeEmbeddingId` | `id` từ endpoint embedding; khác `resumeId` |
 | `analysisId` | `id` của báo cáo chất lượng CV; khác ATS report theo job |
-| `aiChatModel` | Mặc định `qwen2.5:7b`, điều chỉnh theo model hiệu lực |
-| `aiEmbeddingModel` | Mặc định `qwen3-embedding:0.6b` |
+| `aiChatModel` | Mặc định `gemini-2.5-flash-lite`, điều chỉnh theo model hiệu lực |
+| `aiEmbeddingModel` | Mặc định `gemini-embedding-001` |
 
 Thứ tự: **templates → build → GET review → PATCH review → confirm READY → primary → embedding → analyses → GET analyses → download**. Nếu chưa review xong thì dừng trước confirm.
 
-Build dùng quota `CV_BUILD`; phân tích dùng `CV_ANALYZE`; embedding dùng `EMBEDDING` và tổng `AI_TOTAL_TOKENS`. Backend giữ chỗ budget trước khi gọi model; budget dựa trên byte đầu vào và giới hạn output, không chỉ số token cuối cùng. Vì vậy quota còn nhỏ có thể bị từ chối trước khi gọi Ollama. Không khẳng định local model miễn quota của ứng dụng. Đừng chạy Runner lặp build/analysis không cần thiết.
+Build dùng quota `CV_BUILD`; phân tích dùng `CV_ANALYZE`; embedding dùng `EMBEDDING` và tổng `AI_TOTAL_TOKENS`. Backend giữ chỗ budget trước khi gọi model; budget dựa trên byte đầu vào và giới hạn output, không chỉ số token cuối cùng. Vì vậy quota còn nhỏ có thể bị từ chối trước khi gọi Gemini. Quota ứng dụng và quota/số dư Gemini là hai giới hạn riêng. Đừng chạy Runner lặp build/analysis không cần thiết.
 
 ### 3.2. GET template thật
 
@@ -460,7 +450,7 @@ pm.test("Embedding metadata đúng CV/model", () => {
   pm.response.to.have.status(200);
   const r = pm.response.json();
   pm.expect(r.resume_id).to.eql(pm.environment.get("resumeId"));
-  pm.expect(r.provider).to.eql("ollama");
+  pm.expect(r.provider).to.eql("gemini");
   pm.expect(r.model).to.eql(pm.environment.get("aiEmbeddingModel"));
   pm.expect(r.is_current).to.eql(true);
   pm.expect(r.content_hash).to.match(/^[0-9a-f]{64}$/i);
@@ -468,11 +458,11 @@ pm.test("Embedding metadata đúng CV/model", () => {
 });
 ```
 
-Nếu kiểm reuse, gọi lại ngay với nội dung/model không đổi và **so sánh `id` với giá trị đã lưu trước khi ghi đè biến**. Expected cùng `id`, không có suy luận mới. Sau PATCH thay đổi nội dung, phải review/confirm lại rồi tạo embedding mới. Legacy 1536 chiều được giữ riêng bởi V10, không phải vector dùng cho model Qwen mới.
+Nếu kiểm reuse, gọi lại ngay với nội dung/model không đổi và **so sánh `id` với giá trị đã lưu trước khi ghi đè biến**. Expected cùng `id`, không có suy luận mới. Sau PATCH thay đổi nội dung, phải review/confirm lại rồi tạo embedding mới. Legacy 1536 chiều được giữ riêng bởi V10, không phải vector dùng cho model hiện tại.
 
 ### 3.9. Phân tích chất lượng bằng AI
 
-**POST `{{baseUrl}}/resumes/{{resumeId}}/analyses`**, Body none. Expected `200` và **`analysis_type="AI_QUALITY"`** khi đang nghiệm thu Ollama. Không cần embedding để chạy quality analysis; thứ tự mục 3.8 chỉ để kiểm cả hai khả năng riêng biệt.
+**POST `{{baseUrl}}/resumes/{{resumeId}}/analyses`**, Body none. Expected `200` và **`analysis_type="AI_QUALITY"`** khi đang nghiệm thu Gemini. Không cần embedding để chạy quality analysis; thứ tự mục 3.8 chỉ để kiểm cả hai khả năng riêng biệt.
 
 Key chính: `id`, `resume_id`, `analysis_type`, `overall_score`, `ats_score`, `summary`, `strengths_json`, `issues_json`, `model_name`, `created_at`, `suggestions`, `writing_quality`. Mỗi suggestion có thể gồm `id`, `analysis_id`, `category`, `severity`, `original_content`, `suggested_content`, `explanation`, `accepted`, `created_at`; không bắt buộc mọi giá trị đều khác null.
 
@@ -502,7 +492,7 @@ pm.test("Đã lưu phân tích AI đúng model", () => {
 
 Không assert một điểm cố định hay khẳng định CV được chấm đúng chỉ vì score nằm trong 0..100. Đây là CV quality tổng quát chưa gắn JD, không phải độ phù hợp CV–job hay accuracy của matching.
 
-AI tắt có thể vẫn trả `200`, `analysis_type="RULE_BASED"`, `model_name="rules-v1"`, `ats_score=null`; đây là baseline đủ mục CV, **không được ghi nhận là AI/Ollama thành công**. `writing_quality` chưa khả dụng trong baseline hoặc báo cáo cũ chưa có rubric; không gán điểm 0 thay cho thiếu đánh giá. Gọi analyses lần nữa tạo báo cáo mới; endpoint này không cam kết cache báo cáo.
+AI tắt có thể vẫn trả `200`, `analysis_type="RULE_BASED"`, `model_name="rules-v1"`, `ats_score=null`; đây là baseline đủ mục CV, **không được ghi nhận là AI/Gemini thành công**. `writing_quality` chưa khả dụng trong baseline hoặc báo cáo cũ chưa có rubric; không gán điểm 0 thay cho thiếu đánh giá. Gọi analyses lần nữa tạo báo cáo mới; endpoint này không cam kết cache báo cáo.
 
 ### 3.10. Đọc lại báo cáo và usage
 
@@ -510,7 +500,7 @@ AI tắt có thể vẫn trả `200`, `analysis_type="RULE_BASED"`, `model_name=
 
 **GET `{{baseUrl}}/resumes/{{resumeId}}/analyses/{{analysisId}}`**: expected `200`, `id`/`resume_id` đúng, có `suggestions` dạng mảng. Không dùng ID báo cáo ATS của job ở vị trí `analysisId` này.
 
-**GET `{{baseUrl}}/ai/usage?limit=20&offset=0`** bằng cùng token: đối chiếu các lần gọi `CV_BUILD`, `EMBEDDING`, `CV_ANALYZE`, provider `ollama`, model tương ứng, tokens/latency/success. Cache embedding hợp lệ không phát sinh lời gọi model mới. Không lấy số lần Send làm số lần model thực sự chạy; build/analysis thất bại sau provider response vẫn có thể đã tiêu token.
+**GET `{{baseUrl}}/ai/usage?limit=20&offset=0`** bằng cùng token: đối chiếu các lần gọi `CV_BUILD`, `EMBEDDING`, `CV_ANALYZE`, provider `gemini`, model tương ứng, tokens/latency/success. Cache embedding hợp lệ không phát sinh lời gọi model mới. Không lấy số lần Send làm số lần model thực sự chạy; build/analysis thất bại sau provider response vẫn có thể đã tiêu token.
 
 Nếu cần đánh giá CV có thể hiện đúng mục tiêu/hồ sơ cá nhân, sau confirm READY gửi riêng
 `POST {{baseUrl}}/resumes/{{resumeId}}/profile-alignments`, **Body none**. Lưu `alignmentId` và đọc lại
@@ -550,9 +540,9 @@ Chạy ca lỗi trên bản test riêng, tránh phá trạng thái CV đang dùn
 | Confirm không có raw text, summary hoặc section nào có nội dung | `400` |
 | Quota feature bị cấu hình bằng 0 | `403`; khác trường hợp hết token |
 | Tổng/feature quota không đủ để giữ chỗ | `429`; số token tiêu thực tế nhỏ chưa đảm bảo budget được chấp nhận |
-| Free tier hoặc tổng quota chưa cấu hình | `503`; kiểm catalog/quota, không tự coi đây là lỗi Ollama |
+| Free tier hoặc tổng quota chưa cấu hình | `503`; kiểm catalog/quota, không tự coi đây là lỗi Gemini |
 | Build khi AI tắt; embedding khi provider tắt | `503` |
-| Ollama không liên lạc được, model chưa tải/sai tên, JSON output sai hoặc thiếu schema mảng/score | Thường `502` tại AiService; không có paid-provider fallback |
+| Gemini không liên lạc được, key/model không có quyền hoặc sai tên, JSON output sai hoặc thiếu schema mảng/score | Thường `502` tại AiService; không có paid-provider fallback |
 | JSON model qua kiểm tra ban đầu nhưng section chứa ngày/kiểu dữ liệu sai khi ResumeData.normalize | Có thể `400` ở bước normalize sau model; ghi lại status/detail thực tế, không hứa mọi output AI lỗi đều `502` |
 | Embedding khác 1024 chiều, giá trị không hữu hạn, input vượt context với truncate=false | `502`; không cắt/nối vector để ép hợp lệ |
 | CV đổi trong lúc embedding | `409`; lấy bản mới, review/confirm, thử lại |
@@ -571,7 +561,7 @@ Kết quả cần ghi sau khi chạy: thời gian, model hiệu lực, CV ID/bá
 - `controller/candidate/resume/ResumeController.java`: routes, request body optional, download headers.
 - `service/candidate/resume/ResumeService.java`: build/review/confirm/primary/embedding/analysis/download.
 - `repository/candidate/resume/ResumeRepository.java`: response metadata và persistence sections.
-- `service/shared/ai/AiService.java`: native Ollama options, quota reservation, output validation, 1024 chiều.
+- `service/shared/ai/AiService.java`: OpenAI SDK options để gọi Gemini, quota reservation, output validation, 1024 chiều.
 - `service/shared/billing/EntitlementService.java`: quota tổng/feature và lỗi 403/429/503.
 - `util/candidate/resume/ResumeContent.java`: canonical text và RULE_BASED baseline.
 
@@ -620,7 +610,7 @@ mỗi POST tạo một job mới. Sau đó:
 | Thứ tự | Request — Bearer Admin, body none | Điều kiện đi tiếp |
 | --- | --- | --- |
 | 1 | `POST {{baseUrl}}/admin/jobs/{{jobId}}/index` | Có tác vụ index; `id` trả về là ID tác vụ, không ghi đè `jobId` |
-| 2 | `GET {{baseUrl}}/admin/jobs/{{jobId}}/index` | Có tác vụ đúng `ollama`/`qwen3-embedding:0.6b`, `status: "COMPLETED"` |
+| 2 | `GET {{baseUrl}}/admin/jobs/{{jobId}}/index` | Có tác vụ đúng `gemini`/`gemini-embedding-001`, `status: "COMPLETED"` |
 | 3 | `GET {{baseUrl}}/jobs/{{jobId}}` | Job vẫn `ACTIVE`; route GET này có thể chọn No Auth |
 
 Nếu index `FAILED`, xử lý lỗi model/vector trước khi matching. Không chỉ dựa vào HTTP 200 của POST index.
@@ -753,11 +743,11 @@ file scan không có text, hỏng hoặc mã hóa bị từ chối. Xem
 ## 5. Thứ tự test toàn bộ theo folder
 
 Không chạy thẳng toàn bộ catalog từ trên xuống. Các số dưới là thứ tự folder gợi ý; mỗi folder dừng
-khi prerequisite chưa đạt. Những nhánh quản trị/thanh toán/tư vấn không bắt buộc để test CV bằng Ollama.
+khi prerequisite chưa đạt. Những nhánh quản trị/thanh toán/tư vấn không bắt buộc để test CV bằng Gemini.
 
 | Folder | Nhóm test | Điều kiện và dữ liệu chuyển tiếp | Hướng dẫn |
 | --- | --- | --- | --- |
-| 00 | Health và cấu hình | Backend/DB UP; hai model local đã tải; quota/timeout phù hợp | Mục 1 |
+| 00 | Health và cấu hình | Backend/DB UP; API key/model được cấp quyền; quota/timeout phù hợp | Mục 1 |
 | 01 | Candidate auth | Register → verify → login → `/me`; lưu token/ID | Mục 2 |
 | 02 | Profile và quota | Kiểm tra Free; cập nhật mục tiêu nghề trên tài khoản test | Mục 2 |
 | 03 | CV AI | Templates → build → review/PATCH → confirm → primary → embedding → analysis → usage/download | Mục 3 |
@@ -793,10 +783,10 @@ Tạo request negative riêng, không sửa body của request chuẩn đang dù
 | Chưa confirm | `POST /resumes/{{resumeId}}/embedding` hoặc `/analyses` khi status REVIEW_REQUIRED | `409`; sau đó quay lại confirm ở luồng chuẩn |
 | Sai quyền Admin | Candidate gọi `POST /admin/rag/documents` | `403` |
 | Sai chủ sở hữu | Candidate B đọc UUID CV của Candidate A | `404`, không lộ nội dung CV; dùng hai tài khoản test riêng |
-| Không có job vector mới | Matching khi job chưa index model Ollama | Có thể `409`; chuẩn bị job đúng model trước khi kết luận thuật toán lỗi |
+| Không có job vector mới | Matching khi job chưa index model Gemini | Có thể `409`; chuẩn bị job đúng model trước khi kết luận thuật toán lỗi |
 | Quota không đủ | Tài khoản test được chuẩn bị hạn mức thấp | `429`; không lặp request để cố tiêu hết quota tài khoản đang dùng |
 | AI tắt | Môi trường test riêng với `AI_ENABLED=false` | Build/embedding/chat `503`; analysis CV READY có nhánh RULE_BASED, không phải model pass |
-| Model lỗi/JSON không hợp lệ | Model local chưa sẵn sàng hoặc output sai schema | Thường `502`; đọc log/usage, không ghi CV_BUILD PASS |
+| Model lỗi/JSON không hợp lệ | API key/model chưa sẵn sàng hoặc output sai schema | Thường `502`; đọc log/usage, không ghi CV_BUILD PASS |
 
 Không thay model/AI_ENABLED/quota của môi trường đang có người dùng chỉ để ép negative case. Có thể đánh
 dấu **BLOCKED/chưa chạy** nếu không có môi trường phù hợp. Test trạng thái/ownership cần giữ nguyên
@@ -807,7 +797,7 @@ Các lỗi thường gặp:
 - `401`: access token 15 phút đã hết hạn; refresh/login và cập nhật token. Request public phải bỏ Bearer cũ.
 - `403`: sai role, email chưa verify hoặc feature bị chặn bởi gói; kiểm tra `/me` và `/subscriptions/me`.
 - `429`: xem quota/usage/reservation; output bị lỗi JSON sau khi model đã trả lời vẫn có thể tiêu token.
-- `502`: kiểm tra `docker compose logs --tail 100 ollama`, model đã pull, bộ nhớ và schema đầu ra.
+- `502`: kiểm tra API key/quyền model, quota Gemini, kết nối mạng và schema đầu ra.
 - `503`: kiểm tra provider bật, SMTP/OTP profile hoặc dependency theo nội dung lỗi.
 - Timeout client: xem `GET /resumes`, history/usage và log trước khi gửi lại POST; không giả định server đã hủy xử lý.
 

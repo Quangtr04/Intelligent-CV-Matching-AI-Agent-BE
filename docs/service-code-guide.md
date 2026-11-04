@@ -2,9 +2,9 @@
 
 Đối chiếu mã nguồn ngày **20/10/2026** tại repository `INTELLIGENT_CV_MATCHING_AI_AGENT`. Tài liệu giải thích dependency, API, dữ liệu, quyền, transaction và trạng thái theo code hiện tại.
 
-Phần AI runtime được cập nhật ngày **21/10/2026** theo adapter Ollama native: chat `qwen2.5:7b`,
-embedding `qwen3-embedding:0.6b` 1024 chiều và không cần API key inference. Thiết lập Docker/model
-ở [ollama.md](ollama.md); cách giữ vector legacy 1536 của V1 ở [schema.md](schema.md).
+Phần AI runtime được cập nhật ngày **04/11/2026** theo adapter chat giao thức OpenAI và adapter embedding native để gọi Gemini: chat `gemini-2.5-flash-lite`,
+embedding `gemini-embedding-001` 1024 chiều và cần GEMINI_API_KEY. Thiết lập Docker/model
+ở [gemini.md](gemini.md); cách giữ vector legacy 1536 của V1 ở [schema.md](schema.md).
 Các kết quả kiểm chứng mang mốc cũ chỉ áp dụng cho lượt chạy được ghi nhận.
 
 Phạm vi: **35 file Java trong thư mục service**. Lần refactor helper tác động **17 service** và thêm **17 util**. Không thống kê số method vì overload, callback và delegate dễ khiến con số nhanh lỗi thời.
@@ -2850,14 +2850,14 @@ Constructor `AiService(...)` nhận:
 | [GuestAccess](#svc-guestaccess) | Reserve/settle quota guest |
 | [AiUsageRecorder](#svc-aiusagerecorder) | Ghi model usage trong transaction riêng |
 | `app.ai.enabled`, `app.ai.provider` | Bật khả năng gọi và tên provider |
-| `spring.ai.ollama.chat.model`, `spring.ai.ollama.embedding.model` | Model chat mặc định và model embedding đã cấu hình |
-| `app.ai.embedding-dimensions`, `app.ai.embedding-context-length` | Bắt buộc 1024 chiều; context embedding mặc định 8192 |
+| `spring.ai.openai.chat.model`, `app.ai.embedding-model` | Model chat mặc định và model embedding đã cấu hình |
+| `app.ai.embedding-dimensions` | Bắt buộc 1024 chiều |
 | `app.ai.max-output-tokens` | Giới hạn output; clamp vào 256..16.000 |
 
-Các giá trị mặc định đọc từ annotation trong code là provider `ollama`, chat `qwen2.5:7b`,
-embedding `qwen3-embedding:0.6b` và max output 2.000. Constructor từ chối provider khác `ollama`
+Các giá trị mặc định đọc từ annotation trong code là provider `gemini`, chat `gemini-2.5-flash-lite`,
+embedding `gemini-embedding-001` và max output 2.000. Constructor từ chối provider khác `gemini`
 hoặc embedding dimension khác 1024 để khớp schema V10. Model server lấy địa chỉ từ
-`spring.ai.ollama.base-url`; không cần OpenAI API key. Xem [cấu hình Ollama](ollama.md).
+`spring.ai.openai.base-url`; cần `GEMINI_API_KEY`. Xem [cấu hình Gemini](gemini.md).
 
 Service đọc `ai_configurations` và `ai_prompt_templates`.
 Quota đi qua service tương ứng; log ghi `ai_usage_logs`.
@@ -2868,7 +2868,7 @@ reservation/log được quản lý bởi những service được inject.
 
 `enabled` trả `configured && chatModels.getIfAvailable()!=null`.
 `embeddingsEnabled` trả `configured && embeddingModels.getIfAvailable()!=null`.
-Đây là kiểm tra cấu hình/bean, không gửi request thử để chứng minh Ollama/model đang nhận inference.
+Đây là kiểm tra cấu hình/bean, không gửi request thử để chứng minh Gemini/model đang nhận inference.
 
 Có thể chat bật nhưng embedding không có hoặc ngược lại.
 Các service khác phải kiểm tra khả năng thích hợp: analyze CV dùng chat,
@@ -2915,7 +2915,7 @@ của một template engine.
 Jackson serialize toàn bộ input thành user JSON.
 Input JSON dài hơn 250.000 ký tự trả 400.
 Hai message system/user được tách qua Spring AI `SystemMessage` và `UserMessage`;
-`OllamaChatOptions` chọn effective model, `numPredict(maxOutputTokens)` và `format("json")`.
+`OpenAiChatOptions` chọn effective model, `maxTokens(maxOutputTokens)` và response format `JSON_OBJECT`. Schema được đặt trong system prompt và backend tiếp tục validate kết quả.
 
 ### `generateForGuest`: reservation và provider call
 
@@ -2984,13 +2984,13 @@ Private helper dùng chung cho hai entry point:
 1. Embedding phải enabled; text bắt buộc không rỗng, tối đa 200.000.
 2. Actor là requested actor hoặc `current.id()`.
 3. Reserve quota `EMBEDDING` với `UTF8 bytes(text)+128`.
-4. Gọi `EmbeddingModel.call(new EmbeddingRequest(...))` với `OllamaEmbeddingOptions`: model đã cấu hình, `numCtx(embeddingContextLength)` và `truncate(false)`.
+4. Gọi `EmbeddingModel.call(new EmbeddingRequest(...))` với adapter `GeminiEmbeddingModel` native: model đã cấu hình và `outputDimensionality=1024`.
 5. Lấy total tokens từ metadata nếu có; yêu cầu response/result/output tồn tại.
 6. `FlowSupport.vector` yêu cầu vector đúng 1024 chiều, mọi giá trị `Float.isFinite`.
 7. Settle và ghi usage success với actor/model embedding; trả vector.
 
 Exception trong provider/result/validation: settle, ghi failure với actor,
-trả 502 nếu Ollama lỗi hoặc vector không tương thích `vector(1024)`.
+trả 502 nếu Gemini lỗi hoặc vector không tương thích `vector(1024)`.
 Reserve thực hiện trước khối try provider, nên lỗi entitlement được trả theo lỗi gốc.
 Embedding API không lưu job/CV vector; nó chỉ tạo vector và quản lý usage.
 
@@ -4445,10 +4445,10 @@ stateDiagram-v2
     PROCESSING --> PROCESSING: lease reclaimed
 ~~~
 
-Cấu hình `AI_ENABLED=true`, `AI_PROVIDER=ollama`, `AI_EMBEDDING_PROVIDER=ollama` và `OLLAMA_BASE_URL`;
-khởi động Ollama và tải `qwen3-embedding:0.6b`, model phải trả 1024 chiều. Không cần API key inference.
+Cấu hình `AI_ENABLED=true`, `AI_PROVIDER=gemini`, `AI_EMBEDDING_PROVIDER=gemini` và `GEMINI_BASE_URL`;
+đặt `GEMINI_API_KEY` và dùng `gemini-embedding-001` với `dimensions=1024`.
 Các biến `JOB_EMBEDDING_ENABLED/BATCH_SIZE/FIXED_DELAY_MS/INITIAL_DELAY_MS/LEASE_SECONDS/RETRY_SECONDS`
-ánh xạ ở application.yaml; lệnh chuẩn bị model ở [ollama.md](ollama.md).
+ánh xạ ở application.yaml; lệnh chuẩn bị model ở [gemini.md](gemini.md).
 
 Dùng `GET /api/v1/admin/jobs/{jobId}/index` để xem queue. Sau khi sửa provider/quota, `POST` cùng path retry/reuse task. Không dùng task UUID thay job UUID.
 
@@ -5041,8 +5041,8 @@ Ví dụ config không chứa credentials:
 ~~~json
 {
   "configType": "CHAT",
-  "provider": "ollama",
-  "modelName": "qwen2.5:7b",
+  "provider": "gemini",
+  "modelName": "gemini-2.5-flash-lite",
   "configuration": {"temperature": 0.2}
 }
 ~~~
@@ -5174,7 +5174,7 @@ Không tự tạo IDs giả: jobId, resumeId, taskId, conversationId, paymentOrd
 | --- | --- |
 | Identity/SMTP | MAIL_ENABLED/MAIL_HOST/MAIL_PORT/MAIL_USERNAME/MAIL_PASSWORD/MAIL_SMTP_AUTH/MAIL_STARTTLS/MAIL_FROM, AUTH_EXPOSE_DEV_OTP |
 | Google | GOOGLE_CLIENT_ID và ID token hợp lệ |
-| AI | AI_ENABLED, AI_PROVIDER=ollama, AI_CHAT_PROVIDER=ollama, AI_EMBEDDING_PROVIDER=ollama, OLLAMA_BASE_URL; chat qwen2.5:7b, embedding qwen3-embedding:0.6b/1024 chiều; không cần API key inference |
+| AI | AI_ENABLED, AI_PROVIDER=gemini, AI_CHAT_PROVIDER=openai, AI_EMBEDDING_PROVIDER=gemini, GEMINI_BASE_URL; chat gemini-2.5-flash-lite, embedding gemini-embedding-001/1024 chiều; cần GEMINI_API_KEY |
 | Storage | UPLOAD_DIR hoặc app.storage.path; app YAML default ./uploads, annotation ResumeService có fallback ./storage/resumes khi property không có |
 | Guest | Guest token limit và X-Guest-Session |
 | Payment | PAYMENT_PROVIDER, PAYMENT_WEBHOOK_SECRET, signature/timestamp body contract |

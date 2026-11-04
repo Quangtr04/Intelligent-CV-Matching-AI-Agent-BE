@@ -6,7 +6,7 @@ V20 bổ sung `assessment_generations` để lưu yêu cầu tạo câu hỏi đ
 JD, trạng thái, assessment đã hoàn tất và lease của worker. Unique index chỉ cho phép một yêu cầu đang chờ/chạy
 cho cùng user/JD; index hàng đợi phục vụ claim tuần tự. Đáp án vẫn nằm trong `assessment_questions`, không trả
 qua API trạng thái tác vụ. Khi lease hết hạn, yêu cầu được đánh dấu gián đoạn và không tự gọi lại model.
-Các cột embedding đang sử dụng có kiểu `vector(1024)` cho Ollama `qwen3-embedding:0.6b`;
+Các cột embedding đang sử dụng có kiểu `vector(1024)` cho Gemini `gemini-embedding-001`;
 vector cũ 1536 chiều được giữ trong cột riêng, theo phần chuyển đổi V10 bên dưới.
 
 Riêng bản gốc `V1__edunexus_complete_schema.sql` chuyển DBML đã cung cấp sang PostgreSQL:
@@ -28,7 +28,7 @@ và giữ lại các giá trị 1536 chiều đã có. Nội dung V1–V9 đư�
 | V7 | Bảng singleton `job_crawl_settings` lưu cấu hình collection runtime và metadata quản trị |
 | V8 | Bảng `rag_course_links` cho khóa học được admin duyệt; bổ sung URL/provider của nguồn trích dẫn |
 | V9 | Snapshot gợi ý học tập trên roadmap và snapshot tài nguyên; không thêm bảng |
-| V10 | Embedding 1024 chiều cho Ollama; giữ vector cũ 1536 chiều, yêu cầu reindex và dựng lại HNSW |
+| V10 | Embedding 1024 chiều; giữ vector cũ 1536 chiều, yêu cầu reindex và dựng lại HNSW |
 | V11 | Quản trị mẫu CV: thêm `description`, cấu hình `layout_config` an toàn và mặc định cho mẫu cũ; không thêm bảng |
 | V12 | Một mức lương kỳ vọng theo tháng: `candidate_profiles.expected_salary`; giữ cột min/max cũ để phục hồi, không còn dùng trong API |
 | V13 | `V13__resume_writing_quality.sql`: thêm `resume_analyses.writing_quality_json` để lưu rubric cách viết CV, điểm nội dung và trọng số; không thêm bảng |
@@ -105,7 +105,7 @@ Các ràng buộc bổ sung gồm một chủ thể user/guest cho mỗi lần m
 
 Điểm ATS, chất lượng, confidence và relevance dùng miền 0–100; điểm final/rerank chuẩn hóa dùng 0–1; cosine similarity có thể âm nên dùng -1–1. Embedding được phân biệt bởi provider/model; chỉ một bản `is_current` trên mỗi thực thể/provider/model. Truy vấn phải lọc provider/model trước khi so sánh embedding. Pgvector được bật bằng `CREATE EXTENSION vector`; các HNSW index dùng `vector_cosine_ops`. Tham khảo [tài liệu pgvector](https://github.com/pgvector/pgvector).
 
-## Chuyển embedding sang Ollama trong V10
+## Chuyển embedding sang 1024 chiều trong V10
 
 V10 áp dụng cho `career_profile_embeddings`, `resume_embeddings`, `market_job_embeddings`
 và `rag_chunk_embeddings`. Tại mỗi bảng, cột `embedding` cũ được đổi tên thành
@@ -119,11 +119,11 @@ phải có vector hiện tại hoặc vector legacy, nên dữ liệu cũ còn h
 Bốn HNSW index được dựng lại trên cột `embedding` 1024 chiều, bỏ qua các giá trị rỗng.
 
 Sau khi Flyway áp dụng V10, index lại CV/job và tài liệu RAG bằng các API tương ứng với provider
-`ollama`, model `qwen3-embedding:0.6b`. Migration không gọi model và không tự sinh vector mới.
+`gemini`, model `gemini-embedding-001`. Migration không gọi model và không tự sinh vector mới.
 Vector từ model cũ không được cắt chiều, đệm chiều hoặc dùng thay cho vector của model mới.
 Các truy vấn chỉ lấy embedding hiện tại có giá trị và đúng provider/model; vector legacy không
 tham gia matching hoặc RAG. Xem [CV và RAG](resume-ai.md), [index job](crawling.md)
-và [hướng dẫn Ollama](ollama.md).
+và [hướng dẫn Gemini](gemini.md).
 
 Seed có 3 gói FREE/BASIC/PRO, 30 hạn mức token theo tháng gồm `AI_TOTAL_TOKENS`, 15 kỹ năng, 2 mẫu CV trial, một CV demo không có tài khoản chủ sở hữu và 7 tài nguyên từ tài liệu chính thức. Ngân sách tổng lần lượt là 20.000/200.000/1.000.000 token; các feature dùng cùng mức trần ban đầu và vẫn chịu ngân sách tổng. Giá 99.000/199.000 VND và hạn mức là dữ liệu mẫu cho môi trường phát triển, cần cấu hình theo yêu cầu kinh doanh. Không seed tài khoản admin, mật khẩu, API key hay vector giả.
 
@@ -191,11 +191,6 @@ pgvector: tạo dữ liệu vector 1536 chiều ở V9, nâng lên V10, đối c
 trạng thái cần reindex và bốn HNSW index; ghi/tìm cosine bằng vector 1024 chiều, từ chối vector
 1536 chiều trong cột mới và từ chối bản ghi RAG không còn vector nào. Đây là database kiểm thử
 riêng, không phải xác nhận V10 đã được áp dụng vào database ứng dụng của người dùng.
-
-Ngày 22/10/2026, database ứng dụng local `edunexus` đã được sao lưu và nâng lên V10 cùng container
-backend Ollama mới. `target/ollama-app-runtime.json` ghi Flyway 10, pgvector 0.8.7, bốn cột vector 1024
-và bốn cột legacy 1536; kiểm kê cả bốn bảng embedding đều có 0 dòng, nên không có vector cũ cần
-index lại ở database local này. Kết quả này không xác nhận database production.
 
 ## Một mức lương kỳ vọng trong V12
 

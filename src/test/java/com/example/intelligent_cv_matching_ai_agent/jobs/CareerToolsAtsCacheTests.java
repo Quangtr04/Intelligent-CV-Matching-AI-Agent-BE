@@ -85,7 +85,7 @@ class CareerToolsAtsCacheTests {
         when(resumes.canonicalText(anyMap())).thenReturn("Reviewed Java developer CV");
         when(db.one(contains("FROM market_job_posts j WHERE j.id=? AND j.status='ACTIVE'"), eq(job)))
             .thenAnswer(call -> new LinkedHashMap<>(target));
-        when(ai.provider()).thenReturn("ollama");
+        when(ai.provider()).thenReturn("openai");
         when(ai.model()).thenReturn("test-model");
         when(ai.cacheFingerprint("JOB_ATS")).thenReturn("prompt-v1");
         when(ai.generate(eq("JOB_ATS"), anyMap())).thenReturn(generated());

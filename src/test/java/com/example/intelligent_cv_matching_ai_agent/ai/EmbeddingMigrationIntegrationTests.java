@@ -96,30 +96,33 @@ class EmbeddingMigrationIntegrationTests {
         );
         String current = vector(1024);
         jdbc.update(
-            "INSERT INTO rag_chunk_embeddings(chunk_id,provider,model,embedding) VALUES(?,'ollama',?,?::vector)",
+            "INSERT INTO rag_chunk_embeddings(chunk_id,provider,model,embedding) VALUES(?,'openai',?,?::vector)",
             chunk,
-            "qwen3-embedding:0.6b",
+            "text-embedding-3-small",
             current
         );
         assertEquals(
             1024,
             jdbc.queryForObject(
-                "SELECT vector_dims(embedding) FROM rag_chunk_embeddings WHERE provider='ollama'",
+                "SELECT vector_dims(embedding) FROM rag_chunk_embeddings WHERE model='text-embedding-3-small'",
                 Integer.class
             )
         );
         assertThrows(
             DataAccessException.class,
-            () -> jdbc.update("UPDATE rag_chunk_embeddings SET embedding=?::vector WHERE provider='ollama'", legacy)
+            () -> jdbc.update(
+                "UPDATE rag_chunk_embeddings SET embedding=?::vector WHERE model='text-embedding-3-small'",
+                legacy
+            )
         );
         assertThrows(
             DataAccessException.class,
-            () -> jdbc.update("UPDATE rag_chunk_embeddings SET embedding=NULL WHERE provider='ollama'")
+            () -> jdbc.update("UPDATE rag_chunk_embeddings SET embedding=NULL WHERE model='text-embedding-3-small'")
         );
         assertEquals(
             1.0,
             jdbc.queryForObject(
-                "SELECT 1-(embedding <=> ?::vector) FROM rag_chunk_embeddings WHERE provider='ollama'",
+                "SELECT 1-(embedding <=> ?::vector) FROM rag_chunk_embeddings WHERE model='text-embedding-3-small'",
                 Double.class,
                 current
             ),

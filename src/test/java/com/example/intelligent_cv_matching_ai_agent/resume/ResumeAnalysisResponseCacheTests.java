@@ -13,7 +13,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.BeforeEach;
@@ -77,8 +76,8 @@ class ResumeAnalysisResponseCacheTests {
         when(user.id()).thenReturn(actor);
         when(db.getResumesById(resumeId)).thenReturn(resume);
         when(ai.enabled()).thenReturn(true);
-        when(ai.provider()).thenReturn("ollama");
-        when(ai.model()).thenReturn("qwen-test");
+        when(ai.provider()).thenReturn("openai");
+        when(ai.model()).thenReturn("gpt-test");
         when(ai.cacheFingerprint("CV_ANALYZE")).thenReturn("prompt-v1");
         when(ai.generate(eq("CV_ANALYZE"), anyMap())).thenAnswer(call -> ResumeWritingTestData.report());
         when(db.json(any())).thenAnswer(call -> call.getArgument(0));
@@ -88,13 +87,6 @@ class ResumeAnalysisResponseCacheTests {
             row.put("created_at", OffsetDateTime.parse("2026-10-28T00:00:00Z"));
             persisted.set(row);
             return row.get("id");
-        });
-        when(db.findResumeAnalysisByInput(eq(resumeId), anyString(), anyString(), any(UUID.class))).thenAnswer(call -> {
-            Map<String, Object> row = persisted.get();
-            boolean matches = row != null && call.getArgument(1).equals(row.get("analysis_type"))
-                && call.getArgument(2).equals(row.get("input_hash")) && actor.equals(call.getArgument(3))
-                && "READY".equals(resume.get("status"));
-            return matches ? Optional.of(Map.of("id", row.get("id"))) : Optional.empty();
         });
         when(db.getResumeAnalysesById(any(), eq(resumeId))).thenAnswer(call -> new LinkedHashMap<>(persisted.get()));
         when(db.listResumeAnalysisSuggestionsByAnalysisId(any())).thenReturn(
@@ -148,7 +140,7 @@ class ResumeAnalysisResponseCacheTests {
     void changedAnalysisInputDoesNotReuseTheOldResponse(
         String change) {
         Map<String, Object> first = service.analyze(resumeId);
-        String firstHash = persisted.get().get("input_hash").toString();
+        String firstKey = cachedValues.keySet().iterator().next();
         switch (change) {
             case "content" -> resume.put(
                 "structured_data",
@@ -156,8 +148,8 @@ class ResumeAnalysisResponseCacheTests {
             );
             case "raw_content" -> resume.put("raw_content", "Original extraction changed");
             case "language" -> resume.put("language", "en");
-            case "model" -> when(ai.model()).thenReturn("qwen-new");
-            case "provider" -> when(ai.provider()).thenReturn("another-self-hosted-provider");
+            case "model" -> when(ai.model()).thenReturn("gpt-new");
+            case "provider" -> when(ai.provider()).thenReturn("another-api-provider");
             case "prompt" -> when(ai.cacheFingerprint("CV_ANALYZE")).thenReturn("prompt-v2");
             case "mode" -> when(ai.enabled()).thenReturn(false);
             default -> fail("Unknown test case");
@@ -166,9 +158,10 @@ class ResumeAnalysisResponseCacheTests {
         Map<String, Object> second = service.analyze(resumeId);
 
         assertNotEquals(first.get("id"), second.get("id"));
-        assertNotEquals(firstHash, persisted.get().get("input_hash"));
         assertEquals(false, second.get("cached"));
         assertEquals(2, cachedValues.size());
+        assertTrue(cachedValues.containsKey(firstKey));
+        assertTrue(cachedValues.keySet().stream().anyMatch(key -> !firstKey.equals(key)));
         verify(db, times(2)).insertResumeAnalyses(anyMap());
         verify(ai, times("mode".equals(change) ? 1 : 2)).generate(eq("CV_ANALYZE"), anyMap());
     }
@@ -207,7 +200,7 @@ class ResumeAnalysisResponseCacheTests {
     }
 
     @Test
-    void malformedRedisValueFallsBackToTheStoredAnalysis() {
+    void malformedRedisValueRegeneratesTheAnalysis() {
         Map<String, Object> first = service.analyze(resumeId);
         cachedValues.replaceAll(
             (
@@ -217,18 +210,20 @@ class ResumeAnalysisResponseCacheTests {
 
         Map<String, Object> second = service.analyze(resumeId);
 
-        assertEquals(first.get("id"), second.get("id"));
-        assertEquals(true, second.get("cached"));
-        verify(ai).generate(eq("CV_ANALYZE"), anyMap());
-        verify(db).insertResumeAnalyses(anyMap());
+        assertNotEquals(first.get("id"), second.get("id"));
+        assertEquals(false, second.get("cached"));
+        verify(ai, times(2)).generate(eq("CV_ANALYZE"), anyMap());
+        verify(db, times(2)).insertResumeAnalyses(anyMap());
+        verify(db, never()).findResumeAnalysisByInput(any(), any(), any(), any());
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"expired", "disabled", "offline"})
-    void durableAnalysisSurvivesRedisExpiryOrUnavailabilityWithoutCallingAiAgain(
+    void redisExpiryOrUnavailabilityRegeneratesTheAnalysis(
         String redisState) {
         Map<String, Object> first = service.analyze(resumeId);
-        assertTrue(persisted.get().get("input_hash").toString().matches("[0-9a-f]{64}"));
+        String key = cachedValues.keySet().iterator().next();
+        assertTrue(key.substring(key.lastIndexOf(':') + 1).matches("[0-9a-f]{64}"));
         clearInvocations(db, ai, values);
         cachedValues.clear();
         switch (redisState) {
@@ -245,15 +240,15 @@ class ResumeAnalysisResponseCacheTests {
 
         Map<String, Object> second = service.analyze(resumeId);
 
-        assertEquals(first.get("id"), second.get("id"));
+        assertNotEquals(first.get("id"), second.get("id"));
         assertEquals(first.get("suggestions"), second.get("suggestions"));
         assertEquals(first.get("writing_quality"), second.get("writing_quality"));
-        assertEquals(true, second.get("cached"));
-        verify(db).findResumeAnalysisByInput(resumeId, "AI_QUALITY", persisted.get().get("input_hash"), actor);
-        verify(db).getResumeAnalysesById(first.get("id"), resumeId);
-        verify(db).listResumeAnalysisSuggestionsByAnalysisId(first.get("id"));
-        verify(db, never()).insertResumeAnalyses(anyMap());
-        verify(ai, never()).generate(anyString(), anyMap());
+        assertEquals(false, second.get("cached"));
+        verify(db, never()).findResumeAnalysisByInput(any(), any(), any(), any());
+        verify(db).getResumeAnalysesById(second.get("id"), resumeId);
+        verify(db).listResumeAnalysisSuggestionsByAnalysisId(second.get("id"));
+        verify(db).insertResumeAnalyses(anyMap());
+        verify(ai).generate(eq("CV_ANALYZE"), anyMap());
         if ("expired".equals(redisState)) {
             assertEquals(1, cachedValues.size());
             verify(values).set(
@@ -269,10 +264,14 @@ class ResumeAnalysisResponseCacheTests {
     }
 
     @Test
-    void historicalAnalysisWithoutAnInputHashIsNotReused() {
+    void redisIdentityWithoutAnInputHashIsNotReused() {
         Map<String, Object> first = service.analyze(resumeId);
-        persisted.get().remove("input_hash");
-        cachedValues.clear();
+        String key = cachedValues.keySet().iterator().next();
+        Map<String, Object> envelope = mapper.readValue(cachedValues.get(key), Map.class);
+        Map<String, Object> identity = new LinkedHashMap<>((Map<String, Object>) envelope.get("identity"));
+        identity.remove("input_hash");
+        envelope.put("identity", identity);
+        cachedValues.put(key, mapper.writeValueAsString(envelope));
 
         Map<String, Object> second = service.analyze(resumeId);
 
@@ -282,10 +281,14 @@ class ResumeAnalysisResponseCacheTests {
     }
 
     @Test
-    void malformedDurableAnalysisCannotBeReturnedAsACacheHit() {
+    void malformedRedisAnalysisCannotBeReturnedAsACacheHit() {
         Map<String, Object> first = service.analyze(resumeId);
-        persisted.get().put("overall_score", "invalid");
-        cachedValues.clear();
+        String key = cachedValues.keySet().iterator().next();
+        Map<String, Object> envelope = mapper.readValue(cachedValues.get(key), Map.class);
+        Map<String, Object> response = new LinkedHashMap<>((Map<String, Object>) envelope.get("response"));
+        response.put("overall_score", "invalid");
+        envelope.put("response", response);
+        cachedValues.put(key, mapper.writeValueAsString(envelope));
 
         Map<String, Object> second = service.analyze(resumeId);
 

@@ -64,7 +64,7 @@ public class CareerToolsService {
 
     public Map<String, Object> match(
         MatchRequest request) {
-        return matching.match(request.basis(), request.resumeIds(), request.limit());
+        return matching.match(request.basis(), request.resumeIds(), request.limit(), request.mode());
     }
 
     public Map<String, Object> run(

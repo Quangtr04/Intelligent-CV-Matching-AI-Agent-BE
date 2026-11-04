@@ -128,7 +128,7 @@ public class AssessmentGenerationService {
                 }
                 return assessments.restoreForOwner(owner, snapshot, (String) request.get("input_hash"));
             });
-            // No JDBC transaction/connection is held while Ollama runs.
+            // No JDBC transaction/connection is held while the AI provider runs.
             Map<String, Object> generated = assessments.generate(prepared);
             transactions.executeWithoutResult(status -> {
                 if (!db.ownsClaim(id, owner, token)) {
@@ -153,8 +153,8 @@ public class AssessmentGenerationService {
             };
             String message = switch (http) {
                 case 429 -> "Not enough AI quota. Retry after quota is available.";
-                case 503 -> "The local AI model is unavailable. Retry when Ollama is ready.";
-                case 504 -> "The local AI model took too long. Wait for Ollama to be idle, then retry manually.";
+                case 503 -> "The AI provider is unavailable. Check the provider configuration and retry.";
+                case 504 -> "The AI provider took too long. Retry manually when the provider is available.";
                 case 400, 404, 409 ->
                     "The selected CV, JD or generation inputs changed or became unavailable. Review and retry.";
                 case 401, 403 -> "The account no longer allows question generation.";
