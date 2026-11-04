@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.UUID;
 
 public record ImportJobRequest(
     @NotBlank
@@ -38,8 +39,45 @@ public record ImportJobRequest(
     @Size(max = 100000)
     String benefits,
     OffsetDateTime postedAt,
-    OffsetDateTime validThrough
+    OffsetDateTime validThrough,
+    UUID taskId
 ) {
+
+    public ImportJobRequest(
+        String sourceSite,
+        String sourceUrl,
+        String jobTitle,
+        String companyName,
+        String location,
+        String salaryText,
+        String roleCategory,
+        String content,
+        List<JobSkillRequest> skills,
+        String employmentType,
+        String requirements,
+        String responsibilities,
+        String benefits,
+        OffsetDateTime postedAt,
+        OffsetDateTime validThrough) {
+        this(
+            sourceSite,
+            sourceUrl,
+            jobTitle,
+            companyName,
+            location,
+            salaryText,
+            roleCategory,
+            content,
+            skills,
+            employmentType,
+            requirements,
+            responsibilities,
+            benefits,
+            postedAt,
+            validThrough,
+            null
+        );
+    }
 
     public ImportJobRequest(
         String sourceSite,
@@ -61,6 +99,7 @@ public record ImportJobRequest(
             roleCategory,
             content,
             skills,
+            null,
             null,
             null,
             null,

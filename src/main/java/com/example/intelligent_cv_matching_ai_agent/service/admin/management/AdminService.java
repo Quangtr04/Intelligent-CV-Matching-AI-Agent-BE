@@ -144,6 +144,13 @@ public class AdminService {
 
         if ("CANDIDATE".equals(body.role()))
             db.updateCandidateProfiles(id);
+        if ("MANAGEMENT".equals(body.role())) {
+            String subRole = body.subRole() == null ? "MANAGER" : body.subRole();
+            List<String> defaultPermissions = "STAFF".equals(subRole)
+                ? List.of("JOB_ENTRY", "JOB_SOURCING")
+                : List.of("JOB_ENTRY", "JOB_SOURCING", "JOB_APPROVAL", "TASK_ASSIGNMENT", "STAFF_MANAGEMENT");
+            db.upsertManagementProfile(id, subRole, db.json(defaultPermissions), user.id());
+        }
 
         Map<String, Object> account = account(id);
 
@@ -167,6 +174,14 @@ public class AdminService {
             throw ApiException.badRequest("Accounts must verify their email before activation");
 
         db.updateUsersById(body.fullName(), body.role(), body.status(), id);
+        if ("MANAGEMENT".equals(body.role())) {
+            String existingSubRole = before.get("management_sub_role") instanceof String s ? s : "MANAGER";
+            String subRole = body.subRole() == null ? existingSubRole : body.subRole();
+            List<String> defaultPermissions = "STAFF".equals(subRole)
+                ? List.of("JOB_ENTRY", "JOB_SOURCING")
+                : List.of("JOB_ENTRY", "JOB_SOURCING", "JOB_APPROVAL", "TASK_ASSIGNMENT", "STAFF_MANAGEMENT");
+            db.upsertManagementProfile(id, subRole, db.json(defaultPermissions), user.id());
+        }
 
         boolean roleChanged = !body.role().equals(before.get("role"));
 

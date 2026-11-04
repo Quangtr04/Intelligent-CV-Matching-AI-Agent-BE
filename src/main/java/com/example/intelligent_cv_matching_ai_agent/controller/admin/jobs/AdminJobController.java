@@ -3,6 +3,7 @@ package com.example.intelligent_cv_matching_ai_agent.controller.admin.jobs;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.admin.jobs.ImportJobRequest;
 import com.example.intelligent_cv_matching_ai_agent.service.shared.jobs.JobService;
 import jakarta.validation.Valid;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +17,32 @@ public class AdminJobController {
     public AdminJobController(
         JobService service) {
         this.service = service;
+    }
+
+    @GetMapping
+    public List<Map<String, Object>> list(
+        @RequestParam(defaultValue = "")
+        String q,
+        @RequestParam(required = false)
+        String status,
+        @RequestParam(required = false)
+        UUID createdBy,
+        @RequestParam(required = false)
+        UUID taskId,
+        @RequestParam(required = false)
+        String ingestionMethod,
+        @RequestParam(defaultValue = "20")
+        int limit,
+        @RequestParam(defaultValue = "0")
+        int offset) {
+        return service.managedJobs(q, status, createdBy, taskId, ingestionMethod, limit, offset);
+    }
+
+    @GetMapping("/{id}")
+    public Map<String, Object> detail(
+        @PathVariable
+        UUID id) {
+        return service.job(id);
     }
 
     @PostMapping

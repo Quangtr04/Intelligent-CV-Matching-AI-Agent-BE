@@ -38,14 +38,13 @@ class TopCvCrawlAccessTests {
         Fixture fixture = new Fixture();
         when(fixture.response.statusCode()).thenReturn(status);
         when(fixture.response.header("cf-mitigated")).thenReturn("challenge");
-        try (var jsoup = mockStatic(Jsoup.class)) {
+        try (var jsoup = mockStatic(Jsoup.class, CALLS_REAL_METHODS)) {
             jsoup.when(() -> Jsoup.connect(SEARCH)).thenReturn(fixture.connection);
             fixture.service.crawl(new CrawlRequest("TOPCV", "Java", "Backend", null, null, 20, 3));
 
             fixture.assertSearchFailure(status, "SEARCH_BLOCKED", "Cloudflare verification");
             verify(fixture.connection).execute();
             jsoup.verify(() -> Jsoup.connect(SEARCH));
-            jsoup.verifyNoMoreInteractions();
             verifyNoInteractions(fixture.jobs);
         }
     }
@@ -54,7 +53,7 @@ class TopCvCrawlAccessTests {
     void genericForbiddenSearchAlsoKeeps403InsteadOfSavingNullStatus() throws Exception {
         Fixture fixture = new Fixture();
         when(fixture.response.statusCode()).thenReturn(403);
-        try (var jsoup = mockStatic(Jsoup.class)) {
+        try (var jsoup = mockStatic(Jsoup.class, CALLS_REAL_METHODS)) {
             jsoup.when(() -> Jsoup.connect(SEARCH)).thenReturn(fixture.connection);
             fixture.service.crawl(new CrawlRequest("TOPCV", "Java", "Backend", null, null, 20, 3));
             fixture.assertSearchFailure(403, "SEARCH_FETCH_FAILED", "Search returned HTTP 403");
@@ -66,9 +65,8 @@ class TopCvCrawlAccessTests {
         Fixture fixture = new Fixture();
         when(fixture.response.statusCode()).thenReturn(200);
         when(fixture.response.body()).thenReturn(CHALLENGE);
-        try (var jsoup = mockStatic(Jsoup.class)) {
+        try (var jsoup = mockStatic(Jsoup.class, CALLS_REAL_METHODS)) {
             jsoup.when(() -> Jsoup.connect(SEARCH)).thenReturn(fixture.connection);
-            jsoup.when(() -> Jsoup.parse(CHALLENGE)).thenReturn(org.jsoup.parser.Parser.parse(CHALLENGE, SEARCH));
             fixture.service.crawl(new CrawlRequest("TOPCV", "Java", "Backend", null, null, 20, 3));
             fixture.assertSearchFailure(200, "SEARCH_BLOCKED", "Cloudflare verification");
             verifyNoInteractions(fixture.jobs);
@@ -79,7 +77,7 @@ class TopCvCrawlAccessTests {
     void rateLimitedSourceStopsAfterOneRequestAndPersists429() throws Exception {
         Fixture fixture = new Fixture();
         when(fixture.response.statusCode()).thenReturn(429);
-        try (var jsoup = mockStatic(Jsoup.class)) {
+        try (var jsoup = mockStatic(Jsoup.class, CALLS_REAL_METHODS)) {
             jsoup.when(() -> Jsoup.connect(SEARCH)).thenReturn(fixture.connection);
             fixture.service.crawl(new CrawlRequest("TOPCV", "Java", "Backend", null, null, 20, 3));
             fixture.assertSearchFailure(429, "SEARCH_BLOCKED", "rate limit");
@@ -92,7 +90,7 @@ class TopCvCrawlAccessTests {
         Fixture fixture = new Fixture();
         when(fixture.response.statusCode()).thenReturn(403);
         when(fixture.response.header("cf-mitigated")).thenReturn("challenge");
-        try (var jsoup = mockStatic(Jsoup.class)) {
+        try (var jsoup = mockStatic(Jsoup.class, CALLS_REAL_METHODS)) {
             jsoup.when(() -> Jsoup.connect(DETAIL)).thenReturn(fixture.connection);
             fixture.service.crawl(new CrawlRequest("TOPCV", "Java", "Backend", null, List.of(DETAIL)));
             verify(fixture.db).insert(

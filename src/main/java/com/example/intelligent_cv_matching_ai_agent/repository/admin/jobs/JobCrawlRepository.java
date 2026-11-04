@@ -33,7 +33,8 @@ public class JobCrawlRepository {
     public void requireActiveAdmin(
         UUID actor) {
         if (db.optional(
-            "SELECT id FROM users WHERE id=? AND role='ADMIN' AND status='ACTIVE' " + "AND deleted_at IS NULL",
+            "SELECT id FROM users WHERE id=? AND role IN ('ADMIN','MANAGEMENT') AND status='ACTIVE' "
+                + "AND deleted_at IS NULL",
             actor
         ).isEmpty())
             throw com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException
@@ -71,7 +72,9 @@ public class JobCrawlRepository {
         java.time.OffsetDateTime parsedAt,
         Object id) {
         db.update(
-            "UPDATE market_job_posts SET original_content_quality=?,parsed_at=? WHERE id=?",
+            "UPDATE market_job_posts SET original_content_quality=?,parsed_at=?,"
+                + "ingestion_method=CASE WHEN ingestion_method='MANUAL' THEN 'CRAWL' ELSE ingestion_method END "
+                + "WHERE id=?",
             quality,
             parsedAt,
             id
@@ -146,7 +149,14 @@ public class JobCrawlRepository {
 
     public Map<String, Object> getMarketCrawlRunsById(
         Object... args) {
-        return db.one("SELECT * FROM market_crawl_runs WHERE id=?", args);
+        return db.one(
+            "SELECT r.*,u.full_name AS requested_by_full_name,u.email AS requested_by_email,"
+                + "u.role AS requested_by_role,mp.sub_role AS requested_by_sub_role,t.title AS task_title "
+                + "FROM market_crawl_runs r LEFT JOIN users u ON u.id=r.requested_by "
+                + "LEFT JOIN management_profiles mp ON mp.user_id=r.requested_by "
+                + "LEFT JOIN management_tasks t ON t.id=r.task_id WHERE r.id=?",
+            args
+        );
     }
 
     public List<Map<String, Object>> listMarketCrawlItemsByCrawlRunId(
@@ -156,7 +166,14 @@ public class JobCrawlRepository {
 
     public List<Map<String, Object>> listMarketCrawlRuns(
         Object... args) {
-        return db.list("SELECT * FROM market_crawl_runs ORDER BY started_at DESC,id LIMIT ? OFFSET ?", args);
+        return db.list(
+            "SELECT r.*,u.full_name AS requested_by_full_name,u.email AS requested_by_email,"
+                + "u.role AS requested_by_role,mp.sub_role AS requested_by_sub_role,t.title AS task_title "
+                + "FROM market_crawl_runs r LEFT JOIN users u ON u.id=r.requested_by "
+                + "LEFT JOIN management_profiles mp ON mp.user_id=r.requested_by "
+                + "LEFT JOIN management_tasks t ON t.id=r.task_id ORDER BY r.started_at DESC,r.id LIMIT ? OFFSET ?",
+            args
+        );
     }
 
     public UUID insertMarketCrawlItems(

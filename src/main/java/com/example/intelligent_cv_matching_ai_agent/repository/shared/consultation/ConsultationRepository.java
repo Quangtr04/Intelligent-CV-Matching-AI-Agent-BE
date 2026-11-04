@@ -151,7 +151,7 @@ public class ConsultationRepository {
         Object... args) {
         return db.optional(
             ("SELECT 1 FROM consultation_threads t JOIN users u ON u.id=? WHERE "
-                + "t.id=? AND u.status='ACTIVE' AND (u.role='ADMIN' OR "
+                + "t.id=? AND u.status='ACTIVE' AND (u.role IN ('ADMIN','MANAGEMENT') OR "
                 + "u.id=t.candidate_user_id OR u.id=t.consultant_user_id)"),
             args
         );
@@ -159,7 +159,7 @@ public class ConsultationRepository {
 
     public List<Map<String, Object>> listActiveAdmins(
         Object... args) {
-        return db.list("SELECT id FROM users WHERE role='ADMIN' AND status='ACTIVE'", args);
+        return db.list("SELECT id FROM users WHERE role IN ('ADMIN','MANAGEMENT') AND status='ACTIVE'", args);
     }
 
     public Optional<Map<String, Object>> findUnreadNotificationsByUserIdAndReference(

@@ -104,30 +104,31 @@ public class JobCrawlService {
         String site,
         List<String> urls) {
         int requestedLimit = urls.isEmpty() ? input.effectiveLimit() : urls.size();
-        UUID run = tx.execute(
-            status -> db.insertMarketCrawlRuns(
-                fields(
-                    "source_site",
-                    site,
-                    "keyword",
-                    input.keyword().strip(),
-                    "role_category",
-                    input.roleCategory().strip(),
-                    "requested_location",
-                    input.location(),
-                    "requested_limit",
-                    requestedLimit,
-                    "requested_by",
-                    actor,
-                    "status",
-                    "RUNNING",
-                    "candidate_urls_discovered",
-                    0,
-                    "started_at",
-                    OffsetDateTime.now()
-                )
-            )
-        );
+        UUID run = tx.execute(status -> {
+            Map<String, Object> runFields = fields(
+                "source_site",
+                site,
+                "keyword",
+                input.keyword().strip(),
+                "role_category",
+                input.roleCategory().strip(),
+                "requested_location",
+                input.location(),
+                "requested_limit",
+                requestedLimit,
+                "requested_by",
+                actor,
+                "status",
+                "RUNNING",
+                "candidate_urls_discovered",
+                0,
+                "started_at",
+                OffsetDateTime.now()
+            );
+            if (input.taskId() != null)
+                runFields.put("task_id", input.taskId());
+            return db.insertMarketCrawlRuns(runFields);
+        });
         int searchPages = 0, rejected = 0;
         String discoveryFailure = null;
         String sourceStop = null;
@@ -257,19 +258,39 @@ public class JobCrawlService {
                 }
                 int responseStatus = httpStatus;
                 boolean duplicate = Boolean.TRUE.equals(tx.execute(status -> {
-                    boolean existing = db.findMarketJobPostsByRawContentHash(contentHash(posting.job())).isPresent();
+                    ImportJobRequest jobInput = input.taskId() == null
+                        ? posting.job()
+                        : new ImportJobRequest(
+                            posting.job().sourceSite(),
+                            posting.job().sourceUrl(),
+                            posting.job().jobTitle(),
+                            posting.job().companyName(),
+                            posting.job().location(),
+                            posting.job().salaryText(),
+                            posting.job().roleCategory(),
+                            posting.job().content(),
+                            posting.job().skills(),
+                            posting.job().employmentType(),
+                            posting.job().requirements(),
+                            posting.job().responsibilities(),
+                            posting.job().benefits(),
+                            posting.job().postedAt(),
+                            posting.job().validThrough(),
+                            input.taskId()
+                        );
+                    boolean existing = db.findMarketJobPostsByRawContentHash(contentHash(jobInput)).isPresent();
                     Map<String, Object> saved =
-                        scheduled ? jobs.importJobAs(posting.job(), actor) : jobs.importJob(posting.job());
+                        scheduled ? jobs.importJobAs(jobInput, actor) : jobs.importJob(jobInput);
                     boolean reused = existing || Boolean.TRUE.equals(saved.get("deduplicated"));
                     if (!reused)
                         db.updateParsedMetadata(posting.quality(), OffsetDateTime.now(), saved.get("id"));
                     insertItem(
                         run,
-                        posting.job().sourceUrl(),
+                        jobInput.sourceUrl(),
                         reused ? "DUPLICATE" : "IMPORTED",
                         responseStatus,
-                        posting.job().jobTitle(),
-                        contentHash(posting.job()),
+                        jobInput.jobTitle(),
+                        contentHash(jobInput),
                         reused ? "Existing job reused; source refreshed" : "Imported; embedding queued automatically"
                     );
                     return reused;

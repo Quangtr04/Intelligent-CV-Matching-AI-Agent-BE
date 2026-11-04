@@ -8,8 +8,13 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class AdminRepository {
 
-    private static final String ACCOUNT_FIELDS = ("id,email,full_name,role,status,auth_provider,preferred_language,"
-        + "email_verified_at,last_login_at,created_at,updated_at,deleted_at");
+    private static final String ACCOUNT_FIELDS =
+        ("u.id,u.email,u.full_name,u.role,u.status,u.auth_provider,u.preferred_language,"
+            + "u.email_verified_at,u.last_login_at,u.created_at,u.updated_at,u.deleted_at,"
+            + "mp.sub_role AS management_sub_role,mp.permissions AS management_permissions,"
+            + "mp.manager_user_id,mp.department AS management_department");
+
+    private static final String ACCOUNT_FROM = " FROM users u LEFT JOIN management_profiles mp ON mp.user_id=u.id ";
 
     private final SqlStore db;
 
@@ -29,9 +34,8 @@ public class AdminRepository {
         long offset) {
         String pattern = "%" + search + "%";
         return db.list(
-            "SELECT " + ACCOUNT_FIELDS
-                + (" FROM users WHERE email ILIKE ? OR full_name ILIKE ? ORDER BY "
-                    + "created_at DESC LIMIT ? OFFSET ?"),
+            "SELECT " + ACCOUNT_FIELDS + ACCOUNT_FROM
+                + ("WHERE u.email ILIKE ? OR u.full_name ILIKE ? ORDER BY " + "u.created_at DESC LIMIT ? OFFSET ?"),
             pattern,
             pattern,
             limit,
@@ -41,7 +45,7 @@ public class AdminRepository {
 
     public Map<String, Object> getAccount(
         UUID id) {
-        return db.one("SELECT " + ACCOUNT_FIELDS + " FROM users WHERE id=?", id);
+        return db.one("SELECT " + ACCOUNT_FIELDS + ACCOUNT_FROM + "WHERE u.id=?", id);
     }
 
     public Object countUsersByStatus(
@@ -97,6 +101,23 @@ public class AdminRepository {
         return db.update(
             ("INSERT INTO candidate_profiles(user_id,created_at,updated_at) VALUES " + "(?,now(),now())"),
             args
+        );
+    }
+
+    public int upsertManagementProfile(
+        UUID userId,
+        String subRole,
+        Object permissionsJson,
+        UUID updatedBy) {
+        return db.update(
+            "INSERT INTO management_profiles(user_id,sub_role,permissions,updated_by_user_id,created_at,updated_at) "
+                + "VALUES(?,?,?,?,now(),now()) ON CONFLICT(user_id) DO UPDATE SET "
+                + "sub_role=COALESCE(EXCLUDED.sub_role,management_profiles.sub_role),"
+                + "updated_by_user_id=EXCLUDED.updated_by_user_id,updated_at=now()",
+            userId,
+            subRole,
+            permissionsJson,
+            updatedBy
         );
     }
 

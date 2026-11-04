@@ -65,8 +65,8 @@ public class SecurityConfig {
                         "/api/v1/jobs/*",
                         "/api/v1/subscriptions/tiers",
                         "/api/v1/resumes/templates"
-                    ).permitAll().requestMatchers("/api/v1/admin/**", "/api/admin/**").hasRole("ADMIN").anyRequest()
-                    .authenticated()
+                    ).permitAll().requestMatchers("/api/v1/admin/**", "/api/admin/**", "/api/v1/management/**")
+                    .hasAnyRole("ADMIN", "MANAGEMENT").anyRequest().authenticated()
             ).exceptionHandling(
                 ex -> ex.authenticationEntryPoint(
                     (
