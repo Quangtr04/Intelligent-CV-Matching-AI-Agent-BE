@@ -22,7 +22,7 @@ public class JobCollectionRepository {
         UUID actor) {
         return actor != null && Boolean.TRUE.equals(
             db.scalar(
-                "SELECT EXISTS(SELECT 1 FROM users WHERE id=? AND role IN ('ADMIN','MANAGEMENT') "
+                "SELECT EXISTS(SELECT 1 FROM users WHERE id=? AND role IN ('ADMIN','MANAGEMENT','STAFF') "
                     + "AND status='ACTIVE' AND deleted_at IS NULL)",
                 actor
             )

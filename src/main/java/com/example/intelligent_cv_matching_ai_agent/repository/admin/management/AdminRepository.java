@@ -11,7 +11,9 @@ public class AdminRepository {
     private static final String ACCOUNT_FIELDS =
         ("u.id,u.email,u.full_name,u.role,u.status,u.auth_provider,u.preferred_language,"
             + "u.email_verified_at,u.last_login_at,u.created_at,u.updated_at,u.deleted_at,"
-            + "mp.sub_role AS management_sub_role,mp.permissions AS management_permissions,"
+            + "COALESCE(mp.sub_role, CASE WHEN u.role='STAFF' THEN 'STAFF' "
+            + "WHEN u.role='MANAGEMENT' THEN 'MANAGER' ELSE NULL END) AS management_sub_role,"
+            + "mp.permissions AS management_permissions,"
             + "mp.manager_user_id,mp.department AS management_department");
 
     private static final String ACCOUNT_FROM = " FROM users u LEFT JOIN management_profiles mp ON mp.user_id=u.id ";
@@ -101,6 +103,17 @@ public class AdminRepository {
         return db.update(
             ("INSERT INTO candidate_profiles(user_id,created_at,updated_at) VALUES " + "(?,now(),now())"),
             args
+        );
+    }
+
+    public boolean isStaffActor(
+        UUID actor) {
+        return Boolean.TRUE.equals(
+            db.scalar(
+                "SELECT EXISTS(SELECT 1 FROM users u LEFT JOIN management_profiles mp ON mp.user_id=u.id "
+                    + "WHERE u.id=? AND (u.role='STAFF' OR (u.role='MANAGEMENT' AND mp.sub_role='STAFF')))",
+                actor
+            )
         );
     }
 

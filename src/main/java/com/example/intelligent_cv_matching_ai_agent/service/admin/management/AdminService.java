@@ -71,6 +71,12 @@ public class AdminService {
         user.requireRole("ADMIN");
     }
 
+    private void requireManagerOrAdmin() {
+        admin();
+        if (db.isStaffActor(user.id()))
+            throw ApiException.forbidden("Only administrators or managers can manage user accounts");
+    }
+
     public Map<String, Object> dashboard() {
         admin();
         return Map.of(
@@ -110,7 +116,7 @@ public class AdminService {
     @Transactional
     public Map<String, Object> create(
         AccountCreateRequest body) {
-        admin();
+        requireManagerOrAdmin();
         String email = body.email().trim().toLowerCase(java.util.Locale.ROOT);
         if (body.temporaryPassword().getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 72)
             throw ApiException.badRequest("Password must fit within 72 UTF-8 bytes");
@@ -144,8 +150,10 @@ public class AdminService {
 
         if ("CANDIDATE".equals(body.role()))
             db.updateCandidateProfiles(id);
-        if ("MANAGEMENT".equals(body.role())) {
-            String subRole = body.subRole() == null ? "MANAGER" : body.subRole();
+        if ("MANAGEMENT".equals(body.role()) || "STAFF".equals(body.role())) {
+            String subRole = "STAFF".equals(body.role())
+                ? "STAFF"
+                : (body.subRole() == null ? "MANAGER" : body.subRole());
             List<String> defaultPermissions = "STAFF".equals(subRole)
                 ? List.of("JOB_ENTRY", "JOB_SOURCING")
                 : List.of("JOB_ENTRY", "JOB_SOURCING", "JOB_APPROVAL", "TASK_ASSIGNMENT", "STAFF_MANAGEMENT");
@@ -163,7 +171,7 @@ public class AdminService {
     public Map<String, Object> edit(
         UUID id,
         AccountUpdateRequest body) {
-        admin();
+        requireManagerOrAdmin();
         db.readDatabaseValue();
         Map<String, Object> before = account(id);
         if ("DELETED".equals(before.get("status")))
@@ -174,9 +182,13 @@ public class AdminService {
             throw ApiException.badRequest("Accounts must verify their email before activation");
 
         db.updateUsersById(body.fullName(), body.role(), body.status(), id);
-        if ("MANAGEMENT".equals(body.role())) {
-            String existingSubRole = before.get("management_sub_role") instanceof String s ? s : "MANAGER";
-            String subRole = body.subRole() == null ? existingSubRole : body.subRole();
+        if ("MANAGEMENT".equals(body.role()) || "STAFF".equals(body.role())) {
+            String existingSubRole = "STAFF".equals(body.role())
+                ? "STAFF"
+                : (before.get("management_sub_role") instanceof String s ? s : "MANAGER");
+            String subRole = "STAFF".equals(body.role())
+                ? "STAFF"
+                : (body.subRole() == null ? existingSubRole : body.subRole());
             List<String> defaultPermissions = "STAFF".equals(subRole)
                 ? List.of("JOB_ENTRY", "JOB_SOURCING")
                 : List.of("JOB_ENTRY", "JOB_SOURCING", "JOB_APPROVAL", "TASK_ASSIGNMENT", "STAFF_MANAGEMENT");
@@ -201,7 +213,7 @@ public class AdminService {
     @Transactional
     public Map<String, Object> delete(
         UUID id) {
-        admin();
+        requireManagerOrAdmin();
         db.readDatabaseValue();
         Map<String, Object> before = account(id);
         protectLastAdmin(before, before.get("role").toString(), "DELETED");

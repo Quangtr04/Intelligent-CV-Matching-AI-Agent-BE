@@ -53,8 +53,31 @@ public class ManagementTaskService {
         requireAdminOrManagement();
         Map<String, Object> actor = db.findActorRoleAndSubRole(user.id())
             .orElseThrow(() -> ApiException.forbidden("Active administrator or manager account required"));
-        if ("MANAGEMENT".equals(actor.get("role")) && "STAFF".equals(actor.get("sub_role")))
+        boolean isStaff = "STAFF".equals(actor.get("role"))
+            || ("MANAGEMENT".equals(actor.get("role")) && "STAFF".equals(actor.get("sub_role")));
+        if (isStaff && !db.actorHasPermission(user.id(), "TASK_ASSIGNMENT")
+            && !db.actorHasPermission(user.id(), "STAFF_MANAGEMENT"))
             throw ApiException.forbidden("Only ADMIN or MANAGEMENT (MANAGER) can perform this operation");
+    }
+
+    private void requireTaskAssigner() {
+        requireAdminOrManagement();
+        Map<String, Object> actor = db.findActorRoleAndSubRole(user.id())
+            .orElseThrow(() -> ApiException.forbidden("Active administrator or manager account required"));
+        boolean isStaff = "STAFF".equals(actor.get("role"))
+            || ("MANAGEMENT".equals(actor.get("role")) && "STAFF".equals(actor.get("sub_role")));
+        if (isStaff && !db.actorHasPermission(user.id(), "TASK_ASSIGNMENT"))
+            throw ApiException.forbidden("Only ADMIN or MANAGEMENT (MANAGER) can assign tasks");
+    }
+
+    private void requireStaffManager() {
+        requireAdminOrManagement();
+        Map<String, Object> actor = db.findActorRoleAndSubRole(user.id())
+            .orElseThrow(() -> ApiException.forbidden("Active administrator or manager account required"));
+        boolean isStaff = "STAFF".equals(actor.get("role"))
+            || ("MANAGEMENT".equals(actor.get("role")) && "STAFF".equals(actor.get("sub_role")));
+        if (isStaff && !db.actorHasPermission(user.id(), "STAFF_MANAGEMENT"))
+            throw ApiException.forbidden("Only ADMIN or MANAGEMENT (MANAGER) can configure staff profiles");
     }
 
     public Map<String, Object> overview() {
@@ -90,26 +113,30 @@ public class ManagementTaskService {
     public Map<String, Object> updateProfile(
         UUID userId,
         ManagementProfileRequest body) {
-        requireManagerOrAdmin();
+        requireStaffManager();
         Map<String, Object> before = db.getStaffMember(userId);
-        if (!"MANAGEMENT".equals(before.get("role")) && !"ADMIN".equals(before.get("role")))
-            throw ApiException.badRequest("Management profile can only be configured for MANAGEMENT or ADMIN users");
+        if (!Set.of("ADMIN", "MANAGEMENT", "STAFF").contains(before.get("role")))
+            throw ApiException
+                .badRequest("Management profile can only be configured for ADMIN, MANAGEMENT, or STAFF users");
 
         if (body.managerUserId() != null) {
             if (body.managerUserId().equals(userId))
                 throw ApiException.badRequest("A user cannot be their own manager");
             Map<String, Object> manager = db.requireAssignableUser(body.managerUserId());
-            if ("STAFF".equals(manager.get("sub_role")) && !"ADMIN".equals(manager.get("role")))
+            boolean managerIsStaff = "STAFF".equals(manager.get("role"))
+                || ("STAFF".equals(manager.get("sub_role")) && !"ADMIN".equals(manager.get("role")));
+            if (managerIsStaff)
                 throw ApiException.badRequest("managerUserId must reference an ADMIN or MANAGER");
         }
 
+        String effectiveSubRole = "STAFF".equals(before.get("role")) ? "STAFF" : body.subRole();
         List<String> permissions = body.permissions() == null || body.permissions().isEmpty()
-            ? ("STAFF".equals(body.subRole()) ? DEFAULT_STAFF_PERMISSIONS : DEFAULT_MANAGER_PERMISSIONS)
+            ? ("STAFF".equals(effectiveSubRole) ? DEFAULT_STAFF_PERMISSIONS : DEFAULT_MANAGER_PERMISSIONS)
             : body.permissions().stream().distinct().toList();
 
         db.upsertManagementProfile(
             userId,
-            body.subRole(),
+            effectiveSubRole,
             db.json(permissions),
             body.managerUserId(),
             body.department() == null || body.department().isBlank() ? null : body.department().strip(),
@@ -153,7 +180,7 @@ public class ManagementTaskService {
     @Transactional
     public Map<String, Object> createTask(
         ManagementTaskRequest body) {
-        requireManagerOrAdmin();
+        requireTaskAssigner();
         db.requireAssignableUser(body.assignedToUserId());
 
         OffsetDateTime now = OffsetDateTime.now();
@@ -195,7 +222,7 @@ public class ManagementTaskService {
     public Map<String, Object> updateTask(
         UUID id,
         ManagementTaskRequest body) {
-        requireManagerOrAdmin();
+        requireTaskAssigner();
         Map<String, Object> before = db.getTaskForUpdate(id);
         db.requireAssignableUser(body.assignedToUserId());
 
@@ -239,10 +266,12 @@ public class ManagementTaskService {
         Map<String, Object> actor =
             db.findActorRoleAndSubRole(user.id()).orElseThrow(() -> ApiException.forbidden("Active account required"));
 
-        boolean isStaff = "MANAGEMENT".equals(actor.get("role")) && "STAFF".equals(actor.get("sub_role"));
-        if (isStaff && !user.id().equals(before.get("assigned_to_user_id")))
+        boolean isStaff = "STAFF".equals(actor.get("role"))
+            || ("MANAGEMENT".equals(actor.get("role")) && "STAFF".equals(actor.get("sub_role")));
+        boolean canManageTasks = !isStaff || db.actorHasPermission(user.id(), "TASK_ASSIGNMENT");
+        if (!canManageTasks && !user.id().equals(before.get("assigned_to_user_id")))
             throw ApiException.forbidden("Staff can only update the status of tasks assigned to them");
-        if (isStaff && "CANCELLED".equals(body.status()))
+        if (!canManageTasks && "CANCELLED".equals(body.status()))
             throw ApiException.forbidden("Only managers or administrators can cancel a task");
 
         db.updateTaskStatus(body.status(), id);

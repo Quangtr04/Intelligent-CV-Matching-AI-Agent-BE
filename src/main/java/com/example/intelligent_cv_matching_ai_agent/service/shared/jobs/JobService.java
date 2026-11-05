@@ -381,7 +381,7 @@ public class JobService {
         UUID id,
         Map<String, Object> input) {
         user.requireRole("ADMIN");
-        if (db.isStaffActor(user.id()))
+        if (db.isStaffActor(user.id()) && !db.hasJobApprovalPermission(user.id()))
             throw ApiException.forbidden("Only administrators and managers can approve or change job status");
         String status = required(input, "status", 20);
         if (!Set.of("PENDING", "ACTIVE", "REJECTED", "EXPIRED", "REMOVED", "INVALID").contains(status))

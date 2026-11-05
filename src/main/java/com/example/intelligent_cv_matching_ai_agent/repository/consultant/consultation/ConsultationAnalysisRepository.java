@@ -30,7 +30,7 @@ public class ConsultationAnalysisRepository {
               AND viewer.status = 'ACTIVE'
               AND candidate.status <> 'DELETED'
               AND (
-                  viewer.role IN ('ADMIN', 'MANAGEMENT')
+                  viewer.role IN ('ADMIN', 'MANAGEMENT', 'STAFF')
                   OR viewer.id = t.candidate_user_id
                   OR viewer.id = t.consultant_user_id
               )

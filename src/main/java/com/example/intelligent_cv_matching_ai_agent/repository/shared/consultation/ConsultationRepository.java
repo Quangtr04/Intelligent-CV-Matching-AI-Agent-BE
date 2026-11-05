@@ -151,7 +151,7 @@ public class ConsultationRepository {
         Object... args) {
         return db.optional(
             ("SELECT 1 FROM consultation_threads t JOIN users u ON u.id=? WHERE "
-                + "t.id=? AND u.status='ACTIVE' AND (u.role IN ('ADMIN','MANAGEMENT') OR "
+                + "t.id=? AND u.status='ACTIVE' AND (u.role IN ('ADMIN','MANAGEMENT','STAFF') OR "
                 + "u.id=t.candidate_user_id OR u.id=t.consultant_user_id)"),
             args
         );

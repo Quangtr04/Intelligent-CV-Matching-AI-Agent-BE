@@ -17,7 +17,8 @@ public class ManagementTaskRepository {
                u.full_name,
                u.role,
                u.status,
-               COALESCE(mp.sub_role, CASE WHEN u.role = 'ADMIN' THEN 'ADMIN' ELSE 'MANAGER' END) AS sub_role,
+               COALESCE(mp.sub_role, CASE WHEN u.role = 'ADMIN' THEN 'ADMIN'
+                 WHEN u.role = 'STAFF' THEN 'STAFF' ELSE 'MANAGER' END) AS sub_role,
                COALESCE(mp.permissions, '[]'::jsonb) AS permissions,
                mp.manager_user_id,
                mgr.full_name AS manager_full_name,
@@ -53,7 +54,8 @@ public class ManagementTaskRepository {
                assignee.full_name AS assigned_to_full_name,
                assignee.email AS assigned_to_email,
                assignee.role AS assigned_to_role,
-               COALESCE(mp.sub_role, 'MANAGER') AS assigned_to_sub_role,
+               COALESCE(mp.sub_role, CASE WHEN assignee.role = 'ADMIN' THEN 'ADMIN'
+                 WHEN assignee.role = 'STAFF' THEN 'STAFF' ELSE 'MANAGER' END) AS assigned_to_sub_role,
                (SELECT count(*) FROM market_job_posts j WHERE j.task_id = t.id) AS submitted_jobs_count,
                (SELECT count(*) FROM market_job_posts j
                  WHERE j.task_id = t.id AND j.status = 'ACTIVE') AS approved_jobs_count,
@@ -81,10 +83,12 @@ public class ManagementTaskRepository {
     public List<Map<String, Object>> listStaffMembers(
         String subRole) {
         return db.list(
-            STAFF_MEMBER_SELECT + " WHERE u.role IN ('ADMIN', 'MANAGEMENT') AND u.status <> 'DELETED' "
+            STAFF_MEMBER_SELECT + " WHERE u.role IN ('ADMIN', 'MANAGEMENT', 'STAFF') AND u.status <> 'DELETED' "
                 + "AND (?::varchar IS NULL OR COALESCE(mp.sub_role, "
-                + "CASE WHEN u.role = 'ADMIN' THEN 'ADMIN' ELSE 'MANAGER' END) = ?) "
-                + "ORDER BY (u.role = 'ADMIN') DESC, COALESCE(mp.sub_role, 'MANAGER'), u.full_name, u.id",
+                + "CASE WHEN u.role = 'ADMIN' THEN 'ADMIN' WHEN u.role = 'STAFF' THEN 'STAFF' ELSE 'MANAGER' END) = ?) "
+                + "ORDER BY (u.role = 'ADMIN') DESC, "
+                + "COALESCE(mp.sub_role, CASE WHEN u.role = 'STAFF' THEN 'STAFF' ELSE 'MANAGER' END), "
+                + "u.full_name, u.id",
             subRole,
             subRole
         );
@@ -93,7 +97,8 @@ public class ManagementTaskRepository {
     public Map<String, Object> getStaffMember(
         UUID userId) {
         return db.one(
-            STAFF_MEMBER_SELECT + " WHERE u.id = ? AND u.role IN ('ADMIN', 'MANAGEMENT') AND u.status <> 'DELETED'",
+            STAFF_MEMBER_SELECT
+                + " WHERE u.id = ? AND u.role IN ('ADMIN', 'MANAGEMENT', 'STAFF') AND u.status <> 'DELETED'",
             userId
         );
     }
@@ -101,7 +106,9 @@ public class ManagementTaskRepository {
     public Optional<Map<String, Object>> findActorRoleAndSubRole(
         UUID userId) {
         return db.optional(
-            "SELECT u.id, u.role, u.status, COALESCE(mp.sub_role, 'MANAGER') AS sub_role, "
+            "SELECT u.id, u.role, u.status, "
+                + "COALESCE(mp.sub_role, CASE WHEN u.role = 'ADMIN' THEN 'ADMIN' "
+                + "WHEN u.role = 'STAFF' THEN 'STAFF' ELSE 'MANAGER' END) AS sub_role, "
                 + "COALESCE(mp.permissions, '[]'::jsonb) AS permissions "
                 + "FROM users u LEFT JOIN management_profiles mp ON mp.user_id = u.id "
                 + "WHERE u.id = ? AND u.status = 'ACTIVE' AND u.deleted_at IS NULL",
@@ -109,12 +116,28 @@ public class ManagementTaskRepository {
         );
     }
 
+    public boolean actorHasPermission(
+        UUID userId,
+        String permission) {
+        return Boolean.TRUE.equals(
+            db.scalar(
+                "SELECT EXISTS(SELECT 1 FROM management_profiles mp "
+                    + "WHERE mp.user_id = ? AND mp.permissions @> jsonb_build_array(?::text))",
+                userId,
+                permission
+            )
+        );
+    }
+
     public Map<String, Object> requireAssignableUser(
         UUID userId) {
         return db.one(
-            "SELECT u.id, u.full_name, u.email, u.role, COALESCE(mp.sub_role, 'MANAGER') AS sub_role "
+            "SELECT u.id, u.full_name, u.email, u.role, "
+                + "COALESCE(mp.sub_role, CASE WHEN u.role = 'ADMIN' THEN 'ADMIN' "
+                + "WHEN u.role = 'STAFF' THEN 'STAFF' ELSE 'MANAGER' END) AS sub_role "
                 + "FROM users u LEFT JOIN management_profiles mp ON mp.user_id = u.id "
-                + "WHERE u.id = ? AND u.role IN ('ADMIN', 'MANAGEMENT') AND u.status = 'ACTIVE' AND u.deleted_at IS NULL",
+                + "WHERE u.id = ? AND u.role IN ('ADMIN', 'MANAGEMENT', 'STAFF') "
+                + "AND u.status = 'ACTIVE' AND u.deleted_at IS NULL",
             userId
         );
     }
@@ -248,11 +271,14 @@ public class ManagementTaskRepository {
 
     public Map<String, Object> summaryMetrics() {
         return db.one("""
-            SELECT (SELECT count(*) FROM users WHERE role = 'MANAGEMENT' AND status = 'ACTIVE') AS active_management_users,
-                   (SELECT count(*) FROM users u JOIN management_profiles mp ON mp.user_id = u.id
-                     WHERE u.role = 'MANAGEMENT' AND u.status = 'ACTIVE' AND mp.sub_role = 'MANAGER') AS active_managers,
-                   (SELECT count(*) FROM users u JOIN management_profiles mp ON mp.user_id = u.id
-                     WHERE u.role = 'MANAGEMENT' AND u.status = 'ACTIVE' AND mp.sub_role = 'STAFF') AS active_staff,
+            SELECT (SELECT count(*) FROM users WHERE role IN ('MANAGEMENT', 'STAFF') AND status = 'ACTIVE')
+                     AS active_management_users,
+                   (SELECT count(*) FROM users u LEFT JOIN management_profiles mp ON mp.user_id = u.id
+                     WHERE u.role = 'MANAGEMENT' AND u.status = 'ACTIVE'
+                       AND COALESCE(mp.sub_role, 'MANAGER') = 'MANAGER') AS active_managers,
+                   (SELECT count(*) FROM users u LEFT JOIN management_profiles mp ON mp.user_id = u.id
+                     WHERE u.status = 'ACTIVE'
+                       AND (u.role = 'STAFF' OR (u.role = 'MANAGEMENT' AND mp.sub_role = 'STAFF'))) AS active_staff,
                    (SELECT count(*) FROM management_tasks WHERE status = 'TODO') AS todo_tasks,
                    (SELECT count(*) FROM management_tasks WHERE status = 'IN_PROGRESS') AS in_progress_tasks,
                    (SELECT count(*) FROM management_tasks WHERE status = 'DONE') AS completed_tasks,

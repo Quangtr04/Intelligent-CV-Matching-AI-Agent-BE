@@ -21,7 +21,10 @@ public class JobRepository {
 
     private static final String STAFF_JOB_CREATOR_COLUMNS =
         "j.created_by_user_id,creator.full_name AS created_by_full_name,creator.email AS created_by_email,"
-            + "creator.role AS created_by_role,mp.sub_role AS created_by_sub_role,"
+            + "creator.role AS created_by_role,"
+            + "COALESCE(mp.sub_role, CASE WHEN creator.role='ADMIN' THEN 'ADMIN' "
+            + "WHEN creator.role='STAFF' THEN 'STAFF' WHEN creator.role='MANAGEMENT' THEN 'MANAGER' ELSE NULL END) "
+            + "AS created_by_sub_role,"
             + "j.ingestion_method,j.task_id,task.title AS task_title,"
             + "j.reviewed_by_user_id,reviewer.full_name AS reviewed_by_full_name,"
             + "reviewer.email AS reviewed_by_email,j.reviewed_at,j.review_note";
@@ -160,7 +163,7 @@ public class JobRepository {
     public void requireActiveAdmin(
         UUID actor) {
         if (db.optional(
-            "SELECT id FROM users WHERE id=? AND role IN ('ADMIN','MANAGEMENT') AND status='ACTIVE' "
+            "SELECT id FROM users WHERE id=? AND role IN ('ADMIN','MANAGEMENT','STAFF') AND status='ACTIVE' "
                 + "AND deleted_at IS NULL",
             actor
         ).isEmpty())
@@ -385,8 +388,19 @@ public class JobRepository {
         UUID actor) {
         return Boolean.TRUE.equals(
             db.scalar(
-                "SELECT EXISTS(SELECT 1 FROM users u JOIN management_profiles mp ON mp.user_id=u.id "
-                    + "WHERE u.id=? AND u.role='MANAGEMENT' AND mp.sub_role='STAFF')",
+                "SELECT EXISTS(SELECT 1 FROM users u LEFT JOIN management_profiles mp ON mp.user_id=u.id "
+                    + "WHERE u.id=? AND (u.role='STAFF' OR (u.role='MANAGEMENT' AND mp.sub_role='STAFF')))",
+                actor
+            )
+        );
+    }
+
+    public boolean hasJobApprovalPermission(
+        UUID actor) {
+        return Boolean.TRUE.equals(
+            db.scalar(
+                "SELECT EXISTS(SELECT 1 FROM management_profiles mp "
+                    + "WHERE mp.user_id=? AND mp.permissions @> '[\"JOB_APPROVAL\"]'::jsonb)",
                 actor
             )
         );
