@@ -106,8 +106,7 @@ public class ManagementTaskRepository {
     public Optional<Map<String, Object>> findActorRoleAndSubRole(
         UUID userId) {
         return db.optional(
-            "SELECT u.id, u.role, u.status, "
-                + "COALESCE(mp.sub_role, CASE WHEN u.role = 'ADMIN' THEN 'ADMIN' "
+            "SELECT u.id, u.role, u.status, " + "COALESCE(mp.sub_role, CASE WHEN u.role = 'ADMIN' THEN 'ADMIN' "
                 + "WHEN u.role = 'STAFF' THEN 'STAFF' ELSE 'MANAGER' END) AS sub_role, "
                 + "COALESCE(mp.permissions, '[]'::jsonb) AS permissions "
                 + "FROM users u LEFT JOIN management_profiles mp ON mp.user_id = u.id "

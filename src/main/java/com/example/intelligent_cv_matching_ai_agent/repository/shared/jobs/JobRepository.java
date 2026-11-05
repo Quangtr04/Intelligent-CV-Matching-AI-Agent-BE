@@ -21,11 +21,9 @@ public class JobRepository {
 
     private static final String STAFF_JOB_CREATOR_COLUMNS =
         "j.created_by_user_id,creator.full_name AS created_by_full_name,creator.email AS created_by_email,"
-            + "creator.role AS created_by_role,"
-            + "COALESCE(mp.sub_role, CASE WHEN creator.role='ADMIN' THEN 'ADMIN' "
+            + "creator.role AS created_by_role," + "COALESCE(mp.sub_role, CASE WHEN creator.role='ADMIN' THEN 'ADMIN' "
             + "WHEN creator.role='STAFF' THEN 'STAFF' WHEN creator.role='MANAGEMENT' THEN 'MANAGER' ELSE NULL END) "
-            + "AS created_by_sub_role,"
-            + "j.ingestion_method,j.task_id,task.title AS task_title,"
+            + "AS created_by_sub_role," + "j.ingestion_method,j.task_id,task.title AS task_title,"
             + "j.reviewed_by_user_id,reviewer.full_name AS reviewed_by_full_name,"
             + "reviewer.email AS reviewed_by_email,j.reviewed_at,j.review_note";
 

@@ -151,8 +151,7 @@ public class JobCrawlRepository {
         Object... args) {
         return db.one(
             "SELECT r.*,u.full_name AS requested_by_full_name,u.email AS requested_by_email,"
-                + "u.role AS requested_by_role,"
-                + "COALESCE(mp.sub_role, CASE WHEN u.role='ADMIN' THEN 'ADMIN' "
+                + "u.role AS requested_by_role," + "COALESCE(mp.sub_role, CASE WHEN u.role='ADMIN' THEN 'ADMIN' "
                 + "WHEN u.role='STAFF' THEN 'STAFF' WHEN u.role='MANAGEMENT' THEN 'MANAGER' ELSE NULL END) "
                 + "AS requested_by_sub_role,t.title AS task_title "
                 + "FROM market_crawl_runs r LEFT JOIN users u ON u.id=r.requested_by "
@@ -171,8 +170,7 @@ public class JobCrawlRepository {
         Object... args) {
         return db.list(
             "SELECT r.*,u.full_name AS requested_by_full_name,u.email AS requested_by_email,"
-                + "u.role AS requested_by_role,"
-                + "COALESCE(mp.sub_role, CASE WHEN u.role='ADMIN' THEN 'ADMIN' "
+                + "u.role AS requested_by_role," + "COALESCE(mp.sub_role, CASE WHEN u.role='ADMIN' THEN 'ADMIN' "
                 + "WHEN u.role='STAFF' THEN 'STAFF' WHEN u.role='MANAGEMENT' THEN 'MANAGER' ELSE NULL END) "
                 + "AS requested_by_sub_role,t.title AS task_title "
                 + "FROM market_crawl_runs r LEFT JOIN users u ON u.id=r.requested_by "

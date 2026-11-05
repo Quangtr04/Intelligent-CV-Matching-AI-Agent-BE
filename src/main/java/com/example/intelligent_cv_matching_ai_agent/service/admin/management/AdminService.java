@@ -151,9 +151,8 @@ public class AdminService {
         if ("CANDIDATE".equals(body.role()))
             db.updateCandidateProfiles(id);
         if ("MANAGEMENT".equals(body.role()) || "STAFF".equals(body.role())) {
-            String subRole = "STAFF".equals(body.role())
-                ? "STAFF"
-                : (body.subRole() == null ? "MANAGER" : body.subRole());
+            String subRole =
+                "STAFF".equals(body.role()) ? "STAFF" : (body.subRole() == null ? "MANAGER" : body.subRole());
             List<String> defaultPermissions = "STAFF".equals(subRole)
                 ? List.of("JOB_ENTRY", "JOB_SOURCING")
                 : List.of("JOB_ENTRY", "JOB_SOURCING", "JOB_APPROVAL", "TASK_ASSIGNMENT", "STAFF_MANAGEMENT");
@@ -186,9 +185,8 @@ public class AdminService {
             String existingSubRole = "STAFF".equals(body.role())
                 ? "STAFF"
                 : (before.get("management_sub_role") instanceof String s ? s : "MANAGER");
-            String subRole = "STAFF".equals(body.role())
-                ? "STAFF"
-                : (body.subRole() == null ? existingSubRole : body.subRole());
+            String subRole =
+                "STAFF".equals(body.role()) ? "STAFF" : (body.subRole() == null ? existingSubRole : body.subRole());
             List<String> defaultPermissions = "STAFF".equals(subRole)
                 ? List.of("JOB_ENTRY", "JOB_SOURCING")
                 : List.of("JOB_ENTRY", "JOB_SOURCING", "JOB_APPROVAL", "TASK_ASSIGNMENT", "STAFF_MANAGEMENT");
