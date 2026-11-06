@@ -27,6 +27,11 @@ public class EntitlementRepository {
         // Period values originate in subscription quota rules, never raw request text.
         String boundary = switch (period) {
             case "all" -> "";
+            case "subscription" -> " AND created_at >= COALESCE((SELECT us.started_at "
+                + "+ floor(extract(epoch FROM (now()-us.started_at))/2592000)::bigint * interval '30 days' "
+                + "FROM user_subscriptions us WHERE us.user_id=ai_token_reservations.user_id "
+                + "AND us.status='ACTIVE' AND (us.expires_at IS NULL OR us.expires_at>now()) "
+                + "ORDER BY us.started_at DESC LIMIT 1),date_trunc('month',now()))";
             case "day", "month", "year" -> " AND created_at>=date_trunc('" + period + "',now())";
             default -> throw new IllegalArgumentException("Unsupported quota period");
         };
@@ -68,7 +73,7 @@ public class EntitlementRepository {
     public Optional<Map<String, Object>> findUserSubscriptionsByUserId(
         Object... args) {
         return db.optional(
-            ("SELECT st.* FROM user_subscriptions us JOIN subscription_tiers st ON "
+            ("SELECT st.*,us.started_at AS subscription_started_at FROM user_subscriptions us JOIN subscription_tiers st ON "
                 + "st.id=us.tier_id WHERE us.user_id=? AND us.status='ACTIVE' AND "
                 + "st.is_active=true AND (us.expires_at IS NULL OR us.expires_at>now()) "
                 + "ORDER BY us.started_at DESC LIMIT 1"),

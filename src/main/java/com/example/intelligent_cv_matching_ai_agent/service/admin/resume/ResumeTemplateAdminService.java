@@ -36,7 +36,7 @@ public class ResumeTemplateAdminService {
     public List<Map<String, Object>> list(
         int limit,
         int offset) {
-        user.requireRole("ADMIN");
+        user.requireOperationsRole();
         if (limit < 1 || limit > 100 || offset < 0 || offset > 100000) {
             throw ApiException.badRequest("limit must be 1..100 and offset must be 0..100000");
         }
@@ -45,14 +45,14 @@ public class ResumeTemplateAdminService {
 
     public Map<String, Object> get(
         UUID id) {
-        user.requireRole("ADMIN");
+        user.requireOperationsRole();
         return db.get(id);
     }
 
     @Transactional
     public Map<String, Object> create(
         ResumeTemplateRequest request) {
-        user.requireRole("ADMIN");
+        user.requireOperationsRole();
         UUID id = db.create(normalized(request));
         Map<String, Object> after = db.get(id);
         audit.record("CREATE_RESUME_TEMPLATE", "RESUME_TEMPLATE", id, null, after);
@@ -63,7 +63,7 @@ public class ResumeTemplateAdminService {
     public Map<String, Object> update(
         UUID id,
         ResumeTemplateRequest request) {
-        user.requireRole("ADMIN");
+        user.requireOperationsRole();
         Map<String, Object> values = normalized(request);
         Map<String, Object> before = db.lock(id);
         db.update(id, values);
@@ -76,7 +76,7 @@ public class ResumeTemplateAdminService {
     public Map<String, Object> status(
         UUID id,
         ResumeTemplateStatusRequest request) {
-        user.requireRole("ADMIN");
+        user.requireOperationsRole();
         if (request == null || request.active() == null) {
             throw ApiException.badRequest("active must be a boolean");
         }

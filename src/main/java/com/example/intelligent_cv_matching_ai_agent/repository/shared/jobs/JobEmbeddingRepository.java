@@ -25,7 +25,7 @@ public class JobEmbeddingRepository {
     public boolean isActiveAdministrator(
         UUID actor) {
         return db.optional(
-            "SELECT id FROM users WHERE id=? AND role IN ('ADMIN','MANAGEMENT') AND status='ACTIVE' "
+            "SELECT id FROM users WHERE id=? AND role IN ('ADMIN','MANAGEMENT','MANAGER') AND status='ACTIVE' "
                 + "AND deleted_at IS NULL",
             actor
         ).isPresent();

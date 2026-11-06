@@ -111,7 +111,7 @@ Thông báo hỗ trợ audience `ALL`, `ROLE`, `USER`. Chỉ bản nháp đượ
 | `MAIL_ENABLED` | Bật gửi email xác minh và các API gửi email được triển khai |
 | `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_SMTP_AUTH`, `MAIL_STARTTLS`, `MAIL_FROM` | SMTP và người gửi |
 | `GOOGLE_CLIENT_ID` | Audience được chấp nhận cho Google ID token |
-| `GUEST_TOKEN_LIMIT` | Ngân sách token của guest session mới, mặc định 5000 |
+| `GUEST_TOKEN_LIMIT` | Ngân sách token của guest session mới, mặc định 10000 |
 | `PAYMENT_PROVIDER`, `PAYMENT_WEBHOOK_SECRET` | Provider của đơn mới và secret xác minh webhook |
 | `CORS_ALLOWED_ORIGINS` | Danh sách origin frontend cách nhau bằng dấu phẩy |
 | `AI_ENABLED`, `AI_CHAT_PROVIDER`, `AI_EMBEDDING_PROVIDER`, `GEMINI_API_KEY` | Bật AI và khởi tạo provider tại startup |

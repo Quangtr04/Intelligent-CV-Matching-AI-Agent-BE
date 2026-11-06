@@ -26,7 +26,7 @@ public class GuestSessionService {
         GuestSessionRepository db,
         GuestAccess guest,
         AuthThrottle throttle,
-        @Value("${app.guest.token-limit:5000}")
+        @Value("${app.guest.token-limit:10000}")
         int tokenLimit) {
         this.db = db;
         this.guest = guest;

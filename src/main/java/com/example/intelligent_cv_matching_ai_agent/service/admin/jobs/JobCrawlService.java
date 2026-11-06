@@ -66,7 +66,7 @@ public class JobCrawlService {
 
     public Map<String, Object> crawl(
         CrawlRequest input) {
-        user.requireRole("ADMIN");
+        user.requireOperationsRole();
         return collect(input, user.id(), false);
     }
 
@@ -82,16 +82,16 @@ public class JobCrawlService {
         CrawlRequest input,
         UUID actor,
         boolean scheduled) {
-        if (input.effectiveLimit() < 1 || input.effectiveLimit() > 20 || input.effectiveMaxPages() < 1
-            || input.effectiveMaxPages() > 5)
-            throw ApiException.badRequest("limit must be 1..20 and maxPages must be 1..5");
+        if (input.effectiveLimit() < 1 || input.effectiveLimit() > 100 || input.effectiveMaxPages() < 1
+            || input.effectiveMaxPages() > 10)
+            throw ApiException.badRequest("limit must be 1..100 and maxPages must be 1..10");
         String site = text(input.sourceSite()).strip().toUpperCase(Locale.ROOT);
         // Validate the source and all explicit URLs before opening a run or accessing the network.
         JobUrlDiscovery.searchUrl(site, input.keyword(), input.location(), 1);
         List<String> urls = (input.urls() == null ? List.<String>of() : input.urls()).stream()
             .map(url -> JobUrlDiscovery.canonicalUrl(site, url)).distinct().toList();
-        if (urls.size() > 20)
-            throw ApiException.badRequest("At most 20 detail URLs are allowed");
+        if (urls.size() > 100)
+            throw ApiException.badRequest("At most 100 detail URLs are allowed");
         try (var lease = sourceAccess.open(site)) {
             return collectSource(input, actor, scheduled, site, urls);
         }
@@ -407,13 +407,13 @@ public class JobCrawlService {
     public List<Map<String, Object>> runs(
         int limit,
         int offset) {
-        user.requireRole("ADMIN");
+        user.requireOperationsRole();
         return db.listMarketCrawlRuns(pageSize(limit), offset(offset));
     }
 
     public Map<String, Object> run(
         UUID id) {
-        user.requireRole("ADMIN");
+        user.requireOperationsRole();
         var result = db.getMarketCrawlRunsById(id);
         result.put("items", db.listMarketCrawlItemsByCrawlRunId(id));
         return result;

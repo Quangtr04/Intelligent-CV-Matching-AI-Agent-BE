@@ -10,7 +10,7 @@ public record SubscriptionQuotaRequest(
     @Min(0)
     long quotaValue,
     @NotBlank
-    @Pattern(regexp = "DAILY|MONTHLY|YEARLY|LIFETIME")
+    @Pattern(regexp = "DAILY|MONTHLY|YEARLY|LIFETIME|SUBSCRIPTION")
     String quotaPeriod
 ) {
 }

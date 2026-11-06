@@ -491,13 +491,28 @@ class CoreFlowIntegrationTests {
     @Test
     void consultationAssignmentAndConversationPrivacy() throws Exception {
         confirmedCv();
-        var thread = postJson(
-            "/api/v1/consultations",
-            candidate,
-            Map.of("subject", "Career guidance", "description", "Please review my target career")
-        );
-        String id = thread.get("id").toString();
-        assertEquals(1, consultationNotifications(adminId, "CONSULTATION_REQUEST", id));
+        mvc.perform(
+            post("/api/v1/consultations").header("Authorization", "Bearer " + candidate)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json(Map.of("subject", "Career guidance", "description", "Please review my target career")))
+        ).andExpect(status().isBadRequest());
+        mvc.perform(
+            post("/api/v1/consultations").header("Authorization", "Bearer " + candidate)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json(Map.of("subject", "Chat", "description", "Free chat", "requestType", "DIRECT_CHAT")))
+        ).andExpect(status().isBadRequest());
+        // Historical paid threads retain their assignment/conversation privacy contract.
+        String id = db.insert(
+            "consultation_threads",
+            fields(
+                "candidate_user_id",
+                candidateId,
+                "subject",
+                "Career guidance",
+                "request_description",
+                "Please review my target career"
+            )
+        ).toString();
         mvc.perform(get("/api/v1/consultations/" + id + "/messages").header("Authorization", "Bearer " + other))
             .andExpect(status().isNotFound());
         mvc.perform(get("/api/v1/consultations/" + id).header("Authorization", "Bearer " + consultant))

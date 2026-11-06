@@ -101,9 +101,33 @@ app:
           location: ${JOB_COLLECTION_ITVIEC_LOCATION}
           limit: ${JOB_COLLECTION_LIMIT}
           max-pages: ${JOB_COLLECTION_MAX_PAGES}
+        - source-site: ${JOB_COLLECTION_ITVIEC_SOURCE_SITE}
+          keyword: React
+          role-category: Frontend
+          location: ${JOB_COLLECTION_ITVIEC_LOCATION}
+          limit: ${JOB_COLLECTION_LIMIT}
+          max-pages: ${JOB_COLLECTION_MAX_PAGES}
+        - source-site: ${JOB_COLLECTION_ITVIEC_SOURCE_SITE}
+          keyword: Data
+          role-category: Data
+          location: ${JOB_COLLECTION_ITVIEC_LOCATION}
+          limit: ${JOB_COLLECTION_LIMIT}
+          max-pages: ${JOB_COLLECTION_MAX_PAGES}
         - source-site: ${JOB_COLLECTION_TOPCV_SOURCE_SITE}
           keyword: ${JOB_COLLECTION_TOPCV_KEYWORD}
           role-category: ${JOB_COLLECTION_TOPCV_ROLE}
+          location: ${JOB_COLLECTION_TOPCV_LOCATION}
+          limit: ${JOB_COLLECTION_LIMIT}
+          max-pages: ${JOB_COLLECTION_MAX_PAGES}
+        - source-site: ${JOB_COLLECTION_TOPCV_SOURCE_SITE}
+          keyword: React
+          role-category: Frontend
+          location: ${JOB_COLLECTION_TOPCV_LOCATION}
+          limit: ${JOB_COLLECTION_LIMIT}
+          max-pages: ${JOB_COLLECTION_MAX_PAGES}
+        - source-site: ${JOB_COLLECTION_TOPCV_SOURCE_SITE}
+          keyword: Data
+          role-category: Data
           location: ${JOB_COLLECTION_TOPCV_LOCATION}
           limit: ${JOB_COLLECTION_LIMIT}
           max-pages: ${JOB_COLLECTION_MAX_PAGES}

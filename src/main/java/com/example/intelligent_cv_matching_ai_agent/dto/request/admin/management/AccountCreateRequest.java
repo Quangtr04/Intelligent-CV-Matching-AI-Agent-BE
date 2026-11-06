@@ -12,7 +12,7 @@ public record AccountCreateRequest(
     @Size(max = 255)
     String fullName,
     @NotBlank
-    @Pattern(regexp = "CANDIDATE|CAREER_CONSULTANT|ADMIN|MANAGEMENT")
+    @Pattern(regexp = "CANDIDATE|CAREER_CONSULTANT|ADMIN|MANAGEMENT|MANAGER")
     String role,
     @NotBlank
     @Size(min = 10, max = 72)

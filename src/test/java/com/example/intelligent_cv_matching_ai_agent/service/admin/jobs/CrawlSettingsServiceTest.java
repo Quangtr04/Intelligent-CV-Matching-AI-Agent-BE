@@ -69,7 +69,7 @@ class CrawlSettingsServiceTest {
         assertEquals(0, result.version());
         assertNull(result.updatedBy());
         assertNull(result.updatedAt());
-        verify(current).requireRole("ADMIN");
+        verify(current).requireOperationsRole();
         verify(db, never()).save(anyBoolean(), any(), any(), anyList(), any());
         verify(db, never()).audit(any());
     }
@@ -138,7 +138,7 @@ class CrawlSettingsServiceTest {
         assertEquals(5, sources.getValue().getFirst().limit());
         assertEquals(2, sources.getValue().getFirst().maxPages());
         verify(db).audit(actor);
-        verify(current).requireRole("ADMIN");
+        verify(current).requireOperationsRole();
         verify(administrators).isActiveAdministrator(actor);
     }
 
@@ -198,7 +198,7 @@ class CrawlSettingsServiceTest {
 
     @Test
     void unauthorizedCallersCannotReadOrChangeSettings() {
-        doThrow(new ApiException(403, "Administrator required")).when(current).requireRole("ADMIN");
+        doThrow(new ApiException(403, "Administrator required")).when(current).requireOperationsRole();
 
         assertThrows(ApiException.class, service::get);
         assertThrows(ApiException.class, () -> service.update(request("PT6H", actor, List.of(source("Ha Noi")))));

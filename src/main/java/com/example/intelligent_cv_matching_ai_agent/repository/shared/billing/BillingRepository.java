@@ -96,4 +96,74 @@ public class BillingRepository {
         return db.insert("notifications", fields);
     }
 
+    public void activateConsultation(
+        Map<String, Object> payment) {
+        Map<String, Object> order = db.one(
+            "SELECT * FROM consultation_orders WHERE id=? AND status='PENDING_PAYMENT' FOR UPDATE",
+            payment.get("consultation_order_id")
+        );
+        if (Boolean.TRUE.equals(order.get("is_session_pack"))) {
+            db.update(
+                "UPDATE consultation_orders SET status='PAID',paid_at=now(),"
+                    + "sessions_remaining=sessions_total WHERE id=?",
+                order.get("id")
+            );
+            db.update("UPDATE payment_orders SET status='COMPLETED',completed_at=now() WHERE id=?", payment.get("id"));
+            db.insert(
+                "notifications",
+                com.example.intelligent_cv_matching_ai_agent.util.shared.Values.fields(
+                    "user_id",
+                    order.get("candidate_user_id"),
+                    "type",
+                    "CONSULTATION_CREDITS_READY",
+                    "title",
+                    "Gói lượt tư vấn đã sẵn sàng",
+                    "content",
+                    "Bạn đã có " + order.get("sessions_total") + " lượt tư vấn. Hãy chọn cố vấn và lịch hẹn.",
+                    "reference_type",
+                    "CONSULTATION_ORDER",
+                    "reference_id",
+                    order.get("id")
+                )
+            );
+            return;
+        }
+        UUID thread = db.insert(
+            "consultation_threads",
+            com.example.intelligent_cv_matching_ai_agent.util.shared.Values.fields(
+                "candidate_user_id",
+                order.get("candidate_user_id"),
+                "subject",
+                order.get("subject"),
+                "request_type",
+                order.get("service_code"),
+                "request_description",
+                order.get("description"),
+                "priority",
+                "NORMAL"
+            )
+        );
+        db.update(
+            "UPDATE consultation_orders SET status='PAID',paid_at=now(),thread_id=? WHERE id=?",
+            thread,
+            order.get("id")
+        );
+        db.update("UPDATE payment_orders SET status='COMPLETED',completed_at=now() WHERE id=?", payment.get("id"));
+        db.update(
+            "INSERT INTO notifications(user_id,type,title,content,reference_type,reference_id) "
+                + "SELECT id,'CONSULTATION_REQUEST','Paid consultation request',?,'CONSULTATION',? "
+                + "FROM users WHERE role IN ('ADMIN','MANAGEMENT') AND status='ACTIVE'",
+            order.get("subject"),
+            thread
+        );
+    }
+
+    public void cancelConsultation(
+        Map<String, Object> payment) {
+        db.update(
+            "UPDATE consultation_orders SET status='CANCELLED' WHERE id=? AND status='PENDING_PAYMENT'",
+            payment.get("consultation_order_id")
+        );
+    }
+
 }

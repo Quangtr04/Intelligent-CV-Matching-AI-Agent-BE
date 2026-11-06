@@ -41,6 +41,18 @@ public class CurrentUser {
         return auth != null && auth.getAuthorities().stream().anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
     }
 
+    public boolean hasOperationsRole() {
+        return hasRole("ADMIN") || hasRole("MANAGER");
+    }
+
+    public void requireOperationsRole() {
+        if (hasRole("MANAGER")) {
+            id();
+        } else {
+            requireRole("ADMIN");
+        }
+    }
+
     public void requireRole(
         String role) {
         id();

@@ -57,32 +57,8 @@ public class ConsultationService {
     public Map<String, Object> create(
         CreateConsultationRequest input) {
         user.requireRole("CANDIDATE");
-
-        UUID id = db.insertConsultationThreads(
-            fields(
-                "candidate_user_id",
-                user.id(),
-                "subject",
-                input.subject(),
-                "request_type",
-                input.requestType(),
-                "request_description",
-                input.description(),
-                "priority",
-                "NORMAL"
-            )
-        );
-
-        for (var admin : db.listActiveAdmins())
-            inform(
-                (UUID) admin.get("id"),
-                "CONSULTATION_REQUEST",
-                "Yêu cầu tư vấn mới",
-                text(input.subject()) + " - cần phân công cố vấn.",
-                id
-            );
-
-        return access(id);
+        throw ApiException
+            .badRequest("Purchase a session pack, then select a consultant through /consultation-bookings");
     }
 
     public List<Map<String, Object>> list() {
@@ -121,6 +97,9 @@ public class ConsultationService {
         db.getUsersById2(request.consultantId());
 
         var before = db.getConsultationThreadsById(id);
+        if ("SESSION_BOOKING".equals(before.get("request_type"))) {
+            throw ApiException.conflict("The candidate's selected consultant cannot be reassigned");
+        }
         db.updateConsultationThreadsById(request.consultantId(), id);
         if (!request.consultantId().equals(before.get("consultant_user_id"))) {
             inform(
@@ -175,6 +154,15 @@ public class ConsultationService {
         if (!"OPEN".equals(thread.get("status")))
             throw ApiException.conflict("Consultation is closed");
 
+        if ("SESSION_BOOKING".equals(thread.get("request_type"))) {
+            var booking = db.bookingForThread(id);
+            java.time.Instant now = java.time.Instant.now();
+            if (!"ACCEPTED".equals(booking.get("status")) || bookingTime(booking.get("starts_at")).isAfter(now)
+                || !bookingTime(booking.get("ends_at")).isAfter(now)) {
+                throw ApiException.conflict("Consultation chat is available only during the accepted appointment");
+            }
+        }
+
         UUID messageId = db.insertConsultationMessages(
             fields(
                 "thread_id",
@@ -221,7 +209,10 @@ public class ConsultationService {
     public Map<String, Object> close(
         UUID id) {
         db.getConsultationThreadsByIdForUpdate2(id);
-        access(id);
+        var thread = access(id);
+        if ("SESSION_BOOKING".equals(thread.get("request_type"))) {
+            throw ApiException.conflict("Scheduled consultations close through their booking lifecycle");
+        }
 
         db.updateConsultationThreadsById2(id);
         afterCommit(() -> disconnect(id));
@@ -316,5 +307,19 @@ public class ConsultationService {
                 action.run();
             }
         });
+    }
+
+    private static java.time.Instant bookingTime(
+        Object value) {
+        if (value instanceof java.sql.Timestamp timestamp) {
+            return timestamp.toInstant();
+        }
+        if (value instanceof java.time.OffsetDateTime dateTime) {
+            return dateTime.toInstant();
+        }
+        if (value instanceof java.time.Instant instant) {
+            return instant;
+        }
+        return java.time.OffsetDateTime.parse(value.toString()).toInstant();
     }
 }

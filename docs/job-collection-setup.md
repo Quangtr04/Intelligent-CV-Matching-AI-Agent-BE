@@ -48,8 +48,8 @@ Content-Type: application/json
       "keyword": "Java",
       "roleCategory": "Backend",
       "location": "Hà Nội",
-      "limit": 20,
-      "maxPages": 3
+      "limit": 50,
+      "maxPages": 5
     }
   ]
 }
@@ -62,7 +62,11 @@ hoặc danh sách user admin. Actor nhận attribution của crawl và quota emb
 
 Danh sách tối đa 20 nguồn, cần ít nhất một nguồn khi `enabled=true`; không gửi nguồn tìm kiếm trùng nhau.
 Mỗi nguồn dùng `sourceSite=ITVIEC|TOPCV`, `keyword` không trống/tối đa 255 ký tự, `roleCategory` không
-trống/tối đa 100, `location` tùy chọn/tối đa 120, `limit` từ 1 đến 20 và `maxPages` từ 1 đến 5.
+trống/tối đa 100, `location` tùy chọn/tối đa 120, `limit` từ 1 đến 100 và `maxPages` từ 1 đến 10.
+Mặc định mỗi nguồn lấy tối đa 50 URL tin và tìm tối đa 5 trang. Đây là giới hạn URL xử lý,
+không bảo đảm số tin mới được nhập vì tin trùng hoặc không hợp lệ có thể bị loại.
+Lịch khởi tạo chia thành Java/Backend, React/Frontend và Data trên cả ITViec và TopCV.
+Lịch đã lưu trong `job_crawl_settings` được ưu tiên hơn cấu hình môi trường.
 Nguồn/actor không hợp lệ, nguồn trùng hoặc payload lỗi bị từ chối trước khi lưu.
 
 GET và PUT trả các trường cấu hình cùng metadata `configurationSource`, `version`, `updatedBy`,
@@ -89,8 +93,8 @@ file khác. Nếu đã có `.env`, giữ file và bổ sung key cần thiết t�
 JOB_COLLECTION_ENABLED=true
 JOB_COLLECTION_ACTOR_ID=00000000-0000-0000-0000-000000000000
 JOB_COLLECTION_FIXED_DELAY=PT6H
-JOB_COLLECTION_LIMIT=20
-JOB_COLLECTION_MAX_PAGES=3
+JOB_COLLECTION_LIMIT=50
+JOB_COLLECTION_MAX_PAGES=5
 
 JOB_COLLECTION_ITVIEC_KEYWORD=Java
 JOB_COLLECTION_ITVIEC_ROLE=Backend

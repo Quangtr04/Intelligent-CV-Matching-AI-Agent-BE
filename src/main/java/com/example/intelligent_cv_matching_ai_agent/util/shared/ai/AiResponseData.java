@@ -49,7 +49,7 @@ public final class AiResponseData {
                 + "improvement_suggestions:[string]}");
             case "ASSESSMENT_GENERATE" -> ("{questions:[{part:1_or_2,question_text:string,options:{A:string,"
                 + "B:string,C:string,D:string},correct_option:A_B_C_or_D,"
-                + "related_skill_name:string,jd_evidence:string,explanation:string}]}");
+                + "related_skill_name:string,jd_evidence:string,cv_evidence:string,explanation:string}]}");
             case "ROADMAP_GENERATE" ->
                 ("{title:string,estimated_total_hours:integer,summary:string," + "nodes:[{skill_name:string,"
                     + "description:string,estimated_hours:integer," + "prerequisites:[integer_sequence_order]}]}");

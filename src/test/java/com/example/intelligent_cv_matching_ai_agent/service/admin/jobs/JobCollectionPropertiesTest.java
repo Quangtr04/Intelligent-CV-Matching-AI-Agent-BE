@@ -38,8 +38,8 @@ class JobCollectionPropertiesTest {
             properties.setSources(List.of(source));
             assertTrue(validator.validate(properties).isEmpty());
 
-            source.setMaxPages(6);
-            source.setLimit(21);
+            source.setMaxPages(11);
+            source.setLimit(101);
             assertEquals(2, validator.validate(properties).size());
             properties.setFixedDelay(Duration.ZERO);
             assertFalse(properties.isDelayValid());

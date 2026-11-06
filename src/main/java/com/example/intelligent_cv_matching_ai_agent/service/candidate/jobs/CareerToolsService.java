@@ -412,7 +412,18 @@ public class CareerToolsService {
 
     private Map<String, Object> confirmed(
         UUID id) {
-        var cv = resumes.owned(id);
+        Map<String, Object> cv;
+        try {
+            cv = resumes.owned(id);
+        } catch (ApiException failure) {
+            if (failure.status() == 404) {
+                throw unavailableCv();
+            }
+            throw failure;
+        }
+        if ("ARCHIVED".equals(cv.get("status"))) {
+            throw unavailableCv();
+        }
         if (!"READY".equals(cv.get("status")))
             throw ApiException.conflict("Confirm CV data first");
 
@@ -421,6 +432,19 @@ public class CareerToolsService {
 
     private Map<String, Object> activeJob(
         UUID id) {
-        return db.getMarketJobPostsById(id);
+        try {
+            return db.getMarketJobPostsById(id);
+        } catch (ApiException failure) {
+            if (failure.status() == 404) {
+                throw ApiException
+                    .notFound("This job is no longer available. Reload the job list and select an active posting.");
+            }
+            throw failure;
+        }
+    }
+
+    private static ApiException unavailableCv() {
+        // Missing, archived and another account's CVs share the same response.
+        return ApiException.notFound("This CV is unavailable. Reload your CV list and select a confirmed CV.");
     }
 }

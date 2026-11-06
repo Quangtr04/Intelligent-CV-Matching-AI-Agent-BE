@@ -72,7 +72,7 @@ public class AdminService {
     }
 
     public Map<String, Object> dashboard() {
-        admin();
+        user.requireOperationsRole();
         return Map.of(
             "users",
             db.countUsersByStatus(),
@@ -226,7 +226,7 @@ public class AdminService {
     }
 
     public List<Map<String, Object>> tiers() {
-        admin();
+        user.requireOperationsRole();
 
         return db.listSubscriptionTiers();
     }
@@ -234,7 +234,7 @@ public class AdminService {
     @Transactional
     public Map<String, Object> createTier(
         SubscriptionTierRequest body) {
-        admin();
+        user.requireOperationsRole();
         OffsetDateTime now = OffsetDateTime.now();
 
         UUID id = db.insertSubscriptionTiers(
@@ -267,7 +267,7 @@ public class AdminService {
     public Map<String, Object> editTier(
         UUID id,
         SubscriptionTierRequest body) {
-        admin();
+        user.requireOperationsRole();
         Map<String, Object> before = db.getSubscriptionTiersById(id);
         if ("FREE".equals(before.get("tier_code"))
             && (!"FREE".equals(body.tierCode()) || !body.active() || body.priceMonthly().signum() != 0))
@@ -294,7 +294,7 @@ public class AdminService {
         UUID id,
         @Size(max = 100)
         List<SubscriptionQuotaRequest> body) {
-        admin();
+        user.requireOperationsRole();
         db.getSubscriptionTiersById2(id);
         if (body.stream().map(SubscriptionQuotaRequest::featureCode).distinct().count() != body.size())
             throw ApiException.badRequest("Duplicate feature quotas");
@@ -537,10 +537,14 @@ public class AdminService {
 
     public List<Map<String, Object>> monitor(
         String category) {
-        admin();
+        user.requireOperationsRole();
+        if (user.hasRole("MANAGER") && java.util.Set.of("logs", "audit").contains(category)) {
+            throw ApiException.forbidden("System logs require an administrator");
+        }
 
         return switch (category) {
             case "ai-usage" -> db.listAiUsageLogs();
+            case "feedback" -> db.listFeedback();
             case "vector-stores" -> db.listVectorStoreMetrics();
             case "indexing-jobs" -> db.listVectorIndexingJobs();
             case "logs" -> db.listSystemLogs();
@@ -552,7 +556,7 @@ public class AdminService {
     }
 
     public List<Map<String, Object>> reports() {
-        admin();
+        user.requireOperationsRole();
 
         return db.listPaymentReports();
     }
@@ -561,7 +565,7 @@ public class AdminService {
     public Map<String, Object> resolve(
         UUID id,
         PaymentReportResolutionRequest body) {
-        admin();
+        user.requireOperationsRole();
         Map<String, Object> before = db.getPaymentReportsById(id);
 
         db.updatePaymentReportsById(body.resolution(), user.id(), id);

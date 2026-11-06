@@ -98,12 +98,12 @@ public class JobCollectionProperties {
         private String location;
 
         @Min(1)
-        @Max(20)
-        private int limit = 20;
+        @Max(100)
+        private int limit = 50;
 
         @Min(1)
-        @Max(5)
-        private int maxPages = 3;
+        @Max(10)
+        private int maxPages = 5;
 
         public String getSourceSite() {
             return sourceSite;

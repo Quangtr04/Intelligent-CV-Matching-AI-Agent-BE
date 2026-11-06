@@ -286,7 +286,7 @@ class ApplicationEnvironmentTest {
         StandardEnvironment environment =
             loadEnvironment(integrationFixture(), Map.of(), Map.of(), "--spring.profiles.active=" + profile);
         assertCompleteIntegrationFixture(environment);
-        assertEquals(5000, environment.getRequiredProperty("app.guest.token-limit", Integer.class));
+        assertEquals(10000, environment.getRequiredProperty("app.guest.token-limit", Integer.class));
         assertEquals(3, environment.getRequiredProperty("spring.task.scheduling.pool.size", Integer.class));
         assertEquals("fixture-database-password", environment.getRequiredProperty("spring.datasource.password"));
         assertEquals(
@@ -336,7 +336,7 @@ class ApplicationEnvironmentTest {
         assertFalse(collection.isEnabled());
         assertNull(collection.getActorId());
         assertEquals(
-            List.of("ITVIEC", "TOPCV"),
+            List.of("ITVIEC", "ITVIEC", "ITVIEC", "TOPCV", "TOPCV", "TOPCV"),
             collection.getSources().stream().map(JobCollectionProperties.Source::getSourceSite).toList()
         );
     }

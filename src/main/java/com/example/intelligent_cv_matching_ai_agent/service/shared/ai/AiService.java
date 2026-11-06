@@ -11,6 +11,7 @@ import com.example.intelligent_cv_matching_ai_agent.util.shared.ai.CvAnalysisLan
 import com.example.intelligent_cv_matching_ai_agent.util.shared.ai.AiRuntimeSettings;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.ai.CvSupportResponseSchema;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.ai.AiFeatureCatalog;
+import com.openai.errors.OpenAIServiceException;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatModel;
@@ -31,6 +32,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientResponseException;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.Duration;
@@ -378,8 +380,13 @@ public class AiService {
             if (userInput.length() > 250_000)
                 throw ApiException.badRequest("AI input exceeds 250,000 characters");
 
-            budget = system.getBytes(java.nio.charset.StandardCharsets.UTF_8).length
-                + userInput.getBytes(java.nio.charset.StandardCharsets.UTF_8).length + 512 + outputTokenLimit;
+            Prompt prompt =
+                new Prompt(List.of(new SystemMessage(system), new UserMessage(userInput)), chatOptions(effective));
+            int inputBudget = geminiTokenCounter == null
+                ? system.getBytes(java.nio.charset.StandardCharsets.UTF_8).length
+                    + userInput.getBytes(java.nio.charset.StandardCharsets.UTF_8).length + 512
+                : geminiTokenCounter.countPrompt(effective.model(), prompt) + 128;
+            budget = Math.addExact(inputBudget, outputTokenLimit);
 
             if ("CV_PROFILE_ALIGNMENT".equals(feature) && budget > 16384) {
                 throw ApiException.badRequest(
@@ -393,9 +400,7 @@ public class AiService {
             } else
                 guestReservation = guests.reserve(guestId, feature, budget, null);
 
-            ChatResponse response = chatModels.getObject().call(
-                new Prompt(List.of(new SystemMessage(system), new UserMessage(userInput)), chatOptions(effective))
-            );
+            ChatResponse response = chatModels.getObject().call(prompt);
             responseReceived = response != null;
             if (response == null)
                 throw new IllegalStateException("Model returned an empty response");
@@ -488,6 +493,10 @@ public class AiService {
                         + "Check the output-token settings. The request was not automatically retried."
                 );
             }
+            ApiException providerFailure = providerFailure(ex);
+            if (providerFailure != null) {
+                throw providerFailure;
+            }
             throw new ApiException(
                 502,
                 ("AI provider failed or returned an invalid result. Retry the request "
@@ -537,7 +546,53 @@ public class AiService {
             }
             return "AI model structured-output validation failed";
         }
+        int status = providerStatus(failure);
+        if (status > 0) {
+            return "AI provider returned HTTP " + status;
+        }
         return "AI provider request failed (" + failure.getClass().getSimpleName() + ")";
+    }
+
+    private static int providerStatus(
+        Throwable failure) {
+        Set<Throwable> visited = Collections.newSetFromMap(new IdentityHashMap<>());
+        for (Throwable cause = failure; cause != null && visited.add(cause); cause = cause.getCause()) {
+            if (cause instanceof OpenAIServiceException provider) {
+                return provider.statusCode();
+            }
+            if (cause instanceof RestClientResponseException response) {
+                return response.getStatusCode().value();
+            }
+        }
+        return 0;
+    }
+
+    private static ApiException providerFailure(
+        Throwable failure) {
+        int status = providerStatus(failure);
+        if (status == 429) {
+            // Platform/provider limits must not be confused with the candidate's application quota (HTTP 429).
+            return new ApiException(
+                503,
+                "The AI provider has reached its request or token limit. Please try again later. "
+                    + "The request was not automatically retried."
+            );
+        }
+        if (status == 503) {
+            return new ApiException(
+                503,
+                "The AI provider is temporarily unavailable (HTTP 503). Please try again later. "
+                    + "The request was not automatically retried."
+            );
+        }
+        if (status >= 500) {
+            return new ApiException(
+                502,
+                "The AI provider returned an internal error (HTTP " + status + "). Please try again later. "
+                    + "The request was not automatically retried."
+            );
+        }
+        return null;
     }
 
     private static boolean timedOut(
@@ -578,8 +633,30 @@ public class AiService {
             throw ApiException.badRequest("Text to embed exceeds 200,000 characters");
 
         long started = System.nanoTime();
-        int budget = text.getBytes(java.nio.charset.StandardCharsets.UTF_8).length + 128;
         UUID actor = requestedActor == null ? current.id() : requestedActor;
+        int budget;
+        try {
+            budget = geminiTokenCounter == null
+                ? text.getBytes(java.nio.charset.StandardCharsets.UTF_8).length + 128
+                : geminiTokenCounter.countText(embeddingModel, text) + 32;
+        } catch (RestClientResponseException failure) {
+            ApiException providerFailure = providerFailure(failure);
+            if (providerFailure == null) {
+                throw failure;
+            }
+            logForUser(
+                actor,
+                "EMBEDDING",
+                null,
+                0,
+                0,
+                started,
+                false,
+                "AI provider returned HTTP " + providerStatus(failure),
+                embeddingModel
+            );
+            throw providerFailure;
+        }
         UUID reservation = entitlement.reserve(actor, "EMBEDDING", budget);
         int tokens = 0;
         boolean received = false;
@@ -634,9 +711,15 @@ public class AiService {
                 0,
                 started,
                 false,
-                "Embedding provider failed or returned incompatible dimensions",
+                providerStatus(ex) > 0
+                    ? "AI provider returned HTTP " + providerStatus(ex)
+                    : "Embedding provider failed or returned incompatible dimensions",
                 embeddingModel
             );
+            ApiException providerFailure = providerFailure(ex);
+            if (providerFailure != null) {
+                throw providerFailure;
+            }
             throw new ApiException(502, "AI embedding failed or returned a vector incompatible with vector(1024).");
         }
     }

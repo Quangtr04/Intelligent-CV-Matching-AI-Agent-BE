@@ -36,7 +36,7 @@ public class MatchingSalaryPolicyService {
     }
 
     public MatchingSalaryPolicyResponse administratorPolicy() {
-        user.requireRole("ADMIN");
+        user.requireOperationsRole();
         return response(effective(), true);
     }
 
@@ -53,7 +53,7 @@ public class MatchingSalaryPolicyService {
     @Transactional
     public MatchingSalaryPolicyResponse update(
         MatchingSalaryPolicyRequest request) {
-        user.requireRole("ADMIN");
+        user.requireOperationsRole();
         BigDecimal tolerance = MatchingSalaryPolicy.validate(request == null ? null : request.tolerancePercent());
         Map<String, Object> before = db.lock();
         MatchingSalaryPolicy previous = snapshot(before);

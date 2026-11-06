@@ -34,14 +34,14 @@ public class RagDocumentService {
     }
 
     public List<Map<String, Object>> list() {
-        user.requireRole("ADMIN");
+        user.requireOperationsRole();
 
         return db.listRagDocuments();
     }
 
     public Map<String, Object> get(
         UUID id) {
-        user.requireRole("ADMIN");
+        user.requireOperationsRole();
 
         Map<String, Object> document = new LinkedHashMap<>(db.getRagDocumentsById(id));
         document.put("chunks", db.listRagChunksByDocumentId(id));
@@ -52,7 +52,7 @@ public class RagDocumentService {
     @Transactional
     public Map<String, Object> create(
         Map<String, Object> input) {
-        user.requireRole("ADMIN");
+        user.requireOperationsRole();
 
         String title = ResumeData.text(input.get("title"), "title", 255);
         String content = ResumeData.text(input.get("content"), "content", 100_000);
@@ -105,7 +105,7 @@ public class RagDocumentService {
      */
     public Map<String, Object> index(
         UUID id) {
-        user.requireRole("ADMIN");
+        user.requireOperationsRole();
 
         Map<String, Object> document = db.getRagDocumentsById(id);
         if (document.get("metadata") instanceof Map<?, ?> metadata && Boolean.TRUE.equals(metadata.get("disabled")))
@@ -199,7 +199,7 @@ public class RagDocumentService {
     @Transactional
     public Map<String, Object> archive(
         UUID id) {
-        user.requireRole("ADMIN");
+        user.requireOperationsRole();
 
         db.getRagDocumentsById3(id);
 

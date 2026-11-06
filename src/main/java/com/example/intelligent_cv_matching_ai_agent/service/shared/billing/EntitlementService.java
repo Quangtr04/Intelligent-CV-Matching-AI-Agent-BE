@@ -82,6 +82,7 @@ public class EntitlementService {
             case "DAILY" -> "day";
             case "YEARLY" -> "year";
             case "LIFETIME" -> "all";
+            case "SUBSCRIPTION" -> "subscription";
             default -> "month";
         };
     }
@@ -130,7 +131,7 @@ public class EntitlementService {
             "quotas",
             db.listSubscriptionQuotasByTierId(tier.get("id")),
             "tokensUsedThisMonth",
-            usage(user, null, "month")
+            usage(user, null, tier.containsKey("subscription_started_at") ? "subscription" : "month")
         );
     }
 }
