@@ -64,8 +64,31 @@ public class SecurityConfig {
                         "/api/v1/jobs",
                         "/api/v1/jobs/*",
                         "/api/v1/subscriptions/tiers",
+                        "/api/v1/consultation-services",
                         "/api/v1/resumes/templates"
-                    ).permitAll().requestMatchers("/api/v1/admin/**", "/api/admin/**", "/api/v1/management/**")
+                    ).permitAll()
+                    .requestMatchers(
+                        "/api/v1/admin/dashboard",
+                        "/api/v1/admin/subscription-tiers/**",
+                        "/api/v1/admin/consultation-services/**",
+                        "/api/v1/admin/payment-reports/**",
+                        "/api/v1/admin/resume-templates/**",
+                        "/api/v1/admin/jobs/**",
+                        "/api/v1/admin/rag/**",
+                        "/api/v1/admin/crawl-settings",
+                        "/api/v1/admin/crawl-history",
+                        "/api/admin/crawl-settings",
+                        "/api/admin/crawl-history",
+                        "/api/v1/admin/matching/salary-policy",
+                        "/api/v1/admin/announcements/**",
+                        "/api/v1/admin/monitoring/ai-usage",
+                        "/api/v1/admin/monitoring/billing",
+                        "/api/v1/admin/monitoring/vector-stores",
+                        "/api/v1/admin/monitoring/indexing-jobs",
+                        "/api/v1/admin/monitoring/crawl-runs",
+                        "/api/v1/admin/monitoring/feedback"
+                    ).hasAnyRole("ADMIN", "MANAGEMENT", "MANAGER")
+                    .requestMatchers("/api/v1/admin/**", "/api/admin/**", "/api/v1/management/**")
                     .hasAnyRole("ADMIN", "MANAGEMENT").anyRequest().authenticated()
             ).exceptionHandling(
                 ex -> ex.authenticationEntryPoint(

@@ -86,8 +86,11 @@ public final class ResumeWritingQuality {
         result.put("language", Objects.toString(resume.get("language"), "vi"));
         result.put("source", Objects.toString(resume.get("source"), ""));
         result.put("structured_data", object(resume.get("structured_data")));
-        result.put("raw_text", Objects.toString(resume.get("raw_content"), ""));
-        result.put("content_authority", reviewed(resume) ? "REVIEWED_STRUCTURED" : "RAW_TEXT");
+        boolean useReviewedContent = reviewed(resume);
+        if (!useReviewedContent) {
+            result.put("raw_text", Objects.toString(resume.get("raw_content"), ""));
+        }
+        result.put("content_authority", useReviewedContent ? "REVIEWED_STRUCTURED" : "RAW_TEXT");
         result.put("formatting_limitations", sourceLimitations(resume));
         return result;
     }

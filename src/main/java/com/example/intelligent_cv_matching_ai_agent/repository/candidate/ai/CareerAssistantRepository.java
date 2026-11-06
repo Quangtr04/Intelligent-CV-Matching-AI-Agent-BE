@@ -110,7 +110,7 @@ public class CareerAssistantRepository {
                 + "WHERE e.provider=? AND e.model=? AND e.embedding IS NOT NULL AND d.embedding_status='COMPLETED' "
                 + "AND COALESCE(d.metadata->>'disabled','false')<>'true' AND "
                 + "(course.id IS NULL OR (course.status='APPROVED' AND resource.is_active=true)) AND "
-                + "(d.uploaded_by=? OR uploader.role IN ('ADMIN','MANAGEMENT')) AND 1-(e.embedding <=> "
+                + "(d.uploaded_by=? OR uploader.role IN ('ADMIN','MANAGEMENT','MANAGER')) AND 1-(e.embedding <=> "
                 + "?::vector)>=0.55 ORDER BY e.embedding <=> ?::vector LIMIT 5"),
             args
         );

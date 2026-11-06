@@ -25,6 +25,11 @@ public class ConsultationRepository {
         return db.one("SELECT * FROM consultation_threads WHERE id=?", args);
     }
 
+    public Map<String, Object> bookingForThread(
+        UUID id) {
+        return db.one("SELECT status,starts_at,ends_at FROM consultation_bookings WHERE thread_id=?", id);
+    }
+
     public UUID insertConsultationThreads(
         Map<String, Object> fields) {
         return db.insert("consultation_threads", fields);
@@ -141,6 +146,7 @@ public class ConsultationRepository {
 
     public int updateConsultationThreadsById2(
         Object... args) {
+        db.update("UPDATE consultation_orders SET status='COMPLETED' WHERE thread_id=? AND status='PAID'", args);
         return db.update(
             ("UPDATE consultation_threads SET status='CLOSED'," + "closed_at=COALESCE(closed_at,now()) WHERE id=?"),
             args

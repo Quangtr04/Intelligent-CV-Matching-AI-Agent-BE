@@ -274,6 +274,18 @@ public class AdminRepository {
         return db.list("SELECT * FROM vector_indexing_jobs ORDER BY created_at DESC LIMIT 100", args);
     }
 
+    public List<Map<String, Object>> listFeedback() {
+        return db.list(
+            "SELECT * FROM (" + "SELECT id,user_id,'MATCHING' AS source,rating,comment AS feedback_text,created_at "
+                + "FROM job_match_feedback UNION ALL "
+                + "SELECT id,user_id,'ASSISTANT' AS source,rating,feedback_text,created_at "
+                + "FROM career_assistant_feedback UNION ALL "
+                + "SELECT id,candidate_user_id AS user_id,'CONSULTATION' AS source,rating,"
+                + "comment AS feedback_text,created_at FROM consultation_ratings"
+                + ") feedback ORDER BY created_at DESC LIMIT 100"
+        );
+    }
+
     public List<Map<String, Object>> listSystemLogs(
         Object... args) {
         return db.list("SELECT * FROM system_logs ORDER BY created_at DESC LIMIT 100", args);
@@ -286,7 +298,11 @@ public class AdminRepository {
 
     public List<Map<String, Object>> listPaymentOrders(
         Object... args) {
-        return db.list("SELECT * FROM payment_orders ORDER BY created_at DESC LIMIT 100", args);
+        return db.list(
+            "SELECT p.*,u.full_name AS payer_name,u.email AS payer_email FROM payment_orders p "
+                + "LEFT JOIN users u ON u.id=p.user_id ORDER BY p.created_at DESC LIMIT 100",
+            args
+        );
     }
 
     public List<Map<String, Object>> listMarketCrawlRuns(

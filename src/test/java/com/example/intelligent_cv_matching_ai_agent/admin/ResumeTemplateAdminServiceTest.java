@@ -35,7 +35,7 @@ class ResumeTemplateAdminServiceTest {
 
     @Test
     void administratorIsRequiredForEveryOperationBeforeReadingOrWriting() {
-        doThrow(ApiException.forbidden("Role required: ADMIN")).when(user).requireRole("ADMIN");
+        doThrow(ApiException.forbidden("Role required: ADMIN")).when(user).requireOperationsRole();
         UUID id = UUID.randomUUID();
         List<Executable> calls = List.of(
             () -> service.list(50, 0),

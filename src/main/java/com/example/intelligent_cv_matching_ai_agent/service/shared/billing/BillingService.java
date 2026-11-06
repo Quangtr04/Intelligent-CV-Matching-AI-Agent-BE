@@ -152,8 +152,12 @@ public class BillingService {
 
         if ("COMPLETED".equals(event.status()))
             activate(order);
-        else
+        else {
             db.updatePaymentOrdersById(event.status(), event.orderId());
+            if ("CONSULTATION".equals(order.get("order_type"))) {
+                db.cancelConsultation(order);
+            }
+        }
 
         return Map.of("accepted", true, "duplicate", false, "orderId", event.orderId());
     }
@@ -188,6 +192,11 @@ public class BillingService {
 
     private void activate(
         Map<String, Object> order) {
+        if ("CONSULTATION".equals(order.get("order_type"))) {
+            db.activateConsultation(order);
+            invoice(order, OffsetDateTime.now());
+            return;
+        }
         UUID user = (UUID) order.get("user_id");
         db.getUsersByIdForUpdate(user);
 
@@ -207,7 +216,7 @@ public class BillingService {
                 "started_at",
                 now,
                 "expires_at",
-                now.plusMonths(months),
+                now.plusDays(30L * months),
                 "auto_renew",
                 false,
                 "created_at",
@@ -217,10 +226,34 @@ public class BillingService {
             )
         );
         db.updatePaymentOrdersById2(subscription, order.get("id"));
-        db.insertInvoices(
+        invoice(order, now);
+        db.insertNotifications(
             Map.of(
                 "user_id",
                 user,
+                "type",
+                "PAYMENT_SUCCESS",
+                "title",
+                "Subscription activated",
+                "content",
+                "Your paid subscription is now active.",
+                "reference_type",
+                "PAYMENT_ORDER",
+                "reference_id",
+                order.get("id"),
+                "created_at",
+                now
+            )
+        );
+    }
+
+    private void invoice(
+        Map<String, Object> order,
+        OffsetDateTime now) {
+        db.insertInvoices(
+            Map.of(
+                "user_id",
+                order.get("user_id"),
                 "payment_order_id",
                 order.get("id"),
                 "invoice_number",
@@ -238,24 +271,6 @@ public class BillingService {
                 "issued_at",
                 now,
                 "paid_at",
-                now
-            )
-        );
-        db.insertNotifications(
-            Map.of(
-                "user_id",
-                user,
-                "type",
-                "PAYMENT_SUCCESS",
-                "title",
-                "Subscription activated",
-                "content",
-                "Your paid subscription is now active.",
-                "reference_type",
-                "PAYMENT_ORDER",
-                "reference_id",
-                order.get("id"),
-                "created_at",
                 now
             )
         );

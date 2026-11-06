@@ -45,14 +45,14 @@ public class CrawlSettingsService {
     }
 
     public CrawlSettingsResponse get() {
-        current.requireRole("ADMIN");
+        current.requireOperationsRole();
         return effective();
     }
 
     @Transactional
     public CrawlSettingsResponse update(
         CrawlSettingsRequest request) {
-        current.requireRole("ADMIN");
+        current.requireOperationsRole();
         if (request == null || request.enabled() == null || request.sources() == null
             || request.sources().size() > 20) {
             throw ApiException.badRequest("enabled and at most 20 sources are required");

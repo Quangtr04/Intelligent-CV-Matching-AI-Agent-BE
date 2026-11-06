@@ -38,7 +38,7 @@ public class AnnouncementService {
     }
 
     public List<Map<String, Object>> all() {
-        user.requireRole("ADMIN");
+        user.requireOperationsRole();
 
         return db.listAnnouncements();
     }
@@ -46,7 +46,7 @@ public class AnnouncementService {
     @Transactional
     public Map<String, Object> create(
         AnnouncementRequest body) {
-        user.requireRole("ADMIN");
+        user.requireOperationsRole();
 
         OffsetDateTime now = OffsetDateTime.now();
         Map<String, Object> fields = new LinkedHashMap<>();
@@ -71,7 +71,7 @@ public class AnnouncementService {
     public Map<String, Object> edit(
         UUID id,
         AnnouncementRequest body) {
-        user.requireRole("ADMIN");
+        user.requireOperationsRole();
 
         Map<String, Object> before = db.getAnnouncementsByIdForUpdate(id);
         if (!"DRAFT".equals(before.get("status")))
@@ -122,7 +122,7 @@ public class AnnouncementService {
     @Transactional
     public Map<String, Object> publish(
         UUID id) {
-        user.requireRole("ADMIN");
+        user.requireOperationsRole();
 
         Map<String, Object> before = db.getAnnouncementsByIdForUpdate2(id);
         if (!"DRAFT".equals(before.get("status")))
@@ -145,7 +145,7 @@ public class AnnouncementService {
     @Transactional
     public Map<String, Object> archive(
         UUID id) {
-        user.requireRole("ADMIN");
+        user.requireOperationsRole();
 
         Map<String, Object> before = db.getAnnouncementsById(id);
 

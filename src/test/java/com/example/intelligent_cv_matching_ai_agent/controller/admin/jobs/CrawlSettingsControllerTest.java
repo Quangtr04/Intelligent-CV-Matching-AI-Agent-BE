@@ -193,8 +193,8 @@ class CrawlSettingsControllerTest {
             "{\"enabled\":false,\"fixedDelay\":\"PT1M\"}",
             VALID_REQUEST.replace("ITVIEC", "OTHER"),
             VALID_REQUEST.replace("\"Java\"", "\" \""),
-            VALID_REQUEST.replace("\"limit\":7", "\"limit\":21"),
-            VALID_REQUEST.replace("\"maxPages\":2", "\"maxPages\":6")
+            VALID_REQUEST.replace("\"limit\":7", "\"limit\":101"),
+            VALID_REQUEST.replace("\"maxPages\":2", "\"maxPages\":11")
         );
     }
 

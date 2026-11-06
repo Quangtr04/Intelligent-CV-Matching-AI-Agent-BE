@@ -35,7 +35,7 @@ public class SupportService {
     }
 
     public List<Map<String, Object>> list() {
-        return user.hasRole("ADMIN") ? db.listSupportTickets() : db.listSupportTicketsByUserId(user.id());
+        return user.hasOperationsRole() ? db.listSupportTickets() : db.listSupportTicketsByUserId(user.id());
     }
 
     public Map<String, Object> create(
@@ -76,7 +76,7 @@ public class SupportService {
         boolean lock) {
         Map<String, Object> ticket = lock ? db.getTicketForUpdate(id) : db.getTicket(id);
 
-        if (!user.hasRole("ADMIN"))
+        if (!user.hasOperationsRole())
             user.owns(ticket, "user_id");
 
         return ticket;
@@ -112,7 +112,7 @@ public class SupportService {
         );
         db.updateSupportTicketsById(id);
 
-        if (user.hasRole("ADMIN") && !user.id().equals(ticket.get("user_id")))
+        if (user.hasOperationsRole() && !user.id().equals(ticket.get("user_id")))
             db.insertNotifications(
                 Map.of(
                     "user_id",
@@ -139,7 +139,7 @@ public class SupportService {
     public Map<String, Object> update(
         UUID id,
         SupportTicketUpdateRequest body) {
-        user.requireRole("ADMIN");
+        user.requireOperationsRole();
 
         Map<String, Object> before = owned(id, true);
 

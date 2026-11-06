@@ -16,6 +16,7 @@ import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiExceptio
 import com.example.intelligent_cv_matching_ai_agent.service.shared.billing.EntitlementService;
 
 import com.example.intelligent_cv_matching_ai_agent.service.guest.identity.GuestAccess;
+import com.openai.errors.OpenAIServiceException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -35,6 +36,35 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 class AiServiceTests {
+
+    @Test
+    void nativePromptCountReservesInputPlusBoundedOutputInsteadOfUtf8Bytes() {
+        UUID actor = UUID.randomUUID(), reservation = UUID.randomUUID();
+        ChatModel chat = mock(ChatModel.class);
+        GeminiTokenCounter counter = mock(GeminiTokenCounter.class);
+        when(chats.getIfAvailable()).thenReturn(chat);
+        when(chats.getObject()).thenReturn(chat);
+        when(user.id()).thenReturn(actor);
+        when(db.optional(contains("config_type='CHAT'"), eq("gemini"))).thenReturn(
+            Optional.of(Map.of("model_name", "gemini-2.5-flash-lite", "config_json", Map.of("numPredict", 1500)))
+        );
+        when(counter.countPrompt(eq("gemini-2.5-flash-lite"), any(Prompt.class))).thenReturn(500);
+        when(entitlement.reserve(actor, "CAREER_CHAT", 2128)).thenReturn(reservation);
+        when(chat.call(any(Prompt.class))).thenReturn(
+            new ChatResponse(
+                List.of(new Generation(new AssistantMessage("{\"answer\":\"Hello\"}"))),
+                ChatResponseMetadata.builder().usage(new DefaultUsage(500, 100)).build()
+            )
+        );
+        AiService configured = service(true, "test-assessment");
+        configured.configureGeminiTokenCounter(counter);
+        assertEquals("Hello", configured.generate("CAREER_CHAT", Map.of("message", "Hello")).get("answer"));
+        var calls = inOrder(counter, entitlement, chat);
+        calls.verify(counter).countPrompt(eq("gemini-2.5-flash-lite"), any(Prompt.class));
+        calls.verify(entitlement).reserve(actor, "CAREER_CHAT", 2128);
+        calls.verify(chat).call(any(Prompt.class));
+        calls.verify(entitlement).complete(reservation, 600);
+    }
 
     @Test
     void geminiChatAppliesActiveModelSettingsWithJsonModeAndExistingQuotaAccounting() {
@@ -305,6 +335,89 @@ class AiServiceTests {
         assertEquals(504, failure.status());
         verify(chat, times(1)).call(any(Prompt.class));
         verify(entitlement).cancel(reservation);
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {429, 500, 503})
+    void providerHttpFailuresAreExplainedWithoutSpendingApplicationQuotaOrRetrying(
+        int status) {
+        UUID actor = UUID.randomUUID(), reservation = UUID.randomUUID();
+        ChatModel chat = mock(ChatModel.class);
+        OpenAIServiceException upstream = mock(OpenAIServiceException.class);
+        when(upstream.statusCode()).thenReturn(status);
+        when(upstream.getMessage()).thenReturn("Sensitive provider body and credentials must never be exposed");
+        when(chats.getIfAvailable()).thenReturn(chat);
+        when(chats.getObject()).thenReturn(chat);
+        when(user.id()).thenReturn(actor);
+        when(entitlement.reserve(eq(actor), eq("CAREER_CHAT"), anyInt())).thenReturn(reservation);
+        when(chat.call(any(Prompt.class))).thenThrow(new RuntimeException("Transport wrapper", upstream));
+
+        ApiException failure = assertThrows(
+            ApiException.class,
+            () -> service(true).generate("CAREER_CHAT", Map.of("message", "Synthetic question"))
+        );
+
+        assertEquals(status == 500 ? 502 : 503, failure.status());
+        assertTrue(failure.getMessage().contains(status == 429 ? "request or token limit" : "HTTP " + status));
+        assertFalse(failure.getMessage().contains("Sensitive"));
+        verify(chat, times(1)).call(any(Prompt.class));
+        verify(entitlement).cancel(reservation);
+        verify(entitlement, never()).complete(any(), anyInt());
+        verify(recorder).record(
+            argThat(
+                row -> Boolean.FALSE.equals(row.get("success"))
+                    && ("AI provider returned HTTP " + status).equals(row.get("error_message"))
+            )
+        );
+    }
+
+    @Test
+    void applicationQuotaStillReturns429WithoutCallingTheProvider() {
+        UUID actor = UUID.randomUUID();
+        ChatModel chat = mock(ChatModel.class);
+        when(chats.getIfAvailable()).thenReturn(chat);
+        when(user.id()).thenReturn(actor);
+        when(entitlement.reserve(eq(actor), eq("CAREER_CHAT"), anyInt()))
+            .thenThrow(new ApiException(429, "AI token quota exceeded"));
+
+        ApiException failure = assertThrows(
+            ApiException.class,
+            () -> service(true).generate("CAREER_CHAT", Map.of("message", "Synthetic question"))
+        );
+
+        assertEquals(429, failure.status());
+        assertEquals("AI token quota exceeded", failure.getMessage());
+        verify(chat, never()).call(any(Prompt.class));
+        verify(entitlement, never()).cancel(any());
+    }
+
+    @Test
+    void nativeEmbeddingTokenCountLimitReturnsProvider503BeforeReservingApplicationQuota() {
+        UUID actor = UUID.randomUUID();
+        GeminiTokenCounter counter = mock(GeminiTokenCounter.class);
+        EmbeddingModel embedding = mock(EmbeddingModel.class);
+        when(embeddings.getIfAvailable()).thenReturn(embedding);
+        when(user.id()).thenReturn(actor);
+        when(counter.countText(anyString(), anyString())).thenThrow(
+            org.springframework.web.client.HttpClientErrorException.create(
+                org.springframework.http.HttpStatus.TOO_MANY_REQUESTS,
+                "Too many requests",
+                org.springframework.http.HttpHeaders.EMPTY,
+                "Sensitive upstream response".getBytes(),
+                null
+            )
+        );
+        AiService configured = service(true);
+        configured.configureGeminiTokenCounter(counter);
+
+        ApiException failure = assertThrows(ApiException.class, () -> configured.embed("Synthetic Java CV"));
+
+        assertEquals(503, failure.status());
+        assertTrue(failure.getMessage().contains("AI provider"));
+        assertFalse(failure.getMessage().contains("Sensitive"));
+        verifyNoInteractions(entitlement);
+        verify(embedding, never()).call(any(EmbeddingRequest.class));
+        verify(recorder).record(argThat(row -> "AI provider returned HTTP 429".equals(row.get("error_message"))));
     }
 
     @Test

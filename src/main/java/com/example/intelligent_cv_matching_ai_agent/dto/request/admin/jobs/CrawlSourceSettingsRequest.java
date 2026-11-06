@@ -19,10 +19,10 @@ public record CrawlSourceSettingsRequest(
     @Size(max = 120)
     String location,
     @Min(1)
-    @Max(20)
+    @Max(100)
     Integer limit,
     @Min(1)
-    @Max(5)
+    @Max(10)
     Integer maxPages
 ) {
 }

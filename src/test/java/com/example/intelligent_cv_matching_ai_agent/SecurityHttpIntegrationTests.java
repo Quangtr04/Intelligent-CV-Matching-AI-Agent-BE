@@ -72,6 +72,58 @@ class SecurityHttpIntegrationTests {
     }
 
     @Test
+    void managerCanUseOperationalScreensButCannotEscalateToAdministrator() throws Exception {
+        String manager = token("MANAGER");
+        for (String path : List.of(
+            "/api/v1/admin/dashboard",
+            TEMPLATES,
+            "/api/v1/admin/subscription-tiers",
+            "/api/v1/admin/consultation-services",
+            "/api/v1/admin/payment-reports",
+            "/api/v1/admin/jobs",
+            "/api/v1/admin/crawl-settings",
+            "/api/admin/crawl-settings",
+            "/api/v1/admin/announcements",
+            "/api/v1/admin/rag/documents",
+            "/api/v1/admin/monitoring/billing",
+            "/api/v1/admin/monitoring/feedback",
+            "/api/v1/support/tickets",
+            "/api/v1/consultation-orders"
+        )) {
+            HttpResponse<String> response = send("GET", path, manager);
+            assertEquals(200, response.statusCode(), path + ": " + response.body());
+        }
+        for (String path : List.of(
+            "/api/v1/admin/users",
+            "/api/v1/admin/ai/configurations",
+            "/api/v1/admin/ai/runtime",
+            "/api/v1/admin/ai/prompts",
+            "/api/v1/admin/monitoring/logs",
+            "/api/v1/admin/monitoring/audit",
+            "/api/v1/management/staff"
+        )) {
+            assertEquals(403, send("GET", path, manager).statusCode(), path);
+        }
+        assertEquals(403, send("POST", "/api/v1/admin/users", manager).statusCode());
+        assertEquals(403, send("POST", "/api/v1/admin/ai/configurations", manager).statusCode());
+    }
+
+    @Test
+    void managerCanPersistTemplateChangesWithAnAuditTrail() throws Exception {
+        String body = """
+            {"name":"Manager Template","language":"vi","active":true,"trialEnabled":true,
+            "htmlContent":"<h1 data-cv-field=\\\"fullName\\\"></h1><section data-cv-section=\\\"summary\\\"></section>"}
+            """;
+        HttpResponse<String> response = send("POST", TEMPLATES, token("MANAGER"), body);
+        assertEquals(200, response.statusCode(), response.body());
+        Map<?, ?> created = JsonMapper.builder().build().readValue(response.body(), Map.class);
+        UUID id = UUID.fromString(created.get("id").toString());
+        templates.add(id);
+        assertEquals("Manager Template", db.scalar("SELECT name FROM resume_templates WHERE id=?", id));
+        assertTrue(((Number) db.scalar("SELECT count(*) FROM audit_logs WHERE entity_id=?", id)).intValue() > 0);
+    }
+
+    @Test
     void realHttpRequestsAuthenticateAdminAndRejectCandidateAndMissingTokens() throws Exception {
         assertEquals(200, send("GET", TEMPLATES, token("ADMIN")).statusCode());
         assertEquals(403, send("GET", TEMPLATES, token("CANDIDATE")).statusCode());

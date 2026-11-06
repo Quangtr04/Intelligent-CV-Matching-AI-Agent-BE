@@ -45,12 +45,20 @@ public class PaymentOrder {
     @Column(name = "subscription_id", nullable = true)
     private UUID subscriptionId;
 
+    @JsonProperty("order_type")
+    @Column(name = "order_type", nullable = false, length = 20)
+    private String orderType;
+
+    @JsonProperty("consultation_order_id")
+    @Column(name = "consultation_order_id", nullable = true)
+    private UUID consultationOrderId;
+
     @JsonProperty("tier_id")
-    @Column(name = "tier_id", nullable = false)
+    @Column(name = "tier_id", nullable = true)
     private UUID tierId;
 
     @JsonProperty("duration_months")
-    @Column(name = "duration_months", nullable = false)
+    @Column(name = "duration_months", nullable = true)
     private Short durationMonths;
 
     @JsonProperty("amount")

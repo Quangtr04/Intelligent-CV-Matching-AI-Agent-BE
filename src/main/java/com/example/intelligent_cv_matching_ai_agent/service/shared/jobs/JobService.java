@@ -63,7 +63,7 @@ public class JobService {
         String normalizedLocation = JobNormalizer.fold(JobNormalizer.normalizeLocationFilter(requestedLocation));
         String locationPattern =
             "%" + normalizedLocation.replace("!", "!!").replace("%", "!%").replace("_", "!_") + "%";
-        if (user.hasRole("ADMIN"))
+        if (user.hasOperationsRole())
             return db.listMarketJobPostsWithCreatorByStatus(
                 "%" + query + "%",
                 locationPattern,
@@ -81,7 +81,7 @@ public class JobService {
         String ingestionMethod,
         int limit,
         int offset) {
-        user.requireRole("ADMIN");
+        user.requireOperationsRole();
         String query = text(q);
         if (query.length() > 255)
             throw ApiException.badRequest("Search value too long");
@@ -107,7 +107,7 @@ public class JobService {
 
     public Map<String, Object> job(
         UUID id) {
-        var job = user.hasRole("ADMIN") ? db.getMarketJobPostsWithCreatorById(id) : db.getMarketJobPostsById(id);
+        var job = user.hasOperationsRole() ? db.getMarketJobPostsWithCreatorById(id) : db.getMarketJobPostsById(id);
         job.put("skills", db.listMarketJobSkillsByMarketJobId(id));
         job.put("sources", db.sources(id));
         return job;
@@ -124,14 +124,14 @@ public class JobService {
     @Transactional
     public Map<String, Object> importJob(
         ImportJobRequest input) {
-        user.requireRole("ADMIN");
+        user.requireOperationsRole();
         return importPrepared(input, user.id(), "MANUAL");
     }
 
     @Transactional
     public Map<String, Object> importCrawledJob(
         ImportJobRequest input) {
-        user.requireRole("ADMIN");
+        user.requireOperationsRole();
         return importPrepared(input, user.id(), "CRAWL");
     }
 
@@ -326,7 +326,7 @@ public class JobService {
 
     public Map<String, Object> index(
         UUID id) {
-        user.requireRole("ADMIN");
+        user.requireOperationsRole();
         if (embeddings != null)
             return embeddings.indexNow(id, user.id());
         var job = job(id);
@@ -371,7 +371,7 @@ public class JobService {
 
     public Map<String, Object> indexStatus(
         UUID id) {
-        user.requireRole("ADMIN");
+        user.requireOperationsRole();
         db.getMarketJobPostsById2(id);
         return Map.of("job_id", id, "indexing_jobs", db.indexingJobs(id));
     }
@@ -380,7 +380,7 @@ public class JobService {
     public Map<String, Object> status(
         UUID id,
         Map<String, Object> input) {
-        user.requireRole("ADMIN");
+        user.requireOperationsRole();
         if (db.isStaffActor(user.id()))
             throw ApiException.forbidden("Only administrators and managers can approve or change job status");
         String status = required(input, "status", 20);

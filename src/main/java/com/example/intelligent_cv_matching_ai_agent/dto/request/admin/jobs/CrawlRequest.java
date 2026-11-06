@@ -16,7 +16,7 @@ public record CrawlRequest(
     String roleCategory,
     @Size(max = 120)
     String location,
-    @Size(max = 20)
+    @Size(max = 100)
     // @formatter:off
     List<
         @NotBlank
@@ -25,10 +25,10 @@ public record CrawlRequest(
     > urls,
     // @formatter:on
     @Min(1)
-    @Max(20)
+    @Max(100)
     Integer limit,
     @Min(1)
-    @Max(5)
+    @Max(10)
     Integer maxPages,
     UUID taskId
 ) {
@@ -50,14 +50,14 @@ public record CrawlRequest(
         String roleCategory,
         String location,
         List<String> urls) {
-        this(sourceSite, keyword, roleCategory, location, urls, 20, 3, null);
+        this(sourceSite, keyword, roleCategory, location, urls, 50, 5, null);
     }
 
     public int effectiveLimit() {
-        return limit == null ? 20 : limit;
+        return limit == null ? 50 : limit;
     }
 
     public int effectiveMaxPages() {
-        return maxPages == null ? 3 : maxPages;
+        return maxPages == null ? 5 : maxPages;
     }
 }

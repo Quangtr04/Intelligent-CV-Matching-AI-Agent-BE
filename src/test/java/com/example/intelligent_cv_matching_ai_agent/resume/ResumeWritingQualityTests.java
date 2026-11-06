@@ -167,6 +167,33 @@ class ResumeWritingQualityTests {
     }
 
     @Test
+    void reviewedPromptDoesNotExposeHistoricalExtractionThatEvidenceValidationRejects() {
+        Map<String, Object> resume = Map.of(
+            "structured_data",
+            Map.of("summary", "Reviewed and corrected Java API experience"),
+            "raw_content",
+            "Outdated claim of 50% improvement"
+        );
+
+        Map<String, Object> input = ResumeWritingQuality.source(resume);
+
+        assertEquals("REVIEWED_STRUCTURED", input.get("content_authority"));
+        assertFalse(input.containsKey("raw_text"));
+        assertEquals(
+            List.of("Reviewed and corrected Java API experience"),
+            ResumeWritingQuality.evidenceOptions(input)
+        );
+        Map<String, Object> report = ResumeWritingTestData.report();
+        criteria(report).getFirst().put("evidence", List.of("Reviewed and corrected Java API experience"));
+        assertDoesNotThrow(() -> ResumeWritingQuality.normalize(report, resume));
+        criteria(report).getFirst().put("evidence", List.of("Outdated claim of 50% improvement"));
+        assertEquals(
+            502,
+            assertThrows(ApiException.class, () -> ResumeWritingQuality.normalize(report, resume)).status()
+        );
+    }
+
+    @Test
     void normalizedPersistableBreakdownDropsPrivateModelFields() {
         Map<String, Object> report = ResumeWritingTestData.report();
         writing(report).put("_internal", "PRIVATE_MODEL_TRACE");

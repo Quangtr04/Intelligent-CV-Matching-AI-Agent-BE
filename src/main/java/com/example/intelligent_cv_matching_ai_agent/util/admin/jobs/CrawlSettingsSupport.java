@@ -109,10 +109,10 @@ public final class CrawlSettingsSupport {
             && JobNormalizer.fold(location).codePoints().noneMatch(Character::isLetterOrDigit))) {
             throw ApiException.badRequest("location must contain a place name of at most 120 characters");
         }
-        int limit = source.limit() == null ? 20 : source.limit();
-        int maxPages = source.maxPages() == null ? 3 : source.maxPages();
-        if (limit < 1 || limit > 20 || maxPages < 1 || maxPages > 5) {
-            throw ApiException.badRequest("limit must be 1..20 and maxPages must be 1..5");
+        int limit = source.limit() == null ? 50 : source.limit();
+        int maxPages = source.maxPages() == null ? 5 : source.maxPages();
+        if (limit < 1 || limit > 100 || maxPages < 1 || maxPages > 10) {
+            throw ApiException.badRequest("limit must be 1..100 and maxPages must be 1..10");
         }
         return new CrawlSourceSettingsResponse(
             site,

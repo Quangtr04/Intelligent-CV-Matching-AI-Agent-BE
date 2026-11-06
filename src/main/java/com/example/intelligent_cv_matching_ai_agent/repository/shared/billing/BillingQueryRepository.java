@@ -57,12 +57,20 @@ public class BillingQueryRepository {
 
     public List<Map<String, Object>> listPaymentOrdersByUserId(
         Object... args) {
-        return db.list("SELECT * FROM payment_orders WHERE user_id=? ORDER BY created_at DESC LIMIT 100", args);
+        return db.list(
+            "SELECT p.*,c.service_name FROM payment_orders p LEFT JOIN consultation_orders c "
+                + "ON c.id=p.consultation_order_id WHERE p.user_id=? ORDER BY p.created_at DESC LIMIT 100",
+            args
+        );
     }
 
     public Map<String, Object> getPaymentOrdersById(
         Object... args) {
-        return db.one("SELECT * FROM payment_orders WHERE id=? AND user_id=?", args);
+        return db.one(
+            "SELECT p.*,c.service_name FROM payment_orders p LEFT JOIN consultation_orders c "
+                + "ON c.id=p.consultation_order_id WHERE p.id=? AND p.user_id=?",
+            args
+        );
     }
 
     public UUID insertPaymentReports(

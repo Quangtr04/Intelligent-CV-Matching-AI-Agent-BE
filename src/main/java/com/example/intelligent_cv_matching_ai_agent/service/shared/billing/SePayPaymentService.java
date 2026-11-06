@@ -65,6 +65,11 @@ public class SePayPaymentService {
         return form(db.getPaymentOrdersById(orderId, user.id()));
     }
 
+    public String consultationProvider() {
+        requireCheckout();
+        return provider();
+    }
+
     private SePayCheckoutResponse form(
         Map<String, Object> order) {
         if (!provider().equals(order.get("payment_provider")))
@@ -81,7 +86,12 @@ public class SePayPaymentService {
         fields.put("merchant", config.getMerchantId());
         fields.put("currency", "VND");
         fields.put("operation", "PURCHASE");
-        fields.put("order_description", "Thanh toan goi dang ky EduNexus " + order.get("duration_months") + " thang");
+        fields.put(
+            "order_description",
+            "CONSULTATION".equals(order.get("order_type"))
+                ? "Thanh toan dich vu tu van EduNexus"
+                : "Thanh toan goi dang ky EduNexus " + order.get("duration_months") + " x 30 ngay"
+        );
         fields.put("order_invoice_number", order.get("provider_order_id").toString());
         fields.put("customer_id", order.get("user_id").toString());
         fields.put("payment_method", config.getPaymentMethod());

@@ -33,7 +33,7 @@ public class JobCrawlRepository {
     public void requireActiveAdmin(
         UUID actor) {
         if (db.optional(
-            "SELECT id FROM users WHERE id=? AND role IN ('ADMIN','MANAGEMENT') AND status='ACTIVE' "
+            "SELECT id FROM users WHERE id=? AND role IN ('ADMIN','MANAGEMENT','MANAGER') AND status='ACTIVE' "
                 + "AND deleted_at IS NULL",
             actor
         ).isEmpty())

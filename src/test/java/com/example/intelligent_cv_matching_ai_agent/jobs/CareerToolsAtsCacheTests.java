@@ -142,6 +142,33 @@ class CareerToolsAtsCacheTests {
         verify(db).one(contains("FROM market_job_posts j WHERE j.id=? AND j.status='ACTIVE'"), eq(job));
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"missing-cv", "foreign-cv", "archived-cv", "inactive-job", "expired-job"})
+    void unavailableSelectionsAreExplainedBeforeAiOrQuotaCanBeUsed(
+        String resource) {
+        if (resource.endsWith("job")) {
+            doThrow(ApiException.notFound("Resource not found")).when(db)
+                .one(contains("FROM market_job_posts j WHERE j.id=? AND j.status='ACTIVE'"), eq(job));
+        } else if ("archived-cv".equals(resource)) {
+            cv.put("status", "ARCHIVED");
+        } else {
+            doThrow(ApiException.notFound("Resource not found")).when(resumes).owned(firstCv);
+        }
+
+        ApiException failure = assertThrows(ApiException.class, () -> service.ats(job, new CvRequest(firstCv)));
+
+        assertEquals(404, failure.status());
+        assertEquals(
+            resource.endsWith("job")
+                ? "This job is no longer available. Reload the job list and select an active posting."
+                : "This CV is unavailable. Reload your CV list and select a confirmed CV.",
+            failure.getMessage()
+        );
+        verifyNoInteractions(ai);
+        verify(redis, never()).getIfAvailable();
+        verify(db, never()).insert(eq("job_resume_analyses"), anyMap());
+    }
+
     @Test
     void identicalCvContentsWithDifferentIdsUseSeparateFullResponseKeys() {
         Map<String, Object> first = service.ats(job, new CvRequest(firstCv));
