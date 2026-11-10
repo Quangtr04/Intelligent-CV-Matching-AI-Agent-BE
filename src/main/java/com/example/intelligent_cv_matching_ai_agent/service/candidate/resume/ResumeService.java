@@ -7,10 +7,11 @@ import com.example.intelligent_cv_matching_ai_agent.util.shared.resume.ResumeTex
 
 import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiService;
 import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiResponseCache;
+import com.example.intelligent_cv_matching_ai_agent.service.shared.resume.LocalResumeFileStorage;
+import com.example.intelligent_cv_matching_ai_agent.service.shared.resume.ResumeFileStorage;
 import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException;
 import com.example.intelligent_cv_matching_ai_agent.security.shared.CurrentUser;
 import com.example.intelligent_cv_matching_ai_agent.repository.candidate.resume.ResumeRepository;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -25,7 +26,6 @@ import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.ai.AIS
 import com.example.intelligent_cv_matching_ai_agent.dto.response.candidate.resume.ResumeDownloadResponse;
 
 import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
 import java.time.LocalDate;
 import java.time.Duration;
 import java.util.*;
@@ -51,7 +51,7 @@ public class ResumeService {
 
     private final ObjectMapper mapper;
 
-    private final Path storage;
+    private final ResumeFileStorage storage;
 
     private final AiResponseCache responseCache;
 
@@ -61,8 +61,28 @@ public class ResumeService {
         AiService ai,
         ResumeFileExtractor extractor,
         ObjectMapper mapper,
-        @Value("${app.storage.path:./storage/resumes}")
         String storage) {
+        this(db, current, ai, extractor, mapper, new LocalResumeFileStorage(storage), null);
+    }
+
+    public ResumeService(
+        ResumeRepository db,
+        CurrentUser current,
+        AiService ai,
+        ResumeFileExtractor extractor,
+        ObjectMapper mapper,
+        String storage,
+        ObjectProvider<StringRedisTemplate> redis) {
+        this(db, current, ai, extractor, mapper, new LocalResumeFileStorage(storage), redis);
+    }
+
+    public ResumeService(
+        ResumeRepository db,
+        CurrentUser current,
+        AiService ai,
+        ResumeFileExtractor extractor,
+        ObjectMapper mapper,
+        ResumeFileStorage storage) {
         this(db, current, ai, extractor, mapper, storage, null);
     }
 
@@ -73,15 +93,14 @@ public class ResumeService {
         AiService ai,
         ResumeFileExtractor extractor,
         ObjectMapper mapper,
-        @Value("${app.storage.path:./storage/resumes}")
-        String storage,
+        ResumeFileStorage storage,
         ObjectProvider<StringRedisTemplate> redis) {
         this.db = db;
         this.current = current;
         this.ai = ai;
         this.extractor = extractor;
         this.mapper = mapper;
-        this.storage = Path.of(storage).toAbsolutePath().normalize();
+        this.storage = storage;
         this.responseCache = new AiResponseCache(redis);
     }
 
@@ -130,7 +149,7 @@ public class ResumeService {
         String effectiveTitle = requestedTitle == null ? extracted.filename() : requestedTitle;
         String extension = extracted.filename().substring(extracted.filename().lastIndexOf('.'));
         String fileKey = UUID.randomUUID() + extension.toLowerCase(Locale.ROOT);
-        write(fileKey, extracted.bytes());
+        write(fileKey, extracted.bytes(), extracted.mimeType());
         Map<String, Object> structured = ResumeData.normalize(ResumeTextParser.parse(extracted.text()));
         String parseStatus = extracted.text().isBlank() ? "FAILED" : "COMPLETED";
 
@@ -531,7 +550,7 @@ public class ResumeService {
         if (!text && resume.get("file_url") != null) {
             try {
                 return new ResumeDownloadResponse(
-                    Files.readAllBytes(safeFile(resume.get("file_url").toString())),
+                    storage.read(resume.get("file_url").toString()),
                     resume.get("file_name").toString(),
                     resume.get("mime_type").toString()
                 );
@@ -621,11 +640,10 @@ public class ResumeService {
 
     private void write(
         String key,
-        byte[] bytes) {
+        byte[] bytes,
+        String mimeType) {
         try {
-            Files.createDirectories(storage);
-            Path file = safeFile(key);
-            Files.write(file, bytes, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
+            storage.store(key, bytes, mimeType);
 
             if (TransactionSynchronizationManager.isSynchronizationActive())
                 TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
@@ -634,10 +652,7 @@ public class ResumeService {
                     public void afterCompletion(
                         int status) {
                         if (status == STATUS_ROLLED_BACK)
-                            try {
-                                Files.deleteIfExists(file);
-                            } catch (java.io.IOException ignored) {
-                            }
+                            storage.delete(key);
                     }
                 });
         } catch (ApiException ex) {
@@ -645,20 +660,6 @@ public class ResumeService {
         } catch (Exception ex) {
             throw new ApiException(503, "CV storage is unavailable");
         }
-    }
-
-    private Path safeFile(
-        String key)
-        throws java.io.IOException {
-        if (!key.matches("[0-9a-f-]{36}\\.(pdf|docx|txt|png|jpg|jpeg)"))
-            throw ApiException.badRequest("Invalid storage key");
-
-        Path root = storage.toRealPath();
-        Path target = root.resolve(key).normalize();
-        if (!target.startsWith(root) || Files.isSymbolicLink(target))
-            throw ApiException.forbidden("Invalid file path");
-
-        return target;
     }
 
     public Map<String, Object> aiSupport(

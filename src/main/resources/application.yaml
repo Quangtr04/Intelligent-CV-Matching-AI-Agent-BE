@@ -76,6 +76,14 @@ server:
   port: ${SERVER_PORT}
 app:
   frontend-reset-url: ${APP_FRONTEND_RESET_URL}
+  storage:
+    provider: ${STORAGE_PROVIDER:local}
+    firebase:
+      enabled: ${FIREBASE_STORAGE_ENABLED:false}
+      bucket: ${FIREBASE_STORAGE_BUCKET:}
+      credentials-path: ${FIREBASE_CREDENTIALS_PATH:}
+      credentials-json: ${FIREBASE_CREDENTIALS_JSON:}
+      prefix: ${FIREBASE_STORAGE_PREFIX:resumes}
   resume:
     pdf:
       browser-path: ${APP_PDF_BROWSER_PATH:}
