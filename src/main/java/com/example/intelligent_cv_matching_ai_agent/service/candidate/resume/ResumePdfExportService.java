@@ -4,17 +4,15 @@ import com.example.intelligent_cv_matching_ai_agent.dto.response.candidate.resum
 import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException;
 import com.example.intelligent_cv_matching_ai_agent.repository.candidate.resume.ResumePdfExportRepository;
 import com.example.intelligent_cv_matching_ai_agent.security.shared.CurrentUser;
+import com.example.intelligent_cv_matching_ai_agent.service.shared.resume.LocalResumeFileStorage;
+import com.example.intelligent_cv_matching_ai_agent.service.shared.resume.ResumeFileStorage;
 import com.example.intelligent_cv_matching_ai_agent.util.candidate.resume.ResumeContent;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.FlowSupport;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -26,6 +24,10 @@ public class ResumePdfExportService {
 
     private static final String RENDERER_VERSION = "cv-pdf-v1";
 
+    private static final String PDF_KEY_PATTERN = "[0-9a-f-]{36}\\.pdf";
+
+    private static final long MAX_PDF_BYTES = 20L * 1024 * 1024;
+
     private final ResumePdfExportRepository db;
 
     private final CurrentUser current;
@@ -34,7 +36,7 @@ public class ResumePdfExportService {
 
     private final ObjectMapper mapper;
 
-    private final Path storage;
+    private final ResumeFileStorage storage;
 
     private final TransactionTemplate transactions;
 
@@ -44,14 +46,24 @@ public class ResumePdfExportService {
         ResumePdfRenderer renderer,
         ObjectMapper mapper,
         PlatformTransactionManager manager,
-        @Value("${app.storage.path:./storage/resumes}")
         String storage) {
+        this(db, current, renderer, mapper, manager, new LocalResumeFileStorage(storage));
+    }
+
+    @Autowired
+    public ResumePdfExportService(
+        ResumePdfExportRepository db,
+        CurrentUser current,
+        ResumePdfRenderer renderer,
+        ObjectMapper mapper,
+        PlatformTransactionManager manager,
+        ResumeFileStorage storage) {
         this.db = db;
         this.current = current;
         this.renderer = renderer;
         this.mapper = mapper;
         this.transactions = new TransactionTemplate(manager);
-        this.storage = Path.of(storage).toAbsolutePath().normalize();
+        this.storage = storage;
     }
 
     public Map<String, Object> export(
@@ -64,13 +76,13 @@ public class ResumePdfExportService {
         }
         // Rendering holds no database lock. Publication checks the exact inputs again.
         byte[] bytes = renderer.render(resume, template);
-        String key = UUID.randomUUID() + ".pdf";
-        Path output = safeFile(key);
+        String key = validatePdfKey(UUID.randomUUID() + ".pdf");
         String filename = Objects.toString(resume.get("title"), "CV").replaceAll("[^\\p{L}\\p{N}_-]", "_");
         filename = filename.substring(0, Math.min(filename.length(), 180)) + ".pdf";
+        boolean stored = false;
         try {
-            Files.createDirectories(storage);
-            Files.write(output, bytes, StandardOpenOption.CREATE_NEW);
+            storage.store(key, bytes, "application/pdf");
+            stored = true;
             String downloadName = filename;
             Map<String, Object> saved = transactions.execute(status -> {
                 Map<String, Object> latest = requireReady(db.lock(id));
@@ -89,11 +101,18 @@ public class ResumePdfExportService {
                 return response(published, false);
             });
             return saved;
-        } catch (IOException exception) {
-            deleteFailedExport(output);
-            throw new ApiException(503, "CV PDF storage is unavailable");
+        } catch (ApiException exception) {
+            if (stored) {
+                storage.delete(key);
+            }
+            if (exception.status() == 503) {
+                throw new ApiException(503, "CV PDF storage is unavailable");
+            }
+            throw exception;
         } catch (RuntimeException exception) {
-            deleteFailedExport(output);
+            if (stored) {
+                storage.delete(key);
+            }
             throw exception;
         }
     }
@@ -102,12 +121,16 @@ public class ResumePdfExportService {
         UUID id) {
         Map<String, Object> exported = export(id);
         try {
+            String key = validatePdfKey(exported.get("file_url").toString());
             return new ResumeDownloadResponse(
-                Files.readAllBytes(safeFile(exported.get("file_url").toString())),
+                storage.read(key),
                 exported.get("file_name").toString(),
                 "application/pdf"
             );
-        } catch (IOException exception) {
+        } catch (ApiException exception) {
+            if (exception.status() == 400) {
+                throw exception;
+            }
             throw new ApiException(503, "Exported PDF is temporarily unavailable; retry export");
         }
     }
@@ -144,24 +167,19 @@ public class ResumePdfExportService {
     private boolean existingPdf(
         Map<String, Object> resume) {
         try {
-            Path file = safeFile(Objects.toString(resume.get("file_url"), ""));
-            return "application/pdf".equals(resume.get("mime_type")) && Files.isRegularFile(file)
-                && Files.size(file) > 0 && Files.size(file) <= 20 * 1024 * 1024;
-        } catch (IOException | ApiException exception) {
+            String key = validatePdfKey(Objects.toString(resume.get("file_url"), ""));
+            return "application/pdf".equals(resume.get("mime_type")) && storage.exists(key, MAX_PDF_BYTES);
+        } catch (ApiException exception) {
             return false;
         }
     }
 
-    private Path safeFile(
+    private static String validatePdfKey(
         String key) {
-        if (!key.matches("[0-9a-f-]{36}\\.pdf")) {
+        if (key == null || !key.matches(PDF_KEY_PATTERN)) {
             throw ApiException.badRequest("Invalid PDF storage key");
         }
-        Path file = storage.resolve(key).normalize();
-        if (!file.getParent().equals(storage) || Files.isSymbolicLink(file)) {
-            throw ApiException.badRequest("Invalid PDF storage path");
-        }
-        return file;
+        return key;
     }
 
     private static Map<String, Object> response(
@@ -173,14 +191,5 @@ public class ResumePdfExportService {
         }
         response.put("cached", cached);
         return response;
-    }
-
-    private static void deleteFailedExport(
-        Path file) {
-        try {
-            Files.deleteIfExists(file);
-        } catch (IOException ignored) {
-            // Only this attempt's unpublished file is eligible for cleanup.
-        }
     }
 }

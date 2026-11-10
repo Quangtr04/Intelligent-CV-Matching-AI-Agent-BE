@@ -1,7 +1,9 @@
 package com.example.intelligent_cv_matching_ai_agent.controller.candidate.resume;
 
+import com.example.intelligent_cv_matching_ai_agent.service.candidate.resume.ResumePdfExportService;
 import com.example.intelligent_cv_matching_ai_agent.service.candidate.resume.ResumeService;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,9 +21,19 @@ public class ResumeController {
 
     private final ResumeService service;
 
+    private final ResumePdfExportService pdfExport;
+
     public ResumeController(
         ResumeService service) {
+        this(service, null);
+    }
+
+    @Autowired
+    public ResumeController(
+        ResumeService service,
+        ResumePdfExportService pdfExport) {
         this.service = service;
+        this.pdfExport = pdfExport;
     }
 
     @GetMapping("/templates")
@@ -131,6 +143,25 @@ public class ResumeController {
         @PathVariable
         UUID id) {
         return service.embedding(id);
+    }
+
+    @PostMapping("/{id}/export-pdf")
+    public Object exportPdf(
+        @PathVariable
+        UUID id) {
+        return pdfExport.export(id);
+    }
+
+    @GetMapping("/{id}/export-pdf/download")
+    public ResponseEntity<byte[]> downloadPdf(
+        @PathVariable
+        UUID id) {
+        ResumeDownloadResponse file = pdfExport.download(id);
+        return ResponseEntity.ok().contentType(MediaType.parseMediaType(file.mimeType()))
+            .header(
+                HttpHeaders.CONTENT_DISPOSITION,
+                ContentDisposition.attachment().filename(file.filename(), StandardCharsets.UTF_8).build().toString()
+            ).header("X-Content-Type-Options", "nosniff").body(file.content());
     }
 
     @GetMapping("/{id}/download")
