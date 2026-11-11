@@ -103,6 +103,13 @@ public class AdminController {
         return service.editTier(id, body);
     }
 
+    @GetMapping("/subscription-tiers/{id}/quotas")
+    public List<Map<String, Object>> quotas(
+        @PathVariable
+        UUID id) {
+        return service.quotas(id);
+    }
+
     @PutMapping("/subscription-tiers/{id}/quotas")
     public List<Map<String, Object>> quotas(
         @PathVariable

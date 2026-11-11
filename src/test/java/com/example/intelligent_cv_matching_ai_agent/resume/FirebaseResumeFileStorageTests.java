@@ -21,11 +21,14 @@ import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageException;
+import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -235,7 +238,7 @@ class FirebaseResumeFileStorageTests {
         PlatformTransactionManager txManager = mock(PlatformTransactionManager.class);
         UUID owner = UUID.randomUUID();
         UUID resumeId = UUID.randomUUID();
-        byte[] pdfBytes = "%PDF-1.7\nexported-firebase-pdf".getBytes(StandardCharsets.UTF_8);
+        byte[] pdfBytes = pdfBytes();
 
         Map<String, Object> resume = new LinkedHashMap<>(
             Map.of(
@@ -255,7 +258,7 @@ class FirebaseResumeFileStorageTests {
         );
         when(db.resume(resumeId)).thenAnswer(call -> new LinkedHashMap<>(resume));
         when(db.lock(resumeId)).thenAnswer(call -> new LinkedHashMap<>(resume));
-        when(db.template(any())).thenReturn("<html>template</html>");
+        when(db.template(any())).thenReturn("");
         when(renderer.render(anyMap(), anyString())).thenReturn(pdfBytes);
         when(txManager.getTransaction(any())).thenAnswer(call -> new SimpleTransactionStatus());
         when(db.save(eq(resumeId), anyString(), anyString(), anyLong(), anyString())).thenAnswer(call -> {
@@ -291,5 +294,15 @@ class FirebaseResumeFileStorageTests {
 
         props.setProvider("firebase");
         assertThrows(IllegalStateException.class, () -> config.resumeFileStorage(props));
+    }
+
+    private static byte[] pdfBytes() {
+        try (var document = new PDDocument(); var output = new ByteArrayOutputStream()) {
+            document.addPage(new PDPage());
+            document.save(output);
+            return output.toByteArray();
+        } catch (java.io.IOException exception) {
+            throw new ExceptionInInitializerError(exception);
+        }
     }
 }

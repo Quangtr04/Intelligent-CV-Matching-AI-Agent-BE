@@ -46,6 +46,7 @@ class ManagerRoleAuthorizationTests {
         for (String role : List.of("CANDIDATE", "CAREER_CONSULTANT")) {
             login(role);
             assertFalse(current.hasOperationsRole());
+            assertFalse(current.hasRole("ADMIN"));
             assertEquals(403, assertThrows(ApiException.class, current::requireOperationsRole).status());
         }
     }

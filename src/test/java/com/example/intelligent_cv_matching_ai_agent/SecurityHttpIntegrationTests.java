@@ -84,7 +84,6 @@ class SecurityHttpIntegrationTests {
             "/api/v1/admin/crawl-settings",
             "/api/admin/crawl-settings",
             "/api/v1/admin/announcements",
-            "/api/v1/admin/rag/documents",
             "/api/v1/admin/monitoring/billing",
             "/api/v1/admin/monitoring/feedback",
             "/api/v1/support/tickets",
@@ -95,12 +94,12 @@ class SecurityHttpIntegrationTests {
         }
         for (String path : List.of(
             "/api/v1/admin/users",
+            "/api/v1/admin/rag/documents",
             "/api/v1/admin/ai/configurations",
             "/api/v1/admin/ai/runtime",
             "/api/v1/admin/ai/prompts",
             "/api/v1/admin/monitoring/logs",
-            "/api/v1/admin/monitoring/audit",
-            "/api/v1/management/staff"
+            "/api/v1/admin/monitoring/audit"
         )) {
             assertEquals(403, send("GET", path, manager).statusCode(), path);
         }

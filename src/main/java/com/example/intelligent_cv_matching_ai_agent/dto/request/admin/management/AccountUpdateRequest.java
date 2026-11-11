@@ -8,19 +8,10 @@ public record AccountUpdateRequest(
     @Size(max = 255)
     String fullName,
     @NotBlank
-    @Pattern(regexp = "CANDIDATE|CAREER_CONSULTANT|ADMIN|MANAGEMENT|MANAGER")
+    @Pattern(regexp = "CANDIDATE|CAREER_CONSULTANT|ADMIN|MANAGER")
     String role,
     @NotBlank
     @Pattern(regexp = "ACTIVE|SUSPENDED")
-    String status,
-    @Pattern(regexp = "MANAGER|STAFF")
-    String subRole
+    String status
 ) {
-
-    public AccountUpdateRequest(
-        String fullName,
-        String role,
-        String status) {
-        this(fullName, role, status, null);
-    }
 }

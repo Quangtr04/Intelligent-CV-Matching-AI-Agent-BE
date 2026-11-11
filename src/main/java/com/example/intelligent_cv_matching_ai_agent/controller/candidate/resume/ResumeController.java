@@ -3,7 +3,6 @@ package com.example.intelligent_cv_matching_ai_agent.controller.candidate.resume
 import com.example.intelligent_cv_matching_ai_agent.service.candidate.resume.ResumePdfExportService;
 import com.example.intelligent_cv_matching_ai_agent.service.candidate.resume.ResumeService;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,19 +20,13 @@ public class ResumeController {
 
     private final ResumeService service;
 
-    private final ResumePdfExportService pdfExport;
+    private final ResumePdfExportService pdf;
 
-    public ResumeController(
-        ResumeService service) {
-        this(service, null);
-    }
-
-    @Autowired
     public ResumeController(
         ResumeService service,
-        ResumePdfExportService pdfExport) {
+        ResumePdfExportService pdf) {
         this.service = service;
-        this.pdfExport = pdfExport;
+        this.pdf = pdf;
     }
 
     @GetMapping("/templates")
@@ -87,7 +80,8 @@ public class ResumeController {
         @Valid
         @RequestBody
         ResumeWriteRequest body) {
-        return service.update(id, body.toInputMap());
+        Map<String, Object> saved = service.update(id, body.toInputMap());
+        return withPdfIfReady(id, saved);
     }
 
     @PostMapping("/{id}/confirm")
@@ -97,7 +91,20 @@ public class ResumeController {
         @Valid
         @RequestBody(required = false)
         ResumeWriteRequest body) {
-        return service.confirm(id, body == null ? Map.of() : body.toInputMap());
+        Map<String, Object> saved = service.confirm(id, body == null ? Map.of() : body.toInputMap());
+        return withPdfIfReady(id, saved);
+    }
+
+    private Map<String, Object> withPdfIfReady(
+        UUID id,
+        Map<String, Object> saved) {
+        if ("READY".equals(saved.get("status"))) {
+            // ResumeService's transaction has committed before Chromium starts.
+            // If rendering fails, reviewed data remains saved and download/confirm can retry.
+            pdf.export(id);
+            return service.get(id);
+        }
+        return saved;
     }
 
     @PostMapping("/{id}/primary")
@@ -149,19 +156,14 @@ public class ResumeController {
     public Object exportPdf(
         @PathVariable
         UUID id) {
-        return pdfExport.export(id);
+        return pdf.export(id);
     }
 
     @GetMapping("/{id}/export-pdf/download")
     public ResponseEntity<byte[]> downloadPdf(
         @PathVariable
         UUID id) {
-        ResumeDownloadResponse file = pdfExport.download(id);
-        return ResponseEntity.ok().contentType(MediaType.parseMediaType(file.mimeType()))
-            .header(
-                HttpHeaders.CONTENT_DISPOSITION,
-                ContentDisposition.attachment().filename(file.filename(), StandardCharsets.UTF_8).build().toString()
-            ).header("X-Content-Type-Options", "nosniff").body(file.content());
+        return download(id, false);
     }
 
     @GetMapping("/{id}/download")
@@ -170,8 +172,9 @@ public class ResumeController {
         UUID id,
         @RequestParam(defaultValue = "false")
         boolean text) {
-        ResumeDownloadResponse file = service.download(id, text);
-        return ResponseEntity.ok().contentType(MediaType.parseMediaType(file.mimeType()))
+        ResumeDownloadResponse file = text ? service.download(id, true) : pdf.download(id);
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore().cachePrivate())
+            .contentType(MediaType.parseMediaType(file.mimeType()))
             .header(
                 HttpHeaders.CONTENT_DISPOSITION,
                 ContentDisposition.attachment().filename(file.filename(), StandardCharsets.UTF_8).build().toString()

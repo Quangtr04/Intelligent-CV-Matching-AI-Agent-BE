@@ -210,6 +210,8 @@ class ConsultationBookingConcurrencyDatabaseTests {
 
         private final List<UUID> candidates = new ArrayList<>();
 
+        private final Map<UUID, UUID> resumes = new HashMap<>();
+
         private Fixture() {
             String url = System.getProperty("consultation.testDatabaseUrl");
             if (!url.matches("jdbc:postgresql://127[.]0[.]0[.]1:[0-9]+/[a-z_]+_test")) {
@@ -243,6 +245,24 @@ class ConsultationBookingConcurrencyDatabaseTests {
             people.add(id);
             if ("CANDIDATE".equals(role)) {
                 candidates.add(id);
+                resumes.put(
+                    id,
+                    sql.insert(
+                        "resumes",
+                        fields(
+                            "user_id",
+                            id,
+                            "title",
+                            "Concurrent CV",
+                            "source",
+                            "MANUAL",
+                            "status",
+                            "READY",
+                            "structured_data",
+                            sql.json(Map.of("summary", "Ready"))
+                        )
+                    )
+                );
             }
             return id;
         }
@@ -319,7 +339,9 @@ class ConsultationBookingConcurrencyDatabaseTests {
                             "Concurrent booking",
                             "Prepare for Backend interview",
                             start,
-                            30
+                            30,
+                            resumes.get(candidate),
+                            null
                         )
                     );
                 });
@@ -397,6 +419,7 @@ class ConsultationBookingConcurrencyDatabaseTests {
                 for (UUID person : people) {
                     sql.update("DELETE FROM notifications WHERE user_id=?", person);
                     sql.update("DELETE FROM consultant_profiles WHERE user_id=?", person);
+                    sql.update("DELETE FROM resumes WHERE user_id=?", person);
                     sql.update("DELETE FROM users WHERE id=?", person);
                 }
             });

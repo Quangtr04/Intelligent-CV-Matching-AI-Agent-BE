@@ -1,6 +1,7 @@
 package com.example.intelligent_cv_matching_ai_agent;
 
 import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiService;
+import com.example.intelligent_cv_matching_ai_agent.service.candidate.resume.ResumePdfExportService;
 import com.example.intelligent_cv_matching_ai_agent.repository.shared.SqlStore;
 import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException;
 import com.example.intelligent_cv_matching_ai_agent.service.shared.billing.EntitlementService;
@@ -63,6 +64,10 @@ import static com.example.intelligent_cv_matching_ai_agent.util.shared.Values.fi
 @AutoConfigureMockMvc
 @EnabledIfEnvironmentVariable(named = "EDUNEXUS_TEST_DATABASE_URL", matches = ".+")
 class CoreFlowIntegrationTests {
+
+    // This suite checks domain/API flows; PDF rendering has dedicated unit and real-browser fixtures.
+    @MockitoBean
+    private ResumePdfExportService pdfExports;
 
     @Autowired
     MockMvc mvc;

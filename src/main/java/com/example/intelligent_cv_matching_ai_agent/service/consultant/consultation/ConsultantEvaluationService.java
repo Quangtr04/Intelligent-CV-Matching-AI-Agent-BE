@@ -9,6 +9,7 @@ import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiService;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.FlowSupport;
 import com.example.intelligent_cv_matching_ai_agent.util.consultant.consultation.ConsultationEvaluationData;
 import com.example.intelligent_cv_matching_ai_agent.util.candidate.resume.ResumeWritingQuality;
+import com.example.intelligent_cv_matching_ai_agent.util.consultant.consultation.ConsultationAttachments;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -46,14 +47,22 @@ public class ConsultantEvaluationService {
     @Transactional
     public List<Map<String, Object>> candidateResumes(
         UUID consultationId) {
-        return repository.listReadyResumes(assignedCandidate(consultationId, false));
+        Map<String, Object> thread = assignedThread(consultationId, false);
+        UUID candidate = (UUID) thread.get("candidate_user_id");
+        if (ConsultationAttachments.bound(thread)) {
+            UUID resumeId = ConsultationAttachments.resume(thread, null);
+            return resumeId == null ? List.of() : repository.attachedReadyResumes(candidate, resumeId);
+        }
+        return repository.listReadyResumes(candidate);
     }
 
     @Transactional
     public Map<String, Object> analyzeResume(
         UUID consultationId,
         UUID resumeId) {
-        UUID candidateId = assignedCandidate(consultationId, true);
+        Map<String, Object> thread = assignedThread(consultationId, true);
+        ConsultationAttachments.resume(thread, resumeId);
+        UUID candidateId = (UUID) thread.get("candidate_user_id");
         Map<String, Object> resume = repository.readyResume(resumeId, candidateId);
         requireAi();
 
@@ -119,7 +128,10 @@ public class ConsultantEvaluationService {
         UUID consultationId,
         UUID jobId,
         ConsultationAtsRequest request) {
-        UUID candidateId = assignedCandidate(consultationId, true);
+        Map<String, Object> thread = assignedThread(consultationId, true);
+        ConsultationAttachments.job(thread, jobId);
+        ConsultationAttachments.resume(thread, request.resumeId());
+        UUID candidateId = (UUID) thread.get("candidate_user_id");
         UUID resumeId = request.resumeId();
         Map<String, Object> resume = repository.readyResume(resumeId, candidateId);
         Map<String, Object> job = repository.activeJob(jobId);
@@ -184,15 +196,19 @@ public class ConsultantEvaluationService {
         return atsResponse(repository.atsAnalysis(analysisId, candidateId, resumeId, jobId), false);
     }
 
-    private UUID assignedCandidate(
+    private Map<String, Object> assignedThread(
         UUID consultationId,
         boolean requireOpen) {
         currentUser.requireRole("CAREER_CONSULTANT");
         Map<String, Object> thread = repository.assignedThread(consultationId, currentUser.id());
+        ConsultationAttachments.requireReadable(thread, currentUser.id(), false);
         if (requireOpen && !"OPEN".equals(thread.get("status"))) {
             throw ApiException.conflict("Consultation is closed");
         }
-        return (UUID) thread.get("candidate_user_id");
+        if (requireOpen && ConsultationAttachments.bound(thread) && !"ACCEPTED".equals(thread.get("booking_status"))) {
+            throw ApiException.conflict("AI preparation requires an accepted consultation booking");
+        }
+        return thread;
     }
 
     private void requireAi() {

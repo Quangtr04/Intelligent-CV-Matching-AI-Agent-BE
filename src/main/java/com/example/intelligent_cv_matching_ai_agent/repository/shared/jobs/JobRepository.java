@@ -19,16 +19,13 @@ public class JobRepository {
             + "j.source_site AS original_source_site," + JobSourceProjection.ACTIVE_URL + " AS source_url,"
             + JobSourceProjection.ACTIVE_SITE + " AS source_site";
 
-    private static final String STAFF_JOB_CREATOR_COLUMNS =
+    private static final String JOB_CREATOR_COLUMNS =
         "j.created_by_user_id,creator.full_name AS created_by_full_name,creator.email AS created_by_email,"
-            + "creator.role AS created_by_role,mp.sub_role AS created_by_sub_role,"
-            + "j.ingestion_method,j.task_id,task.title AS task_title,"
+            + "creator.role AS created_by_role,j.ingestion_method,"
             + "j.reviewed_by_user_id,reviewer.full_name AS reviewed_by_full_name,"
             + "reviewer.email AS reviewed_by_email,j.reviewed_at,j.review_note";
 
-    private static final String STAFF_JOB_JOINS = " LEFT JOIN users creator ON creator.id=j.created_by_user_id"
-        + " LEFT JOIN management_profiles mp ON mp.user_id=j.created_by_user_id"
-        + " LEFT JOIN management_tasks task ON task.id=j.task_id"
+    private static final String JOB_CREATOR_JOINS = " LEFT JOIN users creator ON creator.id=j.created_by_user_id"
         + " LEFT JOIN users reviewer ON reviewer.id=j.reviewed_by_user_id ";
 
     private final SqlStore db;
@@ -66,8 +63,8 @@ public class JobRepository {
     public List<Map<String, Object>> listMarketJobPostsWithCreatorByStatus(
         Object... args) {
         return db.list(
-            "SELECT " + PUBLIC_JOB_SUMMARY_COLUMNS + "," + STAFF_JOB_CREATOR_COLUMNS + " FROM market_job_posts j"
-                + STAFF_JOB_JOINS + "WHERE "
+            "SELECT " + PUBLIC_JOB_SUMMARY_COLUMNS + "," + JOB_CREATOR_COLUMNS + " FROM market_job_posts j"
+                + JOB_CREATOR_JOINS + "WHERE "
                 + "j.status='ACTIVE' AND (j.valid_through IS NULL OR j.valid_through>now()) "
                 + "AND j.job_title ILIKE ? AND " + LOCATION_SEARCH_SQL
                 + " ILIKE ? ESCAPE '!' ORDER BY j.collected_at DESC,j.id LIMIT ? OFFSET ?",
@@ -97,7 +94,7 @@ public class JobRepository {
         return db.one(
             "SELECT j.*,j.source_url AS original_source_url,j.source_site AS original_source_site,"
                 + JobSourceProjection.ACTIVE_URL + " AS source_url," + JobSourceProjection.ACTIVE_SITE
-                + " AS source_site," + STAFF_JOB_CREATOR_COLUMNS + " FROM market_job_posts j" + STAFF_JOB_JOINS
+                + " AS source_site," + JOB_CREATOR_COLUMNS + " FROM market_job_posts j" + JOB_CREATOR_JOINS
                 + "WHERE j.id=?",
             args
         );
@@ -107,16 +104,15 @@ public class JobRepository {
         String queryPattern,
         String status,
         UUID createdBy,
-        UUID taskId,
         String ingestionMethod,
         int limit,
         int offset) {
         return db.list(
-            "SELECT " + PUBLIC_JOB_SUMMARY_COLUMNS + ",j.status,j.collected_at," + STAFF_JOB_CREATOR_COLUMNS
-                + " FROM market_job_posts j" + STAFF_JOB_JOINS
+            "SELECT " + PUBLIC_JOB_SUMMARY_COLUMNS + ",j.status,j.collected_at," + JOB_CREATOR_COLUMNS
+                + " FROM market_job_posts j" + JOB_CREATOR_JOINS
                 + "WHERE (j.job_title ILIKE ? OR COALESCE(j.company_name,'') ILIKE ?) "
                 + "AND (?::varchar IS NULL OR j.status=?) " + "AND (?::uuid IS NULL OR j.created_by_user_id=?::uuid) "
-                + "AND (?::uuid IS NULL OR j.task_id=?::uuid) " + "AND (?::varchar IS NULL OR j.ingestion_method=?) "
+                + "AND (?::varchar IS NULL OR j.ingestion_method=?) "
                 + "ORDER BY j.collected_at DESC,j.id LIMIT ? OFFSET ?",
             queryPattern,
             queryPattern,
@@ -124,8 +120,6 @@ public class JobRepository {
             status,
             createdBy,
             createdBy,
-            taskId,
-            taskId,
             ingestionMethod,
             ingestionMethod,
             limit,
@@ -160,7 +154,7 @@ public class JobRepository {
     public void requireActiveAdmin(
         UUID actor) {
         if (db.optional(
-            "SELECT id FROM users WHERE id=? AND role IN ('ADMIN','MANAGEMENT','MANAGER') AND status='ACTIVE' "
+            "SELECT id FROM users WHERE id=? AND role IN ('ADMIN','MANAGER') AND status='ACTIVE' "
                 + "AND deleted_at IS NULL",
             actor
         ).isEmpty())
@@ -187,7 +181,8 @@ public class JobRepository {
             return Optional.empty();
         return db.optional(
             "SELECT j.* FROM market_job_posts j WHERE content_fingerprint=? AND status='ACTIVE' "
-                + "AND (valid_through IS NULL OR valid_through>now()) AND source_site<>? ORDER BY collected_at,id LIMIT 1",
+                + "AND (valid_through IS NULL OR valid_through>now()) AND source_site<>? "
+                + "ORDER BY collected_at,id LIMIT 1",
             fingerprint,
             source
         );
@@ -379,35 +374,6 @@ public class JobRepository {
             reviewNote,
             id
         );
-    }
-
-    public boolean isStaffActor(
-        UUID actor) {
-        return Boolean.TRUE.equals(
-            db.scalar(
-                "SELECT EXISTS(SELECT 1 FROM users u JOIN management_profiles mp ON mp.user_id=u.id "
-                    + "WHERE u.id=? AND u.role='MANAGEMENT' AND mp.sub_role='STAFF')",
-                actor
-            )
-        );
-    }
-
-    public void validateAndTouchTask(
-        UUID taskId,
-        UUID actor,
-        boolean strictManagerOrAdmin) {
-        Map<String, Object> task = db.optional("SELECT * FROM management_tasks WHERE id=?", taskId).orElseThrow(
-            () -> com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException
-                .badRequest("Assigned management task not found")
-        );
-        if ("CANCELLED".equals(task.get("status")))
-            throw com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException
-                .conflict("Cannot attach jobs to a cancelled task");
-        if (!strictManagerOrAdmin && !actor.equals(task.get("assigned_to_user_id")))
-            throw com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException
-                .forbidden("Task is not assigned to the current staff member");
-        if ("TODO".equals(task.get("status")))
-            db.update("UPDATE management_tasks SET status='IN_PROGRESS',updated_at=now() WHERE id=?", taskId);
     }
 
     public Map<String, Object> getMarketJobPostsById3(

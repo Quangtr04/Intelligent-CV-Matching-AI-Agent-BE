@@ -152,7 +152,7 @@ public class BillingRepository {
         db.update(
             "INSERT INTO notifications(user_id,type,title,content,reference_type,reference_id) "
                 + "SELECT id,'CONSULTATION_REQUEST','Paid consultation request',?,'CONSULTATION',? "
-                + "FROM users WHERE role IN ('ADMIN','MANAGEMENT') AND status='ACTIVE'",
+                + "FROM users WHERE role IN ('ADMIN','MANAGER') AND status='ACTIVE'",
             order.get("subject"),
             thread
         );

@@ -33,7 +33,7 @@ public class JobCrawlRepository {
     public void requireActiveAdmin(
         UUID actor) {
         if (db.optional(
-            "SELECT id FROM users WHERE id=? AND role IN ('ADMIN','MANAGEMENT','MANAGER') AND status='ACTIVE' "
+            "SELECT id FROM users WHERE id=? AND role IN ('ADMIN','MANAGER') AND status='ACTIVE' "
                 + "AND deleted_at IS NULL",
             actor
         ).isEmpty())
@@ -151,10 +151,8 @@ public class JobCrawlRepository {
         Object... args) {
         return db.one(
             "SELECT r.*,u.full_name AS requested_by_full_name,u.email AS requested_by_email,"
-                + "u.role AS requested_by_role,mp.sub_role AS requested_by_sub_role,t.title AS task_title "
-                + "FROM market_crawl_runs r LEFT JOIN users u ON u.id=r.requested_by "
-                + "LEFT JOIN management_profiles mp ON mp.user_id=r.requested_by "
-                + "LEFT JOIN management_tasks t ON t.id=r.task_id WHERE r.id=?",
+                + "u.role AS requested_by_role " + "FROM market_crawl_runs r LEFT JOIN users u ON u.id=r.requested_by "
+                + "WHERE r.id=?",
             args
         );
     }
@@ -168,10 +166,8 @@ public class JobCrawlRepository {
         Object... args) {
         return db.list(
             "SELECT r.*,u.full_name AS requested_by_full_name,u.email AS requested_by_email,"
-                + "u.role AS requested_by_role,mp.sub_role AS requested_by_sub_role,t.title AS task_title "
-                + "FROM market_crawl_runs r LEFT JOIN users u ON u.id=r.requested_by "
-                + "LEFT JOIN management_profiles mp ON mp.user_id=r.requested_by "
-                + "LEFT JOIN management_tasks t ON t.id=r.task_id ORDER BY r.started_at DESC,r.id LIMIT ? OFFSET ?",
+                + "u.role AS requested_by_role " + "FROM market_crawl_runs r LEFT JOIN users u ON u.id=r.requested_by "
+                + "ORDER BY r.started_at DESC,r.id LIMIT ? OFFSET ?",
             args
         );
     }

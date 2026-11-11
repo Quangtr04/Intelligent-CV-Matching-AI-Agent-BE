@@ -43,7 +43,7 @@ public class EntitlementService {
             throw ApiException.forbidden("Feature unavailable in this subscription");
 
         long used = usage(user, null, period(global.get().get("quota_period")));
-        if (quota >= 0 && used + tokenBudget > quota)
+        if (quota >= 0 && used > quota - tokenBudget)
             throw new ApiException(
                 429,
                 ("AI token quota exceeded; upgrade your subscription or wait for the " + "next quota period")
@@ -52,9 +52,13 @@ public class EntitlementService {
         if (specific.isPresent()) {
             long featureQuota = ((Number) specific.get().get("quota_value")).longValue();
             long featureUsed = usage(user, feature, period(specific.get().get("quota_period")));
-            if (featureQuota >= 0 && featureUsed + tokenBudget > featureQuota)
+            if (featureQuota >= 0 && featureUsed > featureQuota - tokenBudget)
                 throw new ApiException(429, "Feature token quota exceeded");
         }
+
+        // The user lock above makes call limits atomic with token reservations.
+        checkCallQuota(user, tier.get("id"), "API_CALLS_TOTAL", null);
+        checkCallQuota(user, tier.get("id"), "API_CALLS_" + feature, feature);
 
         return db.insertAiTokenReservations(
             Map.of(
@@ -72,6 +76,21 @@ public class EntitlementService {
                 OffsetDateTime.now()
             )
         );
+    }
+
+    private void checkCallQuota(
+        UUID user,
+        Object tier,
+        String code,
+        String feature) {
+        var rule = db.findSubscriptionQuotasByTierId2(tier, code);
+        if (rule.isEmpty()) {
+            return;
+        }
+        long limit = ((Number) rule.get().get("quota_value")).longValue();
+        if (limit >= 0 && db.requestsUsed(user, feature, period(rule.get().get("quota_period"))) >= limit) {
+            throw new ApiException(429, "AI API call quota exceeded");
+        }
     }
 
     private String period(
@@ -131,7 +150,9 @@ public class EntitlementService {
             "quotas",
             db.listSubscriptionQuotasByTierId(tier.get("id")),
             "tokensUsedThisMonth",
-            usage(user, null, tier.containsKey("subscription_started_at") ? "subscription" : "month")
+            usage(user, null, tier.containsKey("subscription_started_at") ? "subscription" : "month"),
+            "apiCallsThisMonth",
+            db.requestsUsed(user, null, tier.containsKey("subscription_started_at") ? "subscription" : "month")
         );
     }
 }

@@ -28,14 +28,12 @@ public class AdminJobController {
         @RequestParam(required = false)
         UUID createdBy,
         @RequestParam(required = false)
-        UUID taskId,
-        @RequestParam(required = false)
         String ingestionMethod,
         @RequestParam(defaultValue = "20")
         int limit,
         @RequestParam(defaultValue = "0")
         int offset) {
-        return service.managedJobs(q, status, createdBy, taskId, ingestionMethod, limit, offset);
+        return service.managedJobs(q, status, createdBy, ingestionMethod, limit, offset);
     }
 
     @GetMapping("/{id}")

@@ -114,6 +114,13 @@ public class ConsultationBookingService {
         OffsetDateTime end = input.startsAt().plusMinutes(durationMinutes);
         UUID candidate = user.id();
         db.lockPeople(candidate, input.consultantId());
+        if (input.resumeId() == null) {
+            throw ApiException.badRequest("Select a confirmed CV for this consultation");
+        }
+        db.requireReadyResume(input.resumeId(), candidate);
+        if (input.jobId() != null) {
+            db.requireActiveJob(input.jobId());
+        }
         if (!supports(db.consultant(input.consultantId()), normalizeRole(input.targetRole()))) {
             throw ApiException.badRequest("Selected consultant does not support the target role");
         }
@@ -136,6 +143,10 @@ public class ConsultationBookingService {
                 input.subject().strip(),
                 "request_type",
                 "SESSION_BOOKING",
+                "resume_id",
+                input.resumeId(),
+                "job_id",
+                input.jobId(),
                 "request_description",
                 input.description().strip(),
                 "priority",
@@ -152,6 +163,10 @@ public class ConsultationBookingService {
                 input.consultantId(),
                 "credit_order_id",
                 input.creditOrderId(),
+                "resume_id",
+                input.resumeId(),
+                "job_id",
+                input.jobId(),
                 "target_role",
                 input.targetRole().strip(),
                 "subject",
@@ -189,6 +204,9 @@ public class ConsultationBookingService {
         UUID id) {
         user.requireRole("CAREER_CONSULTANT");
         Map<String, Object> row = lockOwned(id, "consultant_user_id");
+        if ("ACCEPTED".equals(row.get("status"))) {
+            return db.booking(id);
+        }
         requireStatus(row, "PENDING");
         requireBeforeStart(row);
         db.accept(id);
@@ -198,7 +216,27 @@ public class ConsultationBookingService {
             "CONSULTATION_BOOKING_ACCEPTED",
             "Lịch tư vấn đã được tiếp nhận",
             text(row.get("subject")) + " — " + row.get("starts_at")
+                + ". Hệ thống đang tạo Google Meet và gửi lời mời Google Calendar cho hai bên."
         );
+        return db.booking(id);
+    }
+
+    @Transactional
+    public Map<String, Object> retryMeeting(
+        UUID id) {
+        Map<String, Object> before = db.booking(id);
+        UUID viewer = user.id();
+        if (!user.hasRole("ADMIN") && !viewer.equals(before.get("candidate_user_id"))
+            && !viewer.equals(before.get("consultant_user_id"))) {
+            throw ApiException.notFound("Booking not found");
+        }
+        db.lockPeople(uuid(before.get("candidate_user_id")), uuid(before.get("consultant_user_id")));
+        Map<String, Object> row = db.lockBooking(id);
+        requireStatus(row, "ACCEPTED");
+        if (!time(row.get("ends_at")).isAfter(OffsetDateTime.now())) {
+            throw ApiException.conflict("The scheduled consultation has ended");
+        }
+        db.retryMeeting(id);
         return db.booking(id);
     }
 
@@ -236,7 +274,7 @@ public class ConsultationBookingService {
         }
         requireStatus(row, "ACCEPTED");
         requireEnded(row);
-        end(row, "COMPLETED", false);
+        finishScheduledSession(row);
         return db.booking(id);
     }
 
@@ -281,7 +319,7 @@ public class ConsultationBookingService {
         Map<String, Object> row = db.lockBooking(id);
         OffsetDateTime now = OffsetDateTime.now();
         if ("ACCEPTED".equals(row.get("status")) && !time(row.get("ends_at")).isAfter(now)) {
-            end(row, "COMPLETED", false);
+            finishScheduledSession(row);
         } else if ("PENDING".equals(row.get("status")) && !time(row.get("starts_at")).isAfter(now)) {
             // A request that was never accepted must not consume a candidate's paid session.
             end(row, "DECLINED", true);
@@ -297,6 +335,13 @@ public class ConsultationBookingService {
         Map<String, Object> row = db.lockBooking(id);
         user.owns(row, ownerField);
         return row;
+    }
+
+    private void finishScheduledSession(
+        Map<String, Object> row) {
+        boolean failedDelivery = row.get("meeting_status") != null && !"NOT_REQUESTED".equals(row.get("meeting_status"))
+            && row.get("meeting_opened_at") == null;
+        end(row, failedDelivery ? "DECLINED" : "COMPLETED", failedDelivery);
     }
 
     private void end(

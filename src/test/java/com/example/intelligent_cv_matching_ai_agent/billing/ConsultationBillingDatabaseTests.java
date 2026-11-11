@@ -81,9 +81,17 @@ class ConsultationBillingDatabaseTests {
         scenario(sql -> {
             assertEquals(6, ((Number) sql.scalar("SELECT count(*) FROM consultation_services")).intValue());
             assertEquals(
-                4,
-                ((Number) sql.scalar("SELECT count(*) FROM consultation_services WHERE is_active AND is_session_pack"))
-                    .intValue()
+                Set.of("CAREER_CALL_30", "CAREER_PACK_5_30"),
+                new HashSet<>(
+                    sql.list("SELECT service_code FROM consultation_services WHERE is_active AND is_session_pack")
+                        .stream().map(row -> row.get("service_code")).toList()
+                )
+            );
+            assertEquals(
+                0L,
+                ((Number) sql.scalar(
+                    ("SELECT count(*) FROM consultation_services WHERE is_active AND " + "delivery_mode='ASYNC'")
+                )).longValue()
             );
             assertEquals(
                 new BigDecimal("49000.00"),
@@ -103,9 +111,9 @@ class ConsultationBillingDatabaseTests {
             );
             for (var entry : Map.of("FREE", 30000L, "BASIC", 250000L, "PRO", 800000L).entrySet()) {
                 var row = sql.one(
-                    "SELECT t.price_monthly,q.quota_value,q.quota_period FROM subscription_tiers t "
-                        + "JOIN subscription_quotas q ON q.tier_id=t.id "
-                        + "WHERE t.tier_code=? AND q.feature_code='AI_TOTAL_TOKENS'",
+                    ("SELECT t.price_monthly,q.quota_value,q.quota_period FROM "
+                        + "subscription_tiers t JOIN subscription_quotas q ON q.tier_id=t.id "
+                        + "WHERE t.tier_code=? AND q.feature_code='AI_TOTAL_TOKENS'"),
                     entry.getKey()
                 );
                 assertEquals(entry.getValue().longValue(), ((Number) row.get("quota_value")).longValue());
@@ -211,16 +219,17 @@ class ConsultationBillingDatabaseTests {
             UUID owner = candidate(sql);
             UUID tier = (UUID) sql.scalar("SELECT id FROM subscription_tiers WHERE tier_code='BASIC'");
             sql.update(
-                "INSERT INTO user_subscriptions(user_id,tier_id,started_at,expires_at) "
-                    + "VALUES (?,?,now()-interval '35 days',now()+interval '25 days')",
+                ("INSERT INTO user_subscriptions(user_id,tier_id,started_at,expires_at) "
+                    + "VALUES (?,?,now()-interval '35 days',now()+interval '25 days')"),
                 owner,
                 tier
             );
             sql.update(
-                "INSERT INTO ai_token_reservations(user_id,feature_code,reserved_tokens,consumed_tokens,status,created_at) "
-                    + "VALUES (?,'CAREER_CHAT',500,500,'COMPLETED',now()-interval '6 days'),"
-                    + "(?,'CAREER_CHAT',100,100,'COMPLETED',now()-interval '4 days'),"
-                    + "(?,'CAREER_CHAT',200,0,'RESERVED',now())",
+                ("INSERT INTO ai_token_reservations(user_id,feature_code,"
+                    + "reserved_tokens,consumed_tokens,status,created_at) VALUES (?,"
+                    + "'CAREER_CHAT',500,500,'COMPLETED',now()-interval '6 days'),(?,"
+                    + "'CAREER_CHAT',100,100,'COMPLETED',now()-interval '4 days'),(?,"
+                    + "'CAREER_CHAT',200,0,'RESERVED',now())"),
                 owner,
                 owner,
                 owner

@@ -125,8 +125,6 @@ public class JobCrawlService {
                 "started_at",
                 OffsetDateTime.now()
             );
-            if (input.taskId() != null)
-                runFields.put("task_id", input.taskId());
             return db.insertMarketCrawlRuns(runFields);
         });
         int searchPages = 0, rejected = 0;
@@ -215,7 +213,7 @@ public class JobCrawlService {
                         httpStatus,
                         null,
                         null,
-                        "Source returned HTTP " + httpStatus + "; source marked expired"
+                        "Source returned HTTP " + httpStatus + "; not imported"
                     );
                     rejected++;
                     continue;
@@ -258,26 +256,7 @@ public class JobCrawlService {
                 }
                 int responseStatus = httpStatus;
                 boolean duplicate = Boolean.TRUE.equals(tx.execute(status -> {
-                    ImportJobRequest jobInput = input.taskId() == null
-                        ? posting.job()
-                        : new ImportJobRequest(
-                            posting.job().sourceSite(),
-                            posting.job().sourceUrl(),
-                            posting.job().jobTitle(),
-                            posting.job().companyName(),
-                            posting.job().location(),
-                            posting.job().salaryText(),
-                            posting.job().roleCategory(),
-                            posting.job().content(),
-                            posting.job().skills(),
-                            posting.job().employmentType(),
-                            posting.job().requirements(),
-                            posting.job().responsibilities(),
-                            posting.job().benefits(),
-                            posting.job().postedAt(),
-                            posting.job().validThrough(),
-                            input.taskId()
-                        );
+                    ImportJobRequest jobInput = posting.job();
                     boolean existing = db.findMarketJobPostsByRawContentHash(contentHash(jobInput)).isPresent();
                     Map<String, Object> saved =
                         scheduled ? jobs.importJobAs(jobInput, actor) : jobs.importJob(jobInput);

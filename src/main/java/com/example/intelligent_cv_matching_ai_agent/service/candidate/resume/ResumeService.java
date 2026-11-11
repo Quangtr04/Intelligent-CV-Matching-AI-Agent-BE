@@ -30,6 +30,7 @@ import java.time.LocalDate;
 import java.time.Duration;
 import java.util.*;
 import com.example.intelligent_cv_matching_ai_agent.util.candidate.resume.ResumeContent;
+import com.example.intelligent_cv_matching_ai_agent.util.candidate.resume.ResumePdfHtml;
 import com.example.intelligent_cv_matching_ai_agent.util.candidate.resume.ResumeContentQuality;
 import com.example.intelligent_cv_matching_ai_agent.util.candidate.resume.ResumeInput;
 import com.example.intelligent_cv_matching_ai_agent.util.candidate.resume.ResumeWritingQuality;
@@ -161,12 +162,32 @@ public class ResumeService {
         values.put("language", lang);
         values.put("file_name", extracted.filename());
         values.put("file_url", fileKey);
+        values.put("original_file_url", fileKey);
         values.put("mime_type", extracted.mimeType());
         values.put("file_size_bytes", extracted.bytes().length);
         values.put("raw_content", extracted.text());
         values.put("structured_data", db.json(structured));
         values
             .put("content_hash", ResumeContent.contentHash(mapper, effectiveTitle, lang, extracted.text(), structured));
+        if ("application/pdf".equals(extracted.mimeType())) {
+            values.put(
+                "pdf_input_hash",
+                ResumePdfHtml.inputHash(
+                    mapper,
+                    Map.of(
+                        "title",
+                        effectiveTitle,
+                        "language",
+                        lang,
+                        "raw_content",
+                        extracted.text(),
+                        "structured_data",
+                        structured
+                    ),
+                    ""
+                )
+            );
+        }
 
         UUID id = db.insertResumes(values);
 

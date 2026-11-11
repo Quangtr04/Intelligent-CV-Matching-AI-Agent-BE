@@ -88,7 +88,8 @@ class JobCrawlRateLimitTests {
         assertNull(fixture.items.getFirst().get("job_title"));
         assertDeferred(fixture.items.get(1), LATER);
         verify(fixture.access).blocked("ITVIEC", null, true);
-        verifyNoInteractions(fixture.jobs);
+        verify(fixture.jobs, never()).importJob(any());
+        verifyNoMoreInteractions(fixture.jobs);
         verify(fixture.db, never()).update(startsWith("UPDATE market_job_sources"), any(), any());
         fixture.assertRun("FAILED", 1, 0, 0, 1, 1, "Cloudflare");
     }
@@ -110,7 +111,8 @@ class JobCrawlRateLimitTests {
         assertEquals(List.of(BLOCKED), fixture.requests);
         assertEquals(List.of("SOURCE_BLOCKED", "DEFERRED"), fixture.statuses());
         assertEquals(200, fixture.items.getFirst().get("http_status"));
-        verifyNoInteractions(fixture.jobs);
+        verify(fixture.jobs, never()).importJob(any());
+        verifyNoMoreInteractions(fixture.jobs);
         verify(fixture.access).blocked("ITVIEC", null, true);
     }
 
@@ -131,7 +133,8 @@ class JobCrawlRateLimitTests {
         assertEquals(429, fixture.items.get(1).get("http_status"));
         assertDeferred(fixture.items.get(2), FIRST);
         assertDeferred(fixture.items.get(3), LATER);
-        verifyNoInteractions(fixture.jobs);
+        verify(fixture.jobs, never()).importJob(any());
+        verifyNoMoreInteractions(fixture.jobs);
         verify(fixture.db).update(contains("search_pages_checked="), eq(2), eq(2), eq(0), eq(fixture.run));
         fixture.assertRun("FAILED", 0, 0, 0, 0, 1, "rate limit");
     }
@@ -222,7 +225,8 @@ class JobCrawlRateLimitTests {
         }
         assertEquals(List.of(BLOCKED), fixture.requests);
         verify(fixture.db, times(1)).insert(eq("market_crawl_runs"), anyMap());
-        verifyNoInteractions(fixture.jobs);
+        verify(fixture.jobs, never()).importJob(any());
+        verifyNoMoreInteractions(fixture.jobs);
     }
 
     private static final class Fixture {

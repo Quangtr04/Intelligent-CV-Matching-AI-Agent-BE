@@ -12,10 +12,19 @@ public class ConsultationBookingRepository {
 
     private final SqlStore db;
 
-    private static final String ENRICHED = "SELECT b.*,c.full_name AS candidate_name,"
-        + "u.full_name AS consultant_name,r.rating,r.comment AS rating_comment,r.created_at AS rating_created_at "
-        + "FROM consultation_bookings b JOIN users c ON c.id=b.candidate_user_id "
-        + "JOIN users u ON u.id=b.consultant_user_id LEFT JOIN consultation_ratings r ON r.booking_id=b.id ";
+    private static final String ENRICHED = ("SELECT b.id,b.candidate_user_id,b.consultant_user_id,"
+        + "b.credit_order_id,b.target_role,b.subject,b.description,b.starts_at,"
+        + "b.ends_at,b.duration_minutes,b.status,b.thread_id,b.credit_refunded,"
+        + "b.created_at,b.accepted_at,b.completed_at,b.meeting_status,"
+        + "b.meeting_url,b.calendar_event_url,b.meeting_error,b.resume_id,b.job_id,"
+        + "cv.title AS resume_title,j.job_title,j.company_name,"
+        + "b.meeting_opened_at,b.meeting_ended_at,c.full_name AS candidate_name,"
+        + "u.full_name AS consultant_name,r.rating,r.comment AS rating_comment,"
+        + "r.created_at AS rating_created_at FROM consultation_bookings b JOIN "
+        + "users c ON c.id=b.candidate_user_id JOIN users u ON "
+        + "u.id=b.consultant_user_id LEFT JOIN consultation_ratings r ON r.booking_id=b.id "
+        + "LEFT JOIN resumes cv ON cv.id=b.resume_id AND cv.user_id=b.candidate_user_id AND cv.status='READY' "
+        + "LEFT JOIN market_job_posts j ON j.id=b.job_id ");
 
     public ConsultationBookingRepository(
         SqlStore db) {
@@ -24,24 +33,70 @@ public class ConsultationBookingRepository {
 
     public List<Map<String, Object>> consultants() {
         return db.list(
-            "SELECT u.id,u.full_name,p.bio,p.target_roles,COALESCE(r.average_rating,0) AS average_rating,"
-                + "COALESCE(r.rating_count,0) AS rating_count,COALESCE(b.completed_count,0) AS completed_count "
-                + "FROM users u JOIN consultant_profiles p ON p.user_id=u.id "
-                + "LEFT JOIN (SELECT consultant_user_id,round(avg(rating),2) AS average_rating,"
-                + "count(*) AS rating_count FROM consultation_ratings GROUP BY consultant_user_id) r "
-                + "ON r.consultant_user_id=u.id LEFT JOIN (SELECT consultant_user_id,count(*) AS completed_count "
-                + "FROM consultation_bookings WHERE status='COMPLETED' GROUP BY consultant_user_id) b "
-                + "ON b.consultant_user_id=u.id WHERE u.role='CAREER_CONSULTANT' AND u.status='ACTIVE' "
-                + "ORDER BY average_rating DESC,rating_count DESC,completed_count DESC,u.full_name,u.id"
+            ("SELECT u.id,u.full_name,p.bio,p.target_roles," + "COALESCE(r.average_rating,0) AS average_rating,"
+                + "COALESCE(r.rating_count,0) AS rating_count,COALESCE(b.completed_count,"
+                + "0) AS completed_count FROM users u JOIN consultant_profiles p ON "
+                + "p.user_id=u.id LEFT JOIN (SELECT consultant_user_id,round(avg(rating),"
+                + "2) AS average_rating,count(*) AS rating_count FROM "
+                + "consultation_ratings GROUP BY consultant_user_id) r ON "
+                + "r.consultant_user_id=u.id LEFT JOIN (SELECT consultant_user_id,"
+                + "count(*) AS completed_count FROM consultation_bookings WHERE "
+                + "status='COMPLETED' GROUP BY consultant_user_id) b ON "
+                + "b.consultant_user_id=u.id WHERE u.role='CAREER_CONSULTANT' AND "
+                + "u.status='ACTIVE' ORDER BY average_rating DESC,rating_count DESC,"
+                + "completed_count DESC,u.full_name,u.id")
         );
+    }
+
+    public void requireReadyResume(
+        UUID resumeId,
+        UUID candidateId) {
+        db.one("SELECT id FROM resumes WHERE id=? AND user_id=? AND status='READY' FOR SHARE", resumeId, candidateId);
+    }
+
+    public void requireActiveJob(
+        UUID jobId) {
+        db.one("""
+            SELECT j.id FROM market_job_posts j
+            WHERE j.id=? AND j.status='ACTIVE' AND (j.valid_through IS NULL OR j.valid_through>now())
+              AND (NOT EXISTS (SELECT 1 FROM market_job_sources s WHERE s.market_job_id=j.id)
+                   OR EXISTS (SELECT 1 FROM market_job_sources s WHERE s.market_job_id=j.id AND s.status='ACTIVE'
+                              AND (s.valid_through IS NULL OR s.valid_through>now())))
+            FOR SHARE OF j
+            """, jobId);
+    }
+
+    public Optional<Map<String, Object>> selectedResume(
+        UUID resumeId,
+        UUID candidateId) {
+        return db.optional("""
+            SELECT id,user_id,title,language,status,source,structured_data,updated_at
+            FROM resumes WHERE id=? AND user_id=? AND status='READY'
+            """, resumeId, candidateId);
+    }
+
+    public void requireLiveCandidate(
+        UUID candidateId) {
+        db.one("SELECT id FROM users WHERE id=? AND status<>'DELETED'", candidateId);
+    }
+
+    public Optional<Map<String, Object>> selectedJob(
+        UUID jobId) {
+        return db.optional("""
+            SELECT id,job_title,company_name,location,salary_text,role_category,raw_content,
+                   parsed_description,parsed_requirements,parsed_responsibilities,parsed_benefits,
+                   parsed_company_overview,parsed_seniority,employment_type,status,valid_through
+            FROM market_job_posts WHERE id=?
+            """, jobId);
     }
 
     public Map<String, Object> consultant(
         UUID id) {
         return db.one(
-            "SELECT u.id,u.full_name,COALESCE(p.bio,'') AS bio,COALESCE(p.target_roles,'[]'::jsonb) AS target_roles "
-                + "FROM users u LEFT JOIN consultant_profiles p ON p.user_id=u.id "
-                + "WHERE u.id=? AND u.role='CAREER_CONSULTANT' AND u.status='ACTIVE'",
+            ("SELECT u.id,u.full_name,COALESCE(p.bio,'') AS bio,"
+                + "COALESCE(p.target_roles,'[]'::jsonb) AS target_roles FROM users u "
+                + "LEFT JOIN consultant_profiles p ON p.user_id=u.id WHERE u.id=? AND "
+                + "u.role='CAREER_CONSULTANT' AND u.status='ACTIVE'"),
             id
         );
     }
@@ -68,7 +123,7 @@ public class ConsultationBookingRepository {
     public void lockConsultant(
         UUID id) {
         db.one(
-            "SELECT id FROM users WHERE id=? AND role='CAREER_CONSULTANT' AND status='ACTIVE' FOR NO KEY UPDATE",
+            ("SELECT id FROM users WHERE id=? AND role='CAREER_CONSULTANT' AND " + "status='ACTIVE' FOR NO KEY UPDATE"),
             id
         );
     }
@@ -84,8 +139,8 @@ public class ConsultationBookingRepository {
         List<String> roles,
         String bio) {
         db.update(
-            "INSERT INTO consultant_profiles(user_id,target_roles,bio) VALUES (?,?,?) "
-                + "ON CONFLICT(user_id) DO UPDATE SET target_roles=EXCLUDED.target_roles,bio=EXCLUDED.bio",
+            ("INSERT INTO consultant_profiles(user_id,target_roles,bio) VALUES (?,?,"
+                + "?) ON CONFLICT(user_id) DO UPDATE SET " + "target_roles=EXCLUDED.target_roles,bio=EXCLUDED.bio"),
             id,
             db.json(roles),
             bio
@@ -98,10 +153,11 @@ public class ConsultationBookingRepository {
         OffsetDateTime from,
         OffsetDateTime to) {
         return db.list(
-            "SELECT id,starts_at,ends_at,'BOOKING' AS type FROM consultation_bookings "
-                + "WHERE consultant_user_id=? AND status IN ('PENDING','ACCEPTED') AND starts_at<? AND ends_at>? "
-                + "UNION ALL SELECT id,starts_at,ends_at,'BUSY' AS type FROM consultant_busy_slots "
-                + "WHERE user_id=? AND starts_at<? AND ends_at>? ORDER BY starts_at,id",
+            ("SELECT id,starts_at,ends_at,'BOOKING' AS type FROM "
+                + "consultation_bookings WHERE consultant_user_id=? AND status IN "
+                + "('PENDING','ACCEPTED') AND starts_at<? AND ends_at>? UNION ALL SELECT "
+                + "id,starts_at,ends_at,'BUSY' AS type FROM consultant_busy_slots WHERE "
+                + "user_id=? AND starts_at<? AND ends_at>? ORDER BY starts_at,id"),
             consultant,
             to,
             from,
@@ -114,7 +170,7 @@ public class ConsultationBookingRepository {
     public List<Map<String, Object>> busy(
         UUID consultant) {
         return db.list(
-            "SELECT * FROM consultant_busy_slots WHERE user_id=? AND ends_at>now() ORDER BY starts_at LIMIT 500",
+            ("SELECT * FROM consultant_busy_slots WHERE user_id=? AND ends_at>now() " + "ORDER BY starts_at LIMIT 500"),
             consultant
         );
     }
@@ -125,15 +181,16 @@ public class ConsultationBookingRepository {
         OffsetDateTime start,
         OffsetDateTime end) {
         return !db.optional(
-            "SELECT id FROM consultation_bookings WHERE (candidate_user_id=? OR consultant_user_id=?) "
-                + "AND status IN ('PENDING','ACCEPTED') AND starts_at<? AND ends_at>? LIMIT 1",
+            ("SELECT id FROM consultation_bookings WHERE (candidate_user_id=? OR "
+                + "consultant_user_id=?) AND status IN ('PENDING','ACCEPTED') AND "
+                + "starts_at<? AND ends_at>? LIMIT 1"),
             candidate,
             consultant,
             end,
             start
         ).isEmpty()
             || !db.optional(
-                "SELECT id FROM consultant_busy_slots WHERE user_id=? AND starts_at<? AND ends_at>? LIMIT 1",
+                ("SELECT id FROM consultant_busy_slots WHERE user_id=? AND starts_at<? " + "AND ends_at>? LIMIT 1"),
                 consultant,
                 end,
                 start
@@ -145,8 +202,8 @@ public class ConsultationBookingRepository {
         OffsetDateTime start,
         OffsetDateTime end) {
         return !db.optional(
-            "SELECT id FROM consultation_bookings WHERE consultant_user_id=? "
-                + "AND status IN ('PENDING','ACCEPTED') AND starts_at<? AND ends_at>? LIMIT 1",
+            ("SELECT id FROM consultation_bookings WHERE consultant_user_id=? AND "
+                + "status IN ('PENDING','ACCEPTED') AND starts_at<? AND ends_at>? LIMIT 1"),
             consultant,
             end,
             start
@@ -181,8 +238,8 @@ public class ConsultationBookingRepository {
     public void reserveCredit(
         UUID id) {
         if (db.update(
-            "UPDATE consultation_orders SET sessions_remaining=sessions_remaining-1 "
-                + "WHERE id=? AND status='PAID' AND is_session_pack AND sessions_remaining>0",
+            ("UPDATE consultation_orders SET " + "sessions_remaining=sessions_remaining-1 WHERE id=? AND status='PAID' "
+                + "AND is_session_pack AND sessions_remaining>0"),
             id
         ) != 1) {
             throw ApiException.conflict("No paid consultation sessions remain");
@@ -193,7 +250,8 @@ public class ConsultationBookingRepository {
         UUID id) {
         db.one("SELECT id FROM consultation_orders WHERE id=? FOR UPDATE", id);
         db.update(
-            "UPDATE consultation_orders SET sessions_remaining=LEAST(sessions_total,sessions_remaining+1) WHERE id=?",
+            ("UPDATE consultation_orders SET " + "sessions_remaining=LEAST(sessions_total,sessions_remaining+1) WHERE "
+                + "id=?"),
             id
         );
     }
@@ -230,7 +288,23 @@ public class ConsultationBookingRepository {
 
     public void accept(
         UUID id) {
-        db.update("UPDATE consultation_bookings SET status='ACCEPTED',accepted_at=now() WHERE id=?", id);
+        db.update(
+            ("UPDATE consultation_bookings SET status='ACCEPTED',accepted_at=now(),"
+                + "meeting_status='PENDING',meeting_next_attempt_at=now(),"
+                + "meeting_error=NULL WHERE id=? AND status='PENDING'"),
+            id
+        );
+    }
+
+    public void retryMeeting(
+        UUID id) {
+        db.update(
+            ("UPDATE consultation_bookings SET meeting_status=CASE WHEN "
+                + "meeting_status='READY' THEN 'READY' ELSE 'PENDING' END,"
+                + "meeting_next_attempt_at=now(),meeting_error=NULL WHERE id=? AND "
+                + "status='ACCEPTED' AND ends_at>now() AND meeting_ended_at IS NULL"),
+            id
+        );
     }
 
     public void end(
@@ -238,10 +312,14 @@ public class ConsultationBookingRepository {
         String status,
         boolean refund) {
         db.update(
-            "UPDATE consultation_bookings SET status=?,credit_refunded=?,"
-                + "completed_at=CASE WHEN ?='COMPLETED' THEN now() ELSE completed_at END WHERE id=?",
+            ("UPDATE consultation_bookings SET status=?,credit_refunded=?,"
+                + "completed_at=CASE WHEN ?='COMPLETED' THEN now() ELSE completed_at END,"
+                + "meeting_status=CASE WHEN meeting_status='NOT_REQUESTED' THEN "
+                + "meeting_status WHEN ?='COMPLETED' THEN 'ENDED' ELSE 'CANCELLED' END,"
+                + "meeting_next_attempt_at=now() WHERE id=?"),
             status,
             refund,
+            status,
             status,
             id
         );
@@ -262,7 +340,7 @@ public class ConsultationBookingRepository {
             throw ex;
         }
         db.update(
-            "UPDATE consultation_threads SET status='CLOSED',closed_at=COALESCE(closed_at,now()) WHERE id=?",
+            ("UPDATE consultation_threads SET status='CLOSED'," + "closed_at=COALESCE(closed_at,now()) WHERE id=?"),
             thread
         );
     }
@@ -301,8 +379,8 @@ public class ConsultationBookingRepository {
 
     public List<Map<String, Object>> due() {
         return db.list(
-            "SELECT id FROM consultation_bookings WHERE (status='ACCEPTED' AND ends_at<=now()) "
-                + "OR (status='PENDING' AND starts_at<=now()) ORDER BY starts_at LIMIT 100"
+            ("SELECT id FROM consultation_bookings WHERE (status='ACCEPTED' AND "
+                + "ends_at<=now()) OR (status='PENDING' AND starts_at<=now()) ORDER BY " + "starts_at LIMIT 100")
         );
     }
 }

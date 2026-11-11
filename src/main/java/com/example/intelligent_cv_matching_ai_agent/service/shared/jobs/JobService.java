@@ -77,7 +77,6 @@ public class JobService {
         String q,
         String status,
         UUID createdBy,
-        UUID taskId,
         String ingestionMethod,
         int limit,
         int offset) {
@@ -98,7 +97,6 @@ public class JobService {
             "%" + query + "%",
             normalizedStatus,
             createdBy,
-            taskId,
             normalizedMethod,
             pageSize(limit),
             offset(offset)
@@ -128,13 +126,6 @@ public class JobService {
         return importPrepared(input, user.id(), "MANUAL");
     }
 
-    @Transactional
-    public Map<String, Object> importCrawledJob(
-        ImportJobRequest input) {
-        user.requireOperationsRole();
-        return importPrepared(input, user.id(), "CRAWL");
-    }
-
     /** Internal scheduler entry point, authorized against the persisted administrator. */
     @Transactional
     public Map<String, Object> importJobAs(
@@ -160,10 +151,6 @@ public class JobService {
         String normalized = Jsoup.parse(input.content()).text().strip();
         if (normalized.length() < 30)
             throw ApiException.badRequest("Job description must contain at least 30 characters");
-        boolean staffActor = db.isStaffActor(actor);
-        if (input.taskId() != null)
-            db.validateAndTouchTask(input.taskId(), actor, !staffActor);
-        String initialStatus = staffActor ? "PENDING" : "ACTIVE";
         String hash = JobNormalizer.contentHash(input);
         String fingerprint = JobNormalizer.fingerprint(input);
         // A consistent lock order serializes concurrent imports across sources.
@@ -260,14 +247,12 @@ public class JobService {
             "collected_at",
             OffsetDateTime.now(),
             "status",
-            initialStatus,
+            "ACTIVE",
             "created_by_user_id",
             actor,
             "ingestion_method",
             ingestionMethod
         );
-        if (input.taskId() != null)
-            postFields.put("task_id", input.taskId());
         UUID id = db.insertMarketJobPosts(postFields);
         for (JobSkillRequest skill : input.skills() == null ? List.<JobSkillRequest>of() : input.skills()) {
             UUID skillId = skill.skillId();
@@ -288,8 +273,7 @@ public class JobService {
         retirePrevious(previousSource, id);
         db.updateMarketJobEmbeddingsByMarketJobId(input.sourceUrl(), id);
         db.updateMarketJobPostsBySourceUrl(input.sourceUrl(), id);
-        if ("ACTIVE".equals(initialStatus))
-            enqueue(id, hash, actor);
+        enqueue(id, hash, actor);
         db.insertAuditLogs(
             fields("actor_user_id", actor, "action", "JOB_IMPORT", "entity_type", "market_job_posts", "entity_id", id)
         );
@@ -381,8 +365,6 @@ public class JobService {
         UUID id,
         Map<String, Object> input) {
         user.requireOperationsRole();
-        if (db.isStaffActor(user.id()))
-            throw ApiException.forbidden("Only administrators and managers can approve or change job status");
         String status = required(input, "status", 20);
         if (!Set.of("PENDING", "ACTIVE", "REJECTED", "EXPIRED", "REMOVED", "INVALID").contains(status))
             throw ApiException.badRequest("Invalid job status");

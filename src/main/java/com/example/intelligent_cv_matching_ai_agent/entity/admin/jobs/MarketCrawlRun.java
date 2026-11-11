@@ -117,8 +117,4 @@ public class MarketCrawlRun {
     @Column(name = "requested_by")
     private UUID requestedBy;
 
-    @JsonProperty("task_id")
-    @Column(name = "task_id")
-    private UUID taskId;
-
 }

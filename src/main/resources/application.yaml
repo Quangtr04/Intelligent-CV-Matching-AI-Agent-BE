@@ -84,6 +84,16 @@ app:
       credentials-path: ${FIREBASE_CREDENTIALS_PATH:}
       credentials-json: ${FIREBASE_CREDENTIALS_JSON:}
       prefix: ${FIREBASE_STORAGE_PREFIX:resumes}
+  consultation:
+    google:
+      enabled: ${GOOGLE_CALENDAR_ENABLED:false}
+      client-id: ${GOOGLE_CALENDAR_CLIENT_ID:}
+      client-secret: ${GOOGLE_CALENDAR_CLIENT_SECRET:}
+      refresh-token: ${GOOGLE_CALENDAR_REFRESH_TOKEN:}
+      calendar-id: ${GOOGLE_CALENDAR_ID:primary}
+      time-zone: ${GOOGLE_CALENDAR_TIME_ZONE:Asia/Ho_Chi_Minh}
+      meeting-access-type: ${GOOGLE_MEET_ACCESS_TYPE:OPEN}
+      request-timeout: ${GOOGLE_CALENDAR_REQUEST_TIMEOUT:PT20S}
   resume:
     pdf:
       browser-path: ${APP_PDF_BROWSER_PATH:}
@@ -204,3 +214,6 @@ app:
     maintenance-enabled: ${BILLING_MAINTENANCE_ENABLED}
     maintenance-batch-size: ${BILLING_MAINTENANCE_BATCH_SIZE}
     maintenance-zone: ${BILLING_MAINTENANCE_ZONE}
+  manager:
+    default-max-token-quota: ${MANAGER_MAX_TOKEN_QUOTA:10000000}
+    default-max-api-quota: ${MANAGER_MAX_API_QUOTA:100000}

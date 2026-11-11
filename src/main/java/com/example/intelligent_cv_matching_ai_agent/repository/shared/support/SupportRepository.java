@@ -76,10 +76,7 @@ public class SupportRepository {
 
     public Map<String, Object> getUsersById(
         Object... args) {
-        return db.one(
-            "SELECT id FROM users WHERE id=? AND role IN ('ADMIN','MANAGEMENT','MANAGER') AND status='ACTIVE'",
-            args
-        );
+        return db.one("SELECT id FROM users WHERE id=? AND role IN ('ADMIN','MANAGER') AND status='ACTIVE'", args);
     }
 
     public int updateSupportTicketsById2(
