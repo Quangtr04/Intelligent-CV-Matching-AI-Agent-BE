@@ -36,6 +36,8 @@ class ConsultationBookingServiceTests {
 
     private final UUID thread = UUID.randomUUID();
 
+    private final UUID resume = UUID.randomUUID();
+
     @BeforeEach
     void setup() {
         login(candidate, "CANDIDATE");
@@ -56,6 +58,7 @@ class ConsultationBookingServiceTests {
         service.create(request(30));
         var ordered = inOrder(db);
         ordered.verify(db).lockPeople(candidate, consultant);
+        ordered.verify(db).requireReadyResume(resume, candidate);
         ordered.verify(db).consultant(consultant);
         ordered.verify(db).overlaps(eq(candidate), eq(consultant), any(), any());
         ordered.verify(db).credit(credit, candidate);
@@ -244,6 +247,78 @@ class ConsultationBookingServiceTests {
         verify(db).reserveCredit(credit);
     }
 
+    @Test
+    void approvalReplayNeverQueuesAnotherMeetingOrNotification() {
+        var row = row("ACCEPTED", OffsetDateTime.now().plusDays(1));
+        row.put("meeting_status", "READY");
+        when(db.lockBooking(booking)).thenReturn(row);
+        when(db.booking(booking)).thenReturn(row);
+        login(consultant, "CAREER_CONSULTANT");
+        assertEquals("READY", service.accept(booking).get("meeting_status"));
+        verify(db, never()).accept(any());
+        verify(db, never()).inform(any(), any(), anyString(), anyString(), anyString());
+    }
+
+    @Test
+    void meetingsLongerThanOneHourNeverConsumeCredit() {
+        for (int duration : List.of(0, 61, 90, 120)) {
+            assertThrows(ApiException.class, () -> service.create(request(duration)));
+        }
+        verify(db, never()).reserveCredit(any());
+    }
+
+    @Test
+    void failedMeetingRefundsOnAutomaticAndManualCompletion() {
+        var row = row("ACCEPTED", OffsetDateTime.now().minusHours(2));
+        row.put("meeting_status", "FAILED");
+        when(db.lockBooking(booking)).thenReturn(row);
+        login(consultant, "CAREER_CONSULTANT");
+        service.complete(booking);
+        verify(db).end(booking, "DECLINED", true);
+        verify(db).refundCredit(credit);
+        row.put("status", "DECLINED");
+        service.settleDue(booking);
+        verify(db, times(1)).refundCredit(credit);
+        verify(db, never()).end(booking, "COMPLETED", false);
+    }
+
+    @Test
+    void automaticCompletionRefundsReadyMeetingThatNeverOpened() {
+        var row = row("ACCEPTED", OffsetDateTime.now().minusHours(2));
+        row.put("meeting_status", "READY");
+        when(db.lockBooking(booking)).thenReturn(row);
+        service.settleDue(booking);
+        verify(db).end(booking, "DECLINED", true);
+        verify(db).refundCredit(credit);
+    }
+
+    @Test
+    void openedGoogleMeetingCompletesWithoutRefund() {
+        var row = row("ACCEPTED", OffsetDateTime.now().minusHours(2));
+        row.put("meeting_status", "ENDED");
+        row.put("meeting_opened_at", OffsetDateTime.now().minusHours(2));
+        when(db.lockBooking(booking)).thenReturn(row);
+        service.settleDue(booking);
+        verify(db).end(booking, "COMPLETED", false);
+        verify(db, never()).refundCredit(any());
+    }
+
+    @Test
+    void retryRequiresParticipantAndUnexpiredAcceptedBooking() {
+        var row = row("ACCEPTED", OffsetDateTime.now().plusHours(2));
+        when(db.lockBooking(booking)).thenReturn(row);
+        when(db.booking(booking)).thenReturn(row);
+        login(UUID.randomUUID(), "CANDIDATE");
+        assertEquals(404, assertThrows(ApiException.class, () -> service.retryMeeting(booking)).status());
+        verify(db, never()).lockPeople(any(), any());
+        login(candidate, "CANDIDATE");
+        service.retryMeeting(booking);
+        verify(db).retryMeeting(booking);
+        row.put("ends_at", OffsetDateTime.now().minusSeconds(1));
+        assertThrows(ApiException.class, () -> service.retryMeeting(booking));
+        verify(db, times(1)).retryMeeting(booking);
+    }
+
     private ConsultationBookingRequest request(
         Integer minutes) {
         return new ConsultationBookingRequest(
@@ -253,7 +328,9 @@ class ConsultationBookingServiceTests {
             "Backend interview",
             "Review my CV",
             OffsetDateTime.now().plusDays(1),
-            minutes
+            minutes,
+            resume,
+            null
         );
     }
 

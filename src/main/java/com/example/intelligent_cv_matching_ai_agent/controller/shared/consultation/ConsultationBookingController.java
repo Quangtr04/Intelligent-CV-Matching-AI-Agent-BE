@@ -102,6 +102,13 @@ public class ConsultationBookingController {
         return service.decline(id);
     }
 
+    @PostMapping("/consultation-bookings/{id}/meeting/retry")
+    public Map<String, Object> retryMeeting(
+        @PathVariable
+        UUID id) {
+        return service.retryMeeting(id);
+    }
+
     @PostMapping("/consultation-bookings/{id}/cancel")
     public Map<String, Object> cancel(
         @PathVariable

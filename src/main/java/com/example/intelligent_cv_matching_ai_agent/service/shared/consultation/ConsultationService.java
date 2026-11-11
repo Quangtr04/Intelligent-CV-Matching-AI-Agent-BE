@@ -9,6 +9,7 @@ import com.example.intelligent_cv_matching_ai_agent.security.shared.CurrentUser;
 import com.example.intelligent_cv_matching_ai_agent.repository.shared.consultation.ConsultationRepository;
 
 import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException;
+import com.example.intelligent_cv_matching_ai_agent.util.consultant.consultation.ConsultationAttachments;
 
 import java.io.IOException;
 import java.util.*;
@@ -76,13 +77,21 @@ public class ConsultationService {
     public Map<String, Object> candidateProfile(
         UUID id,
         UUID resumeId) {
-        var thread = access(id);
+        var thread = new LinkedHashMap<>(access(id));
+        if (ConsultationAttachments.bound(thread)) {
+            var booking = db.bookingForThread(id);
+            thread.put("booking_status", booking.get("status"));
+            thread.put("credit_refunded", booking.get("credit_refunded"));
+            ConsultationAttachments.requireReadable(thread, user.id(), user.hasRole("ADMIN"));
+        }
         UUID owner = (UUID) thread.get("candidate_user_id");
         var profile = db.findCandidateProfilesByUserId(owner).orElseGet(LinkedHashMap::new);
         profile.put("skills", db.listCandidateProfileSkillsByUserId(owner));
         var candidate = db.getUsersById(owner);
-        Map<String, Object> cv =
-            resumeId == null ? db.findResumesByUserId(owner).orElse(Map.of()) : db.getResumesById(resumeId, owner);
+        UUID selected = ConsultationAttachments.resume(thread, resumeId);
+        Map<String, Object> cv = ConsultationAttachments.bound(thread)
+            ? selected == null ? Map.of() : db.getResumesById(selected, owner)
+            : resumeId == null ? db.findResumesByUserId(owner).orElse(Map.of()) : db.getResumesById(resumeId, owner);
 
         return fields("candidate", candidate, "career_profile", profile, "resume", cv);
     }
@@ -140,7 +149,7 @@ public class ConsultationService {
         UUID id,
         int limit,
         int offset) {
-        access(id);
+        requireChat(access(id));
 
         return db.listConsultationMessagesByThreadId(id, pageSize(limit), offset(offset));
     }
@@ -151,17 +160,9 @@ public class ConsultationService {
         ConsultationMessageRequest input) {
         db.getConsultationThreadsByIdForUpdate2(id);
         var thread = access(id);
+        requireChat(thread);
         if (!"OPEN".equals(thread.get("status")))
             throw ApiException.conflict("Consultation is closed");
-
-        if ("SESSION_BOOKING".equals(thread.get("request_type"))) {
-            var booking = db.bookingForThread(id);
-            java.time.Instant now = java.time.Instant.now();
-            if (!"ACCEPTED".equals(booking.get("status")) || bookingTime(booking.get("starts_at")).isAfter(now)
-                || !bookingTime(booking.get("ends_at")).isAfter(now)) {
-                throw ApiException.conflict("Consultation chat is available only during the accepted appointment");
-            }
-        }
 
         UUID messageId = db.insertConsultationMessages(
             fields(
@@ -197,7 +198,7 @@ public class ConsultationService {
     public Map<String, Object> read(
         UUID id,
         UUID messageId) {
-        access(id);
+        requireChat(access(id));
         db.getConsultationMessagesById2(messageId, id);
 
         db.updateConsultationMessagesById(messageId, user.id());
@@ -222,7 +223,7 @@ public class ConsultationService {
 
     public SseEmitter events(
         UUID id) {
-        access(id);
+        requireChat(access(id));
         SseEmitter emitter = new SseEmitter(300_000L);
         Subscriber subscriber = new Subscriber(user.id(), emitter);
         var list = subscribers.computeIfAbsent(id, key -> new CopyOnWriteArrayList<>());
@@ -244,6 +245,13 @@ public class ConsultationService {
         }
 
         return emitter;
+    }
+
+    private static void requireChat(
+        Map<String, Object> thread) {
+        if ("SESSION_BOOKING".equals(thread.get("request_type"))) {
+            throw ApiException.conflict("Scheduled consultations use Google Meet; in-app chat is unavailable");
+        }
     }
 
     private void publish(
@@ -309,17 +317,4 @@ public class ConsultationService {
         });
     }
 
-    private static java.time.Instant bookingTime(
-        Object value) {
-        if (value instanceof java.sql.Timestamp timestamp) {
-            return timestamp.toInstant();
-        }
-        if (value instanceof java.time.OffsetDateTime dateTime) {
-            return dateTime.toInstant();
-        }
-        if (value instanceof java.time.Instant instant) {
-            return instant;
-        }
-        return java.time.OffsetDateTime.parse(value.toString()).toInstant();
-    }
 }

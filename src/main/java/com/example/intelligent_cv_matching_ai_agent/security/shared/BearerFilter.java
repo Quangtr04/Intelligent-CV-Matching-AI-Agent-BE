@@ -16,9 +16,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Component
 public class BearerFilter extends OncePerRequestFilter {
+
+    private static final Set<String> SUPPORTED_ROLES = Set.of("CANDIDATE", "CAREER_CONSULTANT", "MANAGER", "ADMIN");
 
     private final TokenService tokens;
 
@@ -52,6 +55,9 @@ public class BearerFilter extends OncePerRequestFilter {
                     throw new ApiException(401, "Bearer token required");
 
                 Map<String, Object> user = tokens.authenticate(header.substring(7));
+                if (!SUPPORTED_ROLES.contains(String.valueOf(user.get("role")))) {
+                    throw new ApiException(401, "Unsupported account role");
+                }
                 SecurityContextHolder.getContext().setAuthentication(
                     new UsernamePasswordAuthenticationToken(
                         user.get("id"),

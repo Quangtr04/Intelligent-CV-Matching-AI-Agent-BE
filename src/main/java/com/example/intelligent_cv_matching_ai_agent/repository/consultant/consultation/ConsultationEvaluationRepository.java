@@ -38,10 +38,12 @@ public class ConsultationEvaluationRepository {
         UUID threadId,
         UUID consultantId) {
         return db.one("""
-            SELECT t.candidate_user_id, t.status
+            SELECT t.candidate_user_id,t.consultant_user_id,t.status,t.request_type,t.resume_id,t.job_id,
+                   b.status AS booking_status,b.credit_refunded
             FROM consultation_threads t
             JOIN users consultant ON consultant.id = t.consultant_user_id
             JOIN users candidate ON candidate.id = t.candidate_user_id
+            LEFT JOIN consultation_bookings b ON b.thread_id=t.id
             WHERE t.id = ?::uuid
               AND consultant.id = ?::uuid
               AND consultant.role = 'CAREER_CONSULTANT'
@@ -97,6 +99,15 @@ public class ConsultationEvaluationRepository {
                   )
               )
             """, jobId);
+    }
+
+    public List<Map<String, Object>> attachedReadyResumes(
+        UUID candidateId,
+        UUID resumeId) {
+        return db.list("""
+            SELECT id,title,language,status,is_primary,updated_at FROM resumes
+            WHERE user_id=? AND id=? AND status='READY'
+            """, candidateId, resumeId);
     }
 
     public List<Map<String, Object>> jobSkills(

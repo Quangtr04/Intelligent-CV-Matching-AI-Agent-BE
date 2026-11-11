@@ -8,7 +8,7 @@ public record AnnouncementTargetRequest(
     @NotBlank
     @Pattern(regexp = "ALL|ROLE|USER")
     String type,
-    @Pattern(regexp = "CANDIDATE|CAREER_CONSULTANT|ADMIN|MANAGEMENT|MANAGER")
+    @Pattern(regexp = "CANDIDATE|CAREER_CONSULTANT|ADMIN|MANAGER")
     String role,
     UUID userId
 ) {

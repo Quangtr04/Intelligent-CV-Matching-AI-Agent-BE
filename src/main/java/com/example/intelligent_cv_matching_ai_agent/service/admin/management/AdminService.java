@@ -42,6 +42,8 @@ public class AdminService {
 
     private final AiService ai;
 
+    private final ManagerQuotaPolicy quotaPolicy;
+
     public AdminService(
         AdminRepository db,
         CurrentUser user,
@@ -51,7 +53,6 @@ public class AdminService {
         this(db, user, audit, tokens, encoder, null);
     }
 
-    @Autowired
     public AdminService(
         AdminRepository db,
         CurrentUser user,
@@ -59,12 +60,25 @@ public class AdminService {
         TokenService tokens,
         PasswordEncoder encoder,
         AiService ai) {
+        this(db, user, audit, tokens, encoder, ai, null);
+    }
+
+    @Autowired
+    public AdminService(
+        AdminRepository db,
+        CurrentUser user,
+        AuditService audit,
+        TokenService tokens,
+        PasswordEncoder encoder,
+        AiService ai,
+        ManagerQuotaPolicy quotaPolicy) {
         this.db = db;
         this.user = user;
         this.audit = audit;
         this.tokens = tokens;
         this.encoder = encoder;
         this.ai = ai;
+        this.quotaPolicy = quotaPolicy;
     }
 
     private void admin() {
@@ -144,13 +158,6 @@ public class AdminService {
 
         if ("CANDIDATE".equals(body.role()))
             db.updateCandidateProfiles(id);
-        if ("MANAGEMENT".equals(body.role())) {
-            String subRole = body.subRole() == null ? "MANAGER" : body.subRole();
-            List<String> defaultPermissions = "STAFF".equals(subRole)
-                ? List.of("JOB_ENTRY", "JOB_SOURCING")
-                : List.of("JOB_ENTRY", "JOB_SOURCING", "JOB_APPROVAL", "TASK_ASSIGNMENT", "STAFF_MANAGEMENT");
-            db.upsertManagementProfile(id, subRole, db.json(defaultPermissions), user.id());
-        }
 
         Map<String, Object> account = account(id);
 
@@ -174,14 +181,6 @@ public class AdminService {
             throw ApiException.badRequest("Accounts must verify their email before activation");
 
         db.updateUsersById(body.fullName(), body.role(), body.status(), id);
-        if ("MANAGEMENT".equals(body.role())) {
-            String existingSubRole = before.get("management_sub_role") instanceof String s ? s : "MANAGER";
-            String subRole = body.subRole() == null ? existingSubRole : body.subRole();
-            List<String> defaultPermissions = "STAFF".equals(subRole)
-                ? List.of("JOB_ENTRY", "JOB_SOURCING")
-                : List.of("JOB_ENTRY", "JOB_SOURCING", "JOB_APPROVAL", "TASK_ASSIGNMENT", "STAFF_MANAGEMENT");
-            db.upsertManagementProfile(id, subRole, db.json(defaultPermissions), user.id());
-        }
 
         boolean roleChanged = !body.role().equals(before.get("role"));
 
@@ -289,12 +288,24 @@ public class AdminService {
         return after;
     }
 
+    public List<Map<String, Object>> quotas(
+        UUID id) {
+        user.requireOperationsRole();
+        db.getSubscriptionTiersById2(id);
+        return db.listSubscriptionQuotasByTierId2(id);
+    }
+
     @Transactional
     public List<Map<String, Object>> quotas(
         UUID id,
         @Size(max = 100)
         List<SubscriptionQuotaRequest> body) {
         user.requireOperationsRole();
+        if (quotaPolicy != null) {
+            quotaPolicy.validate(body);
+        } else if (!user.isStrictAdmin()) {
+            throw new ApiException(503, "Manager quota policy is unavailable");
+        }
         db.getSubscriptionTiersById2(id);
         if (body.stream().map(SubscriptionQuotaRequest::featureCode).distinct().count() != body.size())
             throw ApiException.badRequest("Duplicate feature quotas");

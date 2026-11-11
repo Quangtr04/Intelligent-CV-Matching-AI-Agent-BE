@@ -582,8 +582,8 @@ class JobCrawlServiceTests {
                 return new HttpPage(url, url.equals(missing) ? 404 : 410, "Not a job or JSON-LD document");
             }
         }.crawl(new CrawlRequest("ITVIEC", "Java", "Backend", null, List.of(missing, gone)));
-
-        verifyNoInteractions(jobs);
+        verify(jobs, never()).importJob(any());
+        verifyNoMoreInteractions(jobs);
         verify(db).update(startsWith("UPDATE market_job_sources"), eq("ITVIEC"), eq(missing));
         verify(db).update(startsWith("UPDATE market_job_sources"), eq("ITVIEC"), eq(gone));
         @SuppressWarnings("unchecked")

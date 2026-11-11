@@ -6,27 +6,37 @@ import com.example.intelligent_cv_matching_ai_agent.repository.candidate.resume.
 import com.example.intelligent_cv_matching_ai_agent.security.shared.CurrentUser;
 import com.example.intelligent_cv_matching_ai_agent.service.shared.resume.LocalResumeFileStorage;
 import com.example.intelligent_cv_matching_ai_agent.service.shared.resume.ResumeFileStorage;
-import com.example.intelligent_cv_matching_ai_agent.util.candidate.resume.ResumeContent;
-import com.example.intelligent_cv_matching_ai_agent.util.shared.FlowSupport;
+import com.example.intelligent_cv_matching_ai_agent.util.candidate.resume.ResumePdfHtml;
+import com.example.intelligent_cv_matching_ai_agent.util.shared.resume.PdfSignature;
+import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
+import org.apache.pdfbox.Loader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import tools.jackson.databind.ObjectMapper;
-import static com.example.intelligent_cv_matching_ai_agent.util.shared.Values.object;
 
 @Service
 public class ResumePdfExportService {
 
-    private static final String RENDERER_VERSION = "cv-pdf-v1";
+    private static final int MAX_PDF_BYTES = 20 * 1024 * 1024;
 
-    private static final String PDF_KEY_PATTERN = "[0-9a-f-]{36}\\.pdf";
+    // Bounded per-process locks coalesce concurrent downloads of the same CV.
+    // Publication/read-back still use a DB row lock across application replicas.
+    private static final ReentrantLock[] LOCKS = new ReentrantLock[64];
 
-    private static final long MAX_PDF_BYTES = 20L * 1024 * 1024;
+    static {
+        java.util.Arrays.setAll(LOCKS, index -> new ReentrantLock());
+    }
 
     private final ResumePdfExportRepository db;
 
@@ -68,6 +78,17 @@ public class ResumePdfExportService {
 
     public Map<String, Object> export(
         UUID id) {
+        ReentrantLock lock = lockFor(id);
+        lock.lock();
+        try {
+            return exportLocked(id);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private Map<String, Object> exportLocked(
+        UUID id) {
         Map<String, Object> resume = requireReady(db.resume(id));
         String template = template(resume);
         String fingerprint = fingerprint(resume, template);
@@ -76,42 +97,81 @@ public class ResumePdfExportService {
         }
         // Rendering holds no database lock. Publication checks the exact inputs again.
         byte[] bytes = renderer.render(resume, template);
+        if (!validPdf(bytes)) {
+            throw new ApiException(503, "CV renderer did not produce a valid PDF");
+        }
         String key = validatePdfKey(UUID.randomUUID() + ".pdf");
         String filename = Objects.toString(resume.get("title"), "CV").replaceAll("[^\\p{L}\\p{N}_-]", "_");
         filename = filename.substring(0, Math.min(filename.length(), 180)) + ".pdf";
+        AtomicBoolean publicationAttempted = new AtomicBoolean();
         boolean stored = false;
         try {
             storage.store(key, bytes, "application/pdf");
             stored = true;
             String downloadName = filename;
+            AtomicReference<Map<String, Object>> replaced = new AtomicReference<>();
+            AtomicBoolean registeredCleanup = new AtomicBoolean();
             Map<String, Object> saved = transactions.execute(status -> {
                 Map<String, Object> latest = requireReady(db.lock(id));
                 if (!fingerprint.equals(fingerprint(latest, template(latest)))) {
                     throw ApiException.conflict("CV or template changed during PDF export; confirm and retry");
                 }
+                // Another replica may have published while this instance rendered.
+                if (fingerprint.equals(latest.get("pdf_input_hash")) && existingPdf(latest)) {
+                    return response(latest, true);
+                }
                 if (db.save(id, key, downloadName, bytes.length, fingerprint) != 1) {
                     throw ApiException.conflict("CV is no longer ready for PDF export");
                 }
+                publicationAttempted.set(true);
                 Map<String, Object> published = new LinkedHashMap<>(latest);
                 published.put("file_url", key);
                 published.put("file_name", downloadName);
                 published.put("mime_type", "application/pdf");
                 published.put("file_size_bytes", bytes.length);
                 published.put("pdf_input_hash", fingerprint);
+                replaced.set(latest);
+                if (TransactionSynchronizationManager.isSynchronizationActive()) {
+                    registeredCleanup.set(true);
+                    TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+
+                        @Override
+                        public void afterCommit() {
+                            deleteReplacedPdf(latest, key);
+                        }
+
+                        @Override
+                        public void afterCompletion(
+                            int completion) {
+                            if (completion == STATUS_ROLLED_BACK) {
+                                deleteFailedExport(key);
+                            }
+                        }
+                    });
+                }
                 return response(published, false);
             });
+            if (!key.equals(saved.get("file_url"))) {
+                deleteFailedExport(key);
+            } else if (!registeredCleanup.get()) {
+                // TransactionTemplate has committed; also supports non-synchronizing test managers.
+                deleteReplacedPdf(replaced.get(), key);
+            }
             return saved;
         } catch (ApiException exception) {
-            if (stored) {
-                storage.delete(key);
+            if (stored && !publicationAttempted.get()) {
+                deleteFailedExport(key);
             }
             if (exception.status() == 503) {
                 throw new ApiException(503, "CV PDF storage is unavailable");
             }
             throw exception;
         } catch (RuntimeException exception) {
-            if (stored) {
-                storage.delete(key);
+            // A post-commit callback can fail after the new path is already durable.
+            // Known rollbacks remove the output through afterCompletion; an uncertain
+            // commit must retain the file rather than leave the DB pointing at nothing.
+            if (stored && !publicationAttempted.get()) {
+                deleteFailedExport(key);
             }
             throw exception;
         }
@@ -119,19 +179,28 @@ public class ResumePdfExportService {
 
     public ResumeDownloadResponse download(
         UUID id) {
-        Map<String, Object> exported = export(id);
+        ReentrantLock lock = lockFor(id);
+        lock.lock();
         try {
-            String key = validatePdfKey(exported.get("file_url").toString());
-            return new ResumeDownloadResponse(
-                storage.read(key),
-                exported.get("file_name").toString(),
-                "application/pdf"
-            );
-        } catch (ApiException exception) {
-            if (exception.status() == 400) {
-                throw exception;
+            for (int attempt = 0; attempt < 2; attempt++) {
+                exportLocked(id);
+                ResumeDownloadResponse file = transactions.execute(status -> {
+                    Map<String, Object> latest = requireReady(db.lock(id));
+                    if (!fingerprint(latest, template(latest)).equals(latest.get("pdf_input_hash"))) {
+                        return null;
+                    }
+                    byte[] bytes = readPdf(latest);
+                    return bytes == null
+                        ? null
+                        : new ResumeDownloadResponse(bytes, latest.get("file_name").toString(), "application/pdf");
+                });
+                if (file != null) {
+                    return file;
+                }
             }
-            throw new ApiException(503, "Exported PDF is temporarily unavailable; retry export");
+            throw ApiException.conflict("CV changed or its PDF became unavailable; retry download");
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -152,31 +221,70 @@ public class ResumePdfExportService {
     private String fingerprint(
         Map<String, Object> resume,
         String template) {
-        return FlowSupport.hash(
-            RENDERER_VERSION + "\n"
-                + ResumeContent.contentHash(
-                    mapper,
-                    Objects.toString(resume.get("title"), ""),
-                    Objects.toString(resume.get("language"), "vi"),
-                    Objects.toString(resume.get("raw_content"), ""),
-                    object(resume.get("structured_data"))
-                ) + "\n" + template
-        );
+        return ResumePdfHtml.inputHash(mapper, resume, template);
     }
 
     private boolean existingPdf(
         Map<String, Object> resume) {
+        return readPdf(resume) != null;
+    }
+
+    private byte[] readPdf(
+        Map<String, Object> resume) {
         try {
             String key = validatePdfKey(Objects.toString(resume.get("file_url"), ""));
-            return "application/pdf".equals(resume.get("mime_type")) && storage.exists(key, MAX_PDF_BYTES);
+            if (!"application/pdf".equals(resume.get("mime_type")) || !storage.exists(key, MAX_PDF_BYTES)) {
+                return null;
+            }
+            byte[] bytes = storage.read(key);
+            if (bytes == null
+                || (resume.get("file_size_bytes") instanceof Number size && size.longValue() != bytes.length)) {
+                return null;
+            }
+            return validPdf(bytes) ? bytes : null;
         } catch (ApiException exception) {
+            return null;
+        }
+    }
+
+    private static boolean validPdf(
+        byte[] bytes) {
+        if (bytes == null || bytes.length > MAX_PDF_BYTES || !PdfSignature.isValid(bytes)) {
             return false;
+        }
+        try (var document = Loader.loadPDF(bytes)) {
+            return !document.isEncrypted() && document.getNumberOfPages() > 0 && document.getNumberOfPages() <= 50;
+        } catch (IOException | RuntimeException exception) {
+            return false;
+        }
+    }
+
+    private static ReentrantLock lockFor(
+        UUID id) {
+        return LOCKS[Math.floorMod(id.hashCode(), LOCKS.length)];
+    }
+
+    private void deleteReplacedPdf(
+        Map<String, Object> previous,
+        String currentKey) {
+        if (previous == null) {
+            return;
+        }
+        String oldKey = Objects.toString(previous.get("file_url"), "");
+        if (oldKey.equals(currentKey) || oldKey.equals(previous.get("original_file_url"))
+            || ("UPLOAD".equals(previous.get("source")) && previous.get("original_file_url") == null)) {
+            return;
+        }
+        try {
+            deleteFailedExport(validatePdfKey(oldKey));
+        } catch (ApiException ignored) {
+            // Untrusted legacy paths and upload originals are never removed.
         }
     }
 
     private static String validatePdfKey(
         String key) {
-        if (key == null || !key.matches(PDF_KEY_PATTERN)) {
+        if (key == null || !key.matches("[0-9a-f-]{36}\\.pdf")) {
             throw ApiException.badRequest("Invalid PDF storage key");
         }
         return key;
@@ -191,5 +299,14 @@ public class ResumePdfExportService {
         }
         response.put("cached", cached);
         return response;
+    }
+
+    private void deleteFailedExport(
+        String key) {
+        try {
+            storage.delete(validatePdfKey(key));
+        } catch (RuntimeException ignored) {
+            // Best-effort cleanup must never invalidate a successful publication.
+        }
     }
 }

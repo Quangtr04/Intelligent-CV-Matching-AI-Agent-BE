@@ -153,10 +153,6 @@ public class MarketJobPost {
     @Column(name = "ingestion_method", nullable = false, length = 32)
     private String ingestionMethod;
 
-    @JsonProperty("task_id")
-    @Column(name = "task_id")
-    private UUID taskId;
-
     @JsonProperty("reviewed_by_user_id")
     @Column(name = "reviewed_by_user_id")
     private UUID reviewedByUserId;

@@ -11,6 +11,9 @@ import com.example.intelligent_cv_matching_ai_agent.security.shared.CurrentUser;
 import com.example.intelligent_cv_matching_ai_agent.repository.shared.SqlStore;
 import com.example.intelligent_cv_matching_ai_agent.service.shared.identity.TokenService;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.admin.management.AccountUpdateRequest;
+import com.example.intelligent_cv_matching_ai_agent.dto.request.admin.management.AccountCreateRequest;
+import com.example.intelligent_cv_matching_ai_agent.dto.request.admin.announcement.AnnouncementTargetRequest;
+import jakarta.validation.Validation;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.Map;
@@ -20,6 +23,31 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 class AdminAccountTest {
+
+    @Test
+    void accountAndAnnouncementRequestsAcceptOnlyTheFourSupportedRoles() {
+        try (var factory = Validation.buildDefaultValidatorFactory()) {
+            var validator = factory.getValidator();
+            for (String role : java.util.List.of("CANDIDATE", "CAREER_CONSULTANT", "MANAGER", "ADMIN")) {
+                assertTrue(
+                    validator
+                        .validate(new AccountCreateRequest("person@example.test", "Person", role, "test-password-123"))
+                        .isEmpty()
+                );
+                assertTrue(validator.validate(new AccountUpdateRequest("Person", role, "ACTIVE")).isEmpty());
+                assertTrue(validator.validate(new AnnouncementTargetRequest("ROLE", role, null)).isEmpty());
+            }
+            for (String role : java.util.List.of("MANAGEMENT", "STAFF")) {
+                assertFalse(
+                    validator
+                        .validate(new AccountCreateRequest("person@example.test", "Person", role, "test-password-123"))
+                        .isEmpty()
+                );
+                assertFalse(validator.validate(new AccountUpdateRequest("Person", role, "ACTIVE")).isEmpty());
+                assertFalse(validator.validate(new AnnouncementTargetRequest("ROLE", role, null)).isEmpty());
+            }
+        }
+    }
 
     @Test
     void suspensionCannotBeUsedToBypassPendingEmailVerification() {

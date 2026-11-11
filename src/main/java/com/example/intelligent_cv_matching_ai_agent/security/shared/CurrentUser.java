@@ -29,10 +29,6 @@ public class CurrentUser {
         if (auth == null) {
             return false;
         }
-        if ("ADMIN".equals(role)) {
-            return auth.getAuthorities().stream()
-                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()) || "ROLE_MANAGEMENT".equals(a.getAuthority()));
-        }
         return auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_" + role));
     }
 

@@ -57,7 +57,12 @@ public class SecurityConfig {
                         "/v3/api-docs/**",
                         "/swagger-ui/**",
                         "/swagger-ui.html"
-                    ).permitAll()
+                    ).permitAll().requestMatchers("/api/v1/consultations/*/private-notes").hasRole("CAREER_CONSULTANT")
+                    .requestMatchers(HttpMethod.PUT, "/api/v1/consultations/*/advice").hasRole("CAREER_CONSULTANT")
+                    .requestMatchers(HttpMethod.GET, "/api/v1/consultations/*/advice")
+                    .hasAnyRole("CANDIDATE", "CAREER_CONSULTANT").requestMatchers("/api/v1/manager/**")
+                    .hasAnyRole("ADMIN", "MANAGER")
+                    .requestMatchers("/api/v1/management/**", "/api/v1/admin/management/**").denyAll()
                     .requestMatchers(
                         HttpMethod.GET,
                         "/api/v1/skills",
@@ -74,7 +79,6 @@ public class SecurityConfig {
                         "/api/v1/admin/payment-reports/**",
                         "/api/v1/admin/resume-templates/**",
                         "/api/v1/admin/jobs/**",
-                        "/api/v1/admin/rag/**",
                         "/api/v1/admin/crawl-settings",
                         "/api/v1/admin/crawl-history",
                         "/api/admin/crawl-settings",
@@ -87,9 +91,8 @@ public class SecurityConfig {
                         "/api/v1/admin/monitoring/indexing-jobs",
                         "/api/v1/admin/monitoring/crawl-runs",
                         "/api/v1/admin/monitoring/feedback"
-                    ).hasAnyRole("ADMIN", "MANAGEMENT", "MANAGER")
-                    .requestMatchers("/api/v1/admin/**", "/api/admin/**", "/api/v1/management/**")
-                    .hasAnyRole("ADMIN", "MANAGEMENT").anyRequest().authenticated()
+                    ).hasAnyRole("ADMIN", "MANAGER").requestMatchers("/api/v1/admin/**", "/api/admin/**")
+                    .hasRole("ADMIN").anyRequest().authenticated()
             ).exceptionHandling(
                 ex -> ex.authenticationEntryPoint(
                     (
@@ -131,6 +134,7 @@ public class SecurityConfig {
         cors.setAllowedOrigins(Arrays.stream(origins.split(",")).map(String::trim).filter(s -> !s.isBlank()).toList());
         cors.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         cors.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Guest-Session"));
+        cors.setExposedHeaders(List.of("Content-Disposition"));
         cors.setMaxAge(3600L);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", cors);

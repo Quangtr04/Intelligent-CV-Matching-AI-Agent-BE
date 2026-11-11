@@ -4,6 +4,8 @@ import com.example.intelligent_cv_matching_ai_agent.util.admin.resume.ResumeTemp
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import com.example.intelligent_cv_matching_ai_agent.util.shared.FlowSupport;
+import tools.jackson.databind.ObjectMapper;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -13,6 +15,14 @@ import static com.example.intelligent_cv_matching_ai_agent.util.shared.Values.ob
 public final class ResumePdfHtml {
 
     private ResumePdfHtml() {
+    }
+
+    /** Hash only rendered inputs; row IDs, primary flags and unused editor metadata do not change the PDF. */
+    public static String inputHash(
+        ObjectMapper mapper,
+        Map<String, Object> resume,
+        String template) {
+        return FlowSupport.hash("cv-pdf-v2\n" + render(resume, template));
     }
 
     public static String render(
@@ -58,6 +68,49 @@ public final class ResumePdfHtml {
             } else if (data.get(section) instanceof List<?> entries) {
                 for (Object value : entries) {
                     appendEntry(content, section, object(value), english);
+                }
+            }
+            if (section.equals("skills")) {
+                if (presentation.get("softSkills") instanceof List<?> skills) {
+                    for (Object skill : skills) {
+                        if (skill instanceof String name && !name.isBlank()) {
+                            appendEntry(content, section, Map.of("name", name), english);
+                        }
+                    }
+                }
+                if (presentation.get("languages") instanceof List<?> languages) {
+                    for (Object value : languages) {
+                        Map<String, Object> language = object(value);
+                        String name = text(language, "name");
+                        String level = text(language, "level");
+                        if (!name.isBlank()) {
+                            content.appendElement("p").addClass("cv-entry-text").text(
+                                (english ? "Languages: " : "Ngoại ngữ: ") + name
+                                    + (level.isBlank() ? "" : " (" + level + ")")
+                            );
+                        }
+                    }
+                }
+            } else if (section.equals("certifications") && presentation.get("awards") instanceof List<?> awards) {
+                for (Object value : awards) {
+                    Map<String, Object> award = object(value);
+                    if (!text(award, "title").isBlank()) {
+                        appendEntry(
+                            content,
+                            section,
+                            Map.of(
+                                "name",
+                                text(award, "title"),
+                                "issuer",
+                                text(award, "issuer"),
+                                "display_date",
+                                text(award, "year"),
+                                "description",
+                                text(award, "description")
+                            ),
+                            english
+                        );
+                    }
                 }
             }
             for (Element slot : document.select("[data-cv-section=" + section + "]")) {
@@ -107,7 +160,7 @@ public final class ResumePdfHtml {
         String heading = headings.stream().map(key -> text(row, key)).filter(value -> !value.isBlank())
             .collect(java.util.stream.Collectors.joining(" - "));
         entry.appendElement("div").addClass("cv-entry-title").text(heading);
-        String from = text(row, "display_start_date");
+        String from = text(row, section.equals("certifications") ? "display_date" : "display_start_date");
         if (from.isBlank()) {
             from = text(row, section.equals("certifications") ? "issue_date" : "start_date");
         }

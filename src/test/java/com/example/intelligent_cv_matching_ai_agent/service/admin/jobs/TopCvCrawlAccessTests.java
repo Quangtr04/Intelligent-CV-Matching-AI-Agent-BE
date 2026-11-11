@@ -45,7 +45,8 @@ class TopCvCrawlAccessTests {
             fixture.assertSearchFailure(status, "SEARCH_BLOCKED", "Cloudflare verification");
             verify(fixture.connection).execute();
             jsoup.verify(() -> Jsoup.connect(SEARCH));
-            verifyNoInteractions(fixture.jobs);
+            verify(fixture.jobs, never()).importJob(any());
+            verifyNoMoreInteractions(fixture.jobs);
         }
     }
 
@@ -69,7 +70,8 @@ class TopCvCrawlAccessTests {
             jsoup.when(() -> Jsoup.connect(SEARCH)).thenReturn(fixture.connection);
             fixture.service.crawl(new CrawlRequest("TOPCV", "Java", "Backend", null, null, 20, 3));
             fixture.assertSearchFailure(200, "SEARCH_BLOCKED", "Cloudflare verification");
-            verifyNoInteractions(fixture.jobs);
+            verify(fixture.jobs, never()).importJob(any());
+            verifyNoMoreInteractions(fixture.jobs);
         }
     }
 
@@ -102,7 +104,8 @@ class TopCvCrawlAccessTests {
                 )
             );
             verify(fixture.db, never()).update(startsWith("UPDATE market_job_sources"), any(), any());
-            verifyNoInteractions(fixture.jobs);
+            verify(fixture.jobs, never()).importJob(any());
+            verifyNoMoreInteractions(fixture.jobs);
         }
     }
 

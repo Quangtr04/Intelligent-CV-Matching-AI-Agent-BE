@@ -32,7 +32,7 @@ public class ResumePdfExportRepository {
             return "";
         }
         Optional<Map<String, Object>> template =
-            db.optional("SELECT html_content FROM resume_templates WHERE id=?", id);
+            db.optional("SELECT html_content FROM resume_templates WHERE id=? FOR SHARE", id);
         return template.map(row -> java.util.Objects.toString(row.get("html_content"), "")).orElse("");
     }
 

@@ -6,6 +6,9 @@ import com.example.intelligent_cv_matching_ai_agent.repository.consultant.consul
 import com.example.intelligent_cv_matching_ai_agent.repository.shared.consultation.ConsultationRepository;
 import com.example.intelligent_cv_matching_ai_agent.security.shared.CurrentUser;
 import com.example.intelligent_cv_matching_ai_agent.util.candidate.resume.ResumeWritingQuality;
+import com.example.intelligent_cv_matching_ai_agent.util.consultant.consultation.ConsultationAttachments;
+import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +40,35 @@ public class ConsultationAnalysisService {
         UUID jobId = request.jobId();
         int limit = request.limit();
         int offset = request.offset();
+
+        var thread = new LinkedHashMap<>(consultations.getConsultationThreadsById(consultationId));
+        if (ConsultationAttachments.bound(thread)) {
+            var booking = consultations.bookingForThread(consultationId);
+            thread.put("booking_status", booking.get("status"));
+            thread.put("credit_refunded", booking.get("credit_refunded"));
+            ConsultationAttachments.requireReadable(thread, currentUser.id(), currentUser.hasRole("ADMIN"));
+            resumeId = ConsultationAttachments.resume(thread, resumeId);
+            jobId = ConsultationAttachments.job(thread, jobId);
+            return new ConsultationAnalysesResponse(
+                candidateId,
+                resumeId,
+                jobId,
+                limit,
+                offset,
+                resumeId == null
+                    ? List.of()
+                    : repository.listResumeAnalyses(candidateId, resumeId, limit, offset).stream()
+                        .map(ResumeWritingQuality::expose).toList(),
+                resumeId == null || jobId == null
+                    ? List.of()
+                    : repository.listAtsAnalyses(candidateId, resumeId, jobId, limit, offset),
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of()
+            );
+        }
 
         if (resumeId != null) {
             consultations.getResumesById(resumeId, candidateId);

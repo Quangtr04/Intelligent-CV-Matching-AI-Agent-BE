@@ -1,5 +1,8 @@
 # API EduNexus v1
 
+Manager operational reporting and delegated quotas: [Manager API](manager-role.md).
+Consultant draft/published advice and isolated private notes: [Advice API](consultant-advice.md).
+
 Base URL: `http://localhost:8080/api/v1`. Request JSON sử dụng tên trường của DTO; dữ liệu database trả về sử dụng `snake_case`. Mã lỗi nghiệp vụ dùng HTTP 400/401/403/404/409/429/502/503 và `application/problem+json` với `status`, `detail`; lỗi validation có thêm `errors`. Lỗi 401/403 từ bộ lọc xác thực hoặc phân quyền trả `application/json` với `status`, `message`. Danh sách endpoint đầy đủ có trong Swagger.
 
 Sau đăng nhập, gửi `Authorization: Bearer <accessToken>`. Thời hạn access token và refresh token lấy từ `APP_ACCESS_TOKEN_TTL_SECONDS` và `APP_REFRESH_TOKEN_TTL_SECONDS` trong `.env` (giá trị mẫu: 900 giây = 15 phút và 2592000 giây = 30 ngày). `expiresIn` trả thời hạn access token theo giây. Refresh token xoay sau mỗi lần dùng và không được dùng làm bearer. Guest gửi `X-Guest-Session: <sessionKey>`. API không nhận user ID từ client để thay chủ sở hữu dữ liệu.
@@ -133,7 +136,23 @@ Trạng thái node nhận `not_started`, `in_progress`, `completed`. Phải hoà
 
 ## Tư vấn và trợ lý AI
 
-Candidate tạo `POST /consultations` với `subject`, `requestType` tùy chọn và `description`. Admin phân công qua `PUT /consultations/{id}/consultant` với `consultantId`. Candidate và consultant được phân công đọc/gửi tin nhắn tại `/consultations/{id}/messages`. `/consultations/{id}/candidate-profile` cung cấp career profile, kỹ năng và CV chính đã xác nhận để tư vấn; có thể chọn `?resumeId=...` của candidate trong thread. `POST /consultations/{id}/close` đóng thread.
+Candidate mua gói lượt và tạo `POST /consultation-bookings` với cố vấn, nội dung và giờ hẹn
+30 hoặc 60 phút, tối đa một giờ. Consultant được chọn phê duyệt bằng
+`POST /consultation-bookings/{id}/accept`; trạng thái thành ACCEPTED và `meeting_status=PENDING`.
+Worker tự tạo Google Meet và Calendar event, gửi lời mời cho hai email, rồi trả READY.
+`meeting_opened_at` chỉ được ghi khi đến giờ mở phòng. GET `/consultation-bookings` trả
+`meeting_url`, `calendar_event_url`, `meeting_status`, `meeting_error`, giờ mở và giờ đóng cho hai bên.
+Khi hết giờ, phòng được khóa và conference được kết thúc; hủy lịch sẽ hủy cả invitation.
+`POST /consultation-bookings/{id}/meeting/retry` cho phép người tham gia hoặc Admin thử lại lịch
+đã được duyệt nhưng chưa hết giờ. Xem [booking API](consultation-booking.md) và
+[cấu hình Google organizer](consultation-google-meet.md).
+
+Lịch SESSION_BOOKING không có chat nội bộ: các API messages, read và events của thread này
+trả lỗi 409. `POST /consultations` cũ trả lỗi yêu cầu chuyển sang booking. Thread cũ được giữ
+để tương thích lịch sử; Admin chỉ được phân công lại các ca cũ qua
+`PUT /consultations/{id}/consultant`. `/consultations/{id}/candidate-profile` vẫn cung cấp
+career profile, kỹ năng và CV đã xác nhận theo quyền; `?resumeId=...` chọn CV của candidate.
+Đóng lịch mới phải qua vòng đời booking, không dùng `POST /consultations/{id}/close`.
 
 ### Consultant tạo đánh giá AI CV và ATS CV–job
 
@@ -202,7 +221,10 @@ trả `400`; hội thoại không tồn tại/không có quyền hoặc CV khôn
 
 ### Hội thoại thời gian thực và trợ lý AI
 
-`GET /consultations/{id}/events` phát SSE `connected` và `message`. Dùng fetch streaming có bearer header; khi reconnect, tải lại lịch sử từ `/messages`. SSE có thời hạn 5 phút, hoạt động trong cùng process; triển khai nhiều instance cần một adapter phát sự kiện chung.
+`GET /consultations/{id}/events` chỉ còn dành cho các thread legacy, không dùng cho
+SESSION_BOOKING. Các buổi mới diễn ra trên Google Meet và hai client cập nhật booking bằng polling.
+SSE legacy phát `connected`/`message`, có thời hạn 5 phút và hoạt động trong cùng process;
+triển khai nhiều instance cần adapter sự kiện chung nếu tiếp tục sử dụng API tương thích cũ.
 
 Trợ lý AI: tạo `/assistant/conversations`, sau đó gửi `POST /assistant/conversations/{id}/messages` với `{ "message": "...", "retrieve": true }`. Context có thể liên kết `related_job_id`, `related_resume_id`, `related_gap_analysis_id`, `related_roadmap_id`; quyền sở hữu được kiểm tra. `retrieve=true` dùng pgvector RAG và trả các nguồn đã thực sự truy xuất. Guest có endpoint tương ứng dưới `/guest/assistant/conversations`, dùng session header và chịu quota trial.
 

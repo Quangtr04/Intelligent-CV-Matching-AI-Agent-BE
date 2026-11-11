@@ -2,6 +2,7 @@ package com.example.intelligent_cv_matching_ai_agent;
 
 import com.example.intelligent_cv_matching_ai_agent.repository.shared.SqlStore;
 import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiService;
+import com.example.intelligent_cv_matching_ai_agent.service.candidate.resume.ResumePdfExportService;
 import com.example.intelligent_cv_matching_ai_agent.service.shared.identity.TokenService;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -50,6 +51,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Testcontainers(disabledWithoutDocker = true)
 @Transactional
 class ResumeTemplateSelectionIntegrationTests {
+
+    // Template/section integration is independent of the machine's Chromium installation.
+    // Real PDF storage/transactions are exercised by ResumePdfPersistenceTests.
+    @MockitoBean
+    private ResumePdfExportService pdfExports;
 
     private static final String BASE = "/api/v1/resumes";
 

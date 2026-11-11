@@ -2,7 +2,6 @@ package com.example.intelligent_cv_matching_ai_agent.dto.request.admin.jobs;
 
 import jakarta.validation.constraints.*;
 import java.util.List;
-import java.util.UUID;
 
 public record CrawlRequest(
     @NotBlank
@@ -29,8 +28,7 @@ public record CrawlRequest(
     Integer limit,
     @Min(1)
     @Max(10)
-    Integer maxPages,
-    UUID taskId
+    Integer maxPages
 ) {
 
     public CrawlRequest(
@@ -38,19 +36,8 @@ public record CrawlRequest(
         String keyword,
         String roleCategory,
         String location,
-        List<String> urls,
-        Integer limit,
-        Integer maxPages) {
-        this(sourceSite, keyword, roleCategory, location, urls, limit, maxPages, null);
-    }
-
-    public CrawlRequest(
-        String sourceSite,
-        String keyword,
-        String roleCategory,
-        String location,
         List<String> urls) {
-        this(sourceSite, keyword, roleCategory, location, urls, 50, 5, null);
+        this(sourceSite, keyword, roleCategory, location, urls, 50, 5);
     }
 
     public int effectiveLimit() {

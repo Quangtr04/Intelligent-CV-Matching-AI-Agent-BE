@@ -21,6 +21,9 @@ public record ConsultationBookingRequest(
     @NotNull
     @Future
     OffsetDateTime startsAt,
-    Integer durationMinutes
+    Integer durationMinutes,
+    @NotNull
+    UUID resumeId,
+    UUID jobId
 ) {
 }

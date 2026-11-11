@@ -24,8 +24,29 @@ public class EntitlementRepository {
         UUID user,
         String feature,
         String period) {
+        String query = ("SELECT COALESCE(sum(CASE WHEN status='RESERVED' THEN reserved_tokens "
+            + "ELSE consumed_tokens END),0) FROM ai_token_reservations WHERE "
+            + "user_id=? AND status IN ('RESERVED','COMPLETED')") + boundary(period);
+        Object count =
+            feature == null ? db.scalar(query, user) : db.scalar(query + " AND feature_code=?", user, feature);
+        return ((Number) count).longValue();
+    }
+
+    public long requestsUsed(
+        UUID user,
+        String feature,
+        String period) {
+        String query = "SELECT count(*) FROM ai_token_reservations WHERE "
+            + "user_id=? AND status IN ('RESERVED','COMPLETED')" + boundary(period);
+        Object count =
+            feature == null ? db.scalar(query, user) : db.scalar(query + " AND feature_code=?", user, feature);
+        return ((Number) count).longValue();
+    }
+
+    private String boundary(
+        String period) {
         // Period values originate in subscription quota rules, never raw request text.
-        String boundary = switch (period) {
+        return switch (period) {
             case "all" -> "";
             case "subscription" -> " AND created_at >= COALESCE((SELECT us.started_at "
                 + "+ floor(extract(epoch FROM (now()-us.started_at))/2592000)::bigint * interval '30 days' "
@@ -35,12 +56,6 @@ public class EntitlementRepository {
             case "day", "month", "year" -> " AND created_at>=date_trunc('" + period + "',now())";
             default -> throw new IllegalArgumentException("Unsupported quota period");
         };
-        String query = ("SELECT COALESCE(sum(CASE WHEN status='RESERVED' THEN reserved_tokens "
-            + "ELSE consumed_tokens END),0) FROM ai_token_reservations WHERE "
-            + "user_id=? AND status IN ('RESERVED','COMPLETED')") + boundary;
-        Object count =
-            feature == null ? db.scalar(query, user) : db.scalar(query + " AND feature_code=?", user, feature);
-        return ((Number) count).longValue();
     }
 
     public Map<String, Object> getUsersByIdForUpdate(
@@ -73,8 +88,8 @@ public class EntitlementRepository {
     public Optional<Map<String, Object>> findUserSubscriptionsByUserId(
         Object... args) {
         return db.optional(
-            ("SELECT st.*,us.started_at AS subscription_started_at FROM user_subscriptions us JOIN subscription_tiers st ON "
-                + "st.id=us.tier_id WHERE us.user_id=? AND us.status='ACTIVE' AND "
+            ("SELECT st.*,us.started_at AS subscription_started_at FROM user_subscriptions us "
+                + "JOIN subscription_tiers st ON " + "st.id=us.tier_id WHERE us.user_id=? AND us.status='ACTIVE' AND "
                 + "st.is_active=true AND (us.expires_at IS NULL OR us.expires_at>now()) "
                 + "ORDER BY us.started_at DESC LIMIT 1"),
             args

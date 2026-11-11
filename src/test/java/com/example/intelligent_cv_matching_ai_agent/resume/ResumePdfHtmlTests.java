@@ -31,6 +31,64 @@ class ResumePdfHtmlTests {
         """;
 
     @Test
+    void builderSoftSkillsLanguagesAndAwardsAreEscapedAndPreservedInThePdf() {
+        Map<String, Object> data = Map.of(
+            "frontend_fields",
+            Map.of(
+                "softSkills",
+                List.of("Teamwork <script>alert(1)</script>"),
+                "languages",
+                List.of(Map.of("name", "English", "level", "B2")),
+                "awards",
+                List.of(
+                    Map.of(
+                        "title",
+                        "Project award",
+                        "issuer",
+                        "University",
+                        "year",
+                        "2025",
+                        "description",
+                        "Built the winning project"
+                    )
+                )
+            )
+        );
+
+        String html = ResumePdfHtml.render(resume(data), TEMPLATE);
+        Document document = Jsoup.parse(html);
+
+        assertTrue(document.selectFirst("[data-cv-section=skills]").text().contains("Teamwork"));
+        assertTrue(document.selectFirst("[data-cv-section=skills]").text().contains("English (B2)"));
+        assertTrue(document.selectFirst("[data-cv-section=certifications]").text().contains("Project award"));
+        assertTrue(document.selectFirst("[data-cv-section=certifications]").text().contains("2025"));
+        assertTrue(
+            document.selectFirst("[data-cv-section=certifications]").text().contains("Built the winning project")
+        );
+        assertTrue(document.select("script").isEmpty());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"softSkills", "languages", "awards"})
+    void changingBuilderFactsChangesTheStoredPdfFingerprint(
+        String field) {
+        Map<String, Object> value = Map.of(
+            "softSkills",
+            List.of("Teamwork"),
+            "languages",
+            List.of(Map.of("name", "English", "level", "B2")),
+            "awards",
+            List.of(Map.of("title", "Project award", "year", "2025"))
+        );
+        var mapper = tools.jackson.databind.json.JsonMapper.builder().build();
+        String before = ResumePdfHtml.inputHash(mapper, resume(Map.of()), TEMPLATE);
+        String after = ResumePdfHtml
+            .inputHash(mapper, resume(Map.of("frontend_fields", Map.of(field, value.get(field)))), TEMPLATE);
+
+        assertNotEquals(before, after);
+    }
+
+    @Test
     void selectedTemplatePreservesItsStyleAndHeadingsWhileReplacingEverySampleSlot() {
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("full_name", "Nguyễn An");
