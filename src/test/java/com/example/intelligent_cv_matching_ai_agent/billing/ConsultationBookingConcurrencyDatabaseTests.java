@@ -26,6 +26,40 @@ import static org.junit.jupiter.api.Assertions.*;
 class ConsultationBookingConcurrencyDatabaseTests {
 
     @Test
+    void databaseRejectsOverlappingAssignmentsAndRetainsCancelledHistory() {
+        try (Fixture fixture = new Fixture()) {
+            UUID consultant = fixture.consultant();
+            OffsetDateTime start = OffsetDateTime.now().plusDays(10).withNano(0);
+            var values = fields(
+                "consultant_user_id",
+                consultant,
+                "assigned_by",
+                consultant,
+                "starts_at",
+                start,
+                "ends_at",
+                start.plusHours(10),
+                "series_id",
+                UUID.randomUUID()
+            );
+            UUID first = fixture.sql.insert("consultant_work_shifts", values);
+            assertThrows(
+                org.springframework.dao.DataIntegrityViolationException.class,
+                () -> fixture.sql.insert("consultant_work_shifts", values)
+            );
+            fixture.sql.update("UPDATE consultant_work_shifts SET cancelled_at=now() WHERE id=?", first);
+            UUID replacement = fixture.sql.insert("consultant_work_shifts", values);
+            assertNotEquals(first, replacement);
+            assertEquals(
+                2,
+                ((Number) fixture.sql
+                    .scalar("SELECT count(*) FROM consultant_work_shifts WHERE consultant_user_id=?", consultant))
+                    .intValue()
+            );
+        }
+    }
+
+    @Test
     void overlappingRequestsForSameConsultantOnlyReserveOneSession() throws Exception {
         try (Fixture fixture = new Fixture()) {
             UUID firstCandidate = fixture.person("CANDIDATE");
@@ -321,6 +355,7 @@ class ConsultationBookingConcurrencyDatabaseTests {
             UUID consultant,
             UUID credit,
             OffsetDateTime start) {
+            final var slotStart = start.truncatedTo(java.time.temporal.ChronoUnit.MICROS);
             SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(
                     candidate.toString(),
@@ -331,14 +366,39 @@ class ConsultationBookingConcurrencyDatabaseTests {
             try {
                 transaction.executeWithoutResult(status -> {
                     sql.update("SET LOCAL statement_timeout='15s'");
-                    new ConsultationBookingService(new ConsultationBookingRepository(sql), new CurrentUser()).create(
+                    var repository = new ConsultationBookingRepository(sql);
+                    repository.lockConsultant(consultant);
+                    if (sql.optional(
+                        "SELECT id FROM consultant_work_shifts WHERE consultant_user_id=? "
+                            + "AND starts_at<=? AND ends_at>=? AND cancelled_at IS NULL",
+                        consultant,
+                        slotStart,
+                        slotStart.plusMinutes(30)
+                    ).isEmpty()) {
+                        sql.insert(
+                            "consultant_work_shifts",
+                            fields(
+                                "consultant_user_id",
+                                consultant,
+                                "assigned_by",
+                                consultant,
+                                "starts_at",
+                                slotStart,
+                                "ends_at",
+                                slotStart.plusMinutes(30),
+                                "series_id",
+                                UUID.randomUUID()
+                            )
+                        );
+                    }
+                    new ConsultationBookingService(repository, new CurrentUser()).create(
                         new ConsultationBookingRequest(
                             consultant,
                             credit,
                             "BE",
                             "Concurrent booking",
                             "Prepare for Backend interview",
-                            start,
+                            slotStart,
                             30,
                             resumes.get(candidate),
                             null
@@ -420,6 +480,7 @@ class ConsultationBookingConcurrencyDatabaseTests {
                     sql.update("DELETE FROM notifications WHERE user_id=?", person);
                     sql.update("DELETE FROM consultant_profiles WHERE user_id=?", person);
                     sql.update("DELETE FROM resumes WHERE user_id=?", person);
+                    sql.update("DELETE FROM consultant_work_shifts WHERE consultant_user_id=?", person);
                     sql.update("DELETE FROM users WHERE id=?", person);
                 }
             });

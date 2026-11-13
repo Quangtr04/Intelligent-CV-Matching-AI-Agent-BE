@@ -33,66 +33,16 @@ public final class JobPostingParser {
     private static final int MAX_HTML_CHARACTERS = 2 * 1024 * 1024;
 
     private static final Pattern NUMERIC_SALARY = Pattern.compile(
-        "\\d+(?:[.,]\\d+)*\\s*(?:million|m|billion|thousand|k)?"
-            + "(?:\\s*[-\u2013\u2014]\\s*\\d+(?:[.,]\\d+)*\\s*(?:million|m|billion|thousand|k)?)?",
+        ("\\d+(?:[.," + "]\\d+)*\\s*(?:million|m|billion|thousand|k)?(?:\\s*[-–—]\\s*\\d+(?:[.,"
+            + "]\\d+)*\\s*(?:million|m|billion|thousand|k)?)?"),
         Pattern.CASE_INSENSITIVE
     );
 
     private static final Pattern SALARY_PERIOD = Pattern.compile(
-        "\\b(?:month|monthly|thang|tháng|year|yearly|annual|annually|annum|nam|năm|day|daily|ngay|ngày|"
-            + "hour|hourly|gio|giờ|week|weekly|tuan|tuần|quarter|quy|quý)\\b|/\\s*[hdwmy]\\b",
+        ("\\b(?:month|monthly|thang|tháng|year|yearly|annual|annually|annum|nam|"
+            + "năm|day|daily|ngay|ngày|hour|hourly|gio|giờ|week|weekly|tuan|tuần|quar"
+            + "ter|quy|quý)\\b|/\\s*[hdwmy]\\b"),
         Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE
-    );
-
-    private static final List<SkillAlias> SKILLS = List.of(
-        skill("Java", "java"),
-        skill("JavaScript", "javascript", "java script"),
-        skill("TypeScript", "typescript", "type script"),
-        skill("Python", "python"),
-        skill("C#", "c#", "csharp", "c sharp"),
-        skill("C++", "c++"),
-        skill("Go", "golang", "go programming"),
-        skill("PHP", "php"),
-        skill("Kotlin", "kotlin"),
-        skill("Swift", "swift"),
-        skill("Dart", "dart"),
-        skill("SQL", "sql"),
-        skill("MySQL", "mysql"),
-        skill("PostgreSQL", "postgresql", "postgres"),
-        skill("SQL Server", "sql server", "mssql"),
-        skill("Oracle", "oracle"),
-        skill("Spring Boot", "spring boot", "springboot"),
-        skill("Spring", "spring", "springmvc"),
-        skill("React", "react", "reactjs", "react.js"),
-        skill("Angular", "angular", "angularjs"),
-        skill("Vue.js", "vue.js", "vuejs"),
-        skill("Node.js", "node.js", "nodejs", "node js"),
-        skill(".NET", ".net", "dotnet"),
-        skill("ASP.NET", "asp.net"),
-        skill("Laravel", "laravel"),
-        skill("Flutter", "flutter"),
-        skill("Android", "android"),
-        skill("iOS", "ios"),
-        skill("Git", "git"),
-        skill("Docker", "docker"),
-        skill("Kubernetes", "kubernetes", "k8s"),
-        skill("AWS", "aws", "amazon web services"),
-        skill("Azure", "azure"),
-        skill("GCP", "gcp", "google cloud platform"),
-        skill("Linux", "linux"),
-        skill("Redis", "redis"),
-        skill("Kafka", "kafka"),
-        skill("RabbitMQ", "rabbitmq", "rabbit mq"),
-        skill("MongoDB", "mongodb", "mongo db"),
-        skill("HTML", "html", "html5"),
-        skill("CSS", "css", "css3"),
-        skill("Jenkins", "jenkins"),
-        skill("Terraform", "terraform"),
-        skill("JUnit", "junit"),
-        skill("Mockito", "mockito"),
-        skill("Hibernate", "hibernate"),
-        skill("Maven", "maven"),
-        skill("Gradle", "gradle")
     );
 
     private JobPostingParser() {
@@ -101,12 +51,6 @@ public final class JobPostingParser {
     public record ParsedPosting(
         ImportJobRequest job,
         String quality
-    ) {
-    }
-
-    private record SkillAlias(
-        String name,
-        List<String> aliases
     ) {
     }
 
@@ -207,8 +151,9 @@ public final class JobPostingParser {
         Map<String, String> sections = sections(scope);
         String description = sections.get("description");
         if (description == null || plain(description).length() < 30) {
-            Element descriptionElement = scope
-                .selectFirst("[itemprop=description], #job-description, .job-description__content, .job_description");
+            Element descriptionElement = scope.selectFirst(
+                ("[itemprop=description], #job-description, .job-description__content, " + ".job_description")
+            );
             if (descriptionElement != null)
                 description = cleanHtml(descriptionElement);
         }
@@ -224,8 +169,8 @@ public final class JobPostingParser {
         String company = htmlValue(
             scope,
             source.equals("TOPCV")
-                ? "[itemprop=hiringOrganization] [itemprop=name], .job-detail__company--name, .company-name"
-                : "[itemprop=hiringOrganization] [itemprop=name], .company-name, .job-header__company-name"
+                ? ("[itemprop=hiringOrganization] [itemprop=name], " + ".job-detail__company--name, .company-name")
+                : ("[itemprop=hiringOrganization] [itemprop=name], .company-name, " + ".job-header__company-name")
         );
         String location = firstNonblank(
             htmlValue(scope, "[itemprop=jobLocation], [data-field=location], .job-location, .job-address"),
@@ -370,8 +315,8 @@ public final class JobPostingParser {
         Set<String> expected = Set.of(labels);
         int checked = 0;
         for (Element item : scope.select(
-            ".job-detail__info--section, .job-overview__item, .job-detail__information-detail--item,"
-                + " [data-field], dl > div, tr"
+            (".job-detail__info--section, .job-overview__item, "
+                + ".job-detail__information-detail--item, [data-field], dl > div, tr")
         )) {
             if (++checked > 100)
                 break;
@@ -392,72 +337,7 @@ public final class JobPostingParser {
         String explicit,
         String requirements,
         String description) {
-        Map<String, Boolean> found = new LinkedHashMap<>();
-        scanSkills(explicit, true, found);
-        scanSkills(requirements, true, found);
-        scanSkills(description, false, found);
-
-        return found.entrySet().stream().map(entry -> new JobSkillRequest(null, entry.getKey(), entry.getValue()))
-            .toList();
-    }
-
-    private static void scanSkills(
-        String html,
-        boolean defaultRequired,
-        Map<String, Boolean> found) {
-        if (html == null || html.isBlank())
-            return;
-        Document document = Jsoup.parseBodyFragment(html);
-        var blocks = document.select("h1,h2,h3,h4,h5,p,li,pre,div,section");
-        List<Element> elements = blocks.isEmpty() ? List.of(document.body()) : blocks;
-        boolean optionalSection = false;
-        for (Element block : elements) {
-            boolean hasNestedBlocks = block.select("h1,h2,h3,h4,h5,p,li,pre,div,section").size() > 1;
-            if (hasNestedBlocks && block.ownText().isBlank())
-                continue;
-            String folded = JobNormalizer.fold(hasNestedBlocks ? block.ownText() : block.text());
-            if (block.is("h1,h2,h3,h4,h5")) {
-                if (optionalHint(folded))
-                    optionalSection = true;
-                else if (requiredHint(folded) || sectionKind(block.text()) != null)
-                    optionalSection = false;
-            }
-            for (String sentence : folded.split("(?<=[.!?])\\s+|[\\r\\n;]+")) {
-                boolean required =
-                    !optionalSection && !optionalHint(sentence) && (defaultRequired || requiredHint(sentence));
-                for (SkillAlias skill : SKILLS) {
-                    boolean match = skill.aliases().stream().anyMatch(
-                        alias -> Pattern.compile(
-                            "(?<![\\p{L}\\p{N}_])" + Pattern.quote(alias) + "(?![\\p{L}\\p{N}_])",
-                            Pattern.CASE_INSENSITIVE
-                        ).matcher(sentence).find()
-                    );
-                    if (match)
-                        found.merge(skill.name(), required, Boolean::logicalOr);
-                }
-            }
-        }
-    }
-
-    private static boolean optionalHint(
-        String text) {
-        return text.contains("nice to have") || text.contains("nice-to-have") || text.contains("preferred")
-            || text.contains("optional") || text.contains("is a plus") || text.contains("not required")
-            || text.contains("uu tien") || text.contains("loi the") || text.contains("khong bat buoc");
-    }
-
-    private static boolean requiredHint(
-        String text) {
-        return text.contains("must") || text.contains("required") || text.contains("requirements")
-            || text.contains("experience") || text.contains("proficient") || text.contains("knowledge")
-            || text.contains("familiar") || text.contains("yeu cau") || text.contains("kinh nghiem")
-            || text.contains("thanh thao") || text.contains("bat buoc");
-    }
-
-    private static SkillAlias skill(
-        String name,
-        String... aliases) {
-        return new SkillAlias(name, List.of(aliases));
+        return JobRequirementExtractor.extract(explicit, requirements, description).legacySkills();
     }
 
     @SuppressWarnings("unchecked")

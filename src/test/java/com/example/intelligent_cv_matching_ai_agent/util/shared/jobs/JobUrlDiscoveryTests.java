@@ -107,11 +107,22 @@ class JobUrlDiscoveryTests {
             "https://itviec.com/it-jobs?query=C%2B%2B+Java&page=2",
             JobUrlDiscovery.searchUrl("ITVIEC", "C++ Java", 2)
         );
-        assertEquals(
-            "https://www.topcv.vn/tim-viec-lam?keyword=Java&page=1",
-            JobUrlDiscovery.searchUrl("TOPCV", "Java", 1)
-        );
+        assertEquals("https://www.topcv.vn/tim-viec-lam-java?page=1", JobUrlDiscovery.searchUrl("TOPCV", "Java", 1));
         assertThrows(RuntimeException.class, () -> JobUrlDiscovery.searchUrl("OTHER", "Java", 1));
         assertThrows(RuntimeException.class, () -> JobUrlDiscovery.searchUrl("ITVIEC", "Java", 11));
+    }
+
+    @Test
+    void topCvSearchUsesKeywordPathAndKeepsPaginationAndLocation() {
+        assertEquals("https://www.topcv.vn/tim-viec-lam-data?page=1", JobUrlDiscovery.searchUrl("TOPCV", "Data", 1));
+        assertEquals(
+            "https://www.topcv.vn/tim-viec-lam-data-analyst?page=2&cityIds%5B%5D=1",
+            JobUrlDiscovery.searchUrl("TOPCV", " Data Analyst ", "Ha Noi", 2)
+        );
+        assertEquals(
+            "https://www.topcv.vn/tim-viec-lam-ky-su-du-lieu?page=1",
+            JobUrlDiscovery.searchUrl("TOPCV", "Kỹ sư dữ liệu", 1)
+        );
+        assertEquals("https://www.topcv.vn/tim-viec-lam-c%2B%2B?page=1", JobUrlDiscovery.searchUrl("TOPCV", "C++", 1));
     }
 }

@@ -130,7 +130,7 @@ public final class JobNormalizer {
         List<JobSkillRequest> skills = new ArrayList<>();
         for (JobSkillRequest skill : input.skills() == null ? List.<JobSkillRequest>of() : input.skills()) {
             String name = plain(skill.name());
-            String canonical = SKILL_ALIASES.getOrDefault(fold(name), name);
+            String canonical = SkillCatalog.get().canonicalName(SKILL_ALIASES.getOrDefault(fold(name), name));
             skills.add(new JobSkillRequest(skill.skillId(), canonical, skill.required()));
         }
 

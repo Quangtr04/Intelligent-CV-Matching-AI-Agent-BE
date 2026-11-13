@@ -27,7 +27,7 @@ class QuickJobMatcherTests {
         assertTrue(cv.skills().containsAll(List.of("spring boot", "postgresql")));
         assertFalse(cv.skills().contains("python"));
         var result = QuickJobMatcher.assess(cv, job("Backend developer", "", "spring boot", "spring", "postgresql"));
-        assertEquals(1.0, result.get("skill_coverage"));
+        assertEquals(2.0 / 3, result.get("skill_coverage"));
         assertEquals(2, ((List<?>) result.get("strengths")).size());
     }
 
@@ -48,7 +48,7 @@ class QuickJobMatcherTests {
                 "spring"
             )
         );
-        assertEquals(1.0, result.get("skill_coverage"));
+        assertEquals(2.0 / 3, result.get("skill_coverage"));
         assertEquals(10.0, result.get("required_years"));
         assertEquals("INSUFFICIENT", result.get("experience_status"));
         assertEquals(false, result.get("eligible"));

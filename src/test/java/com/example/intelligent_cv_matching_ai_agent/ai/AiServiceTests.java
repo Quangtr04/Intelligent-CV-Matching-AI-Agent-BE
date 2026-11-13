@@ -20,6 +20,7 @@ import com.openai.errors.OpenAIServiceException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.model.*;
 import org.springframework.ai.chat.metadata.*;
@@ -66,8 +67,11 @@ class AiServiceTests {
         calls.verify(entitlement).complete(reservation, 600);
     }
 
-    @Test
-    void geminiChatAppliesActiveModelSettingsWithJsonModeAndExistingQuotaAccounting() {
+    @ParameterizedTest
+    @CsvSource({"gemini-2.5-flash-lite,none", "gemini-3.5-flash-lite,minimal", "gemini-3.1-pro-preview,low"})
+    void geminiChatAppliesActiveModelSettingsWithJsonModeAndExistingQuotaAccounting(
+        String modelName,
+        String expectedEffort) {
         UUID actor = UUID.randomUUID(), reservation = UUID.randomUUID();
         ChatModel chat = mock(ChatModel.class);
         when(chats.getIfAvailable()).thenReturn(chat);
@@ -75,14 +79,7 @@ class AiServiceTests {
         when(user.id()).thenReturn(actor);
         when(entitlement.reserve(eq(actor), eq("CAREER_CHAT"), anyInt())).thenReturn(reservation);
         when(db.optional(contains("config_type='CHAT'"), eq("gemini"))).thenReturn(
-            Optional.of(
-                Map.of(
-                    "model_name",
-                    "gemini-2.5-flash-lite",
-                    "config_json",
-                    Map.of("temperature", 0.4, "numPredict", 1500)
-                )
-            )
+            Optional.of(Map.of("model_name", modelName, "config_json", Map.of("temperature", 0.4, "numPredict", 1500)))
         );
         when(chat.call(any(Prompt.class))).thenReturn(
             new ChatResponse(
@@ -100,18 +97,17 @@ class AiServiceTests {
             argThat(
                 (
                     Prompt prompt) -> prompt.getOptions() instanceof OpenAiChatOptions options
-                        && "gemini-2.5-flash-lite".equals(options.getModel())
-                        && Integer.valueOf(1500).equals(options.getMaxTokens())
+                        && modelName.equals(options.getModel()) && Integer.valueOf(1500).equals(options.getMaxTokens())
                         && Double.valueOf(0.4).equals(options.getTemperature()) && options.getMaxRetries() == 0
                         && java.time.Duration.ofSeconds(7).equals(options.getTimeout())
-                        && "none".equals(options.getReasoningEffort())
+                        && expectedEffort.equals(options.getReasoningEffort())
                         && options.getResponseFormat().getType() == OpenAiChatModel.ResponseFormat.Type.JSON_OBJECT
             )
         );
         verify(entitlement).complete(reservation, 26);
         verify(recorder).record(
             argThat(
-                row -> "gemini".equals(row.get("provider")) && "gemini-2.5-flash-lite".equals(row.get("model_name"))
+                row -> "gemini".equals(row.get("provider")) && modelName.equals(row.get("model_name"))
                     && Boolean.TRUE.equals(row.get("success"))
             )
         );
@@ -338,7 +334,7 @@ class AiServiceTests {
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {429, 500, 503})
+    @ValueSource(ints = {400, 401, 403, 404, 429, 500, 503})
     void providerHttpFailuresAreExplainedWithoutSpendingApplicationQuotaOrRetrying(
         int status) {
         UUID actor = UUID.randomUUID(), reservation = UUID.randomUUID();
@@ -357,7 +353,7 @@ class AiServiceTests {
             () -> service(true).generate("CAREER_CHAT", Map.of("message", "Synthetic question"))
         );
 
-        assertEquals(status == 500 ? 502 : 503, failure.status());
+        assertEquals(status == 429 || status == 503 ? 503 : 502, failure.status());
         assertTrue(failure.getMessage().contains(status == 429 ? "request or token limit" : "HTTP " + status));
         assertFalse(failure.getMessage().contains("Sensitive"));
         verify(chat, times(1)).call(any(Prompt.class));
@@ -1274,6 +1270,30 @@ class AiServiceTests {
         );
         verify(chat, times(1)).call(any(Prompt.class));
         verify(recorder).record(argThat(row -> Boolean.TRUE.equals(row.get("success"))));
+    }
+
+    @Test
+    void roadmapAtProviderTokenLimitIsRejectedEvenWhenThePartialJsonIsParseable() {
+        ChatModel chat = mock(ChatModel.class);
+        when(chats.getIfAvailable()).thenReturn(chat);
+        when(chats.getObject()).thenReturn(chat);
+        when(chat.call(any(Prompt.class))).thenReturn(
+            new ChatResponse(
+                List.of(
+                    new Generation(
+                        new AssistantMessage("{\"title\":\"Partial\",\"nodes\":[]}"),
+                        ChatGenerationMetadata.builder().finishReason("length").build()
+                    )
+                )
+            )
+        );
+        ApiException error = assertThrows(
+            ApiException.class,
+            () -> service(true)
+                .generate("ROADMAP_GENERATE", Map.of("allowed_missing_skills", List.of(Map.of("skill_name", "Docker"))))
+        );
+        assertTrue(error.getMessage().contains("output token limit"));
+        verify(chat, times(1)).call(any(Prompt.class));
     }
 
     @Test

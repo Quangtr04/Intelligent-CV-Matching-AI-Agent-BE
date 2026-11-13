@@ -11,9 +11,6 @@ public final class SkillNames {
 
     public static String normalize(
         String value) {
-        return value == null
-            ? ""
-            : Normalizer.normalize(value, Normalizer.Form.NFKC).strip().toLowerCase(Locale.ROOT)
-                .replaceAll("\\s+", " ");
+        return com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.SkillCatalog.get().comparisonKey(value);
     }
 }

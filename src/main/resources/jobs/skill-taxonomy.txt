@@ -1,0 +1,89 @@
+# Legacy v1/v2 snapshot. Runtime vocabulary is now skills/catalog.json; this file is not loaded.
+Java|TECHNICAL|java
+JavaScript|TECHNICAL|javascript|java script
+TypeScript|TECHNICAL|typescript|type script
+Python|TECHNICAL|python
+C#|TECHNICAL|c#|csharp|c sharp
+C++|TECHNICAL|c++
+Go|TECHNICAL|golang|go programming
+PHP|TECHNICAL|php
+Kotlin|TECHNICAL|kotlin
+Swift|TECHNICAL|swift
+Dart|TECHNICAL|dart
+SQL|TECHNICAL|sql
+MySQL|TECHNICAL|mysql
+PostgreSQL|TECHNICAL|postgresql|postgres
+SQL Server|TECHNICAL|sql server|mssql
+Oracle|TECHNICAL|oracle
+Spring Boot|TECHNICAL|spring boot|springboot
+Spring|TECHNICAL|spring|springmvc
+React|TECHNICAL|react|reactjs|react.js
+Angular|TECHNICAL|angular|angularjs
+Vue.js|TECHNICAL|vue.js|vuejs
+Node.js|TECHNICAL|node.js|nodejs|node js
+.NET|TECHNICAL|.net|dotnet
+ASP.NET|TECHNICAL|asp.net
+Laravel|TECHNICAL|laravel
+Flutter|TECHNICAL|flutter
+Android|TECHNICAL|android
+iOS|TECHNICAL|ios
+Git|TECHNICAL|git
+Docker|TECHNICAL|docker
+Kubernetes|TECHNICAL|kubernetes|k8s
+AWS|TECHNICAL|aws|amazon web services
+Azure|TECHNICAL|azure
+GCP|TECHNICAL|gcp|google cloud platform
+Linux|TECHNICAL|linux
+Redis|TECHNICAL|redis
+Kafka|TECHNICAL|kafka
+RabbitMQ|TECHNICAL|rabbitmq|rabbit mq
+MongoDB|TECHNICAL|mongodb|mongo db
+HTML|TECHNICAL|html|html5
+CSS|TECHNICAL|css|css3
+Jenkins|TECHNICAL|jenkins
+Terraform|TECHNICAL|terraform
+JUnit|TECHNICAL|junit
+Mockito|TECHNICAL|mockito
+Hibernate|TECHNICAL|hibernate
+Maven|TECHNICAL|maven
+Gradle|TECHNICAL|gradle
+Excel|TOOL|excel|microsoft excel
+Business intelligence|KNOWLEDGE|business intelligence|bi tools
+n8n|TOOL|n8n
+Artificial intelligence|KNOWLEDGE|artificial intelligence|ai|tri tue nhan tao
+Chatbots|TECHNICAL|chatbot|chatbots
+Automation|COMPETENCY|automation|tu dong hoa
+Data handling|COMPETENCY|data handling|data processing|xu ly du lieu
+Communication|SOFT_SKILL|communication skills|good communication|ky nang giao tiep|giao tiep tot
+Problem solving|SOFT_SKILL|problem-solving|problem solving|giai quyet van de
+Logical thinking|SOFT_SKILL|logical thinking|tu duy logic
+English|LANGUAGE|english|tieng anh
+Business analysis|COMPETENCY|business analysis|phan tich nghiep vu
+Requirements translation|COMPETENCY|translate business requirements|chuyen doi yeu cau nghiep vu
+Team coordination|SOFT_SKILL|coordinate with|phoi hop voi
+Testing|COMPETENCY|software testing|kiem thu phan mem
+Accounting|COMPETENCY|accounting|ke toan
+Financial reporting|COMPETENCY|financial reporting|bao cao tai chinh
+Customer service|COMPETENCY|customer service|cham soc khach hang
+Project management|COMPETENCY|project management|quan ly du an
+Risk assessment|COMPETENCY|risk assessment|danh gia rui ro
+Data analysis|COMPETENCY|data analysis|analyze data|phan tich du lieu
+Power BI|TOOL|power bi|powerbi
+Tableau|TOOL|tableau
+Product management|COMPETENCY|product management|quan ly san pham
+Product ownership|COMPETENCY|product ownership|product owner
+Product operations|COMPETENCY|product operations
+Product strategy|COMPETENCY|product strategy|product strategies|chien luoc san pham
+Product lifecycle management|COMPETENCY|product lifecycle management
+Product roadmapping|COMPETENCY|product roadmapping|product roadmaps
+Backlog management|COMPETENCY|backlog prioritisation|backlog prioritization|backlog grooming|product backlogs
+Agile|KNOWLEDGE|agile
+Scrum|KNOWLEDGE|scrum
+Sprint planning|COMPETENCY|sprint planning
+User stories|COMPETENCY|user stories|user story
+Acceptance criteria|COMPETENCY|acceptance criteria
+Stakeholder management|SOFT_SKILL|stakeholder management|quan ly cac ben lien quan
+Decision making|SOFT_SKILL|decision-making|decision making|ra quyet dinh
+Product analytics|COMPETENCY|product analytics|product performance
+KPI management|COMPETENCY|kpi management|kpis
+User behaviour analysis|COMPETENCY|user behaviour analysis|user behavior analysis

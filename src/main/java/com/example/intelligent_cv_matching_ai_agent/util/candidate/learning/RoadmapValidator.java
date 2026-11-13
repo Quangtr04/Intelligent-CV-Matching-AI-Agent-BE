@@ -12,8 +12,8 @@ public final class RoadmapValidator {
 
     public static void validateNodes(
         List<?> nodes) {
-        if (nodes.isEmpty() || nodes.size() > 50)
-            throw new ApiException(502, "Roadmap must have 1..50 nodes");
+        if (nodes.isEmpty())
+            throw new ApiException(502, "Roadmap must contain learning nodes");
 
         for (int i = 0; i < nodes.size(); i++) {
             var node = object(nodes.get(i));
@@ -39,9 +39,6 @@ public final class RoadmapValidator {
 
     public static void validateGaps(
         List<?> gaps) {
-        if (gaps.size() > 100)
-            throw new ApiException(502, "Too many skill gaps");
-
         for (Object raw : gaps) {
             var gap = object(raw);
             if (!(gap.get("skill_name") instanceof String) || text(gap.get("skill_name")).isBlank()

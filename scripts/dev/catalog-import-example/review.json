@@ -1,0 +1,16 @@
+{
+  "catalogVersion":"synthetic-example-1",
+  "source": {
+    "id":"synthetic-example",
+    "url":"local:edunexus-synthetic-example",
+    "revision":"1",
+    "license":"Project-authored",
+    "permissionKind":"USER_OWNED",
+    "permissionEvidence":"Synthetic importer example authored for this project; not roadmap.sh content."
+  },
+  "approvedNodes": {
+    "a":{"skillId":"example-contract-tests","name":"Example contract tests","domain":"QA","type":"SKILL"},
+    "b":{"skillId":"example-pipeline-validation","name":"Example pipeline validation","domain":"DATA","type":"COMPETENCY"}
+  },
+  "prerequisiteEdges":["documented-dependency"]
+}

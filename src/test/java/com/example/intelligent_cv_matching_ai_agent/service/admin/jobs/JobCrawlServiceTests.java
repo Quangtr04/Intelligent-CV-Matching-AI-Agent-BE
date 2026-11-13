@@ -136,7 +136,7 @@ class JobCrawlServiceTests {
         value = {
             "ITVIEC|https://itviec.com/it-jobs?query=Java&page=1&city=ha-noi"
                 + "|https://itviec.com/it-jobs/java-location-1234",
-            "TOPCV|https://www.topcv.vn/tim-viec-lam?keyword=Java&page=1&cityIds%5B%5D=1"
+            "TOPCV|https://www.topcv.vn/tim-viec-lam-java?page=1&cityIds%5B%5D=1"
                 + "|https://www.topcv.vn/viec-lam/java-location/1234.html"},
         delimiter = '|'
     )
@@ -552,7 +552,7 @@ class JobCrawlServiceTests {
             any(),
             eq(run)
         );
-        verify(db).update(contains("search_pages_checked="), eq(1), eq(1), eq(4), eq(run));
+        verify(db).update(contains("search_pages_checked="), eq(1), eq(1), eq(3), eq(run));
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Map<String, Object>> items = ArgumentCaptor.forClass(Map.class);
         verify(db, times(3)).insert(eq("market_crawl_items"), items.capture());

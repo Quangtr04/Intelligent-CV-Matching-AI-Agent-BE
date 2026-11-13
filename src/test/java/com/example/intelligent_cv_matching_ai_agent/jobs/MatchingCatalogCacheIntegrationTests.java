@@ -60,7 +60,7 @@ class MatchingCatalogCacheIntegrationTests {
     }
 
     @BeforeEach
-    void createFixture() {
+    void createFixture() throws Exception {
         schema = "matching_response_cache_" + UUID.randomUUID().toString().replace("-", "");
         new JdbcTemplate(database).execute("CREATE SCHEMA " + schema);
         DriverManagerDataSource scoped =
@@ -74,12 +74,19 @@ class MatchingCatalogCacheIntegrationTests {
             CREATE TABLE market_job_posts(
                 id uuid PRIMARY KEY,raw_content_hash text,job_title text,company_name text,location text,
                 salary_text text,valid_through timestamptz,source_url text,source_site text,status text,
-                parsed_requirements text,parsed_seniority text
+                parsed_requirements text,parsed_seniority text,parsed_responsibilities text,original_content text,raw_content text,
+                ingestion_method text DEFAULT 'CRAWL',reviewed_by_user_id uuid
             )
             """);
+        jdbc.execute(
+            new org.springframework.core.io.ClassPathResource("db/migration/V36__job_requirement_extraction.sql")
+                .getContentAsString(java.nio.charset.StandardCharsets.UTF_8)
+        );
         jdbc.execute("""
-            CREATE TABLE market_job_skills(market_job_id uuid,normalized_skill text,is_required boolean)
+            CREATE TABLE market_job_skills(market_job_id uuid,normalized_skill text,is_required boolean,
+                id uuid DEFAULT gen_random_uuid(),skill_id uuid,skill_name text)
             """);
+        jdbc.execute("CREATE TABLE skills(id uuid PRIMARY KEY,name text)");
         jdbc.execute("""
             CREATE TABLE market_job_sources(
                 id uuid PRIMARY KEY,market_job_id uuid REFERENCES market_job_posts(id),
@@ -87,8 +94,9 @@ class MatchingCatalogCacheIntegrationTests {
             )
             """);
         jdbc.update(
-            "INSERT INTO market_job_posts(id,raw_content_hash,job_title,company_name,location,salary_text,"
-                + "valid_through,source_url,source_site,status) VALUES(?,?,?,?,?,?,now()+interval '2 days',?,?,?)",
+            ("INSERT INTO market_job_posts(id,raw_content_hash,job_title,"
+                + "company_name,location,salary_text,valid_through,source_url,"
+                + "source_site,status) VALUES(?,?,?,?,?,?,now()+interval '2 days',?,?,?)"),
             job,
             "unchanged-raw-hash",
             "Java developer",
@@ -100,7 +108,7 @@ class MatchingCatalogCacheIntegrationTests {
             "ACTIVE"
         );
         jdbc.update(
-            "INSERT INTO market_job_sources VALUES(?,?,?,?,'ACTIVE',now()+interval '1 day',now())",
+            ("INSERT INTO market_job_sources VALUES(?,?,?,?,'ACTIVE',now()+interval " + "'1 day',now())"),
             alias,
             job,
             "https://example.test/alias",
@@ -136,7 +144,10 @@ class MatchingCatalogCacheIntegrationTests {
     @Test
     void changingRequiredSkillsInvalidatesCacheWithoutChangingTheJdHash() {
         Object before = repository.readMarketJobPostsByStatus();
-        jdbc.update("INSERT INTO market_job_skills VALUES(?,'java',true)", job);
+        jdbc.update(
+            "INSERT INTO market_job_skills(market_job_id,normalized_skill,is_required) VALUES(?,'java',true)",
+            job
+        );
         Object withSkill = repository.readMarketJobPostsByStatus();
         assertNotEquals(before, withSkill);
         jdbc.update("UPDATE market_job_skills SET is_required=false WHERE market_job_id=?", job);
@@ -167,9 +178,110 @@ class MatchingCatalogCacheIntegrationTests {
         jdbc.update("UPDATE market_job_posts SET job_title='Ignored inactive title' WHERE id=?", job);
         assertEquals(inactive, repository.readMarketJobPostsByStatus());
         jdbc.update(
-            "UPDATE market_job_posts SET status='ACTIVE',valid_through=now()-interval '1 second' WHERE id=?",
+            ("UPDATE market_job_posts SET status='ACTIVE'," + "valid_through=now()-interval '1 second' WHERE id=?"),
             job
         );
         assertEquals(inactive, repository.readMarketJobPostsByStatus());
+    }
+
+    @Test
+    void snapshotAndManualReviewFlagInvalidateCache() {
+        Object before = repository.readMarketJobPostsByStatus();
+        jdbc.update("UPDATE market_job_posts SET requirement_extraction='{}'::jsonb WHERE id=?", job);
+        Object changed = repository.readMarketJobPostsByStatus();
+        assertNotEquals(before, changed);
+        jdbc.update("UPDATE market_job_posts SET requirement_extraction_verified=true WHERE id=?", job);
+        assertNotEquals(changed, repository.readMarketJobPostsByStatus());
+    }
+
+    @Test
+    void reprocessingIsIdempotentAndProtectsReviewedDataWithoutChangingSources() {
+        jdbc.update(
+            ("UPDATE market_job_posts SET parsed_requirements='Excel or SQL "
+                + "required.', original_content='<h2>Requirements</h2><p>Excel or SQL "
+                + "required.</p>', requirement_extraction='{}'::jsonb,"
+                + "requirement_extraction_verified=true WHERE id=?"),
+            job
+        );
+        var reprocessor =
+            new com.example.intelligent_cv_matching_ai_agent.service.shared.jobs.JobRequirementReprocessor(
+                new SqlStore(jdbc)
+            );
+        var tx = new org.springframework.transaction.support.TransactionTemplate(
+            new org.springframework.jdbc.datasource.DataSourceTransactionManager(jdbc.getDataSource())
+        );
+        assertEquals(0, tx.<Integer>execute(status -> reprocessor.reprocessBatch(10)).intValue());
+        jdbc.update("UPDATE market_job_posts SET requirement_extraction_verified=false WHERE id=?", job);
+        assertEquals(1, tx.<Integer>execute(status -> reprocessor.reprocessBatch(10)).intValue());
+        assertEquals(0, tx.<Integer>execute(status -> reprocessor.reprocessBatch(10)).intValue());
+        assertEquals(
+            "unchanged-raw-hash",
+            jdbc.queryForObject("SELECT raw_content_hash FROM market_job_posts WHERE id=?", String.class, job)
+        );
+        assertEquals(
+            com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobRequirementExtractor.VERSION,
+            jdbc.queryForObject(
+                "SELECT requirement_extraction->>'version' FROM market_job_posts WHERE id=?",
+                String.class,
+                job
+            )
+        );
+    }
+
+    @Test
+    void manuallyEnteredAndReviewedJobsAreNotReprocessed() {
+        var reprocessor =
+            new com.example.intelligent_cv_matching_ai_agent.service.shared.jobs.JobRequirementReprocessor(
+                new SqlStore(jdbc)
+            );
+        jdbc.update("UPDATE market_job_posts SET ingestion_method='MANUAL' WHERE id=?", job);
+        assertEquals(0, reprocessor.reprocessBatch(10));
+        jdbc.update(
+            "UPDATE market_job_posts SET ingestion_method='CRAWL',reviewed_by_user_id=? WHERE id=?",
+            UUID.randomUUID(),
+            job
+        );
+        assertEquals(0, reprocessor.reprocessBatch(10));
+    }
+
+    @Test
+    void reprocessingRefreshesGeneratedSkillsAndCatalogChangesInvalidateSnapshot() {
+        UUID sql = UUID.randomUUID();
+        jdbc.update("INSERT INTO skills VALUES(?, 'SQL')", sql);
+        jdbc.update(
+            "UPDATE market_job_posts SET parsed_requirements='SQL required.', original_content='' WHERE id=?",
+            job
+        );
+        jdbc.update(
+            "INSERT INTO market_job_skills(market_job_id,normalized_skill,is_required) VALUES(?,'obsolete',true)",
+            job
+        );
+        var reprocessor =
+            new com.example.intelligent_cv_matching_ai_agent.service.shared.jobs.JobRequirementReprocessor(
+                new SqlStore(jdbc)
+            );
+        var tx = new org.springframework.transaction.support.TransactionTemplate(
+            new org.springframework.jdbc.datasource.DataSourceTransactionManager(jdbc.getDataSource())
+        );
+        assertEquals(1, tx.<Integer>execute(status -> reprocessor.reprocessBatch(10)).intValue());
+        assertEquals(
+            sql,
+            jdbc.queryForObject("SELECT skill_id FROM market_job_skills WHERE market_job_id=?", UUID.class, job)
+        );
+        assertEquals(
+            "sql",
+            jdbc.queryForObject(
+                "SELECT normalized_skill FROM market_job_skills WHERE market_job_id=?",
+                String.class,
+                job
+            )
+        );
+        jdbc.update(
+            "UPDATE market_job_posts SET requirement_extraction=jsonb_set(requirement_extraction,"
+                + "'{catalogVersion}','\"outdated\"'::jsonb) WHERE id=?",
+            job
+        );
+        assertEquals(1, tx.<Integer>execute(status -> reprocessor.reprocessBatch(10)).intValue());
+        assertEquals(0, tx.<Integer>execute(status -> reprocessor.reprocessBatch(10)).intValue());
     }
 }

@@ -55,7 +55,7 @@ public final class JobUrlDiscovery {
         String encoded = URLEncoder.encode(keyword.strip(), StandardCharsets.UTF_8);
         String url = switch (normalizedSource) {
             case "ITVIEC" -> "https://itviec.com/it-jobs?query=" + encoded + "&page=" + page;
-            case "TOPCV" -> "https://www.topcv.vn/tim-viec-lam?keyword=" + encoded + "&page=" + page;
+            case "TOPCV" -> "https://www.topcv.vn/tim-viec-lam-" + topCvKeywordPath(keyword) + "?page=" + page;
             default -> throw ApiException.badRequest("sourceSite must be ITVIEC or TOPCV");
         };
 
@@ -66,6 +66,13 @@ public final class JobUrlDiscovery {
         }
 
         return JobSourceValidator.validateSourceUrl(normalizedSource, url).toASCIIString();
+    }
+
+    /** TopCV exposes keyword search as a path, rather than the old bare search route. */
+    private static String topCvKeywordPath(
+        String keyword) {
+        String slug = JobNormalizer.fold(keyword.strip()).replaceAll("\\s+", "-");
+        return URLEncoder.encode(slug, StandardCharsets.UTF_8).replace("+", "%20");
     }
 
     private static Map<String, Map<String, String>> loadLocationFilters() {

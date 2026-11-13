@@ -132,8 +132,40 @@ public class LearningService {
                 "nodes",
                 List.of()
             )
-            : new LinkedHashMap<>(modelCalls.execute(status -> ai.generate("ROADMAP_GENERATE", prepared.input())));
+            : generateLearning(prepared);
         return transactions.execute(status -> publishRoadmap(prepared, generated));
+    }
+
+    private Map<String, Object> generateLearning(
+        PreparedRoadmap prepared) {
+        // Bound each provider response, never the complete gap. No partial roadmap is published.
+        final int batchSize = 12;
+        List<Map<String, Object>> combined = new ArrayList<>();
+        Map<String, Object> result = null;
+        for (int start = 0; start < prepared.missing().size(); start += batchSize) {
+            var batch = prepared.missing().subList(start, Math.min(start + batchSize, prepared.missing().size()));
+            Map<String, Object> input = new LinkedHashMap<>(prepared.input());
+            input.put("allowed_missing_skills", batch);
+            input.put("total_learning_skills", prepared.missing().size());
+            input.put("generation_batch", fields("offset", start, "count", batch.size()));
+            var generated = new LinkedHashMap<>(modelCalls.execute(status -> ai.generate("ROADMAP_GENERATE", input)));
+            MissingSkillAnalysis.constrainGenerated(generated, batch);
+            if (result == null) {
+                result = generated;
+            }
+            int offset = combined.size();
+            for (Object raw : array(generated.get("nodes"))) {
+                var node = new LinkedHashMap<>(object(raw));
+                node.put(
+                    "prerequisites",
+                    array(node.get("prerequisites")).stream().map(value -> ((Number) value).intValue() + offset)
+                        .toList()
+                );
+                combined.add(node);
+            }
+        }
+        result.put("nodes", combined);
+        return result;
     }
 
     private PreparedRoadmap prepareRoadmap(
@@ -208,7 +240,18 @@ public class LearningService {
         List<Map<String, Object>> requirements =
             assessedContext != null ? assessedContext.skills() : db.listMarketJobSkillsByMarketJobId(jobId);
         var resumeSkills = resumeId == null ? List.<Map<String, Object>>of() : db.listResumeSkillsByResumeId(resumeId);
-        var missing = MissingSkillAnalysis.find(requirements, profileSkills, resumeSkills, assessment);
+        var analysis = MissingSkillAnalysis.analyze(job, requirements, profileSkills, resumeSkills, assessment);
+        var missing = analysis.learning();
+        var skillCatalog = com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.SkillCatalog.get();
+        var catalogLearning = skillCatalog.learningContext(missing);
+        var extractedRequirements =
+            com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobRequirementExtractor.forJob(job);
+        var requirementSnapshot =
+            tools.jackson.databind.json.JsonMapper.builder().build().convertValue(extractedRequirements, Map.class);
+        var candidateSkillNames = new java.util.HashSet<String>();
+        profileSkills.forEach(skill -> candidateSkillNames.add(text(skill.get("name"))));
+        resumeSkills.forEach(skill -> candidateSkillNames.add(text(skill.get("name"))));
+        var unresolved = MissingSkillAnalysis.unverifiedRequirements(job, candidateSkillNames);
         String contextKey = jobId != null ? "job:" + jobId : "paste:" + text(assessmentSnapshot.get("jd_identity"));
         Map<String, Object> sourceSnapshot = fields(
             "job_id",
@@ -245,7 +288,17 @@ public class LearningService {
             "assessment_input_hash",
             assessment.get("input_hash")
         );
+        sourceSnapshot.put("catalog_version", skillCatalog.version());
+        sourceSnapshot.put("catalog_learning_context", catalogLearning);
+        sourceSnapshot.put("structured_requirements", requirementSnapshot);
+        sourceSnapshot.put("skill_gap_version", "jd-skills-v3");
+        sourceSnapshot.put("skill_states", analysis.skills());
         var recommendationSnapshot = includeReferences ? missingSkillReferences(missing) : fields();
+        recommendationSnapshot.put("catalog_version", skillCatalog.version());
+        recommendationSnapshot.put("skill_states", analysis.skills());
+        recommendationSnapshot.put("gap_analysis_version", "jd-skills-v3");
+        recommendationSnapshot.put("unverified_requirements", unresolved);
+        recommendationSnapshot.put("catalog_learning_context", catalogLearning);
         recommendationSnapshot.put(
             "input_context",
             fields(
@@ -274,6 +327,32 @@ public class LearningService {
             fields("years_experience", profile.get("years_experience")),
             "prerequisite_numbering",
             "1-based sequence; prerequisites must precede their node. Resource URLs are attached by the server."
+        );
+        input.put("catalog_version", skillCatalog.version());
+        input.put("catalog_learning_context", catalogLearning);
+        input.put("unverified_requirements", unresolved);
+        var missingKeys = missing.stream().map(gap -> SkillNames.normalize(text(gap.get("skill_name"))))
+            .collect(java.util.stream.Collectors.toSet());
+        input.put(
+            "jd_requirement_evidence",
+            extractedRequirements.requirements().stream()
+                .filter(
+                    row -> row.skills().stream()
+                        .anyMatch(skill -> missingKeys.contains(SkillNames.normalize(skill.name())))
+                )
+                .map(
+                    row -> fields(
+                        "text",
+                        row.text().substring(0, Math.min(row.text().length(), 1000)),
+                        "importance",
+                        row.importance(),
+                        "relation",
+                        row.relation(),
+                        "bloom",
+                        row.bloom().stream().map(b -> fields("level", b.level(), "justification", b.justification()))
+                            .toList()
+                    )
+                ).toList()
         );
         return new PreparedRoadmap(
             user.id(),
@@ -405,6 +484,9 @@ public class LearningService {
         }
 
         int hours = nodes.stream().mapToInt(n -> (int) number(object(n).get("estimated_hours"), 0)).sum();
+        boolean needsReview = !array(recommendationSnapshot.get("unverified_requirements")).isEmpty()
+            || array(recommendationSnapshot.get("skill_states")).stream()
+                .anyMatch(raw -> "DECLARED".equals(object(raw).get("status")));
 
         UUID roadmapId = db.insertRoadmaps(
             fields(
@@ -421,9 +503,9 @@ public class LearningService {
                 "estimated_total_hours",
                 hours,
                 "status",
-                missing.isEmpty() ? "completed" : "ready",
+                missing.isEmpty() && !needsReview ? "completed" : "ready",
                 "progress_percent",
-                missing.isEmpty() ? 100 : 0,
+                missing.isEmpty() && !needsReview ? 100 : 0,
                 "learning_recommendations_snapshot",
                 db.json(recommendationSnapshot)
             )
@@ -540,6 +622,9 @@ public class LearningService {
         var gaps = db.listGapAnalysisSkillsByGapAnalysisId(roadmap.get("gap_analysis_id"));
         roadmap.put("skill_gaps", gaps);
         Object snapshot = roadmap.remove("learning_recommendations_snapshot");
+        roadmap.put("skill_states", array(object(snapshot).get("skill_states")));
+        roadmap.put("unverified_requirements", array(object(snapshot).get("unverified_requirements")));
+        roadmap.put("gap_analysis_version", object(snapshot).getOrDefault("gap_analysis_version", "LEGACY"));
         if (object(snapshot).containsKey("input_context")) {
             roadmap.put("input_context", object(snapshot).get("input_context"));
         }

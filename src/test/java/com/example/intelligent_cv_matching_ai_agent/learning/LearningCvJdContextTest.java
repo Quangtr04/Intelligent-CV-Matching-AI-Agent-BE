@@ -75,7 +75,10 @@ class LearningCvJdContextTest {
         assertNull(prepared.jobId());
         assertEquals("PASTED", prepared.snapshot().get("jd_source"));
         assertEquals(JD, prepared.input().get("jd_text"));
-        assertEquals(List.of("Java", "SQL"), prepared.skills().stream().map(row -> row.get("skill_name")).toList());
+        assertEquals(
+            List.of("Java", "SQL", "Transactions"),
+            prepared.skills().stream().map(row -> row.get("skill_name")).toList()
+        );
         assertEquals(
             prepared.inputHash(),
             service.restoreForOwner(owner, prepared.snapshot(), prepared.inputHash()).inputHash()
@@ -86,16 +89,16 @@ class LearningCvJdContextTest {
     }
 
     @Test
-    void contextMustUseExactlyOneJdAndPastedTextRequiresACvAndTarget() {
+    void contextMustUseExactlyOneJdAndPastedTextRequiresATargetWithOptionalCv() {
         for (AssessmentRequest request : List.of(
             new AssessmentRequest(null, null, null, null),
             new AssessmentRequest("Java Engineer", job, resume, JD),
-            new AssessmentRequest("Java Engineer", null, null, JD),
             new AssessmentRequest(" ", null, resume, JD)
         )) {
             assertFalse(request.isContextValid());
             assertEquals(400, assertThrows(ApiException.class, () -> service.prepareForOwner(owner, request)).status());
         }
+        assertTrue(new AssessmentRequest("Java Engineer", null, null, JD).isContextValid());
         verifyNoInteractions(ai);
     }
 

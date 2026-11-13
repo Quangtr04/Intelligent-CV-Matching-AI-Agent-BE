@@ -16,6 +16,7 @@ import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.learni
 import com.example.intelligent_cv_matching_ai_agent.util.candidate.learning.LearningInputContext;
 import com.example.intelligent_cv_matching_ai_agent.util.candidate.resume.ResumeContent;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobPostingParser;
+import com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobRequirementExtractor;
 import java.util.regex.Pattern;
 import org.springframework.web.util.HtmlUtils;
 import tools.jackson.databind.json.JsonMapper;
@@ -110,7 +111,7 @@ public class AssessmentService {
         if (!request.isContextValid() || (request.targetJobTitle() != null && request.targetJobTitle().length() > 255)
             || (request.jdText() != null
                 && (request.jdText().strip().length() < 30 || request.jdText().length() > 50000))) {
-            throw ApiException.badRequest("Select one stored JD or paste 30-50000 characters with a confirmed CV");
+            throw ApiException.badRequest("Select one stored JD or paste 30-50000 characters with a target title");
         }
         UUID jobId = request.jobId();
         String target = request.targetJobTitle();
@@ -144,6 +145,37 @@ public class AssessmentService {
             throw ApiException.conflict("The selected job has no job description to assess");
 
         String excerpt = compactJd(jdSources, jobSkills);
+        var extraction = JobRequirementExtractor.forJob(job);
+        Set<String> allowedSkills = new HashSet<>();
+        jobSkills.forEach(skill -> allowedSkills.add(SkillNames.normalize(text(skill.get("skill_name")))));
+        var bloomRequirements = extraction.requirements().stream().filter(row -> !row.skills().isEmpty())
+            .map(
+                row -> fields(
+                    "skills",
+                    row.skills().stream().map(skill -> skill.name())
+                        .filter(name -> allowedSkills.contains(SkillNames.normalize(name))).toList(),
+                    "jd_evidence",
+                    row.text(),
+                    "importance",
+                    row.importance(),
+                    "relation",
+                    row.relation(),
+                    "status",
+                    row.status(),
+                    "bloom",
+                    row.bloom().stream()
+                        .map(
+                            bloom -> fields(
+                                "level",
+                                bloom.level(),
+                                "evidence",
+                                bloom.evidence(),
+                                "justification",
+                                bloom.justification()
+                            )
+                        ).toList()
+                )
+            ).filter(row -> !((List<?>) row.get("skills")).isEmpty()).toList();
         Map<String, Object> profile = db.findCandidateProfilesByUserId2(owner).orElse(Map.of());
         Map<String, Object> input = fields(
             "target_job_title",
@@ -171,6 +203,9 @@ public class AssessmentService {
             5
         );
         Map<String, Object> resumeSnapshot = Map.of();
+        input.put("jd_bloom_requirements", bloomRequirements);
+        input.put("requirement_extraction_version", extraction.version());
+        input.put("skill_catalog_version", extraction.catalogVersion());
         if (request.resumeId() != null) {
             var resume = db.getResumeForOwner(request.resumeId(), owner);
             if (!"READY".equals(resume.get("status"))) {
@@ -213,7 +248,13 @@ public class AssessmentService {
         }
         Map<String, Object> snapshot = fields(
             "version",
-            "cv-jd-learning-v1",
+            "cv-jd-learning-bloom-v2",
+            "jd_bloom_requirements",
+            bloomRequirements,
+            "requirement_extraction_version",
+            extraction.version(),
+            "skill_catalog_version",
+            extraction.catalogVersion(),
             "owner_id",
             owner.toString(),
             "job_id",

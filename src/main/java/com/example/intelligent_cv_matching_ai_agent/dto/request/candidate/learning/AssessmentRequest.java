@@ -19,12 +19,11 @@ public record AssessmentRequest(
         this(targetJobTitle, jobId, null, null);
     }
 
-    @AssertTrue(message = "Select one stored JD or paste a JD with a confirmed CV and target job title")
+    @AssertTrue(message = "Select one stored JD or paste a JD with a target job title; CV is optional")
     @JsonIgnore
     public boolean isContextValid() {
         boolean pasted = jdText != null && !jdText.isBlank();
-        return (jobId != null) != pasted
-            && (!pasted || (resumeId != null && targetJobTitle != null && !targetJobTitle.isBlank()));
+        return (jobId != null) != pasted && (!pasted || (targetJobTitle != null && !targetJobTitle.isBlank()));
     }
 
     @Override

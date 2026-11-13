@@ -83,6 +83,120 @@ class MissingSkillLearningIntegrationTests {
     }
 
     @Test
+    void twentyJdSkillsWithTwoDeclaredKeepAllEighteenLearningNodesAcrossProviderBatches() throws Exception {
+        String[] names = {
+            "Python",
+            "FastAPI",
+            "Django",
+            "API design",
+            "Docker",
+            "Kubernetes",
+            "SQL",
+            "Git",
+            "Java",
+            "JavaScript",
+            "TypeScript",
+            "React",
+            "PostgreSQL",
+            "MongoDB",
+            "Redis",
+            "Linux",
+            "Kafka",
+            "RabbitMQ",
+            "Terraform",
+            "Jenkins"};
+        UUID selected = job(names);
+        declared("SQL");
+        declared("Git");
+        List<String> sent = new ArrayList<>();
+        when(ai.generate(eq("ROADMAP_GENERATE"), anyMap())).thenAnswer(call -> {
+            Map<String, Object> input = call.getArgument(1);
+            var batch = array(input.get("allowed_missing_skills")).stream()
+                .map(raw -> text(object(raw).get("skill_name"))).toList();
+            sent.addAll(batch);
+            return fields(
+                "title",
+                "Complete JD gap",
+                "summary",
+                "Practice the required skills",
+                "nodes",
+                batch.stream()
+                    .map(
+                        name -> fields(
+                            "skill_name",
+                            name,
+                            "description",
+                            "Practice " + name,
+                            "estimated_hours",
+                            2,
+                            "prerequisites",
+                            List.of()
+                        )
+                    ).toList()
+            );
+        });
+        var roadmap = create(fields("jobId", selected));
+        assertEquals(18, sent.size());
+        assertEquals(18, new HashSet<>(sent).size());
+        assertEquals(18, array(roadmap.get("nodes")).size());
+        assertEquals(18, array(roadmap.get("missing_skills")).size());
+        assertEquals(20, array(roadmap.get("skill_states")).size());
+        var saved = read(roadmap.get("id"));
+        assertEquals(20, array(saved.get("skill_states")).size());
+        assertEquals(18, array(saved.get("nodes")).size());
+        verify(ai, times(2)).generate(eq("ROADMAP_GENERATE"), anyMap());
+    }
+
+    @Test
+    void jdSkillsWithFalseLegacyFlagsStillRecommendAllTenWhenProfileOnlyHasSpringBoot() throws Exception {
+        String[] names = {
+            "Artificial intelligence",
+            "Java",
+            "Microservices",
+            "English",
+            "Communication",
+            "Problem solving",
+            "Vector databases",
+            "Docker",
+            "CI/CD",
+            "Distributed systems"};
+        UUID selected = job(names);
+        db.update("UPDATE market_job_skills SET is_required=false WHERE market_job_id=?", selected);
+        declared("Spring Boot");
+        when(ai.generate(eq("ROADMAP_GENERATE"), anyMap())).thenAnswer(call -> {
+            Map<String, Object> input = call.getArgument(1);
+            var batch = array(input.get("allowed_missing_skills"));
+            assertEquals(10, batch.size());
+            return fields(
+                "title",
+                "JD skill learning",
+                "summary",
+                "Learn JD skills",
+                "nodes",
+                batch.stream()
+                    .map(
+                        raw -> fields(
+                            "skill_name",
+                            object(raw).get("skill_name"),
+                            "description",
+                            "Practice",
+                            "estimated_hours",
+                            2,
+                            "prerequisites",
+                            List.of()
+                        )
+                    ).toList()
+            );
+        });
+        var result = create(fields("jobId", selected));
+        assertEquals(10, array(result.get("nodes")).size());
+        assertEquals(10, array(result.get("missing_skills")).size());
+        assertTrue(
+            array(result.get("skill_states")).stream().noneMatch(raw -> "UNVERIFIED".equals(object(raw).get("status")))
+        );
+    }
+
+    @Test
     void aCvPathRequiresItsOwnCompletedAssessmentButTheNoCvPathCanGenerateDirectly() throws Exception {
         UUID job = job("Docker");
         UUID resume = db.insert(
@@ -107,6 +221,43 @@ class MissingSkillLearningIntegrationTests {
         verifyNoInteractions(ai);
         when(ai.generate(eq("ROADMAP_GENERATE"), anyMap())).thenReturn(generated("Docker"));
         assertEquals(1, array(create(fields("jobId", job)).get("nodes")).size());
+    }
+
+    @Test
+    void missingSkillsInAnyProviderBatchCannotPublishAPartialRoadmap() throws Exception {
+        String[] names =
+            java.util.stream.IntStream.range(0, 20).mapToObj(index -> "Skill " + index).toArray(String[]::new);
+        UUID selected = job(names);
+        when(ai.generate(eq("ROADMAP_GENERATE"), anyMap())).thenAnswer(call -> {
+            Map<String, Object> input = call.getArgument(1);
+            var batch = array(input.get("allowed_missing_skills"));
+            int offset = ((Number) object(input.get("generation_batch")).get("offset")).intValue();
+            return fields(
+                "title",
+                "Incomplete",
+                "summary",
+                "Partial output",
+                "nodes",
+                batch.stream().limit(offset == 0 ? batch.size() : 6)
+                    .map(
+                        raw -> fields(
+                            "skill_name",
+                            object(raw).get("skill_name"),
+                            "description",
+                            "Practice",
+                            "estimated_hours",
+                            2,
+                            "prerequisites",
+                            List.of()
+                        )
+                    ).toList()
+            );
+        });
+        mvc.perform(
+            post("/api/v1/roadmaps").header("Authorization", authorization).contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(fields("jobId", selected)))
+        ).andExpect(status().isBadGateway());
+        assertEquals(0L, ((Number) db.scalar("SELECT count(*) FROM roadmaps WHERE user_id=?", owner)).longValue());
     }
 
     @Test
@@ -227,8 +378,11 @@ class MissingSkillLearningIntegrationTests {
 
         var result = create(fields("jobId", job, "resumeId", cv));
 
-        assertEquals("completed", result.get("status"));
-        assertEquals(100, ((Number) result.get("progress_percent")).intValue());
+        assertEquals("ready", result.get("status"));
+        assertEquals(0, ((Number) result.get("progress_percent")).intValue());
+        assertTrue(
+            array(result.get("skill_states")).stream().allMatch(raw -> "DECLARED".equals(object(raw).get("status")))
+        );
         assertTrue(array(result.get("missing_skills")).isEmpty());
         assertTrue(array(result.get("nodes")).isEmpty());
         assertEquals(result.get("missing_skills"), read(result.get("id")).get("missing_skills"));

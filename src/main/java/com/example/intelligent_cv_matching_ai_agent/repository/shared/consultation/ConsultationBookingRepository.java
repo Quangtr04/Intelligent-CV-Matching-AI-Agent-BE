@@ -229,6 +229,43 @@ public class ConsultationBookingRepository {
         db.update("DELETE FROM consultant_busy_slots WHERE id=? AND user_id=?", id, consultant);
     }
 
+    public List<Map<String, Object>> candidateIntervals(
+        UUID candidate,
+        OffsetDateTime from,
+        OffsetDateTime to) {
+        return db.list(
+            "SELECT starts_at,ends_at FROM consultation_bookings WHERE candidate_user_id=? "
+                + "AND status IN ('PENDING','ACCEPTED') AND starts_at<? AND ends_at>?",
+            candidate,
+            to,
+            from
+        );
+    }
+
+    /** Called under the same consultant lock as shift assignment and booking creation. */
+    public void requireAssignedSlot(
+        UUID consultant,
+        OffsetDateTime start,
+        OffsetDateTime end,
+        int minutes) {
+        var shifts = db.list(
+            "SELECT * FROM consultant_work_shifts WHERE consultant_user_id=? "
+                + "AND cancelled_at IS NULL AND starts_at<=? AND ends_at>=?",
+            consultant,
+            start,
+            end
+        );
+        boolean assigned = shifts.stream()
+            .flatMap(
+                shift -> com.example.intelligent_cv_matching_ai_agent.service.shared.consultation.WorkShiftSlots
+                    .generate(shift, minutes).stream()
+            ).anyMatch(slot -> slot.startsAt().isEqual(start) && slot.endsAt().isEqual(end));
+        if (!assigned)
+            throw ApiException.conflict("Choose an available slot from the assigned work schedule");
+        if (busyOverlapsBooking(consultant, start.minusMinutes(15), end.plusMinutes(15)))
+            throw ApiException.conflict("A 15 minute break is required between consultations");
+    }
+
     public Map<String, Object> credit(
         UUID id,
         UUID candidate) {

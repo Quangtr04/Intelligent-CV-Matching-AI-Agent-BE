@@ -42,7 +42,10 @@ class JobMatchRerankTests {
         );
         for (int index = 0; index < compact.size(); index++) {
             Map<String, Object> value = compact.get(index);
-            assertEquals(Set.of("id", "job_title", "location", "salary_text", "raw_content", "skills"), value.keySet());
+            assertEquals(
+                Set.of("id", "job_title", "location", "salary_text", "raw_content", "skills", "requirement_extraction"),
+                value.keySet()
+            );
             assertTrue(value.get("raw_content").toString().length() <= 1500);
             assertFalse(Character.isHighSurrogate(value.get("raw_content").toString().charAt(1498)));
             List<?> skills = (List<?>) value.get("skills");

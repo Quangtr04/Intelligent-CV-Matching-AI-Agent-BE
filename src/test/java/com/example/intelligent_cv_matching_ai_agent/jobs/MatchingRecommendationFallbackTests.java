@@ -54,6 +54,9 @@ class MatchingRecommendationFallbackTests {
         assertEquals(1.0, ((Number) fixture.result(best).get("final_score")).doubleValue());
         assertTrue(fixture.savedResults.stream().noneMatch(row -> missing.equals(row.get("market_job_id"))));
         assertFalse(((List<?>) fixture.result(best).get("strengths_json")).isEmpty());
+        var quality = (Map<?, ?>) ((Map<?, ?>) fixture.result(best).get("match_reason_json")).get("assessment");
+        assertEquals(false, quality.get("requirement_coverage_available"));
+        assertEquals("DECLARED_SKILL_COVERAGE_ONLY", quality.get("score_kind"));
         verifyNoInteractions(fixture.ai);
         verify(fixture.db, never()).readMarketJobEmbeddingsByStatus(any(), any());
         verify(fixture.db, never()).listMarketJobEmbeddingsByStatusForIds(any(), any(), any(), any(), any(), any());

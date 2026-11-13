@@ -60,7 +60,7 @@ class JobCollectionSchedulerTest {
                 null
             )
         );
-        return new JobCollectionScheduler(settings, db, crawler, expirationEnabled, Duration.ofMinutes(15), 500);
+        return new JobCollectionScheduler(settings, db, crawler, expirationEnabled, Duration.ofMinutes(15), 500, true);
     }
 
     @Test
@@ -188,7 +188,7 @@ class JobCollectionSchedulerTest {
         when(db.acquireCollectionLease(anyString(), any(), any(), any())).thenReturn(true);
         when(crawler.crawlAs(any(), eq(actor))).thenReturn(Map.of("status", "COMPLETED"));
         JobCollectionScheduler scheduler =
-            new JobCollectionScheduler(settings, db, crawler, false, Duration.ofMinutes(15), 500);
+            new JobCollectionScheduler(settings, db, crawler, false, Duration.ofMinutes(15), 500, true);
 
         scheduler.collect();
         scheduler.collect();
@@ -235,7 +235,7 @@ class JobCollectionSchedulerTest {
             return Map.of("status", "COMPLETED");
         });
         JobCollectionScheduler scheduler =
-            new JobCollectionScheduler(settings, db, crawler, false, Duration.ofMinutes(15), 500);
+            new JobCollectionScheduler(settings, db, crawler, false, Duration.ofMinutes(15), 500, true);
 
         scheduler.collect();
         scheduler.collect();
@@ -275,7 +275,7 @@ class JobCollectionSchedulerTest {
             return Map.of("status", "COMPLETED");
         });
         JobCollectionScheduler scheduler =
-            new JobCollectionScheduler(settings, db, crawler, false, Duration.ofMinutes(15), 500);
+            new JobCollectionScheduler(settings, db, crawler, false, Duration.ofMinutes(15), 500, true);
 
         scheduler.collect();
         scheduler.collect();
@@ -319,5 +319,15 @@ class JobCollectionSchedulerTest {
         String delay,
         List<CrawlSourceSettingsResponse> sources) {
         return new CrawlSettingsResponse(enabled, delay, actor, sources, "DATABASE", 1, actor, null);
+    }
+
+    @Test
+    void disabledSchedulerDoesNotReadDatabaseSettingsOrStartCrawling() {
+        var settings = mock(CrawlSettingsService.class);
+        var db = mock(JobCollectionRepository.class);
+        var crawler = mock(JobCrawlService.class);
+        var scheduler = new JobCollectionScheduler(settings, db, crawler, true, Duration.ofMinutes(15), 500, false);
+        scheduler.collect();
+        verifyNoInteractions(settings, db, crawler);
     }
 }

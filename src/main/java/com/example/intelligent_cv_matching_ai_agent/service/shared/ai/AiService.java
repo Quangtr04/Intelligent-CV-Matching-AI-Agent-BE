@@ -280,6 +280,7 @@ public class AiService {
         signature.put("model", effective.model());
         signature.put("max_output_tokens", effective.outputTokens());
         signature.put("generation_settings", effective);
+        signature.put("reasoning_effort", effectiveReasoningEffort(effective.model()));
         if ("CV_ANALYZE".equals(feature)) {
             signature.put("language_policy", CvAnalysisLanguage.VERSION);
             signature.put("output_format", AiResponseData.outputFormat(feature));
@@ -420,6 +421,9 @@ public class AiService {
 
             outputTruncated = response.getResult().getMetadata() != null
                 && "length".equalsIgnoreCase(response.getResult().getMetadata().getFinishReason());
+            if (outputTruncated && "ROADMAP_GENERATE".equals(feature)) {
+                throw new IllegalArgumentException("Roadmap output reached the provider token limit");
+            }
             String output = response.getResult().getOutput().getText();
             if (output == null || output.length() > 250_000)
                 throw new IllegalArgumentException("Model output is empty or too large");
@@ -510,10 +514,21 @@ public class AiService {
         // JSON mode and shared validators support every existing task schema.
         // Set timeout per request because SDK option defaults override the client timeout.
         return OpenAiChatOptions.builder().model(effective.model()).maxTokens(effective.outputTokens())
-            .temperature(effective.temperature()).timeout(requestTimeout).maxRetries(0).reasoningEffort(reasoningEffort)
+            .temperature(effective.temperature()).timeout(requestTimeout).maxRetries(0)
+            .reasoningEffort(effectiveReasoningEffort(effective.model()))
             .responseFormat(
                 OpenAiChatModel.ResponseFormat.builder().type(OpenAiChatModel.ResponseFormat.Type.JSON_OBJECT).build()
             ).build();
+    }
+
+    /** Gemini 3+ cannot disable thinking; retain the smallest supported effort for its model family. */
+    private String effectiveReasoningEffort(
+        String model) {
+        if ("gemini".equals(provider) && "none".equals(reasoningEffort)
+            && (model.startsWith("gemini-3") || model.startsWith("gemini-4"))) {
+            return model.startsWith("gemini-3") && model.contains("flash") ? "minimal" : "low";
+        }
+        return reasoningEffort;
     }
 
     private EmbeddingOptions embeddingOptions() {
@@ -570,6 +585,13 @@ public class AiService {
     private static ApiException providerFailure(
         Throwable failure) {
         int status = providerStatus(failure);
+        if (status == 400 || status == 401 || status == 403 || status == 404) {
+            return new ApiException(
+                502,
+                "The AI provider rejected the request (HTTP " + status + "). "
+                    + "Check AI model and request configuration. The request was not automatically retried."
+            );
+        }
         if (status == 429) {
             // Platform/provider limits must not be confused with the candidate's application quota (HTTP 429).
             return new ApiException(
