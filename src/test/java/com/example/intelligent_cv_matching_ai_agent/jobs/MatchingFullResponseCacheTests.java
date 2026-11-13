@@ -65,7 +65,7 @@ class MatchingFullResponseCacheTests {
         assertEquals("DATABASE", database.get("cache_source"));
         verify(fixture.db).getJobMatchingRunsById(any(), eq(fixture.owner));
         verify(fixture.values)
-            .set(startsWith("edunexus:matching:response:v1:"), contains("Java Developer"), any(Duration.class));
+            .set(startsWith("edunexus:matching:response:v2:"), contains("Java Developer"), any(Duration.class));
         clearInvocations(fixture.db);
         assertEquals("REDIS", fixture.match().get("cache_source"));
         verify(fixture.db, never()).getJobMatchingRunsById(any(), any());

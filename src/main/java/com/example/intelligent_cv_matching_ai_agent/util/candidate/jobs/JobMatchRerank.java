@@ -53,6 +53,25 @@ public final class JobMatchRerank {
                 }
             }
             compact.put("skills", List.copyOf(skills));
+            compact.put(
+                "requirement_extraction",
+                com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobRequirementExtractor.forJob(job)
+                    .requirements().stream().limit(20)
+                    .map(
+                        r -> Map.of(
+                            "text",
+                            excerpt(r.text(), 500),
+                            "importance",
+                            r.importance(),
+                            "relation",
+                            r.relation(),
+                            "status",
+                            r.status(),
+                            "skills",
+                            r.skills()
+                        )
+                    ).toList()
+            );
             current.add(Collections.unmodifiableMap(compact));
             if (current.size() == BATCH_SIZE) {
                 batches.add(List.copyOf(current));

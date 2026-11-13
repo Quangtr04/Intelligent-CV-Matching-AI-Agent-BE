@@ -1,0 +1,77 @@
+{
+  "catalogVersion": "synthetic-example-1",
+  "sources": [
+    {
+      "id": "synthetic-example:a",
+      "url": "local:edunexus-synthetic-example",
+      "revision": "1/node:a/sha256:790bf865a118b267ff883965ba7141139ddcd2455b7782c40c81fe0ed1ac14e8",
+      "license": "Project-authored",
+      "permissionEvidence": "Synthetic importer example authored for this project; not roadmap.sh content."
+    },
+    {
+      "id": "synthetic-example:b",
+      "url": "local:edunexus-synthetic-example",
+      "revision": "1/node:b/sha256:790bf865a118b267ff883965ba7141139ddcd2455b7782c40c81fe0ed1ac14e8",
+      "license": "Project-authored",
+      "permissionEvidence": "Synthetic importer example authored for this project; not roadmap.sh content."
+    }
+  ],
+  "skills": [
+    {
+      "id": "example-contract-tests",
+      "name": "Example contract tests",
+      "domain": "QA",
+      "type": "SKILL",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [
+        "example-contract-tests-learning"
+      ],
+      "sourceReferences": [
+        "synthetic-example:a"
+      ]
+    },
+    {
+      "id": "example-pipeline-validation",
+      "name": "Example pipeline validation",
+      "domain": "DATA",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [
+        "example-pipeline-validation-learning"
+      ],
+      "sourceReferences": [
+        "synthetic-example:b"
+      ]
+    }
+  ],
+  "topics": [
+    {
+      "id": "example-contract-tests-learning",
+      "title": "Example contract tests",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "synthetic-example:a"
+      ]
+    },
+    {
+      "id": "example-pipeline-validation-learning",
+      "title": "Example pipeline validation",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [
+        "example-contract-tests-learning"
+      ],
+      "sourceReferences": [
+        "synthetic-example:b"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,5678 @@
+{
+  "catalogVersion": "edunexus-curated-1",
+  "sources": [
+    {
+      "id": "edunexus-authored",
+      "url": "local:edunexus-curation",
+      "revision": "2026-11-13",
+      "license": "Project-authored",
+      "permissionEvidence": "Original EduNexus vocabulary and learning labels; no roadmap.sh text or graph was imported."
+    }
+  ],
+  "skills": [
+    {
+      "id": "a-b-testing",
+      "name": "A/B testing",
+      "domain": "DATA",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "acceptance-criteria",
+      "name": "Acceptance criteria",
+      "domain": "GENERAL",
+      "type": "COMPETENCY",
+      "aliases": [
+        "acceptance criteria"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "access-control",
+      "name": "Access control",
+      "domain": "SECURITY",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "accounting",
+      "name": "Accounting",
+      "domain": "GENERAL",
+      "type": "COMPETENCY",
+      "aliases": [
+        "accounting",
+        "ke toan"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "agile",
+      "name": "Agile",
+      "domain": "GENERAL",
+      "type": "KNOWLEDGE",
+      "aliases": [
+        "agile"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [
+        "agile-practice"
+      ],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "android",
+      "name": "Android",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "android"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "android-sdk",
+      "name": "Android SDK",
+      "domain": "MOBILE",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "angular",
+      "name": "Angular",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "angular",
+        "angularjs"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "ansible",
+      "name": "Ansible",
+      "domain": "DEVOPS",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "apache-airflow",
+      "name": "Apache Airflow",
+      "domain": "DATA",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "airflow"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "apache-flink",
+      "name": "Apache Flink",
+      "domain": "DATA",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "apache-http-server",
+      "name": "Apache HTTP Server",
+      "domain": "DEVOPS",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "apache-spark",
+      "name": "Apache Spark",
+      "domain": "DATA",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "spark"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "api-design",
+      "name": "API design",
+      "domain": "BACKEND",
+      "type": "COMPETENCY",
+      "aliases": [
+        "thiet ke api"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [
+        "\\b(design(?:ed|ing)?|defin(?:e|ed|ing)|thiet ke)\\b.{0,40}\\b(apis?|endpoints?)\\b"
+      ],
+      "relatedSkills": [],
+      "learningTopics": [
+        "api-design-practice"
+      ],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "api-testing",
+      "name": "API testing",
+      "domain": "QA",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "appium",
+      "name": "Appium",
+      "domain": "QA",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "application-security",
+      "name": "Application security",
+      "domain": "SECURITY",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "argo-cd",
+      "name": "Argo CD",
+      "domain": "DEVOPS",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "artificial-intelligence",
+      "name": "Artificial intelligence",
+      "domain": "GENERAL",
+      "type": "KNOWLEDGE",
+      "aliases": [
+        "artificial intelligence",
+        "ai",
+        "tri tue nhan tao"
+      ],
+      "ambiguousAliases": [
+        "ai"
+      ],
+      "contextPattern": "\\b(intelligence|models?|chatbots?|automation|engineer|tri tue)\\b",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "asp-net",
+      "name": "ASP.NET",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "asp.net",
+        "aspnet"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "astro",
+      "name": "Astro",
+      "domain": "FRONTEND",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "auditing",
+      "name": "Auditing",
+      "domain": "BUSINESS",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "automation",
+      "name": "Automation",
+      "domain": "GENERAL",
+      "type": "COMPETENCY",
+      "aliases": [
+        "automation",
+        "tu dong hoa"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "aws",
+      "name": "AWS",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "aws",
+        "amazon web services"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "azure",
+      "name": "Azure",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "azure"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "babel",
+      "name": "Babel",
+      "domain": "FRONTEND",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "backlog-management",
+      "name": "Backlog management",
+      "domain": "GENERAL",
+      "type": "COMPETENCY",
+      "aliases": [
+        "backlog prioritisation",
+        "backlog prioritization",
+        "backlog grooming",
+        "product backlogs",
+        "backlog management"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [
+        "backlog-management-practice"
+      ],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "bash",
+      "name": "Bash",
+      "domain": "DEVOPS",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "bigquery",
+      "name": "BigQuery",
+      "domain": "DATA",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "bookkeeping",
+      "name": "Bookkeeping",
+      "domain": "BUSINESS",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "bootstrap",
+      "name": "Bootstrap",
+      "domain": "FRONTEND",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "bootstrap"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "bpmn",
+      "name": "BPMN",
+      "domain": "PRODUCT",
+      "type": "KNOWLEDGE",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "browser-developer-tools",
+      "name": "Browser developer tools",
+      "domain": "FRONTEND",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "budgeting",
+      "name": "Budgeting",
+      "domain": "BUSINESS",
+      "type": "COMPETENCY",
+      "aliases": [
+        "lap ngan sach"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "business-analysis",
+      "name": "Business analysis",
+      "domain": "GENERAL",
+      "type": "COMPETENCY",
+      "aliases": [
+        "business analysis",
+        "phan tich nghiep vu"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "business-english",
+      "name": "Business English",
+      "domain": "BUSINESS",
+      "type": "LANGUAGE",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "business-intelligence",
+      "name": "Business intelligence",
+      "domain": "GENERAL",
+      "type": "KNOWLEDGE",
+      "aliases": [
+        "business intelligence",
+        "bi tools"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "c",
+      "name": "C",
+      "domain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "c programming"
+      ],
+      "ambiguousAliases": [
+        "c"
+      ],
+      "contextPattern": "\\b(programming|embedded|compiler|lap trinh|nhung)\\b",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "caching",
+      "name": "Caching",
+      "domain": "BACKEND",
+      "type": "KNOWLEDGE",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "capacity-planning",
+      "name": "Capacity planning",
+      "domain": "DEVOPS",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "cassandra",
+      "name": "Cassandra",
+      "domain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "change-management",
+      "name": "Change management",
+      "domain": "PRODUCT",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "chatbots",
+      "name": "Chatbots",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "chatbot",
+        "chatbots"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "ci-cd",
+      "name": "CI/CD",
+      "domain": "DEVOPS",
+      "type": "KNOWLEDGE",
+      "aliases": [
+        "ci cd",
+        "continuous integration",
+        "continuous delivery",
+        "continuous deployment"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "circleci",
+      "name": "CircleCI",
+      "domain": "DEVOPS",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "communication",
+      "name": "Communication",
+      "domain": "GENERAL",
+      "type": "SOFT_SKILL",
+      "aliases": [
+        "communication skills",
+        "good communication",
+        "ky nang giao tiep",
+        "giao tiep tot",
+        "written communication",
+        "verbal communication",
+        "giao tiep"
+      ],
+      "ambiguousAliases": [
+        "communication",
+        "giao tiep"
+      ],
+      "contextPattern": "^(?!.*communication (?:protocols?|systems?|networks?)).*\\b(skills?|verbal|written|good|strong|excellent|stakeholders?|teams?|ky nang|tot|kha nang|nhom)\\b",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [
+        "communication-practice"
+      ],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "competitive-analysis",
+      "name": "Competitive analysis",
+      "domain": "PRODUCT",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "computer-vision",
+      "name": "Computer vision",
+      "domain": "DATA",
+      "type": "KNOWLEDGE",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "concurrency",
+      "name": "Concurrency",
+      "domain": "BACKEND",
+      "type": "KNOWLEDGE",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "conflict-resolution",
+      "name": "Conflict resolution",
+      "domain": "BUSINESS",
+      "type": "SOFT_SKILL",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "confluence",
+      "name": "Confluence",
+      "domain": "PRODUCT",
+      "type": "TOOL",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "containerization",
+      "name": "Containerization",
+      "domain": "DEVOPS",
+      "type": "KNOWLEDGE",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "content-strategy",
+      "name": "Content strategy",
+      "domain": "BUSINESS",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "conversion-optimization",
+      "name": "Conversion optimization",
+      "domain": "PRODUCT",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "cpp",
+      "name": "C++",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "c++"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "crm",
+      "name": "CRM",
+      "domain": "BUSINESS",
+      "type": "TOOL",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "csharp",
+      "name": "C#",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "c#",
+        "csharp",
+        "c sharp"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "css",
+      "name": "CSS",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "css",
+        "css3"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "cucumber",
+      "name": "Cucumber",
+      "domain": "QA",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "customer-service",
+      "name": "Customer service",
+      "domain": "GENERAL",
+      "type": "COMPETENCY",
+      "aliases": [
+        "customer service",
+        "cham soc khach hang"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "cypress",
+      "name": "Cypress",
+      "domain": "QA",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "cypress"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "dapper",
+      "name": "Dapper",
+      "domain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "dart",
+      "name": "Dart",
+      "domain": "MOBILE",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "dart"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "dast",
+      "name": "DAST",
+      "domain": "SECURITY",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "data-analysis",
+      "name": "Data analysis",
+      "domain": "GENERAL",
+      "type": "COMPETENCY",
+      "aliases": [
+        "data analysis",
+        "analyze data",
+        "phan tich du lieu"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [
+        "data-visualization",
+        "statistical-analysis"
+      ],
+      "learningTopics": [
+        "data-analysis-practice"
+      ],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "data-governance",
+      "name": "Data governance",
+      "domain": "DATA",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "quan tri du lieu"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "data-handling",
+      "name": "Data handling",
+      "domain": "GENERAL",
+      "type": "COMPETENCY",
+      "aliases": [
+        "data handling",
+        "data processing",
+        "xu ly du lieu"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [
+        "\\b(clean(?:ed|ing)?|transform(?:ed|ing)?|process(?:ed|ing)?|lam sach|bien doi|xu ly)\\b.{0,40}\\b(data|datasets|du lieu)\\b"
+      ],
+      "relatedSkills": [],
+      "learningTopics": [
+        "data-handling-practice"
+      ],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "data-modeling",
+      "name": "Data modeling",
+      "domain": "DATA",
+      "type": "COMPETENCY",
+      "aliases": [
+        "mo hinh hoa du lieu"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "data-pipelines",
+      "name": "Data pipelines",
+      "domain": "DATA",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [
+        "data-pipelines-practice"
+      ],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "data-quality",
+      "name": "Data quality",
+      "domain": "DATA",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "chat luong du lieu"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "data-visualization",
+      "name": "Data visualization",
+      "domain": "DATA",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "truc quan hoa du lieu"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [
+        "data-visualization-practice"
+      ],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "data-warehousing",
+      "name": "Data warehousing",
+      "domain": "DATA",
+      "type": "KNOWLEDGE",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "database-design",
+      "name": "Database design",
+      "domain": "BACKEND",
+      "type": "KNOWLEDGE",
+      "aliases": [
+        "thiet ke co so du lieu"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [
+        "database-design-practice"
+      ],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "database-indexing",
+      "name": "Database indexing",
+      "domain": "BACKEND",
+      "type": "KNOWLEDGE",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "databricks",
+      "name": "Databricks",
+      "domain": "DATA",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "datadog",
+      "name": "Datadog",
+      "domain": "DEVOPS",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "dbt",
+      "name": "dbt",
+      "domain": "DATA",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "decision-making",
+      "name": "Decision making",
+      "domain": "GENERAL",
+      "type": "SOFT_SKILL",
+      "aliases": [
+        "decision-making",
+        "decision making",
+        "ra quyet dinh"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "deep-learning",
+      "name": "Deep learning",
+      "domain": "DATA",
+      "type": "KNOWLEDGE",
+      "aliases": [
+        "hoc sau"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "design-patterns",
+      "name": "Design patterns",
+      "domain": "BACKEND",
+      "type": "KNOWLEDGE",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "design-systems",
+      "name": "Design systems",
+      "domain": "PRODUCT",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "digital-marketing",
+      "name": "Digital marketing",
+      "domain": "BUSINESS",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "disaster-recovery",
+      "name": "Disaster recovery",
+      "domain": "DEVOPS",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "distributed-systems",
+      "name": "Distributed systems",
+      "domain": "BACKEND",
+      "type": "KNOWLEDGE",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "django",
+      "name": "Django",
+      "domain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "django"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "dns",
+      "name": "DNS",
+      "domain": "DEVOPS",
+      "type": "KNOWLEDGE",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "docker",
+      "name": "Docker",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "docker"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [
+        "docker-practice"
+      ],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "documentation",
+      "name": "Documentation",
+      "domain": "PRODUCT",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "domain-driven-design",
+      "name": "Domain-driven design",
+      "domain": "BACKEND",
+      "type": "KNOWLEDGE",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "dotnet",
+      "name": ".NET",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        ".net",
+        "dotnet"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "duckdb",
+      "name": "DuckDB",
+      "domain": "DATA",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "dvc",
+      "name": "DVC",
+      "domain": "DATA",
+      "type": "TOOL",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "dynamodb",
+      "name": "DynamoDB",
+      "domain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "elasticsearch",
+      "name": "Elasticsearch",
+      "domain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "elasticsearch",
+        "elastic search"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "elixir",
+      "name": "Elixir",
+      "domain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "elt",
+      "name": "ELT",
+      "domain": "DATA",
+      "type": "KNOWLEDGE",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "encryption",
+      "name": "Encryption",
+      "domain": "SECURITY",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "end-to-end-testing",
+      "name": "End-to-end testing",
+      "domain": "QA",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "english",
+      "name": "English",
+      "domain": "GENERAL",
+      "type": "LANGUAGE",
+      "aliases": [
+        "english",
+        "tieng anh"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [
+        "english-practice"
+      ],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "entity-framework",
+      "name": "Entity Framework",
+      "domain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "etl",
+      "name": "ETL",
+      "domain": "DATA",
+      "type": "KNOWLEDGE",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "event-driven-architecture",
+      "name": "Event-driven architecture",
+      "domain": "BACKEND",
+      "type": "KNOWLEDGE",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "excel",
+      "name": "Excel",
+      "domain": "GENERAL",
+      "type": "TOOL",
+      "aliases": [
+        "excel",
+        "microsoft excel"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "exploratory-testing",
+      "name": "Exploratory testing",
+      "domain": "QA",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "expo",
+      "name": "Expo",
+      "domain": "MOBILE",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "express-js",
+      "name": "Express.js",
+      "domain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "express.js",
+        "expressjs",
+        "express js"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "fastapi",
+      "name": "FastAPI",
+      "domain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "fastapi",
+        "fast api"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "feature-engineering",
+      "name": "Feature engineering",
+      "domain": "DATA",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "figma",
+      "name": "Figma",
+      "domain": "PRODUCT",
+      "type": "COMPETENCY",
+      "aliases": [
+        "figma"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "financial-analysis",
+      "name": "Financial analysis",
+      "domain": "BUSINESS",
+      "type": "COMPETENCY",
+      "aliases": [
+        "phan tich tai chinh"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "financial-reporting",
+      "name": "Financial reporting",
+      "domain": "GENERAL",
+      "type": "COMPETENCY",
+      "aliases": [
+        "financial reporting",
+        "bao cao tai chinh"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [
+        "\\b(prepar(?:e|ed|ing)|produc(?:e|ed|ing)|lap)\\b.{0,40}\\b(financial reports|bao cao tai chinh)\\b"
+      ],
+      "relatedSkills": [],
+      "learningTopics": [
+        "financial-reporting-practice"
+      ],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "firebase",
+      "name": "Firebase",
+      "domain": "MOBILE",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "flask",
+      "name": "Flask",
+      "domain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "flask"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "flutter",
+      "name": "Flutter",
+      "domain": "MOBILE",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "flutter"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "forecasting",
+      "name": "Forecasting",
+      "domain": "DATA",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "functional-programming",
+      "name": "Functional programming",
+      "domain": "BACKEND",
+      "type": "KNOWLEDGE",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "gcp",
+      "name": "GCP",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "gcp",
+        "google cloud platform"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "git",
+      "name": "Git",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "git"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "github-actions",
+      "name": "GitHub Actions",
+      "domain": "DEVOPS",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "gitlab-ci",
+      "name": "GitLab CI",
+      "domain": "DEVOPS",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "go",
+      "name": "Go",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "golang",
+        "go programming",
+        "go"
+      ],
+      "ambiguousAliases": [
+        "go"
+      ],
+      "contextPattern": "\\b(golang|programming|language|backend|lap trinh)\\b",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "gradle",
+      "name": "Gradle",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "gradle"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "grafana",
+      "name": "Grafana",
+      "domain": "DEVOPS",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "graphql",
+      "name": "GraphQL",
+      "domain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "graphql",
+        "graph ql"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "grpc",
+      "name": "gRPC",
+      "domain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "hadoop",
+      "name": "Hadoop",
+      "domain": "DATA",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "helm",
+      "name": "Helm",
+      "domain": "DEVOPS",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "hibernate",
+      "name": "Hibernate",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "hibernate"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "hive",
+      "name": "Hive",
+      "domain": "DATA",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "html",
+      "name": "HTML",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "html",
+        "html5"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "http",
+      "name": "HTTP",
+      "domain": "DEVOPS",
+      "type": "KNOWLEDGE",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "hubspot",
+      "name": "HubSpot",
+      "domain": "BUSINESS",
+      "type": "TOOL",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "hypothesis-testing",
+      "name": "Hypothesis testing",
+      "domain": "DATA",
+      "type": "KNOWLEDGE",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "incident-management",
+      "name": "Incident management",
+      "domain": "DEVOPS",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [
+        "\\b(resolv(?:e|ed|ing)|coordinat(?:e|ed|ing)|manag(?:e|ed|ing)|xu ly)\\b.{0,40}\\b(incidents?|su co)\\b"
+      ],
+      "relatedSkills": [],
+      "learningTopics": [
+        "incident-management-practice"
+      ],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "information-architecture",
+      "name": "Information architecture",
+      "domain": "PRODUCT",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "infrastructure-as-code",
+      "name": "Infrastructure as code",
+      "domain": "DEVOPS",
+      "type": "KNOWLEDGE",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "integration-testing",
+      "name": "Integration testing",
+      "domain": "QA",
+      "type": "COMPETENCY",
+      "aliases": [
+        "integration tests",
+        "kiem thu tich hop"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "interaction-design",
+      "name": "Interaction design",
+      "domain": "PRODUCT",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "inventory-management",
+      "name": "Inventory management",
+      "domain": "BUSINESS",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "ionic",
+      "name": "Ionic",
+      "domain": "MOBILE",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "ios",
+      "name": "iOS",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "ios"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "java",
+      "name": "Java",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "java"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [
+        "java-practice"
+      ],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "javascript",
+      "name": "JavaScript",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "javascript",
+        "java script",
+        "js"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "jenkins",
+      "name": "Jenkins",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "jenkins"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "jetpack-compose",
+      "name": "Jetpack Compose",
+      "domain": "MOBILE",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "jira",
+      "name": "Jira",
+      "domain": "PRODUCT",
+      "type": "TOOL",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "jmeter",
+      "name": "JMeter",
+      "domain": "QA",
+      "type": "TOOL",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "junit",
+      "name": "JUnit",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "junit"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "jupyter",
+      "name": "Jupyter",
+      "domain": "DATA",
+      "type": "TOOL",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "jwt",
+      "name": "JWT",
+      "domain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "k6",
+      "name": "k6",
+      "domain": "QA",
+      "type": "TOOL",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "kafka",
+      "name": "Kafka",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "kafka"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "kanban",
+      "name": "Kanban",
+      "domain": "PRODUCT",
+      "type": "KNOWLEDGE",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "keras",
+      "name": "Keras",
+      "domain": "DATA",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "kotlin",
+      "name": "Kotlin",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "kotlin"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "kpi-management",
+      "name": "KPI management",
+      "domain": "GENERAL",
+      "type": "COMPETENCY",
+      "aliases": [
+        "kpi management",
+        "kpis"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "kubeflow",
+      "name": "Kubeflow",
+      "domain": "DATA",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "kubernetes",
+      "name": "Kubernetes",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "kubernetes",
+        "k8s"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [
+        "kubernetes-practice"
+      ],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "kustomize",
+      "name": "Kustomize",
+      "domain": "DEVOPS",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "laravel",
+      "name": "Laravel",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "laravel"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "leadership",
+      "name": "Leadership",
+      "domain": "BUSINESS",
+      "type": "SOFT_SKILL",
+      "aliases": [
+        "ky nang lanh dao"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "lean",
+      "name": "Lean",
+      "domain": "PRODUCT",
+      "type": "KNOWLEDGE",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "lightgbm",
+      "name": "LightGBM",
+      "domain": "DATA",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "linux",
+      "name": "Linux",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "linux"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "load-balancing",
+      "name": "Load balancing",
+      "domain": "DEVOPS",
+      "type": "KNOWLEDGE",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "logical-thinking",
+      "name": "Logical thinking",
+      "domain": "GENERAL",
+      "type": "SOFT_SKILL",
+      "aliases": [
+        "logical thinking",
+        "tu duy logic"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "machine-learning",
+      "name": "Machine learning",
+      "domain": "DATA",
+      "type": "KNOWLEDGE",
+      "aliases": [
+        "hoc may"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [
+        "machine-learning-practice"
+      ],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "market-research",
+      "name": "Market research",
+      "domain": "PRODUCT",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "matplotlib",
+      "name": "Matplotlib",
+      "domain": "DATA",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "maven",
+      "name": "Maven",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "maven"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "message-queues",
+      "name": "Message queues",
+      "domain": "BACKEND",
+      "type": "KNOWLEDGE",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "microservices",
+      "name": "Microservices",
+      "domain": "BACKEND",
+      "type": "KNOWLEDGE",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "mlflow",
+      "name": "MLflow",
+      "domain": "DATA",
+      "type": "TOOL",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "mlops",
+      "name": "MLOps",
+      "domain": "DATA",
+      "type": "KNOWLEDGE",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "mobile-accessibility",
+      "name": "Mobile accessibility",
+      "domain": "MOBILE",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "mockito",
+      "name": "Mockito",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "mockito"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "model-deployment",
+      "name": "Model deployment",
+      "domain": "DATA",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "model-evaluation",
+      "name": "Model evaluation",
+      "domain": "DATA",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "mongodb",
+      "name": "MongoDB",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "mongodb",
+        "mongo db"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "multithreading",
+      "name": "Multithreading",
+      "domain": "BACKEND",
+      "type": "KNOWLEDGE",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "mysql",
+      "name": "MySQL",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "mysql"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "n8n",
+      "name": "n8n",
+      "domain": "GENERAL",
+      "type": "TOOL",
+      "aliases": [
+        "n8n"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "natural-language-processing",
+      "name": "Natural language processing",
+      "domain": "DATA",
+      "type": "KNOWLEDGE",
+      "aliases": [
+        "nlp",
+        "xu ly ngon ngu tu nhien"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "negotiation",
+      "name": "Negotiation",
+      "domain": "BUSINESS",
+      "type": "COMPETENCY",
+      "aliases": [
+        "dam phan"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "neo4j",
+      "name": "Neo4j",
+      "domain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "nestjs",
+      "name": "NestJS",
+      "domain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "nestjs",
+        "nest.js",
+        "nest js"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "network-security",
+      "name": "Network security",
+      "domain": "SECURITY",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "next-js",
+      "name": "Next.js",
+      "domain": "FRONTEND",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "next.js",
+        "nextjs",
+        "next js"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "nginx",
+      "name": "Nginx",
+      "domain": "DEVOPS",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "nodejs",
+      "name": "Node.js",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "node.js",
+        "nodejs",
+        "node js"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "notion",
+      "name": "Notion",
+      "domain": "PRODUCT",
+      "type": "TOOL",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "numpy",
+      "name": "NumPy",
+      "domain": "DATA",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "nuxt-js",
+      "name": "Nuxt.js",
+      "domain": "FRONTEND",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "nuxt.js",
+        "nuxtjs",
+        "nuxt js"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "oauth-2-0",
+      "name": "OAuth 2.0",
+      "domain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "object-oriented-programming",
+      "name": "Object-oriented programming",
+      "domain": "BACKEND",
+      "type": "KNOWLEDGE",
+      "aliases": [
+        "oop",
+        "lap trinh huong doi tuong"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "okrs",
+      "name": "OKRs",
+      "domain": "PRODUCT",
+      "type": "KNOWLEDGE",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "openid-connect",
+      "name": "OpenID Connect",
+      "domain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "opensearch",
+      "name": "OpenSearch",
+      "domain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "opentelemetry",
+      "name": "OpenTelemetry",
+      "domain": "DEVOPS",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "oracle",
+      "name": "Oracle",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "oracle"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "owasp",
+      "name": "OWASP",
+      "domain": "SECURITY",
+      "type": "KNOWLEDGE",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "pandas",
+      "name": "Pandas",
+      "domain": "DATA",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "payroll",
+      "name": "Payroll",
+      "domain": "BUSINESS",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "penetration-testing",
+      "name": "Penetration testing",
+      "domain": "SECURITY",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "performance-testing",
+      "name": "Performance testing",
+      "domain": "QA",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "php",
+      "name": "PHP",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "php"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "playwright",
+      "name": "Playwright",
+      "domain": "QA",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "playwright"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "polars",
+      "name": "Polars",
+      "domain": "DATA",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "postgresql",
+      "name": "PostgreSQL",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "postgresql",
+        "postgres"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "postman",
+      "name": "Postman",
+      "domain": "QA",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "postman"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "power-bi",
+      "name": "Power BI",
+      "domain": "GENERAL",
+      "type": "TOOL",
+      "aliases": [
+        "power bi",
+        "powerbi"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "powershell",
+      "name": "PowerShell",
+      "domain": "DEVOPS",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "presentation-skills",
+      "name": "Presentation skills",
+      "domain": "BUSINESS",
+      "type": "SOFT_SKILL",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "presto",
+      "name": "Presto",
+      "domain": "DATA",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "prioritization",
+      "name": "Prioritization",
+      "domain": "PRODUCT",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "prisma",
+      "name": "Prisma",
+      "domain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "problem-solving",
+      "name": "Problem solving",
+      "domain": "GENERAL",
+      "type": "SOFT_SKILL",
+      "aliases": [
+        "problem-solving",
+        "problem solving",
+        "giai quyet van de"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "process-modeling",
+      "name": "Process modeling",
+      "domain": "PRODUCT",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "procurement",
+      "name": "Procurement",
+      "domain": "BUSINESS",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "product-analytics",
+      "name": "Product analytics",
+      "domain": "GENERAL",
+      "type": "COMPETENCY",
+      "aliases": [
+        "product analytics",
+        "product performance"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "product-discovery",
+      "name": "Product discovery",
+      "domain": "PRODUCT",
+      "type": "COMPETENCY",
+      "aliases": [
+        "kham pha san pham"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "product-lifecycle-management",
+      "name": "Product lifecycle management",
+      "domain": "GENERAL",
+      "type": "COMPETENCY",
+      "aliases": [
+        "product lifecycle management"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "product-management",
+      "name": "Product management",
+      "domain": "GENERAL",
+      "type": "COMPETENCY",
+      "aliases": [
+        "product management",
+        "quan ly san pham"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [
+        "product-management-practice"
+      ],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "product-operations",
+      "name": "Product operations",
+      "domain": "GENERAL",
+      "type": "COMPETENCY",
+      "aliases": [
+        "product operations"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "product-ownership",
+      "name": "Product ownership",
+      "domain": "GENERAL",
+      "type": "COMPETENCY",
+      "aliases": [
+        "product ownership",
+        "product owner"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [
+        "product-ownership-practice"
+      ],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "product-roadmapping",
+      "name": "Product roadmapping",
+      "domain": "GENERAL",
+      "type": "COMPETENCY",
+      "aliases": [
+        "product roadmapping",
+        "product roadmaps"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "product-strategy",
+      "name": "Product strategy",
+      "domain": "GENERAL",
+      "type": "COMPETENCY",
+      "aliases": [
+        "product strategy",
+        "product strategies",
+        "chien luoc san pham"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "progressive-web-apps",
+      "name": "Progressive web apps",
+      "domain": "FRONTEND",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "project-management",
+      "name": "Project management",
+      "domain": "GENERAL",
+      "type": "COMPETENCY",
+      "aliases": [
+        "project management",
+        "quan ly du an"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "prometheus",
+      "name": "Prometheus",
+      "domain": "DEVOPS",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "prompt-engineering",
+      "name": "Prompt engineering",
+      "domain": "DATA",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "prototyping",
+      "name": "Prototyping",
+      "domain": "PRODUCT",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "pulumi",
+      "name": "Pulumi",
+      "domain": "DEVOPS",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "python",
+      "name": "Python",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "python"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [
+        "python-practice"
+      ],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "pytorch",
+      "name": "PyTorch",
+      "domain": "DATA",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "query-optimization",
+      "name": "Query optimization",
+      "domain": "BACKEND",
+      "type": "COMPETENCY",
+      "aliases": [
+        "toi uu truy van"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [
+        "\\b(optimi[sz](?:e|ed|ing)|tun(?:e|ed|ing)|toi uu)\\b.{0,40}\\b(queries|truy van)\\b"
+      ],
+      "relatedSkills": [],
+      "learningTopics": [
+        "query-optimization-practice"
+      ],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "r",
+      "name": "R",
+      "domain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "r programming"
+      ],
+      "ambiguousAliases": [
+        "r"
+      ],
+      "contextPattern": "\\b(programming|statistics|statistical|analysis|phan tich|thong ke|lap trinh)\\b",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "rabbitmq",
+      "name": "RabbitMQ",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "rabbitmq",
+        "rabbit mq"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "react",
+      "name": "React",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "react",
+        "reactjs",
+        "react.js",
+        "react js"
+      ],
+      "ambiguousAliases": [
+        "react"
+      ],
+      "contextPattern": "\\b(javascript|typescript|frontend|jsx|hooks|components?|react native|react (?:developer|projects?|engineer|required))\\b",
+      "recognitionPatterns": [],
+      "relatedSkills": [
+        "react-native"
+      ],
+      "learningTopics": [
+        "react-practice"
+      ],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "react-native",
+      "name": "React Native",
+      "domain": "MOBILE",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "react native"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "recruitment",
+      "name": "Recruitment",
+      "domain": "BUSINESS",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "redis",
+      "name": "Redis",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "redis"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "redshift",
+      "name": "Redshift",
+      "domain": "DATA",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "redux",
+      "name": "Redux",
+      "domain": "FRONTEND",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "regression-testing",
+      "name": "Regression testing",
+      "domain": "QA",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "release-management",
+      "name": "Release management",
+      "domain": "PRODUCT",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "requirements-elicitation",
+      "name": "Requirements elicitation",
+      "domain": "PRODUCT",
+      "type": "COMPETENCY",
+      "aliases": [
+        "thu thap yeu cau"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [
+        "\\b(gather(?:ed|ing)?|elicit(?:ed|ing)?|collect(?:ed|ing)?|thu thap)\\b.{0,40}\\b(requirements|yeu cau)\\b"
+      ],
+      "relatedSkills": [],
+      "learningTopics": [
+        "requirements-elicitation-practice"
+      ],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "requirements-translation",
+      "name": "Requirements translation",
+      "domain": "GENERAL",
+      "type": "COMPETENCY",
+      "aliases": [
+        "translate business requirements",
+        "chuyen doi yeu cau nghiep vu"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "responsive-design",
+      "name": "Responsive design",
+      "domain": "FRONTEND",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "rest-api",
+      "name": "REST API",
+      "domain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "rest api",
+        "restful api",
+        "restful apis",
+        "rest apis"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [
+        "rest-api-practice"
+      ],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "rest-assured",
+      "name": "REST Assured",
+      "domain": "QA",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "retention-analysis",
+      "name": "Retention analysis",
+      "domain": "PRODUCT",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "retrieval-augmented-generation",
+      "name": "Retrieval augmented generation",
+      "domain": "DATA",
+      "type": "KNOWLEDGE",
+      "aliases": [
+        "retrieval-augmented generation"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "risk-assessment",
+      "name": "Risk assessment",
+      "domain": "GENERAL",
+      "type": "COMPETENCY",
+      "aliases": [
+        "risk assessment",
+        "danh gia rui ro"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [
+        "\\b(assess(?:ed|ing)?|evaluat(?:e|ed|ing)|danh gia)\\b.{0,40}\\b(risks|rui ro)\\b"
+      ],
+      "relatedSkills": [],
+      "learningTopics": [
+        "risk-assessment-practice"
+      ],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "ruby",
+      "name": "Ruby",
+      "domain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "ruby-on-rails",
+      "name": "Ruby on Rails",
+      "domain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "rust",
+      "name": "Rust",
+      "domain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "sales",
+      "name": "Sales",
+      "domain": "BUSINESS",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "salesforce",
+      "name": "Salesforce",
+      "domain": "BUSINESS",
+      "type": "TOOL",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "sass",
+      "name": "Sass",
+      "domain": "FRONTEND",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "sass",
+        "scss"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "sast",
+      "name": "SAST",
+      "domain": "SECURITY",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "scala",
+      "name": "Scala",
+      "domain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "scikit-learn",
+      "name": "scikit-learn",
+      "domain": "DATA",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "sklearn"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "scipy",
+      "name": "SciPy",
+      "domain": "DATA",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "scrum",
+      "name": "Scrum",
+      "domain": "GENERAL",
+      "type": "KNOWLEDGE",
+      "aliases": [
+        "scrum"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [
+        "scrum-practice"
+      ],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "seaborn",
+      "name": "Seaborn",
+      "domain": "DATA",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "secrets-management",
+      "name": "Secrets management",
+      "domain": "SECURITY",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "security-auditing",
+      "name": "Security auditing",
+      "domain": "SECURITY",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "selenium",
+      "name": "Selenium",
+      "domain": "QA",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "selenium"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "seo",
+      "name": "SEO",
+      "domain": "BUSINESS",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "shell-scripting",
+      "name": "Shell scripting",
+      "domain": "DEVOPS",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "siem",
+      "name": "SIEM",
+      "domain": "SECURITY",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "site-reliability-engineering",
+      "name": "Site reliability engineering",
+      "domain": "DEVOPS",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "snowflake",
+      "name": "Snowflake",
+      "domain": "DATA",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "soc",
+      "name": "SOC",
+      "domain": "SECURITY",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "spring",
+      "name": "Spring",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "spring",
+        "springmvc",
+        "spring mvc"
+      ],
+      "ambiguousAliases": [
+        "spring"
+      ],
+      "contextPattern": "\\b(java|boot|mvc|framework|beans?|jpa)\\b",
+      "recognitionPatterns": [],
+      "relatedSkills": [
+        "spring-boot"
+      ],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "spring-boot",
+      "name": "Spring Boot",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "spring boot",
+        "springboot"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "sprint-planning",
+      "name": "Sprint planning",
+      "domain": "GENERAL",
+      "type": "COMPETENCY",
+      "aliases": [
+        "sprint planning"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "sql",
+      "name": "SQL",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "sql"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [
+        "postgresql",
+        "mysql",
+        "sql-server"
+      ],
+      "learningTopics": [
+        "sql-practice"
+      ],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "sql-server",
+      "name": "SQL Server",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "sql server",
+        "mssql"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "sqlite",
+      "name": "SQLite",
+      "domain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "sqlite"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "stakeholder-management",
+      "name": "Stakeholder management",
+      "domain": "GENERAL",
+      "type": "SOFT_SKILL",
+      "aliases": [
+        "stakeholder management",
+        "quan ly cac ben lien quan"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [
+        "\\b(align(?:ed|ing)?|coordinat(?:e|ed|ing)|manag(?:e|ed|ing)|phoi hop|quan ly)\\b.{0,40}\\b(stakeholders|cac ben lien quan)\\b"
+      ],
+      "relatedSkills": [],
+      "learningTopics": [
+        "stakeholder-management-practice"
+      ],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "statistical-analysis",
+      "name": "Statistical analysis",
+      "domain": "DATA",
+      "type": "KNOWLEDGE",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "supply-chain-management",
+      "name": "Supply chain management",
+      "domain": "BUSINESS",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "svelte",
+      "name": "Svelte",
+      "domain": "FRONTEND",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "sveltekit",
+      "name": "SvelteKit",
+      "domain": "FRONTEND",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "swift",
+      "name": "Swift",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "swift"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "swiftui",
+      "name": "SwiftUI",
+      "domain": "MOBILE",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "tableau",
+      "name": "Tableau",
+      "domain": "GENERAL",
+      "type": "TOOL",
+      "aliases": [
+        "tableau"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "tailwind-css",
+      "name": "Tailwind CSS",
+      "domain": "FRONTEND",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "tailwind css",
+        "tailwindcss",
+        "tailwind"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "tcp-ip",
+      "name": "TCP/IP",
+      "domain": "DEVOPS",
+      "type": "KNOWLEDGE",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "team-coordination",
+      "name": "Team coordination",
+      "domain": "GENERAL",
+      "type": "SOFT_SKILL",
+      "aliases": [
+        "coordinate with",
+        "phoi hop voi"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "teamwork",
+      "name": "Teamwork",
+      "domain": "BUSINESS",
+      "type": "SOFT_SKILL",
+      "aliases": [
+        "lam viec nhom"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "technical-writing",
+      "name": "Technical writing",
+      "domain": "PRODUCT",
+      "type": "COMPETENCY",
+      "aliases": [
+        "viet tai lieu ky thuat"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "tensorflow",
+      "name": "TensorFlow",
+      "domain": "DATA",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "terraform",
+      "name": "Terraform",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "terraform"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "test-automation",
+      "name": "Test automation",
+      "domain": "QA",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [
+        "\\b(automat(?:e|ed|ing)|tu dong hoa)\\b.{0,40}\\b(tests|testing|kiem thu)\\b"
+      ],
+      "relatedSkills": [],
+      "learningTopics": [
+        "test-automation-practice"
+      ],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "test-case-design",
+      "name": "Test case design",
+      "domain": "QA",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "test-planning",
+      "name": "Test planning",
+      "domain": "QA",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "testing",
+      "name": "Testing",
+      "domain": "GENERAL",
+      "type": "COMPETENCY",
+      "aliases": [
+        "software testing",
+        "kiem thu phan mem"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "testng",
+      "name": "TestNG",
+      "domain": "QA",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "threat-modeling",
+      "name": "Threat modeling",
+      "domain": "SECURITY",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "time-management",
+      "name": "Time management",
+      "domain": "BUSINESS",
+      "type": "SOFT_SKILL",
+      "aliases": [
+        "quan ly thoi gian"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "time-series-analysis",
+      "name": "Time series analysis",
+      "domain": "DATA",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "tls",
+      "name": "TLS",
+      "domain": "DEVOPS",
+      "type": "KNOWLEDGE",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "training-delivery",
+      "name": "Training delivery",
+      "domain": "BUSINESS",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "transactions",
+      "name": "Transactions",
+      "domain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "trino",
+      "name": "Trino",
+      "domain": "DATA",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "typescript",
+      "name": "TypeScript",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "typescript",
+        "type script",
+        "ts"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "uml",
+      "name": "UML",
+      "domain": "PRODUCT",
+      "type": "KNOWLEDGE",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "unit-testing",
+      "name": "Unit testing",
+      "domain": "QA",
+      "type": "COMPETENCY",
+      "aliases": [
+        "unit tests",
+        "unit test",
+        "kiem thu don vi"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "usability-testing",
+      "name": "Usability testing",
+      "domain": "PRODUCT",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "user-behaviour-analysis",
+      "name": "User behaviour analysis",
+      "domain": "GENERAL",
+      "type": "COMPETENCY",
+      "aliases": [
+        "user behaviour analysis",
+        "user behavior analysis"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "user-research",
+      "name": "User research",
+      "domain": "PRODUCT",
+      "type": "COMPETENCY",
+      "aliases": [
+        "nghien cuu nguoi dung"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [
+        "\\b(interview(?:ed|ing)?|observ(?:e|ed|ing)|phong van|quan sat)\\b.{0,40}\\b(users|customers|nguoi dung|khach hang)\\b"
+      ],
+      "relatedSkills": [],
+      "learningTopics": [
+        "user-research-practice"
+      ],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "user-stories",
+      "name": "User stories",
+      "domain": "GENERAL",
+      "type": "COMPETENCY",
+      "aliases": [
+        "user stories",
+        "user story"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "vector-databases",
+      "name": "Vector databases",
+      "domain": "DATA",
+      "type": "KNOWLEDGE",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "vite",
+      "name": "Vite",
+      "domain": "FRONTEND",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "vuejs",
+      "name": "Vue.js",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "vue.js",
+        "vuejs",
+        "vue js"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "vulnerability-assessment",
+      "name": "Vulnerability assessment",
+      "domain": "SECURITY",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "web-accessibility",
+      "name": "Web accessibility",
+      "domain": "FRONTEND",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "web-components",
+      "name": "Web Components",
+      "domain": "FRONTEND",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "web-performance",
+      "name": "Web performance",
+      "domain": "FRONTEND",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "webpack",
+      "name": "Webpack",
+      "domain": "FRONTEND",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "websockets",
+      "name": "WebSockets",
+      "domain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "wireframing",
+      "name": "Wireframing",
+      "domain": "PRODUCT",
+      "type": "COMPETENCY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "xcode",
+      "name": "Xcode",
+      "domain": "MOBILE",
+      "type": "TOOL",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "xgboost",
+      "name": "XGBoost",
+      "domain": "DATA",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "zustand",
+      "name": "Zustand",
+      "domain": "FRONTEND",
+      "type": "TECHNOLOGY",
+      "aliases": [],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [],
+      "relatedSkills": [],
+      "learningTopics": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    }
+  ],
+  "topics": [
+    {
+      "id": "sql-practice",
+      "title": "Filtering, joining and aggregating relational data",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "api-design-practice",
+      "title": "Designing request and response contracts",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "query-optimization-practice",
+      "title": "Inspecting query plans and reducing query cost",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "data-handling-practice",
+      "title": "Cleaning and transforming datasets",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "data-visualization-practice",
+      "title": "Choosing visual encodings and explaining findings",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "data-analysis-practice",
+      "title": "Investigating data with reproducible evidence",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "agile-practice",
+      "title": "Iterative delivery and feedback",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "scrum-practice",
+      "title": "Scrum events and team responsibilities",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "backlog-management-practice",
+      "title": "Ordering and refining product work",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "stakeholder-management-practice",
+      "title": "Clarifying stakeholder needs and trade-offs",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "product-management-practice",
+      "title": "Setting product goals and measuring outcomes",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "product-ownership-practice",
+      "title": "Clarifying acceptance and prioritizing value",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "user-research-practice",
+      "title": "Planning and documenting user interviews",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "financial-reporting-practice",
+      "title": "Preparing and checking financial statements",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "risk-assessment-practice",
+      "title": "Identifying risks and explaining evaluation criteria",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "test-automation-practice",
+      "title": "Designing maintainable automated checks",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "communication-practice",
+      "title": "Explaining decisions and collecting feedback",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "english-practice",
+      "title": "Reading and explaining professional material",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "python-practice",
+      "title": "Writing and testing Python programs",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "java-practice",
+      "title": "Writing and testing Java programs",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "react-practice",
+      "title": "Building and testing React components",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "docker-practice",
+      "title": "Packaging and running isolated applications",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "kubernetes-practice",
+      "title": "Deploying and observing container workloads",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "requirements-elicitation-practice",
+      "title": "Discovering and validating stakeholder requirements",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "incident-management-practice",
+      "title": "Coordinating incident response and review",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "machine-learning-practice",
+      "title": "Training and evaluating models using held-out data",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "rest-api-practice",
+      "title": "Implementing resource-oriented HTTP services",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "data-pipelines-practice",
+      "title": "Building and validating repeatable data flows",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "database-design-practice",
+      "title": "Representing entities and constraints in relational schemas",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    }
+  ]
+}

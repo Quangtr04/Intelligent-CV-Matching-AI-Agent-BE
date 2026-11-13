@@ -10,23 +10,24 @@ import org.springframework.stereotype.Repository;
 public class JobRepository {
 
     // Match Vietnamese place names with or without accents, without requiring a database extension.
-    private static final String LOCATION_SEARCH_SQL = "lower(translate(regexp_replace("
-        + "normalize(COALESCE(j.location,''), NFD), U&'[\\0300-\\036f]', '', 'g'), 'đĐ', 'dd'))";
+    private static final String LOCATION_SEARCH_SQL =
+        ("lower(translate(regexp_replace(normalize(COALESCE(j.location,''), "
+            + "NFD), U&'[\\0300-\\036f]', '', 'g'), 'đĐ', 'dd'))");
 
     private static final String PUBLIC_JOB_SUMMARY_COLUMNS =
-        "j.id,j.job_title,j.company_name,j.location,j.salary_text,j.role_category,"
-            + "j.posted_at,j.valid_through,j.employment_type,j.source_url AS original_source_url,"
-            + "j.source_site AS original_source_site," + JobSourceProjection.ACTIVE_URL + " AS source_url,"
-            + JobSourceProjection.ACTIVE_SITE + " AS source_site";
+        ("j.id,j.job_title,j.company_name,j.location,j.salary_text,"
+            + "j.role_category,j.posted_at,j.valid_through,j.employment_type,"
+            + "j.source_url AS original_source_url,j.source_site AS " + "original_source_site,")
+            + JobSourceProjection.ACTIVE_URL + " AS source_url," + JobSourceProjection.ACTIVE_SITE + " AS source_site";
 
-    private static final String JOB_CREATOR_COLUMNS =
-        "j.created_by_user_id,creator.full_name AS created_by_full_name,creator.email AS created_by_email,"
-            + "creator.role AS created_by_role,j.ingestion_method,"
-            + "j.reviewed_by_user_id,reviewer.full_name AS reviewed_by_full_name,"
-            + "reviewer.email AS reviewed_by_email,j.reviewed_at,j.review_note";
+    private static final String JOB_CREATOR_COLUMNS = ("j.created_by_user_id,creator.full_name AS created_by_full_name,"
+        + "creator.email AS created_by_email,creator.role AS created_by_role,"
+        + "j.ingestion_method,j.reviewed_by_user_id,reviewer.full_name AS "
+        + "reviewed_by_full_name,reviewer.email AS reviewed_by_email," + "j.reviewed_at,j.review_note");
 
-    private static final String JOB_CREATOR_JOINS = " LEFT JOIN users creator ON creator.id=j.created_by_user_id"
-        + " LEFT JOIN users reviewer ON reviewer.id=j.reviewed_by_user_id ";
+    private static final String JOB_CREATOR_JOINS =
+        (" LEFT JOIN users creator ON creator.id=j.created_by_user_id LEFT JOIN "
+            + "users reviewer ON reviewer.id=j.reviewed_by_user_id ");
 
     private final SqlStore db;
 
@@ -75,14 +76,18 @@ public class JobRepository {
     public Map<String, Object> getMarketJobPostsById(
         Object... args) {
         return db.one(
-            "SELECT j.id,j.source_site,j.source_url,j.raw_content_hash,j.content_fingerprint,"
-                + "j.job_title,j.company_name,j.location,j.salary_text,j.role_category,j.employment_type,"
-                + "j.raw_content,j.original_content,j.original_content_format,j.original_content_quality,"
-                + "j.original_content_extracted_at,j.parsed_description,j.parsed_requirements,"
-                + "j.parsed_responsibilities,j.parsed_benefits,j.parsed_company_overview,j.parsed_seniority,"
-                + "j.parsed_confidence,j.parsed_at,j.posted_at,j.valid_through,j.collected_at,j.status,"
-                + "j.source_url AS original_source_url,j.source_site AS original_source_site,"
-                + JobSourceProjection.ACTIVE_URL + " AS source_url," + JobSourceProjection.ACTIVE_SITE
+            ("SELECT j.id,j.source_site,j.source_url,j.raw_content_hash,"
+                + "j.content_fingerprint,j.job_title,j.company_name,j.location,"
+                + "j.salary_text,j.role_category,j.employment_type,"
+                + "j.requirement_extraction,j.requirement_extraction_verified,"
+                + "j.raw_content,j.original_content,j.original_content_format,"
+                + "j.original_content_quality,j.original_content_extracted_at,"
+                + "j.parsed_description,j.parsed_requirements,j.parsed_responsibilities,"
+                + "j.parsed_benefits,j.parsed_company_overview,j.parsed_seniority,"
+                + "j.parsed_confidence,j.parsed_at,j.posted_at,j.valid_through,"
+                + "j.collected_at,j.status,j.source_url AS original_source_url,"
+                + "j.source_site AS original_source_site,") + JobSourceProjection.ACTIVE_URL + " AS source_url,"
+                + JobSourceProjection.ACTIVE_SITE
                 + " AS source_site FROM market_job_posts j WHERE j.id=? AND j.status='ACTIVE' "
                 + "AND (j.valid_through IS NULL OR j.valid_through>now())",
             args
@@ -92,7 +97,7 @@ public class JobRepository {
     public Map<String, Object> getMarketJobPostsWithCreatorById(
         Object... args) {
         return db.one(
-            "SELECT j.*,j.source_url AS original_source_url,j.source_site AS original_source_site,"
+            ("SELECT j.*,j.source_url AS original_source_url,j.source_site AS " + "original_source_site,")
                 + JobSourceProjection.ACTIVE_URL + " AS source_url," + JobSourceProjection.ACTIVE_SITE
                 + " AS source_site," + JOB_CREATOR_COLUMNS + " FROM market_job_posts j" + JOB_CREATOR_JOINS
                 + "WHERE j.id=?",
@@ -154,8 +159,8 @@ public class JobRepository {
     public void requireActiveAdmin(
         UUID actor) {
         if (db.optional(
-            "SELECT id FROM users WHERE id=? AND role IN ('ADMIN','MANAGER') AND status='ACTIVE' "
-                + "AND deleted_at IS NULL",
+            ("SELECT id FROM users WHERE id=? AND role IN ('ADMIN','MANAGER') AND "
+                + "status='ACTIVE' AND deleted_at IS NULL"),
             actor
         ).isEmpty())
             throw com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException
@@ -166,9 +171,10 @@ public class JobRepository {
         String url,
         String hash) {
         return db.optional(
-            "SELECT j.* FROM market_job_sources s JOIN market_job_posts j ON j.id=s.market_job_id "
-                + "WHERE s.source_url=? AND s.content_hash=? AND s.status='ACTIVE' AND j.status='ACTIVE' "
-                + "AND (j.valid_through IS NULL OR j.valid_through>now())",
+            ("SELECT j.* FROM market_job_sources s JOIN market_job_posts j ON "
+                + "j.id=s.market_job_id WHERE s.source_url=? AND s.content_hash=? AND "
+                + "s.status='ACTIVE' AND j.status='ACTIVE' AND (j.valid_through IS NULL "
+                + "OR j.valid_through>now())"),
             url,
             hash
         );
@@ -180,9 +186,9 @@ public class JobRepository {
         if (fingerprint == null)
             return Optional.empty();
         return db.optional(
-            "SELECT j.* FROM market_job_posts j WHERE content_fingerprint=? AND status='ACTIVE' "
-                + "AND (valid_through IS NULL OR valid_through>now()) AND source_site<>? "
-                + "ORDER BY collected_at,id LIMIT 1",
+            ("SELECT j.* FROM market_job_posts j WHERE content_fingerprint=? AND "
+                + "status='ACTIVE' AND (valid_through IS NULL OR valid_through>now()) "
+                + "AND source_site<>? ORDER BY collected_at,id LIMIT 1"),
             fingerprint,
             source
         );
@@ -200,10 +206,11 @@ public class JobRepository {
         String hash,
         java.time.OffsetDateTime deadline) {
         db.update(
-            "INSERT INTO market_job_sources(market_job_id,source_site,source_url,content_hash,valid_through) "
-                + "VALUES(?,?,?,?,?) ON CONFLICT(source_url) DO UPDATE SET market_job_id=EXCLUDED.market_job_id,"
+            ("INSERT INTO market_job_sources(market_job_id,source_site,source_url,"
+                + "content_hash,valid_through) VALUES(?,?,?,?,?) ON CONFLICT(source_url) "
+                + "DO UPDATE SET market_job_id=EXCLUDED.market_job_id,"
                 + "source_site=EXCLUDED.source_site,content_hash=EXCLUDED.content_hash,"
-                + "valid_through=EXCLUDED.valid_through,status='ACTIVE',last_seen_at=now()",
+                + "valid_through=EXCLUDED.valid_through,status='ACTIVE'," + "last_seen_at=now()"),
             id,
             site,
             url,
@@ -211,9 +218,10 @@ public class JobRepository {
             deadline
         );
         db.update(
-            "UPDATE market_job_posts j SET valid_through=(SELECT CASE WHEN count(*) FILTER "
-                + "(WHERE s.valid_through IS NULL)>0 THEN NULL ELSE max(s.valid_through) END FROM market_job_sources s "
-                + "WHERE s.market_job_id=j.id AND s.status='ACTIVE') WHERE j.id=?",
+            ("UPDATE market_job_posts j SET valid_through=(SELECT CASE WHEN "
+                + "count(*) FILTER (WHERE s.valid_through IS NULL)>0 THEN NULL ELSE "
+                + "max(s.valid_through) END FROM market_job_sources s WHERE "
+                + "s.market_job_id=j.id AND s.status='ACTIVE') WHERE j.id=?"),
             id
         );
     }
@@ -230,13 +238,15 @@ public class JobRepository {
     public void retireOrphan(
         UUID id) {
         db.update(
-            "UPDATE market_job_posts j SET status='REMOVED' WHERE j.id=? AND status='ACTIVE' AND NOT EXISTS "
-                + "(SELECT 1 FROM market_job_sources s WHERE s.market_job_id=j.id AND s.status='ACTIVE')",
+            ("UPDATE market_job_posts j SET status='REMOVED' WHERE j.id=? AND "
+                + "status='ACTIVE' AND NOT EXISTS (SELECT 1 FROM market_job_sources s "
+                + "WHERE s.market_job_id=j.id AND s.status='ACTIVE')"),
             id
         );
         db.update(
-            "UPDATE market_job_embeddings SET is_current=false WHERE market_job_id=? AND EXISTS "
-                + "(SELECT 1 FROM market_job_posts j WHERE j.id=market_job_id AND j.status<>'ACTIVE')",
+            ("UPDATE market_job_embeddings SET is_current=false WHERE "
+                + "market_job_id=? AND EXISTS (SELECT 1 FROM market_job_posts j WHERE "
+                + "j.id=market_job_id AND j.status<>'ACTIVE')"),
             id
         );
     }
@@ -244,9 +254,10 @@ public class JobRepository {
     public void refreshDeadline(
         UUID id) {
         db.update(
-            "UPDATE market_job_posts j SET valid_through=(SELECT CASE WHEN count(*) FILTER "
-                + "(WHERE s.valid_through IS NULL)>0 THEN NULL ELSE max(s.valid_through) END FROM market_job_sources s "
-                + "WHERE s.market_job_id=j.id AND s.status='ACTIVE') WHERE j.id=?",
+            ("UPDATE market_job_posts j SET valid_through=(SELECT CASE WHEN "
+                + "count(*) FILTER (WHERE s.valid_through IS NULL)>0 THEN NULL ELSE "
+                + "max(s.valid_through) END FROM market_job_sources s WHERE "
+                + "s.market_job_id=j.id AND s.status='ACTIVE') WHERE j.id=?"),
             id
         );
     }
@@ -254,8 +265,8 @@ public class JobRepository {
     public List<Map<String, Object>> sources(
         UUID id) {
         return db.list(
-            "SELECT source_site,source_url,status,valid_through,last_seen_at FROM market_job_sources "
-                + "WHERE market_job_id=? ORDER BY source_site,source_url",
+            ("SELECT source_site,source_url,status,valid_through,last_seen_at FROM "
+                + "market_job_sources WHERE market_job_id=? ORDER BY source_site," + "source_url"),
             id
         );
     }
@@ -263,8 +274,8 @@ public class JobRepository {
     public Optional<Map<String, Object>> findSkillByName(
         String name) {
         return db.optional(
-            "SELECT id,name FROM skills WHERE is_active AND (lower(name)=lower(?) "
-                + "OR replace(lower(slug),'-',' ')=lower(?)) ORDER BY id LIMIT 1",
+            ("SELECT id,name FROM skills WHERE is_active AND (lower(name)=lower(?) "
+                + "OR replace(lower(slug),'-',' ')=lower(?)) ORDER BY id LIMIT 1"),
             name,
             name
         );
@@ -299,9 +310,9 @@ public class JobRepository {
         Object... args) {
         return db.update(
             ("UPDATE market_job_embeddings SET is_current=false WHERE market_job_id "
-                + "IN (SELECT j.id FROM market_job_posts j WHERE source_url=? AND id<>? AND status='ACTIVE' "
-                + "AND NOT EXISTS (SELECT 1 FROM market_job_sources s "
-                + "WHERE s.market_job_id=j.id AND s.status='ACTIVE'))"),
+                + "IN (SELECT j.id FROM market_job_posts j WHERE source_url=? AND id<>? "
+                + "AND status='ACTIVE' AND NOT EXISTS (SELECT 1 FROM market_job_sources "
+                + "s WHERE s.market_job_id=j.id AND s.status='ACTIVE'))"),
             args
         );
     }
@@ -309,9 +320,9 @@ public class JobRepository {
     public int updateMarketJobPostsBySourceUrl(
         Object... args) {
         return db.update(
-            ("UPDATE market_job_posts j SET status='REMOVED' WHERE source_url=? AND id<>? AND status='ACTIVE' "
-                + "AND NOT EXISTS (SELECT 1 FROM market_job_sources s WHERE s.market_job_id=j.id "
-                + "AND s.status='ACTIVE')"),
+            ("UPDATE market_job_posts j SET status='REMOVED' WHERE source_url=? AND "
+                + "id<>? AND status='ACTIVE' AND NOT EXISTS (SELECT 1 FROM "
+                + "market_job_sources s WHERE s.market_job_id=j.id AND s.status='ACTIVE')"),
             args
         );
     }
@@ -345,9 +356,10 @@ public class JobRepository {
     public List<Map<String, Object>> indexingJobs(
         UUID id) {
         return db.list(
-            "SELECT id,provider,model,content_hash,status,attempt_count,error_message,next_attempt_at,"
-                + "started_at,completed_at,created_at FROM vector_indexing_jobs "
-                + "WHERE entity_type='JOB' AND entity_id=? ORDER BY created_at DESC,id LIMIT 20",
+            ("SELECT id,provider,model,content_hash,status,attempt_count,"
+                + "error_message,next_attempt_at,started_at,completed_at,created_at FROM "
+                + "vector_indexing_jobs WHERE entity_type='JOB' AND entity_id=? ORDER BY "
+                + "created_at DESC,id LIMIT 20"),
             id
         );
     }
@@ -368,7 +380,8 @@ public class JobRepository {
         String reviewNote,
         UUID id) {
         return db.update(
-            "UPDATE market_job_posts SET status=?,reviewed_by_user_id=?,reviewed_at=now(),review_note=? WHERE id=?",
+            ("UPDATE market_job_posts SET status=?,reviewed_by_user_id=?,"
+                + "reviewed_at=now(),review_note=? WHERE id=?"),
             status,
             reviewerId,
             reviewNote,

@@ -21,96 +21,20 @@ public final class ResumeSkillMatcher {
         Pattern.compile("[\\r\\n;!?]+|[.]\\s+|\\b(?:but|however|nhung|tuy nhien)\\b", FLAGS);
 
     private static final String UNSUPPORTED_MENTION =
-        "\\b(?:no\\s+(?:professional\\s+)?experience(?:\\s+(?:with|in|using))?"
-            + "|not\\s+(?:experienced|familiar|proficient)(?:\\s+with)?"
-            + "|never\\s+(?:used|worked\\s+with)|without\\s+experience(?:\\s+in)?"
-            + "|chua\\s+(?:biet|su\\s+dung|co\\s+kinh\\s+nghiem|thanh\\s+thao)"
-            + "|khong\\s+(?:biet|co\\s+kinh\\s+nghiem|thanh\\s+thao|su\\s+dung)"
-            + "|want(?:ing)?\\s+to\\s+(?:learn|study|explore|use)"
-            + "|(?:currently\\s+)?(?:learning|studying)|planning\\s+to\\s+learn"
-            + "|interested\\s+in\\s+(?:learning|studying)|eager\\s+to\\s+learn"
-            + "|would\\s+like\\s+to\\s+learn|dang\\s+hoc|muon\\s+(?:hoc|tim\\s+hieu)"
-            + "|du\\s+dinh\\s+hoc|mong\\s+muon\\s+hoc)\\b";
+        ("\\b(?:no\\s+(?:professional\\s+)?experience(?:\\s+(?:with|in|using))?|"
+            + "not\\s+(?:experienced|familiar|proficient)(?:\\s+with)?|never\\s+(?:us"
+            + "ed|worked\\s+with)|without\\s+experience(?:\\s+in)?|chua\\s+(?:biet|su"
+            + "\\s+dung|co\\s+kinh\\s+nghiem|thanh\\s+thao)|khong\\s+(?:biet|co\\s+ki"
+            + "nh\\s+nghiem|thanh\\s+thao|su\\s+dung)|want(?:ing)?\\s+to\\s+(?:learn|"
+            + "study|explore|use)|(?:currently\\s+)?(?:learning|studying)|planning\\s"
+            + "+to\\s+learn|interested\\s+in\\s+(?:learning|studying)|eager\\s+to\\s+"
+            + "learn|would\\s+like\\s+to\\s+learn|dang\\s+hoc|muon\\s+(?:hoc|tim\\s+h"
+            + "ieu)|du\\s+dinh\\s+hoc|mong\\s+muon\\s+hoc)\\b");
 
     private static final Pattern UNSUPPORTED = Pattern.compile(UNSUPPORTED_MENTION, FLAGS);
 
     private static final Pattern UNSUPPORTED_SUFFIX =
         Pattern.compile("^\\s*(?:[:\\-–—]\\s*)?" + UNSUPPORTED_MENTION, FLAGS);
-
-    // Adapted from the job parser vocabulary. CV aliases and evidence rules are deliberately separate:
-    // mentioning a desired skill in a job posting does not mean a candidate possesses it.
-    private static final List<Alias> ALIASES = List.of(
-        alias("Java", "java"),
-        alias("JavaScript", "javascript", "java script", "js"),
-        alias("TypeScript", "typescript", "type script", "ts"),
-        alias("Python", "python"),
-        alias("C#", "c#", "csharp", "c sharp"),
-        alias("C++", "c++"),
-        alias("Go", "golang", "go programming"),
-        alias("PHP", "php"),
-        alias("Kotlin", "kotlin"),
-        alias("Swift", "swift"),
-        alias("Dart", "dart"),
-        alias("SQL", "sql"),
-        alias("MySQL", "mysql"),
-        alias("PostgreSQL", "postgresql", "postgres"),
-        alias("SQL Server", "sql server", "mssql"),
-        alias("SQLite", "sqlite"),
-        alias("Oracle", "oracle"),
-        alias("Spring Boot", "spring boot", "springboot"),
-        alias("Spring", "spring", "springmvc", "spring mvc"),
-        alias("React Native", "react native"),
-        alias("React", "react", "reactjs", "react.js", "react js"),
-        alias("Next.js", "next.js", "nextjs", "next js"),
-        alias("Angular", "angular", "angularjs"),
-        alias("Vue.js", "vue.js", "vuejs", "vue js"),
-        alias("Nuxt.js", "nuxt.js", "nuxtjs", "nuxt js"),
-        alias("Node.js", "node.js", "nodejs", "node js"),
-        alias("Express.js", "express.js", "expressjs", "express js"),
-        alias("NestJS", "nestjs", "nest.js", "nest js"),
-        alias(".NET", ".net", "dotnet"),
-        alias("ASP.NET", "asp.net", "aspnet"),
-        alias("Laravel", "laravel"),
-        alias("Django", "django"),
-        alias("Flask", "flask"),
-        alias("FastAPI", "fastapi", "fast api"),
-        alias("Flutter", "flutter"),
-        alias("Android", "android"),
-        alias("iOS", "ios"),
-        alias("Git", "git"),
-        alias("Docker", "docker"),
-        alias("Kubernetes", "kubernetes", "k8s"),
-        alias("AWS", "aws", "amazon web services"),
-        alias("Azure", "azure"),
-        alias("GCP", "gcp", "google cloud platform"),
-        alias("Linux", "linux"),
-        alias("Redis", "redis"),
-        alias("Kafka", "kafka"),
-        alias("RabbitMQ", "rabbitmq", "rabbit mq"),
-        alias("MongoDB", "mongodb", "mongo db"),
-        alias("Elasticsearch", "elasticsearch", "elastic search"),
-        alias("HTML", "html", "html5"),
-        alias("CSS", "css", "css3"),
-        alias("Tailwind CSS", "tailwind css", "tailwindcss", "tailwind"),
-        alias("Bootstrap", "bootstrap"),
-        alias("Sass", "sass", "scss"),
-        alias("Jenkins", "jenkins"),
-        alias("Terraform", "terraform"),
-        alias("JUnit", "junit"),
-        alias("Mockito", "mockito"),
-        alias("Hibernate", "hibernate"),
-        alias("Maven", "maven"),
-        alias("Gradle", "gradle"),
-        alias("GraphQL", "graphql", "graph ql"),
-        alias("REST API", "rest api", "restful api", "restful apis"),
-        alias("Postman", "postman"),
-        alias("Selenium", "selenium"),
-        alias("Cypress", "cypress"),
-        alias("Playwright", "playwright"),
-        alias("Figma", "figma"),
-        alias("Power BI", "power bi", "powerbi"),
-        alias("Excel", "excel", "microsoft excel")
-    );
 
     private ResumeSkillMatcher() {
     }
@@ -142,17 +66,13 @@ public final class ResumeSkillMatcher {
         var uncertain = UNSUPPORTED.matcher(clause);
         int unsupportedFrom = uncertain.find() ? uncertain.start() : clause.length();
         List<Mention> mentions = new ArrayList<>();
-        for (Alias alias : ALIASES) {
-            var matcher = alias.pattern().matcher(clause);
-            int occurrences = 0;
-            while (matcher.find() && occurrences++ < MAX_MENTIONS_PER_ALIAS) {
-                if (matcher.start() >= unsupportedFrom) {
-                    break;
-                }
-                String suffix = clause.substring(matcher.end(), Math.min(clause.length(), matcher.end() + 100));
-                if (!UNSUPPORTED_SUFFIX.matcher(suffix).find()) {
-                    mentions.add(new Mention(alias.name(), matcher.start(), matcher.end()));
-                }
+        for (var mention : com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobRequirementExtractor
+            .mentions(clause)) {
+            if (mention.start() >= unsupportedFrom)
+                continue;
+            String suffix = clause.substring(mention.end(), Math.min(clause.length(), mention.end() + 100));
+            if (!UNSUPPORTED_SUFFIX.matcher(suffix).find()) {
+                mentions.add(new Mention(mention.name(), mention.start(), mention.end()));
             }
         }
         mentions.sort(
@@ -165,26 +85,14 @@ public final class ResumeSkillMatcher {
                 acceptedThrough = mention.end();
             }
         }
-    }
-
-    private static Alias alias(
-        String name,
-        String... aliases) {
-        String alternatives = String.join(
-            "|",
-            java.util.Arrays.stream(aliases).sorted(Comparator.comparingInt(String::length).reversed())
-                .map(Pattern::quote).toList()
-        );
-        return new Alias(
-            name,
-            Pattern.compile("(?<![\\p{L}\\p{N}_+#])(?:" + alternatives + ")(?![\\p{L}\\p{N}_+#])", FLAGS)
-        );
-    }
-
-    private record Alias(
-        String name,
-        Pattern pattern
-    ) {
+        for (var mention : com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.SkillCatalog.get()
+            .contextualMentions(clause)) {
+            if (mention.end() <= unsupportedFrom) {
+                String suffix = clause.substring(mention.end(), Math.min(clause.length(), mention.end() + 100));
+                if (!UNSUPPORTED_SUFFIX.matcher(suffix).find())
+                    found.add(mention.skill().name());
+            }
+        }
     }
 
     private record Mention(

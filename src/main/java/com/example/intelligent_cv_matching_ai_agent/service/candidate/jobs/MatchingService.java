@@ -220,13 +220,15 @@ public class MatchingService {
             useAi ? text(db.readMarketJobEmbeddingsByStatus(ai.provider(), ai.embeddingModel())) : "";
         List<String> resumeIds = cvs.stream().map(cv -> cv.get("id").toString()).sorted().toList();
         String cacheHash = FlowSupport.hash(
-            basis + "\n" + resumeIds + "\n" + candidate + "\n" + catalogFingerprint + "\n" + vectorFingerprint + "\n"
-                + mode + "\n" + (quick ? "RULE_BASED" : ai.provider()) + "\n"
+            com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobRequirementExtractor.VERSION + "\n"
+                + com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.SkillCatalog.get().version() + "\n"
+                + basis + "\n" + resumeIds + "\n" + candidate + "\n" + catalogFingerprint + "\n" + vectorFingerprint
+                + "\n" + mode + "\n" + (quick ? "RULE_BASED" : ai.provider()) + "\n"
                 + (quick ? QuickJobMatcher.VERSION : ai.model()) + "\n" + (quick ? "" : ai.embeddingModel()) + "\n"
                 + limit + "\n" + salaryPolicy + "\n" + salary.map(SalaryExpectation::exchangeRates) + "\n"
                 + (quick ? QuickJobMatcher.VERSION : text(ai.cacheFingerprint("JOB_MATCH_RERANK")))
         );
-        String cacheKey = "edunexus:matching:response:v1:" + user.id() + ":" + cacheHash;
+        String cacheKey = "edunexus:matching:response:v2:" + user.id() + ":" + cacheHash;
         Map<String, String> cacheIdentity = Map.of("user_id", user.id().toString(), "request_hash", cacheHash);
         var redisResult =
             responseCache.read(cacheKey, cacheIdentity).filter(result -> validCachedResult(result, basis, cacheHash));
@@ -350,6 +352,16 @@ public class MatchingService {
                     var complete = completeJobs.get(uuid(job.get("id")));
                     if (complete != null) {
                         job.put("skills", complete.get("skills"));
+                        for (String key : List.of(
+                            "original_content",
+                            "raw_content",
+                            "parsed_requirements",
+                            "requirement_extraction",
+                            "requirement_extraction_verified"
+                        )) {
+                            if (complete.containsKey(key))
+                                job.put(key, complete.get(key));
+                        }
                     }
                 }
                 semanticUsed = true;
@@ -365,6 +377,19 @@ public class MatchingService {
                     if (explanation == null)
                         throw new ApiException(502, "AI ranking omitted a retrieved job");
 
+                    var evidence = JobSkillOverlap.overlap(candidate.toString(), job);
+                    for (String key : List.of(
+                        "requirements",
+                        "unverified_requirements",
+                        "extraction_status",
+                        "skill_coverage",
+                        "requirement_coverage_available",
+                        "catalog_version",
+                        "coverage_complete"
+                    )) {
+                        explanation.put(key, evidence.get(key));
+                    }
+                    explanation.put("score_kind", "SEMANTIC_SUITABILITY_ESTIMATE");
                     job.put("final_score", explanation.get("score"));
                     job.put("explanation", explanation);
                 }
@@ -428,18 +453,32 @@ public class MatchingService {
                             "reason",
                             explanation.get("reason"),
                             "assessment",
-                            quick
-                                ? fields(
-                                    "skill_coverage",
-                                    explanation.get("skill_coverage"),
-                                    "experience_status",
-                                    explanation.get("experience_status"),
-                                    "candidate_years",
-                                    explanation.get("candidate_years"),
-                                    "required_years",
-                                    explanation.get("required_years")
-                                )
-                                : null,
+                            fields(
+                                "requirement_coverage_available",
+                                explanation.get("requirement_coverage_available"),
+                                "requirement_coverage",
+                                explanation.get("requirement_coverage"),
+                                "skill_coverage",
+                                explanation.get("skill_coverage"),
+                                "experience_status",
+                                explanation.get("experience_status"),
+                                "candidate_years",
+                                explanation.get("candidate_years"),
+                                "required_years",
+                                explanation.get("required_years"),
+                                "requirements",
+                                explanation.get("requirements"),
+                                "unverified_requirements",
+                                explanation.get("unverified_requirements"),
+                                "extraction_status",
+                                explanation.get("extraction_status"),
+                                "catalog_version",
+                                explanation.get("catalog_version"),
+                                "coverage_complete",
+                                explanation.get("coverage_complete"),
+                                "score_kind",
+                                explanation.get("score_kind")
+                            ),
                             "salary_match",
                             salaryMatches.get(uuid(job.get("id")))
                         )

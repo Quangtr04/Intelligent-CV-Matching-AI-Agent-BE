@@ -146,6 +146,31 @@ class AssessmentJdIntegrationTests {
                 )
             )
         );
+        when(ai.generate(eq("ROADMAP_GENERATE"), anyMap())).thenAnswer(call -> {
+            Map<String, Object> input = call.getArgument(1);
+            var gaps = (List<Map<String, Object>>) input.get("allowed_missing_skills");
+            assertTrue(gaps.stream().anyMatch(gap -> "SQL".equals(gap.get("skill_name"))));
+            return fields(
+                "title",
+                "Practice required JD skills",
+                "summary",
+                "Target the extracted gaps.",
+                "nodes",
+                gaps.stream()
+                    .map(
+                        gap -> fields(
+                            "skill_name",
+                            gap.get("skill_name"),
+                            "description",
+                            "Practice the required skill in a concrete task.",
+                            "estimated_hours",
+                            4,
+                            "prerequisites",
+                            List.of()
+                        )
+                    ).toList()
+            );
+        });
         var result = read(
             mvc.perform(
                 post("/api/v1/roadmaps").header("Authorization", authorization).contentType(MediaType.APPLICATION_JSON)
@@ -168,6 +193,50 @@ class AssessmentJdIntegrationTests {
             post("/api/v1/roadmaps").header("Authorization", authorization).contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(fields("assessmentId", id)))
         ).andExpect(status().isConflict());
+    }
+
+    @Test
+    void pastedJdWithoutCvPassesEvidenceBasedBloomMappingToAi() throws Exception {
+        String description = "Requirements:\nUse Java to implement backend services.";
+        when(ai.generate(eq("ASSESSMENT_GENERATE"), anyMap())).thenAnswer(call -> {
+            Map<String, Object> input = call.getArgument(1);
+            assertFalse(input.containsKey("resume"));
+            var mapping = (List<?>) input.get("jd_bloom_requirements");
+            assertFalse(mapping.isEmpty());
+            assertTrue(mapper.writeValueAsString(mapping).contains("Apply"));
+            assertTrue(mapper.writeValueAsString(mapping).contains("Use Java to implement backend services"));
+            var quiz = questions("Java");
+            quiz.forEach(question -> question.put("jd_evidence", "Use Java to implement backend services"));
+            return fields("questions", quiz);
+        });
+        var session = create(fields("targetJobTitle", "Backend role", "jdText", description), 200);
+        assertNull(session.get("resume_id"));
+        var snapshot = db.one(
+            "SELECT context_snapshot FROM assessment_sessions WHERE id=?",
+            UUID.fromString(session.get("id").toString())
+        );
+        assertTrue(mapper.writeValueAsString(snapshot).contains("jd_bloom_requirements"));
+    }
+
+    @Test
+    void storedJobUsesReviewedBloomSnapshotInsteadOfReclassifyingRawText() throws Exception {
+        UUID selected = job("Java", JAVA_JD);
+        var extracted = com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobRequirementExtractor
+            .extract("", "Evaluate Java solutions using evidence and criteria", "");
+        db.update(
+            "UPDATE market_job_posts SET requirement_extraction=?::jsonb, "
+                + "requirement_extraction_verified=true WHERE id=?",
+            mapper.writeValueAsString(extracted),
+            selected
+        );
+        when(ai.generate(eq("ASSESSMENT_GENERATE"), anyMap())).thenAnswer(call -> {
+            Map<String, Object> input = call.getArgument(1);
+            String mapping = mapper.writeValueAsString(input.get("jd_bloom_requirements"));
+            assertTrue(mapping.contains("Evaluate"));
+            assertTrue(mapping.contains("Evaluate Java solutions using evidence and criteria"));
+            return fields("questions", questions("Java"));
+        });
+        create(fields("jobId", selected), 200);
     }
 
     @Test

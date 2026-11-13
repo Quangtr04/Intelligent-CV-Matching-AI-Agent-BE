@@ -1,6 +1,5 @@
 package com.example.intelligent_cv_matching_ai_agent.util.candidate.jobs;
 
-import com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobPostingParser;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.resume.ResumeSkillMatcher;
 import java.text.Normalizer;
 import java.time.LocalDate;
@@ -12,32 +11,33 @@ import static com.example.intelligent_cv_matching_ai_agent.util.shared.Values.*;
 /** Compares factual skills and explicit experience requirements without calling a model. */
 public final class QuickJobMatcher {
 
-    public static final String VERSION = "quick-skill-evidence-v2";
+    public static final String VERSION = "quick-requirement-evidence-v3";
 
     private static final Pattern ENTRY = Pattern.compile(
-        "\\b(?:fresher|intern(?:ship)?|entry[ -]level|final[ -]year|new graduate|recent graduate|"
-            + "sinh vien|moi tot nghiep|thuc tap)\\b"
+        ("\\b(?:fresher|intern(?:ship)?|entry[ -]level|final[ -]year|new "
+            + "graduate|recent graduate|sinh vien|moi tot nghiep|thuc tap)\\b")
     );
 
     private static final Pattern NO_EXPERIENCE = Pattern.compile(
-        "\\b(?:no (?:prior |professional |full[ -]time )?(?:work |working )?experience|"
-            + "chua co kinh nghiem (?:lam viec|di lam)|chua co kinh nghiem chinh thuc)\\b"
+        ("\\b(?:no (?:prior |professional |full[ -]time )?(?:work |working "
+            + ")?experience|chua co kinh nghiem (?:lam viec|di lam)|chua co kinh " + "nghiem chinh thuc)\\b")
     );
 
-    private static final Pattern ADVANCED_ROLE = Pattern
-        .compile("\\b(?:senior|lead|expert|principal|staff|manager|director|architect|truong nhom|chuyen gia)\\b");
+    private static final Pattern ADVANCED_ROLE = Pattern.compile(
+        ("\\b(?:senior|lead|expert|principal|staff|manager|director|architect|tr" + "uong nhom|chuyen gia)\\b")
+    );
 
     private static final Pattern REQUIREMENTS = Pattern.compile(
-        "\\b(?:your skills(?: and experience)?|requirements|qualifications|what you (?:bring|need)|"
-            + "yeu cau(?: ung vien| cong viec)?|kinh nghiem va ky nang)\\b"
+        ("\\b(?:your skills(?: and " + "experience)?|requirements|qualifications|what you (?:bring|need)|yeu "
+            + "cau(?: ung vien| cong viec)?|kinh nghiem va ky nang)\\b")
     );
 
-    private static final Pattern BENEFITS =
-        Pattern.compile("\\b(?:why you(?:'|’)?ll love|why join|benefits|what we offer|quyen loi|phuc loi|dai ngo)\\b");
+    private static final Pattern BENEFITS = Pattern
+        .compile(("\\b(?:why you(?:'|’)?ll love|why join|benefits|what we offer|quyen " + "loi|phuc loi|dai ngo)\\b"));
 
     private static final Pattern YEARS = Pattern.compile(
-        "(?<![\\p{L}\\d])(?:(minimum(?: of)?|at least|toi thieu|it nhat|tu|hon|over|more than|from)\\s+)?"
-            + "(\\d{1,2}(?:\\.\\d+)?)\\s*(?:[-–]\\s*\\d{1,2}(?:\\.\\d+)?)?\\s*\\+?\\s*(?:years?|yrs?|nam)\\b"
+        ("(?<![\\p{L}\\d])(?:(minimum(?: of)?|at least|toi thieu|it " + "nhat|tu|hon|over|more than|from)\\s+)?(\\d{1,"
+            + "2}(?:\\.\\d+)?)\\s*(?:[-–]\\s*\\d{1," + "2}(?:\\.\\d+)?)?\\s*\\+?\\s*(?:years?|yrs?|nam)\\b")
     );
 
     public record Evidence(
@@ -126,39 +126,8 @@ public final class QuickJobMatcher {
         Evidence candidate,
         Map<String, Object> job) {
         String requirements = requirements(job);
-        Map<String, Boolean> requiredSkills = new TreeMap<>();
-        for (Object raw : array(job.get("skills"))) {
-            Map<String, Object> skill = object(raw);
-            addRequirement(requiredSkills, text(skill.get("name")), !Boolean.FALSE.equals(skill.get("required")));
-        }
-        for (var skill : JobPostingParser.extractSkills("", requirements, "")) {
-            addRequirement(requiredSkills, skill.name(), skill.required());
-        }
-        if (requiredSkills.containsKey("spring boot")) {
-            requiredSkills.remove("spring");
-        }
-        List<String> strengths = new ArrayList<>();
-        List<String> gaps = new ArrayList<>();
-        int required = 0;
-        int matchedRequired = 0;
-        for (var skill : requiredSkills.entrySet()) {
-            boolean found = candidate.skills().contains(skill.getKey())
-                || skill.getKey().equals("spring") && candidate.skills().contains("spring boot");
-            if (found) {
-                strengths.add(skill.getKey());
-            } else if (skill.getValue()) {
-                gaps.add(skill.getKey());
-            }
-            if (skill.getValue()) {
-                required++;
-                if (found) {
-                    matchedRequired++;
-                }
-            }
-        }
-        double coverage = required > 0
-            ? (double) matchedRequired / required
-            : requiredSkills.isEmpty() ? 0 : (double) strengths.size() / requiredSkills.size();
+        var requirementCoverage = RequirementCoverage.assess(candidate.skills(), job);
+        double coverage = number(requirementCoverage.get("score"), 0);
         Double requiredYears = requiredYears(requirements);
         String role = fold(text(job.get("job_title")) + " " + text(job.get("parsed_seniority")));
         boolean advanced = ADVANCED_ROLE.matcher(role).find() && !ENTRY.matcher(role).find();
@@ -173,37 +142,11 @@ public final class QuickJobMatcher {
         if (candidate.entryLevel() && advanced) {
             experienceStatus = "INSUFFICIENT";
         }
-        String reason = "Khớp " + matchedRequired + "/" + required + " kỹ năng bắt buộc";
-        if (required == 0) {
-            reason = requiredSkills.isEmpty()
-                ? "Chưa có yêu cầu kỹ năng để đối chiếu"
-                : "Khớp " + strengths.size() + "/" + requiredSkills.size() + " kỹ năng trong tin tuyển dụng";
-        }
-        if (experienceStatus.equals("INSUFFICIENT")) {
-            reason += ". Kinh nghiệm/cấp bậc hiện tại chưa đáp ứng yêu cầu tuyển dụng";
-        } else if (experienceStatus.equals("UNVERIFIED")) {
-            reason += ". Chưa đủ thông tin xác minh kinh nghiệm";
-        }
-        return fields(
-            "score",
-            coverage,
-            "skill_coverage",
-            coverage,
-            "eligible",
-            coverage > 0 && !experienceStatus.equals("INSUFFICIENT"),
-            "experience_status",
-            experienceStatus,
-            "candidate_years",
-            candidate.yearsExperience(),
-            "required_years",
-            requiredYears,
-            "reason",
-            reason,
-            "strengths",
-            strengths,
-            "skill_gaps",
-            gaps
-        );
+        requirementCoverage.put("eligible", coverage > 0 && !experienceStatus.equals("INSUFFICIENT"));
+        requirementCoverage.put("experience_status", experienceStatus);
+        requirementCoverage.put("candidate_years", candidate.yearsExperience());
+        requirementCoverage.put("required_years", requiredYears);
+        return requirementCoverage;
     }
 
     private static Set<String> explicitSkills(
@@ -224,18 +167,6 @@ public final class QuickJobMatcher {
         Set<String> skills = new TreeSet<>();
         ResumeSkillMatcher.find(facts).forEach(skill -> skills.add(fold(skill).trim()));
         return skills;
-    }
-
-    private static void addRequirement(
-        Map<String, Boolean> skills,
-        String name,
-        boolean required) {
-        if (!name.isBlank()) {
-            Set<String> names = canonicalSkills(name);
-            for (String canonical : names.isEmpty() ? Set.of(fold(name).trim()) : names) {
-                skills.merge(canonical, required, Boolean::logicalOr);
-            }
-        }
     }
 
     private static String requirements(

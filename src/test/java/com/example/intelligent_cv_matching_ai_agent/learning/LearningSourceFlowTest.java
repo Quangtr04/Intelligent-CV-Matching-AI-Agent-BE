@@ -275,7 +275,8 @@ class LearningSourceFlowTest {
         );
         verify(ai).generate(eq("ROADMAP_GENERATE"), argThat(input -> {
             var gaps = (List<?>) input.get("allowed_missing_skills");
-            return gaps.size() == 1 && "MISSING_EVIDENCE".equals(((Map<?, ?>) gaps.getFirst()).get("gap_status"));
+            return gaps.size() == 2
+                && gaps.stream().allMatch(raw -> "MISSING_EVIDENCE".equals(((Map<?, ?>) raw).get("gap_status")));
         }));
 
         clearInvocations(ai);

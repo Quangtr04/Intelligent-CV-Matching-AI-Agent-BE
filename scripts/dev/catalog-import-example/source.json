@@ -1,0 +1,11 @@
+{
+  "nodes": [
+    {"id":"heading","type":"title","label":"Synthetic example only"},
+    {"id":"a","type":"topic","data":{"label":"Example contract tests"}},
+    {"id":"b","type":"topic","data":{"label":"Example pipeline validation"}}
+  ],
+  "edges": [
+    {"id":"documented-dependency","type":"prerequisite","source":"a","target":"b"},
+    {"id":"drawing-only","source":"heading","target":"a"}
+  ]
+}

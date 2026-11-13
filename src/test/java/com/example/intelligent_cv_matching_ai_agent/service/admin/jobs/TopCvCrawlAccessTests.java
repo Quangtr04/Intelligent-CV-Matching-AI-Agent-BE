@@ -23,7 +23,7 @@ import static org.mockito.Mockito.*;
 
 class TopCvCrawlAccessTests {
 
-    private static final String SEARCH = "https://www.topcv.vn/tim-viec-lam?keyword=Java&page=1";
+    private static final String SEARCH = "https://www.topcv.vn/tim-viec-lam-java?page=1";
 
     private static final String DETAIL = "https://www.topcv.vn/viec-lam/java-developer/2267342.html";
 

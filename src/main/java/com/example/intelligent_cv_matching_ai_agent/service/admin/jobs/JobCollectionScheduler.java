@@ -31,6 +31,8 @@ public class JobCollectionScheduler {
 
     private final JobCrawlService crawler;
 
+    private final boolean collectionSchedulerEnabled;
+
     private final boolean expirationEnabled;
 
     private final Duration expirationDelay;
@@ -46,7 +48,10 @@ public class JobCollectionScheduler {
         @Value("${app.jobs.expiration.fixed-delay:PT15M}")
         Duration expirationDelay,
         @Value("${app.jobs.expiration.batch-size:500}")
-        int expirationBatchSize) {
+        int expirationBatchSize,
+        @Value("${app.jobs.collection.scheduler-enabled:false}")
+        boolean collectionSchedulerEnabled) {
+        this.collectionSchedulerEnabled = collectionSchedulerEnabled;
         this.settings = settings;
         this.db = db;
         this.crawler = crawler;
@@ -60,6 +65,9 @@ public class JobCollectionScheduler {
 
     @Scheduled(fixedDelay = 30_000, initialDelay = 30_000)
     public void collect() {
+        if (!collectionSchedulerEnabled) {
+            return;
+        }
         var configuration = settings.effective();
         if (!configuration.enabled()) {
             return;

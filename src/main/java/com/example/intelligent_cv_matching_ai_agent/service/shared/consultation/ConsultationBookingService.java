@@ -80,24 +80,13 @@ public class ConsultationBookingService {
     @Transactional
     public Map<String, Object> addBusy(
         ConsultantBusyRequest input) {
-        user.requireRole("CAREER_CONSULTANT");
-        if (!input.endsAt().isAfter(input.startsAt()) || !input.endsAt().isAfter(OffsetDateTime.now())) {
-            throw ApiException.badRequest("Busy interval must end after its start and in the future");
-        }
-        db.lockConsultant(user.id());
-        if (db.busyOverlapsBooking(user.id(), input.startsAt(), input.endsAt())) {
-            throw ApiException.conflict("Busy time overlaps an existing consultation request");
-        }
-        return db.addBusy(user.id(), input.startsAt(), input.endsAt(), text(input.description()).strip());
+        throw ApiException.forbidden("Working hours are assigned by a manager");
     }
 
     @Transactional
     public Map<String, Object> removeBusy(
         UUID id) {
-        user.requireRole("CAREER_CONSULTANT");
-        db.lockConsultant(user.id());
-        db.removeBusy(id, user.id());
-        return Map.of("id", id, "deleted", true);
+        throw ApiException.forbidden("Working hours are assigned by a manager");
     }
 
     @Transactional
@@ -114,6 +103,7 @@ public class ConsultationBookingService {
         OffsetDateTime end = input.startsAt().plusMinutes(durationMinutes);
         UUID candidate = user.id();
         db.lockPeople(candidate, input.consultantId());
+        db.requireAssignedSlot(input.consultantId(), input.startsAt(), end, durationMinutes);
         if (input.resumeId() == null) {
             throw ApiException.badRequest("Select a confirmed CV for this consultation");
         }

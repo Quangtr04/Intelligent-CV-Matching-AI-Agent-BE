@@ -253,6 +253,17 @@ public class JobService {
             "ingestion_method",
             ingestionMethod
         );
+        postFields.put(
+            "requirement_extraction",
+            db.json(
+                com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobRequirementExtractor.extract(
+                    "",
+                    input.requirements(),
+                    "<section>" + input.content() + "</section><h2>Responsibilities</h2>"
+                        + (input.responsibilities() == null ? "" : input.responsibilities())
+                )
+            )
+        );
         UUID id = db.insertMarketJobPosts(postFields);
         for (JobSkillRequest skill : input.skills() == null ? List.<JobSkillRequest>of() : input.skills()) {
             UUID skillId = skill.skillId();

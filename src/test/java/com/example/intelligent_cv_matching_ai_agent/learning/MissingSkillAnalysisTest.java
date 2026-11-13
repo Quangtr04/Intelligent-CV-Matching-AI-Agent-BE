@@ -11,6 +11,23 @@ import static com.example.intelligent_cv_matching_ai_agent.util.shared.Values.*;
 class MissingSkillAnalysisTest {
 
     @Test
+    void richAlternativeEvidenceOverridesLossyLegacyMandatoryBooleansWithoutLosingSkills() {
+        var extracted = com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobRequirementExtractor
+            .extract("", "Thành thạo một trong các cơ sở dữ liệu: PostgreSQL, MongoDB", "");
+        var snapshot = tools.jackson.databind.json.JsonMapper.builder().build().convertValue(extracted, Map.class);
+        var result = MissingSkillAnalysis.analyze(
+            fields("requirement_extraction", snapshot),
+            List.of(required("PostgreSQL"), required("MongoDB")),
+            List.of(),
+            List.of(),
+            Map.of()
+        );
+        assertEquals(2, result.learning().size());
+        assertEquals(2, result.skills().size());
+        assertTrue(result.skills().stream().allMatch(row -> row.get("status").equals("MISSING")));
+    }
+
+    @Test
     void comparesOnlyRequiredJdSkillsAgainstDeclaredEvidenceAndSameJdAssessment() {
         var found = MissingSkillAnalysis.find(
             List.of(
@@ -78,7 +95,7 @@ class MissingSkillAnalysisTest {
     }
 
     @Test
-    void absentOrExcessiveStructuredRequirementsCannotBecomeAnInventedRoleRoadmap() {
+    void absentRequirementsAreRejectedButLargeGapListsAreNotCapped() {
         assertEquals(
             409,
             assertThrows(ApiException.class, () -> MissingSkillAnalysis.find(List.of(), List.of(), List.of(), Map.of()))
@@ -88,7 +105,94 @@ class MissingSkillAnalysisTest {
         for (int i = 0; i < 51; i++) {
             many.add(required("Skill " + i));
         }
-        assertThrows(ApiException.class, () -> MissingSkillAnalysis.find(many, List.of(), List.of(), Map.of()));
+        assertEquals(51, MissingSkillAnalysis.find(many, List.of(), List.of(), Map.of()).size());
+        var gaps = MissingSkillAnalysis.find(many, List.of(), List.of(), Map.of());
+        var generated = fields(
+            "nodes",
+            many.stream()
+                .map(
+                    row -> fields(
+                        "skill_name",
+                        row.get("skill_name"),
+                        "estimated_hours",
+                        1,
+                        "description",
+                        "Practice",
+                        "prerequisites",
+                        List.of()
+                    )
+                ).toList()
+        );
+        MissingSkillAnalysis.constrainGenerated(generated, gaps);
+        assertEquals(51, array(generated.get("nodes")).size());
+    }
+
+    @Test
+    void twentySkillsWithTwoDeclarationsKeepEighteenGapsAndTwoUnverifiedSkills() {
+        List<String> names = List.of(
+            "Python",
+            "FastAPI",
+            "Django",
+            "API design",
+            "Docker",
+            "Kubernetes",
+            "SQL",
+            "Git",
+            "Java",
+            "JavaScript",
+            "TypeScript",
+            "React",
+            "PostgreSQL",
+            "MongoDB",
+            "Redis",
+            "Linux",
+            "Kafka",
+            "RabbitMQ",
+            "Terraform",
+            "Jenkins"
+        );
+        var analysis = MissingSkillAnalysis.analyze(
+            Map.of(),
+            names.stream().map(this::required).toList(),
+            List.of(fields("name", "SQL"), fields("name", "Git")),
+            List.of(),
+            Map.of()
+        );
+        assertEquals(18, analysis.learning().size());
+        assertEquals(20, analysis.skills().size());
+        assertEquals(2, analysis.skills().stream().filter(row -> "DECLARED".equals(row.get("status"))).count());
+        assertTrue(analysis.skills().stream().noneMatch(row -> "SATISFIED".equals(row.get("status"))));
+        for (String name : names.subList(0, 6)) {
+            assertTrue(analysis.learning().stream().anyMatch(row -> name.equals(row.get("skill_name"))));
+        }
+    }
+
+    @Test
+    void evidenceStatesSeparateAssessmentFromDeclarationsAndOptionalRequirements() {
+        var analysis = MissingSkillAnalysis.analyze(
+            Map.of(),
+            List.of(
+                required("Python"),
+                required("Docker"),
+                required("SQL"),
+                required("Git"),
+                fields("skill_name", "Django", "is_required", false)
+            ),
+            List.of(fields("name", "SQL")),
+            List.of(),
+            fields(
+                "skill_scores",
+                List.of(fields("skill", "Python", "score", 70), fields("skill", "Docker", "score", 69.99))
+            )
+        );
+        assertEquals(
+            List.of("SATISFIED", "NEEDS_IMPROVEMENT", "DECLARED", "MISSING", "MISSING"),
+            analysis.skills().stream().map(row -> row.get("status")).toList()
+        );
+        assertEquals(
+            List.of("Docker", "Git", "Django"),
+            analysis.learning().stream().map(row -> row.get("skill_name")).toList()
+        );
     }
 
     @Test
@@ -229,5 +333,31 @@ class MissingSkillAnalysisTest {
             "reasoning",
             "AI incorrectly claimed a complete absence of ability"
         );
+    }
+
+    @Test
+    void aliasesShareIdentityButRelatedSkillsDoNotAutomaticallySatisfyRequirements() {
+        assertTrue(
+            MissingSkillAnalysis
+                .find(List.of(required("PostgreSQL")), List.of(fields("name", "Postgres")), List.of(), Map.of())
+                .isEmpty()
+        );
+        assertEquals(
+            1,
+            MissingSkillAnalysis
+                .find(List.of(required("SQL")), List.of(fields("name", "PostgreSQL")), List.of(), Map.of()).size()
+        );
+    }
+
+    @Test
+    void unresolvedAndUnsatisfiedAlternativesAreVisibleWithoutInventingMissingSkills() {
+        var job = fields(
+            "parsed_requirements",
+            "<p>Excel or SQL required.</p>" + "<p>Experience with NebulaFlux required.</p>"
+        );
+        var unresolved = MissingSkillAnalysis.unverifiedRequirements(job, Set.of("English"));
+        assertEquals(2, unresolved.size());
+        assertTrue(unresolved.stream().allMatch(row -> row.get("status").equals("UNVERIFIED")));
+        assertEquals(1, MissingSkillAnalysis.unverifiedRequirements(job, Set.of("SQL")).size());
     }
 }

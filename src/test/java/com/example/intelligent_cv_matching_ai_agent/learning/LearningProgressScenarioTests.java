@@ -170,15 +170,15 @@ class LearningProgressScenarioTests {
 
         Map<String, Object> result = service.createRoadmap(new RoadmapRequest(null, job, null, null));
         assertEquals(roadmap, result.get("id"));
-        assertEquals("completed", result.get("status"));
-        assertEquals(100, result.get("progress_percent"));
+        assertEquals("ready", result.get("status"));
+        assertEquals(0, result.get("progress_percent"));
         assertEquals(List.of(), result.get("nodes"));
 
         verify(user).requireRole("CANDIDATE");
         verify(db).insertRoadmaps(
             argThat(
-                fields -> "completed".equals(fields.get("status"))
-                    && Integer.valueOf(100).equals(fields.get("progress_percent"))
+                fields -> "ready".equals(fields.get("status"))
+                    && Integer.valueOf(0).equals(fields.get("progress_percent"))
                     && Integer.valueOf(0).equals(fields.get("estimated_total_hours"))
             )
         );

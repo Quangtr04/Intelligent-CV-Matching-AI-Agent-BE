@@ -109,6 +109,7 @@ app:
       enabled: ${SALARY_EXCHANGE_ENABLED:true}
       url: ${SALARY_EXCHANGE_URL:https://open.er-api.com/v6/latest/USD}
     collection:
+      scheduler-enabled: ${JOB_COLLECTION_SCHEDULER_ENABLED:false}
       enabled: ${JOB_COLLECTION_ENABLED}
       actor-id: ${JOB_COLLECTION_ACTOR_ID}
       fixed-delay: ${JOB_COLLECTION_FIXED_DELAY}
