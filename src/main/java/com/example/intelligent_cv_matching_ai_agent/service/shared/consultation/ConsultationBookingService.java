@@ -280,7 +280,7 @@ public class ConsultationBookingService {
             || input.comment().isBlank() || input.comment().length() > 2000) {
             throw ApiException.badRequest("Provide a rating from 1 to 5 and a review of 1 to 2000 characters");
         }
-        if (db.booking(id).get("rating") != null) {
+        if (db.booking(id).get("rating") != null || db.hasRating(id)) {
             throw ApiException.conflict("This consultation has already been reviewed");
         }
         db.rate(

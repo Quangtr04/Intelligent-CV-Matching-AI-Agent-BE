@@ -15,6 +15,13 @@ public class RagDocumentRepository {
         this.db = db;
     }
 
+    public List<Map<String, Object>> pendingDocuments() {
+        return db.list(
+            "SELECT id,uploaded_by FROM rag_documents WHERE embedding_status='PENDING' "
+                + "AND COALESCE(metadata->>'disabled','false')<>'true' ORDER BY created_at,id LIMIT 5"
+        );
+    }
+
     public Object json(
         Object value) {
         return db.json(value);

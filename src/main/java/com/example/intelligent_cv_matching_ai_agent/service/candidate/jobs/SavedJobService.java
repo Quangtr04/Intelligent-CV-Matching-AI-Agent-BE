@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import static com.example.intelligent_cv_matching_ai_agent.util.shared.Values.offset;
 import static com.example.intelligent_cv_matching_ai_agent.util.shared.Values.pageSize;
 
-/** Candidate wishlist of jobs found in job discovery. */
+/** Candidate saved jobs of jobs found in job discovery. */
 @Service
 public class SavedJobService {
 

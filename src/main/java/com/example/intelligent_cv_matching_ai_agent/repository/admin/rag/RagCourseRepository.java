@@ -17,6 +17,21 @@ public class RagCourseRepository {
         this.db = db;
     }
 
+    public List<Map<String, Object>> learningResources() {
+        return db.list(
+            "SELECT id,title,url,provider,resource_type,language,is_free,is_active "
+                + "FROM learning_resources ORDER BY title,id"
+        );
+    }
+
+    public Map<String, Object> setResourceActive(
+        UUID id,
+        boolean active) {
+        db.one("SELECT id FROM learning_resources WHERE id=? FOR UPDATE", id);
+        db.update("UPDATE learning_resources SET is_active=?,updated_at=now() WHERE id=?", active, id);
+        return db.one("SELECT id,is_active FROM learning_resources WHERE id=?", id);
+    }
+
     public List<Map<String, Object>> list() {
         return db.list("SELECT * FROM rag_course_links ORDER BY created_at DESC, id DESC LIMIT 200");
     }

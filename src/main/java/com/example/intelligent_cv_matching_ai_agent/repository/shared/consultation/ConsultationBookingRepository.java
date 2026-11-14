@@ -22,7 +22,7 @@ public class ConsultationBookingRepository {
         + "u.full_name AS consultant_name,r.rating,r.comment AS rating_comment,"
         + "r.created_at AS rating_created_at FROM consultation_bookings b JOIN "
         + "users c ON c.id=b.candidate_user_id JOIN users u ON "
-        + "u.id=b.consultant_user_id LEFT JOIN consultation_ratings r ON r.booking_id=b.id "
+        + "u.id=b.consultant_user_id LEFT JOIN consultation_ratings r ON r.booking_id=b.id AND NOT r.is_removed "
         + "LEFT JOIN resumes cv ON cv.id=b.resume_id AND cv.user_id=b.candidate_user_id AND cv.status='READY' "
         + "LEFT JOIN market_job_posts j ON j.id=b.job_id ");
 
@@ -38,7 +38,7 @@ public class ConsultationBookingRepository {
                 + "0) AS completed_count FROM users u JOIN consultant_profiles p ON "
                 + "p.user_id=u.id LEFT JOIN (SELECT consultant_user_id,round(avg(rating),"
                 + "2) AS average_rating,count(*) AS rating_count FROM "
-                + "consultation_ratings GROUP BY consultant_user_id) r ON "
+                + "consultation_ratings WHERE NOT is_removed GROUP BY consultant_user_id) r ON "
                 + "r.consultant_user_id=u.id LEFT JOIN (SELECT consultant_user_id,"
                 + "count(*) AS completed_count FROM consultation_bookings WHERE "
                 + "status='COMPLETED' GROUP BY consultant_user_id) b ON "
@@ -380,6 +380,11 @@ public class ConsultationBookingRepository {
             ("UPDATE consultation_threads SET status='CLOSED'," + "closed_at=COALESCE(closed_at,now()) WHERE id=?"),
             thread
         );
+    }
+
+    public boolean hasRating(
+        UUID bookingId) {
+        return !db.optional("SELECT id FROM consultation_ratings WHERE booking_id=?", bookingId).isEmpty();
     }
 
     public void rate(

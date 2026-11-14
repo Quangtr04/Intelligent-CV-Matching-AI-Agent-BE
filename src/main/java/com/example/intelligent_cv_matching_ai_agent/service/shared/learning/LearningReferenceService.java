@@ -31,7 +31,11 @@ public class LearningReferenceService {
         String target,
         Collection<String> skills) {
         List<String> focus = LearningReferenceData.focusSkills(skills);
-        List<Map<String, Object>> roadmaps = catalog.select(target, focus);
+        List<Map<String, Object>> candidates = catalog.select(target, focus);
+        var availableUrls = db.listLearningResourcesByUrls(candidates.stream().map(r -> text(r.get("url"))).toList())
+            .stream().map(r -> text(r.get("url"))).collect(java.util.stream.Collectors.toSet());
+        List<Map<String, Object>> roadmaps =
+            candidates.stream().filter(r -> availableUrls.contains(text(r.get("url")))).toList();
         Collection<String> slugs = new LinkedHashSet<>(skillSlugs(target));
         focus.forEach(skill -> slugs.addAll(skillSlugs(skill)));
         List<Map<String, Object>> resources =

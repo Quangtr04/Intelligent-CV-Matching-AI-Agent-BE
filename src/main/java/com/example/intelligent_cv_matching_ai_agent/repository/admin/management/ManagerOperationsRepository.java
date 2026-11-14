@@ -40,7 +40,7 @@ public class ManagerOperationsRepository {
         + "count(*) FILTER(WHERE status IN ('PENDING','ACCEPTED') AND starts_at>now()) AS upcoming_bookings "
         + "FROM consultation_bookings GROUP BY consultant_user_id) b ON b.consultant_user_id=u.id LEFT JOIN ("
         + "SELECT consultant_user_id,round(avg(rating),2) AS average_rating,count(*) AS rating_count "
-        + "FROM consultation_ratings GROUP BY consultant_user_id) r ON r.consultant_user_id=u.id ";
+        + "FROM consultation_ratings WHERE NOT is_removed GROUP BY consultant_user_id) r ON r.consultant_user_id=u.id ";
 
     private final SqlStore db;
 
@@ -57,7 +57,7 @@ public class ManagerOperationsRepository {
                    (SELECT count(*) FROM consultation_bookings
                      WHERE status='ACCEPTED' AND ends_at>now()) AS accepted_bookings,
                    (SELECT count(*) FROM consultation_bookings WHERE status='COMPLETED') AS completed_bookings,
-                   (SELECT round(avg(rating),2) FROM consultation_ratings) AS average_consultation_rating,
+                   (SELECT round(avg(rating),2) FROM consultation_ratings WHERE NOT is_removed) AS average_consultation_rating,
                    (SELECT count(*) FROM payment_reports WHERE status<>'RESOLVED') AS open_payment_reports
             """);
     }
@@ -202,7 +202,7 @@ public class ManagerOperationsRepository {
             "SELECT count(*) AS bookings,count(*) FILTER(WHERE b.status='COMPLETED') AS completed,"
                 + "count(*) FILTER(WHERE b.status='CANCELLED') AS cancelled,"
                 + "count(*) FILTER(WHERE b.status='DECLINED') AS declined,round(avg(r.rating),2) AS average_rating "
-                + "FROM consultation_bookings b LEFT JOIN consultation_ratings r ON r.booking_id=b.id "
+                + "FROM consultation_bookings b LEFT JOIN consultation_ratings r ON r.booking_id=b.id AND NOT r.is_removed "
                 + "WHERE b.starts_at>=? AND b.starts_at<?",
             from,
             until
@@ -240,7 +240,7 @@ public class ManagerOperationsRepository {
                 + "u.full_name AS consultant_name,r.rating,r.comment AS rating_comment,"
                 + "r.created_at AS rating_created_at "
                 + "FROM consultation_bookings b JOIN users c ON c.id=b.candidate_user_id "
-                + "JOIN users u ON u.id=b.consultant_user_id LEFT JOIN consultation_ratings r ON r.booking_id=b.id "
+                + "JOIN users u ON u.id=b.consultant_user_id LEFT JOIN consultation_ratings r ON r.booking_id=b.id AND NOT r.is_removed "
                 + "WHERE b.consultant_user_id=? AND (?::varchar IS NULL OR b.status=?) "
                 + "ORDER BY b.starts_at DESC,b.id LIMIT ? OFFSET ?",
             id,
@@ -280,7 +280,7 @@ public class ManagerOperationsRepository {
                 + "FROM job_match_feedback "
                 + "UNION ALL SELECT id,user_id,'ASSISTANT' AS source,rating,feedback_text,created_at "
                 + "FROM career_assistant_feedback UNION ALL SELECT id,candidate_user_id,'CONSULTATION' AS source,"
-                + "rating,comment,created_at FROM consultation_ratings) f LEFT JOIN users u ON u.id=f.user_id "
+                + "rating,comment,created_at FROM consultation_ratings WHERE NOT is_removed) f LEFT JOIN users u ON u.id=f.user_id "
                 + "ORDER BY f.created_at DESC,f.id LIMIT ? OFFSET ?",
             limit,
             offset

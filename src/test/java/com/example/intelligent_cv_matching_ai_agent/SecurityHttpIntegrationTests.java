@@ -76,6 +76,9 @@ class SecurityHttpIntegrationTests {
         String manager = token("MANAGER");
         for (String path : List.of(
             "/api/v1/admin/dashboard",
+            "/api/v1/admin/rag/documents",
+            "/api/v1/admin/rag/courses",
+            "/api/v1/admin/rag/resources",
             TEMPLATES,
             "/api/v1/admin/subscription-tiers",
             "/api/v1/admin/consultation-services",
@@ -94,7 +97,6 @@ class SecurityHttpIntegrationTests {
         }
         for (String path : List.of(
             "/api/v1/admin/users",
-            "/api/v1/admin/rag/documents",
             "/api/v1/admin/ai/configurations",
             "/api/v1/admin/ai/runtime",
             "/api/v1/admin/ai/prompts",
