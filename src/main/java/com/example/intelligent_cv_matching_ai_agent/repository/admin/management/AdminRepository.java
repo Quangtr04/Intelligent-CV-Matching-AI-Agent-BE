@@ -262,7 +262,7 @@ public class AdminRepository {
                 + "SELECT id,user_id,'ASSISTANT' AS source,rating,feedback_text,created_at "
                 + "FROM career_assistant_feedback UNION ALL "
                 + "SELECT id,candidate_user_id AS user_id,'CONSULTATION' AS source,rating,"
-                + "comment AS feedback_text,created_at FROM consultation_ratings"
+                + "comment AS feedback_text,created_at FROM consultation_ratings WHERE NOT is_removed"
                 + ") feedback ORDER BY created_at DESC LIMIT 100"
         );
     }

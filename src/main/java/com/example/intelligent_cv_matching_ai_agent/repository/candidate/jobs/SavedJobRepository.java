@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.UUID;
 import org.springframework.stereotype.Repository;
 
-/** SQL persistence operations for the candidate job wishlist. */
+/** SQL persistence operations for the candidate job saved jobs. */
 @Repository
 public class SavedJobRepository {
 

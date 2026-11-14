@@ -32,21 +32,36 @@ public class RagCourseService {
         this.rag = rag;
     }
 
+    public List<Map<String, Object>> learningResources() {
+        user.requireOperationsRole();
+        return db.learningResources();
+    }
+
+    @Transactional
+    public Map<String, Object> setResourceActive(
+        UUID id,
+        boolean active) {
+        user.requireOperationsRole();
+        Map<String, Object> result = db.setResourceActive(id, active);
+        db.audit(user.id(), active ? "LEARNING_RESOURCE_ENABLE" : "LEARNING_RESOURCE_DISABLE", id);
+        return result;
+    }
+
     public List<Map<String, Object>> list() {
-        user.requireRole("ADMIN");
+        user.requireOperationsRole();
         return db.list();
     }
 
     public Map<String, Object> get(
         UUID id) {
-        user.requireRole("ADMIN");
+        user.requireOperationsRole();
         return db.get(id);
     }
 
     @Transactional
     public Map<String, Object> create(
         CourseLinkRequest request) {
-        user.requireRole("ADMIN");
+        user.requireOperationsRole();
         CourseLink link = CourseLink.parse(request.url());
         String title = RagCourseSupport.text(request.title(), "title", 255);
         String description = RagCourseSupport.text(request.description(), "description", 12000);
@@ -71,7 +86,7 @@ public class RagCourseService {
     @Transactional
     public Map<String, Object> approve(
         UUID id) {
-        user.requireRole("ADMIN");
+        user.requireOperationsRole();
         Map<String, Object> course = db.lock(id);
         if ("APPROVED".equals(course.get("status")))
             return db.get(id);
@@ -118,7 +133,7 @@ public class RagCourseService {
     @Transactional
     public Map<String, Object> archive(
         UUID id) {
-        user.requireRole("ADMIN");
+        user.requireOperationsRole();
         Map<String, Object> course = db.lock(id);
         if ("ARCHIVED".equals(course.get("status")))
             return db.get(id);
@@ -137,7 +152,7 @@ public class RagCourseService {
     /** Preserve the existing retryable index states instead of holding a transaction across network calls. */
     public Map<String, Object> index(
         UUID id) {
-        user.requireRole("ADMIN");
+        user.requireOperationsRole();
         Map<String, Object> course = db.get(id);
         if (!"APPROVED".equals(course.get("status")) || !(course.get("rag_document_id") instanceof UUID))
             throw ApiException.conflict("Only approved course links can be indexed");

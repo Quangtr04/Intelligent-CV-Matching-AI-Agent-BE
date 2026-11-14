@@ -74,6 +74,7 @@ public class SecurityConfig {
                     ).permitAll()
                     .requestMatchers(
                         "/api/v1/admin/dashboard",
+                        "/api/v1/admin/rag/**",
                         "/api/v1/admin/subscription-tiers/**",
                         "/api/v1/admin/consultation-services/**",
                         "/api/v1/admin/payment-reports/**",

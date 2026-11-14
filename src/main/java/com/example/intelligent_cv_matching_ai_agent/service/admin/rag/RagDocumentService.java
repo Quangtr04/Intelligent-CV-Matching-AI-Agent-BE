@@ -34,14 +34,14 @@ public class RagDocumentService {
     }
 
     public List<Map<String, Object>> list() {
-        user.requireRole("ADMIN");
+        user.requireOperationsRole();
 
         return db.listRagDocuments();
     }
 
     public Map<String, Object> get(
         UUID id) {
-        user.requireRole("ADMIN");
+        user.requireOperationsRole();
 
         Map<String, Object> document = new LinkedHashMap<>(db.getRagDocumentsById(id));
         document.put("chunks", db.listRagChunksByDocumentId(id));
@@ -52,7 +52,7 @@ public class RagDocumentService {
     @Transactional
     public Map<String, Object> create(
         Map<String, Object> input) {
-        user.requireRole("ADMIN");
+        user.requireOperationsRole();
 
         String title = ResumeData.text(input.get("title"), "title", 255);
         String content = ResumeData.text(input.get("content"), "content", 100_000);
@@ -105,8 +105,14 @@ public class RagDocumentService {
      */
     public Map<String, Object> index(
         UUID id) {
-        user.requireRole("ADMIN");
+        user.requireOperationsRole();
 
+        return indexAs(id, user.id());
+    }
+
+    Map<String, Object> indexAs(
+        UUID id,
+        UUID actorId) {
         Map<String, Object> document = db.getRagDocumentsById(id);
         if (document.get("metadata") instanceof Map<?, ?> metadata && Boolean.TRUE.equals(metadata.get("disabled")))
             throw ApiException.conflict("Archived RAG documents cannot be indexed");
@@ -118,6 +124,7 @@ public class RagDocumentService {
             throw ApiException.conflict("Document is already being indexed or has been archived");
 
         try {
+
             List<Map<String, Object>> chunks = db.listRagChunksByDocumentId2(id);
             if (chunks.isEmpty())
                 throw ApiException.conflict("Document has no chunks to index; import content first");
@@ -183,13 +190,16 @@ public class RagDocumentService {
                     Instant.now()
                 )
             );
-            audit(
+            auditAs(
+                actorId,
                 "INDEX_RAG_DOCUMENT",
                 id,
                 Map.of("provider", ai.provider(), "model", ai.embeddingModel(), "chunks", chunks.size())
             );
 
-            return get(id);
+            Map<String, Object> result = new LinkedHashMap<>(db.getRagDocumentsById(id));
+            result.put("chunks", db.listRagChunksByDocumentId(id));
+            return result;
         } catch (RuntimeException ex) {
             db.updateRagDocumentsById3(id);
             throw ex;
@@ -199,7 +209,7 @@ public class RagDocumentService {
     @Transactional
     public Map<String, Object> archive(
         UUID id) {
-        user.requireRole("ADMIN");
+        user.requireOperationsRole();
 
         db.getRagDocumentsById3(id);
 
@@ -219,10 +229,18 @@ public class RagDocumentService {
         String action,
         UUID id,
         Map<String, Object> detail) {
+        auditAs(user.id(), action, id, detail);
+    }
+
+    private void auditAs(
+        UUID actorId,
+        String action,
+        UUID id,
+        Map<String, Object> detail) {
         db.insertAuditLogs(
             Map.of(
                 "actor_user_id",
-                user.id(),
+                actorId,
                 "action",
                 action,
                 "entity_type",

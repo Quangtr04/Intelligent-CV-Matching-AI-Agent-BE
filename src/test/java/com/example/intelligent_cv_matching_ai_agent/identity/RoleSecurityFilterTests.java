@@ -76,7 +76,7 @@ class RoleSecurityFilterTests {
     @Test
     void managerCanOperateButCannotConfigureSecurityOrAiInfrastructure() throws Exception {
         mvc.perform(post("/api/v1/admin/rag/documents/x/index").header("Authorization", "Bearer MANAGER"))
-            .andExpect(status().isForbidden());
+            .andExpect(status().isOk());
         for (String path : new String[]{
             "/api/v1/manager/analytics",
             "/api/v1/admin/subscription-tiers/x/quotas",

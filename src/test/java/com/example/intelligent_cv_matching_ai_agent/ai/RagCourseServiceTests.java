@@ -193,8 +193,8 @@ class RagCourseServiceTests {
     }
 
     @Test
-    void nonAdminCannotSubmitOrReviewLinks() {
-        doThrow(ApiException.forbidden("Role required: ADMIN")).when(user).requireRole("ADMIN");
+    void nonOperationsUserCannotSubmitOrReviewLinks() {
+        doThrow(ApiException.forbidden("Role required: ADMIN")).when(user).requireOperationsRole();
         assertEquals(403, assertThrows(ApiException.class, () -> service.create(request())).status());
         assertEquals(403, assertThrows(ApiException.class, () -> service.approve(courseId)).status());
         assertEquals(403, assertThrows(ApiException.class, () -> service.archive(courseId)).status());
