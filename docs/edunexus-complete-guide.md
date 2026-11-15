@@ -95,7 +95,7 @@ EduNexus hỗ trợ chuẩn bị CV, tìm việc phù hợp, đánh giá kỹ n�
 | SSE | `SseEmitter` | Tin nhắn tư vấn trong cùng process |
 | Docker / GitHub Actions | JAR, image, CI/CD | Đóng gói và triển khai |
 
-Có container/dependency Qdrant và RabbitMQ nhưng workflow hiện tại lưu vector trong PostgreSQL, phát sự kiện tư vấn qua SSE. Chỉ bật chúng khi cần adapter tương ứng.
+Có container/dependency Qdrant nhưng workflow hiện tại lưu vector trong PostgreSQL, phát sự kiện tư vấn qua SSE. Chỉ bật chúng khi cần adapter tương ứng.
 
 | Người dùng | Xác thực | Công việc |
 | --- | --- | --- |
@@ -330,7 +330,6 @@ Dừng backend bằng Ctrl+C. Database/cache là process/container riêng.
 | OCR | `APP_OCR_ENABLED`, `APP_OCR_TESSDATA`, `APP_OCR_LANGUAGE` | Bật OCR, thư mục tessdata và ngôn ngữ |
 | Redis | `REDIS_HOST`, `REDIS_PORT`, `REDIS_USERNAME`, `REDIS_PASSWORD`, `REDIS_DATABASE` | Cache connection |
 | Redis | `REDIS_TIMEOUT`, `REDIS_CONNECT_TIMEOUT`, `REDIS_SSL_ENABLED` | Giá trị mẫu timeout 500 ms, SSL false |
-| Optional | `RABBITMQ_USER`, `RABBITMQ_PASSWORD` | Container optional, chưa là bus workflow |
 
 Ứng dụng tự nạp `.env` UTF-8 từ working directory bằng `spring.config.import` của Spring Boot;
 IDE, `mvn spring-boot:run` và `java -jar` đều dùng được khi working directory là thư mục chứa `pom.xml`
@@ -2387,7 +2386,7 @@ Seed có 3 gói FREE/BASIC/PRO, 30 hạn mức token theo tháng gồm `AI_TOTAL
 ### Chạy PostgreSQL có pgvector
 
 
-Sao chép `.env.example` thành `.env`, thay mật khẩu mẫu, chạy `docker compose up -d postgres`, rồi khởi động ứng dụng. Flyway áp dụng migration theo thứ tự. PostgreSQL trong Compose dùng `pgvector/pgvector:0.8.7-pg17-bookworm`, được liệt kê trong [các tag chính thức của pgvector](https://github.com/pgvector/pgvector#docker). Các dịch vụ Qdrant, RabbitMQ và Redis được giữ dưới profile `optional`; bật tất cả bằng `docker compose --profile optional up -d`.
+Sao chép `.env.example` thành `.env`, thay mật khẩu mẫu, chạy `docker compose up -d postgres`, rồi khởi động ứng dụng. Flyway áp dụng migration theo thứ tự. PostgreSQL trong Compose dùng `pgvector/pgvector:0.8.7-pg17-bookworm`, được liệt kê trong [các tag chính thức của pgvector](https://github.com/pgvector/pgvector#docker). Các dịch vụ Qdrant và Redis được giữ dưới profile `optional`; bật tất cả bằng `docker compose --profile optional up -d`.
 
 Redis được dùng cho cache kết quả phân tích CV, ATS và matching, nhưng không thay thế các bảng nghiệp vụ. Để chỉ
 khởi động Redis, dùng `docker compose up -d --wait redis`, sau đó
@@ -16215,7 +16214,7 @@ Thực hiện các luồng ghi/xóa trên database thử nghiệm riêng để k
 
 
 Dự án dùng Java 25, Maven, PostgreSQL và pgvector. PostgreSQL lưu dữ liệu nghiệp vụ và vector;
-Redis bổ sung cache. Qdrant và RabbitMQ có service tùy chọn trong Compose nhưng không phải
+Redis bổ sung cache. Qdrant có service tùy chọn trong Compose nhưng không phải
 thành phần bắt buộc của luồng matching hoặc queue embedding hiện tại.
 
 Chạy các lệnh dưới đây từ thư mục chứa `pom.xml`:
@@ -16261,7 +16260,7 @@ backend để tiến trình nhận cấu hình mới. `AUTH_EXPOSE_DEV_OTP=true`
 | `http://localhost:8080/api/v1/jobs` | Kiểm tra API đọc catalog công khai |
 
 Health `UP` không kiểm chứng email SMTP, Redis, lời gọi AI hoặc độ chính xác semantic search.
-Trong cấu hình hiện tại, các health indicator mail, Redis và RabbitMQ đã bị tắt.
+Trong cấu hình hiện tại, các health indicator mail và Redis đã bị tắt.
 
 <a id="unified-ops-swagger"></a>
 

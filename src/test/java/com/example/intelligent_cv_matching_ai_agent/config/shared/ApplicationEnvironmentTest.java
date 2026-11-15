@@ -324,7 +324,6 @@ class ApplicationEnvironmentTest {
             "app.billing.maintenance-enabled",
             "spring.docker.compose.enabled",
             "management.health.redis.enabled",
-            "management.health.rabbit.enabled",
             "management.health.mail.enabled"
         )) {
             assertFalse(environment.getRequiredProperty(property, Boolean.class), property);

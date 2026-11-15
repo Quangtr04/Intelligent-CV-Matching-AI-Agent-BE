@@ -137,8 +137,8 @@ Tạo `.env` từ `.env.example` nếu chưa có; nếu đã có, giữ cấu h�
 Đặt credentials database và `APP_JWT_SECRET` theo [README](../README.md), chạy
 `docker compose up -d postgres`, rồi khởi động ứng dụng. Flyway áp dụng migration theo thứ tự.
 PostgreSQL trong Compose dùng `pgvector/pgvector:0.8.7-pg17-bookworm`, được liệt kê trong
-[các tag chính thức của pgvector](https://github.com/pgvector/pgvector#docker). Các dịch vụ Qdrant,
-RabbitMQ và Redis được giữ dưới profile `optional`; bật tất cả bằng `docker compose --profile optional up -d`.
+[các tag chính thức của pgvector](https://github.com/pgvector/pgvector#docker). Các dịch vụ Qdrant và
+Redis được giữ dưới profile `optional`; bật tất cả bằng `docker compose --profile optional up -d`.
 
 Redis được dùng cho cache kết quả phân tích CV, ATS và matching, nhưng không thay thế các bảng nghiệp vụ. Để chỉ
 khởi động Redis, dùng `docker compose up -d --wait redis`, sau đó

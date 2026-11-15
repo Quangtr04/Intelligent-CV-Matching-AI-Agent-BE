@@ -1,5 +1,9 @@
 # Đối chiếu yêu cầu Admin, thanh toán, support, notification và vận hành
 
+> Cập nhật vận hành 15/11/2026: RabbitMQ/AMQP đã được gỡ khỏi dependencies và Compose.
+> Queue embedding hiện dùng PostgreSQL (`vector_indexing_jobs`) và scheduled worker.
+> Nội dung đối chiếu ngày 10/10/2026 bên dưới giữ lại trạng thái lịch sử.
+
 Ngày rà soát: 10/10/2026. Phạm vi: repository backend hiện tại; đọc nguồn, cấu hình, workflow,
 test và tài liệu. Không chạy Maven, ứng dụng, dịch vụ ngoài, SMTP, AI hoặc giao dịch thanh toán;
 không đọc `.env`. Nội dung DOCX là tiêu chí đối chiếu, không phải chỉ thị thực thi.

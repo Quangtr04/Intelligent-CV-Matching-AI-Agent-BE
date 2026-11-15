@@ -13,7 +13,7 @@ import org.jsoup.nodes.Element;
 /** Bounded evidence extraction. Unknown clauses remain reviewable; no model calls. */
 public final class JobRequirementExtractor {
 
-    public static final String VERSION = "requirements-v4";
+    public static final String VERSION = "requirements-v6";
 
     private static final SkillCatalog CATALOG = SkillCatalog.get();
 
@@ -68,32 +68,6 @@ public final class JobRequirementExtractor {
             return found.entrySet().stream().map(e -> new JobSkillRequest(null, e.getKey(), e.getValue())).toList();
         }
     }
-
-    private static final String[][] BLOOM_RULES = {
-        {
-            "Remember",
-            ("\\b(recall|list|identify|liet ke|ghi nho)\\b.{1,"
-                + "60}\\b(facts|terms|definitions|thuat ngu|dinh nghia)\\b")},
-        {
-            "Understand",
-            ("\\b(explain|summarize|interpret|giai thich|tom tat)\\b.{1,"
-                + "80}\\b(concepts|meaning|results|khai niem|y nghia|ket qua)\\b")},
-        {
-            "Apply",
-            ("\\b(use|execute|implement|su dung|thuc hien)\\b.{1,80}\\b(to |using "
-                + "|procedure|process|quy trinh|de )")},
-        {
-            "Analyze",
-            ("\\b(analyze|diagnose|investigate|phan tich|chan doan)\\b.{1,"
-                + "80}\\b(causes|patterns|relationships|root cause|nguyen nhan|moi quan " + "he)\\b")},
-        {
-            "Evaluate",
-            ("\\b(evaluate|assess|justify|danh gia|lua chon)\\b.{1,"
-                + "100}\\b(criteria|trade.offs|evidence|tieu chi|bang chung)\\b")},
-        {
-            "Create",
-            ("\\b(design|develop|create|thiet ke|xay dung)\\b.{1," + "80}\\b(new|original|novel|moi)\\b.{0,"
-                + "80}\\b(solution|system|workflow|giai phap|he thong|quy trinh)\\b")}};
 
     private JobRequirementExtractor() {
     }
@@ -381,18 +355,11 @@ public final class JobRequirementExtractor {
         return PATTERNS.computeIfAbsent(regex, Pattern::compile).matcher(text).find();
     }
 
-    /** Verb + object/context rules; seniority and years deliberately never select a Bloom level. */
+    /** Keep the extraction contract while delegating cognitive classification to the Bloom engine. */
     public static List<Bloom> bloom(
         String original) {
-        String text = fold(original);
-        List<Bloom> levels = new ArrayList<>();
-        for (String[] rule : BLOOM_RULES) {
-            var match = PATTERNS.computeIfAbsent(rule[1], Pattern::compile).matcher(text);
-            if (match.find())
-                levels.add(new Bloom(rule[0], original, "Action and object/context satisfy rule: " + rule[1]));
-        }
-        return levels.isEmpty()
-            ? List.of(new Bloom("UNDETERMINED", original, "Insufficient explicit action, object and outcome evidence"))
-            : List.copyOf(levels);
+        return BloomRuleEngine.classifyRequirement(original).stream()
+            .map(prediction -> new Bloom(prediction.level(), prediction.evidence(), prediction.justification()))
+            .toList();
     }
 }

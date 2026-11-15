@@ -1,5 +1,9 @@
 # Đối chiếu luồng với tài liệu đăng ký đồ án
 
+> Cập nhật vận hành 15/11/2026: RabbitMQ/AMQP đã được gỡ khỏi dependencies và Compose.
+> Queue embedding hiện dùng PostgreSQL (`vector_indexing_jobs`) và scheduled worker.
+> Nội dung đối chiếu ngày 10/10/2026 bên dưới giữ lại trạng thái lịch sử.
+
 Ngày kiểm tra: **10/10/2026**. Tài liệu tham chiếu:
 `FA26SE119_INTELLIGENT_CV_MATCHING_AI_AGENT_FOR_AUT_huynx23.docx`.
 

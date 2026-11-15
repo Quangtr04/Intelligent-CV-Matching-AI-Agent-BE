@@ -381,12 +381,22 @@ public class AiService {
             if (userInput.length() > 250_000)
                 throw ApiException.badRequest("AI input exceeds 250,000 characters");
 
-            Prompt prompt =
-                new Prompt(List.of(new SystemMessage(system), new UserMessage(userInput)), chatOptions(effective));
+            String responseSchema = "CV_AI_SUPPORT".equals(feature)
+                ? mapper.writeValueAsString(CvSupportResponseSchema.schema(input))
+                : null;
+            Prompt prompt = new Prompt(
+                List.of(new SystemMessage(system), new UserMessage(userInput)),
+                chatOptions(effective, responseSchema)
+            );
             int inputBudget = geminiTokenCounter == null
                 ? system.getBytes(java.nio.charset.StandardCharsets.UTF_8).length
                     + userInput.getBytes(java.nio.charset.StandardCharsets.UTF_8).length + 512
                 : geminiTokenCounter.countPrompt(effective.model(), prompt) + 128;
+            if (responseSchema != null) {
+                // The message counter excludes the response schema. UTF-8 bytes bound its token overhead.
+                inputBudget =
+                    Math.addExact(inputBudget, responseSchema.getBytes(java.nio.charset.StandardCharsets.UTF_8).length);
+            }
             budget = Math.addExact(inputBudget, outputTokenLimit);
 
             if ("CV_PROFILE_ALIGNMENT".equals(feature) && budget > 16384) {
@@ -497,6 +507,9 @@ public class AiService {
                         + "Check the output-token settings. The request was not automatically retried."
                 );
             }
+            if ("CV_AI_SUPPORT".equals(feature) && phase == GenerationPhase.VALIDATION) {
+                throw new ApiException(502, "AI CV support returned an invalid proposal. Please try again.");
+            }
             ApiException providerFailure = providerFailure(ex);
             if (providerFailure != null) {
                 throw providerFailure;
@@ -510,15 +523,18 @@ public class AiService {
     }
 
     private ChatOptions chatOptions(
-        GenerationSettings effective) {
-        // JSON mode and shared validators support every existing task schema.
+        GenerationSettings effective,
+        String responseSchema) {
+        var format = OpenAiChatModel.ResponseFormat.builder();
+        if (responseSchema == null) {
+            format.type(OpenAiChatModel.ResponseFormat.Type.JSON_OBJECT);
+        } else {
+            format.type(OpenAiChatModel.ResponseFormat.Type.JSON_SCHEMA).jsonSchema(responseSchema).strict(true);
+        }
         // Set timeout per request because SDK option defaults override the client timeout.
         return OpenAiChatOptions.builder().model(effective.model()).maxTokens(effective.outputTokens())
             .temperature(effective.temperature()).timeout(requestTimeout).maxRetries(0)
-            .reasoningEffort(effectiveReasoningEffort(effective.model()))
-            .responseFormat(
-                OpenAiChatModel.ResponseFormat.builder().type(OpenAiChatModel.ResponseFormat.Type.JSON_OBJECT).build()
-            ).build();
+            .reasoningEffort(effectiveReasoningEffort(effective.model())).responseFormat(format.build()).build();
     }
 
     /** Gemini 3+ cannot disable thinking; retain the smallest supported effort for its model family. */
@@ -556,7 +572,8 @@ public class AiService {
         }
         if (phase == GenerationPhase.VALIDATION) {
             // The CV validator only emits fixed field/rubric descriptions, never CV text or provider content.
-            if ("CV_ANALYZE".equals(feature) && failure instanceof IllegalArgumentException) {
+            if (("CV_ANALYZE".equals(feature) || "CV_AI_SUPPORT".equals(feature))
+                && failure instanceof IllegalArgumentException) {
                 return "AI model structured-output validation failed: " + failure.getMessage();
             }
             return "AI model structured-output validation failed";

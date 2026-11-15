@@ -60,7 +60,7 @@ public class EntitlementRepository {
 
     public Map<String, Object> getUsersByIdForUpdate(
         Object... args) {
-        return db.one("SELECT id FROM users WHERE id=? AND status='ACTIVE' FOR NO KEY UPDATE", args);
+        return db.one("SELECT id,role FROM users WHERE id=? AND status='ACTIVE' FOR NO KEY UPDATE", args);
     }
 
     public Optional<Map<String, Object>> findSubscriptionQuotasByTierId(

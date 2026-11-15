@@ -11,6 +11,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -28,6 +30,55 @@ class ApiCallQuotaDatabaseTests {
             throw new IllegalArgumentException("Only isolated local test databases are permitted");
         }
         return new DriverManagerDataSource(url, "edunexus_test", "");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"ADMIN", "MANAGER", "CAREER_CONSULTANT"})
+    void staffIgnoreZeroTokenAndCallQuotasButRoleChangesRestoreEnforcement(
+        String role) {
+        var source = source();
+        SqlStore sql = new SqlStore(new JdbcTemplate(source));
+        new TransactionTemplate(new DataSourceTransactionManager(source)).executeWithoutResult(status -> {
+            status.setRollbackOnly();
+            UUID user = person(sql, role);
+            UUID tier = sql.insert(
+                "subscription_tiers",
+                fields(
+                    "tier_code",
+                    "TEST_" + UUID.randomUUID().toString().substring(0, 20),
+                    "display_name",
+                    "Zero quota fixture",
+                    "price_monthly",
+                    0
+                )
+            );
+            sql.insert("user_subscriptions", fields("user_id", user, "tier_id", tier));
+            for (String feature : List.of("AI_TOTAL_TOKENS", "CV_ANALYZE", "API_CALLS_TOTAL", "API_CALLS_CV_ANALYZE")) {
+                sql.insert(
+                    "subscription_quotas",
+                    fields("tier_id", tier, "feature_code", feature, "quota_value", 0, "quota_period", "MONTHLY")
+                );
+            }
+            var repository = new EntitlementRepository(sql);
+            var service = new EntitlementService(repository);
+            UUID reservation = service.reserve(user, "CV_ANALYZE", 20000);
+            assertEquals(20000, repository.tokensUsed(user, null, "month"));
+            assertEquals(1, repository.requestsUsed(user, "CV_ANALYZE", "month"));
+            service.complete(reservation, 15000);
+            assertEquals(15000, repository.tokensUsed(user, null, "month"));
+            UUID cancelled = service.reserve(user, "CV_ANALYZE", 20000);
+            service.cancel(cancelled);
+            assertEquals(15000, repository.tokensUsed(user, null, "month"));
+            assertEquals(1, repository.requestsUsed(user, null, "month"));
+
+            sql.update("UPDATE users SET role='CANDIDATE' WHERE id=?", user);
+            assertEquals(
+                403,
+                assertThrows(ApiException.class, () -> service.reserve(user, "CV_ANALYZE", 100)).status()
+            );
+            sql.update("UPDATE users SET role=?,status='SUSPENDED' WHERE id=?", role, user);
+            assertThrows(ApiException.class, () -> service.reserve(user, "CV_ANALYZE", 100));
+        });
     }
 
     @Test
