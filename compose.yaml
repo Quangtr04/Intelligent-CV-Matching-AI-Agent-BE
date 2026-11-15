@@ -81,18 +81,6 @@ services:
     volumes:
       - qdrant_data:/qdrant/storage
 
-  rabbitmq:
-    image: rabbitmq:4.3.6-management
-    profiles: ['optional']
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-edunexus}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?Set RABBITMQ_PASSWORD in .env}
-    ports:
-      - '127.0.0.1:5673:5672'
-      - '127.0.0.1:15673:15672'
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
-
   redis:
     image: redis:7.4.6-alpine
     profiles: ['optional']
@@ -112,5 +100,4 @@ volumes:
   resume_uploads:
   postgres_data:
   qdrant_data:
-  rabbitmq_data:
   redis_data:

@@ -24,6 +24,7 @@ class ApiCallQuotaTests {
 
     @BeforeEach
     void setup() {
+        when(db.getUsersByIdForUpdate(user)).thenReturn(Map.of("id", user, "role", "CANDIDATE"));
         when(db.findUserSubscriptionsByUserId(user)).thenReturn(Optional.of(Map.of("id", tier)));
         when(db.findSubscriptionQuotasByTierId(tier)).thenReturn(Optional.of(Map.of("quota_value", 10000L)));
     }

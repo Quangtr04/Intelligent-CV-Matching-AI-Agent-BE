@@ -50,7 +50,7 @@ EduNexus hỗ trợ chuẩn bị CV, tìm việc phù hợp, đánh giá kỹ n�
 | SSE | `SseEmitter` | Tin nhắn tư vấn trong cùng process |
 | Docker / GitHub Actions | JAR, image, CI/CD | Đóng gói và triển khai |
 
-Có container/dependency Qdrant và RabbitMQ nhưng workflow hiện tại lưu vector trong PostgreSQL, phát sự kiện tư vấn qua SSE. Chỉ bật chúng khi cần adapter tương ứng.
+Có container/dependency Qdrant nhưng workflow hiện tại lưu vector trong PostgreSQL, phát sự kiện tư vấn qua SSE. Chỉ bật chúng khi cần adapter tương ứng.
 
 | Người dùng | Xác thực | Công việc |
 | --- | --- | --- |
@@ -262,7 +262,6 @@ Dừng backend bằng Ctrl+C. Database/cache là process/container riêng.
 | OCR | `APP_OCR_ENABLED`, `APP_OCR_TESSDATA`, `APP_OCR_LANGUAGE` | Bật OCR, thư mục tessdata và ngôn ngữ |
 | Redis | `REDIS_HOST`, `REDIS_PORT`, `REDIS_USERNAME`, `REDIS_PASSWORD`, `REDIS_DATABASE` | Cache connection |
 | Redis | `REDIS_TIMEOUT`, `REDIS_CONNECT_TIMEOUT`, `REDIS_SSL_ENABLED` | Giá trị mẫu timeout 500 ms, SSL false |
-| Optional | `RABBITMQ_USER`, `RABBITMQ_PASSWORD` | Container optional, chưa là bus workflow |
 
 Ứng dụng tự nạp `.env` UTF-8 từ working directory bằng `spring.config.import` của Spring Boot;
 IDE, `mvn spring-boot:run` và `java -jar` đều dùng được khi working directory là thư mục chứa `pom.xml`

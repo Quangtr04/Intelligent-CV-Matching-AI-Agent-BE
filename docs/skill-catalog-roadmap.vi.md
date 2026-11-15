@@ -85,6 +85,11 @@ không chuyển mọi tên thành các kỹ năng bắt buộc độc lập. Cá
 
 ## D. Bloom
 
+Từ `requirements-v6`, `JobRequirementExtractor` giữ hợp đồng snapshot/skill hiện có và gọi
+`BloomRuleEngine.classifyRequirement` để phân loại Bloom. Engine tách các mệnh đề hành động Việt/Anh,
+lưu chứng cứ theo mệnh đề và chọn rule có độ ưu tiên cao nhất trong mỗi mệnh đề. Thay đổi này cần
+chạy lại công cụ reprocess để cập nhật snapshot job crawl cũ.
+
 Giữ sáu mức Revised Bloom và UNDETERMINED trong requirement_extraction JSONB. Rule xét hành động và object/context/
 outcome, lưu câu chứng cứ cùng giải thích pattern. Ví dụ design a new workflow solution có căn cứ Create;
 chỉ nói design dashboards chưa đủ. Số năm, seniority và vị trí của node trong roadmap không gán mức Bloom.

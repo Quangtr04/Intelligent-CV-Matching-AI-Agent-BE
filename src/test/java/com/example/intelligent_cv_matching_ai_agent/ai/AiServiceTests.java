@@ -6,6 +6,7 @@ import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiUsageRec
 
 import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiService;
 import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.GeminiTokenCounter;
+import com.example.intelligent_cv_matching_ai_agent.util.shared.ai.CvSupportResponseSchema;
 
 import com.example.intelligent_cv_matching_ai_agent.security.shared.CurrentUser;
 
@@ -652,6 +653,13 @@ class AiServiceTests {
                     Prompt prompt) -> {
                     OpenAiChatOptions options = (OpenAiChatOptions) prompt.getOptions();
                     return Integer.valueOf(2000).equals(options.getMaxTokens())
+                        && options.getResponseFormat().getType() == OpenAiChatModel.ResponseFormat.Type.JSON_SCHEMA
+                        && Boolean.TRUE.equals(options.getResponseFormat().getStrict())
+                        && JsonMapper.builder().build()
+                            .readValue(options.getResponseFormat().getJsonSchema(), Map.class).equals(
+                                CvSupportResponseSchema
+                                    .schema(Map.of("section", Map.of("current_text", "Built Java APIs.")))
+                            )
                         && prompt.getInstructions().getFirst().getText()
                             .contains("Use concise CV instructions from administration.")
                         && prompt.getInstructions().getFirst().getText()
@@ -661,6 +669,62 @@ class AiServiceTests {
         );
         verify(recorder).record(
             argThat(row -> "CV_AI_SUPPORT".equals(row.get("feature_code")) && Boolean.TRUE.equals(row.get("success")))
+        );
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"missing_suggestions", "invented_source"})
+    void invalidCvSupportRecordsSafeDetailsAndChargesOneReceivedResponseWithoutRetrying(
+        String failureKind) {
+        UUID actor = UUID.randomUUID(), reservation = UUID.randomUUID();
+        ChatModel chat = mock(ChatModel.class);
+        when(chats.getIfAvailable()).thenReturn(chat);
+        when(chats.getObject()).thenReturn(chat);
+        when(user.id()).thenReturn(actor);
+        when(entitlement.reserve(eq(actor), eq("CV_AI_SUPPORT"), anyInt())).thenReturn(reservation);
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("answer", "Built Java APIs.");
+        if ("invented_source".equals(failureKind)) {
+            result.put(
+                "suggestions",
+                List.of(
+                    Map.of(
+                        "original_content",
+                        "Sensitive invented source must not reach logs",
+                        "suggested_content",
+                        "Built Java APIs.",
+                        "explanation",
+                        "Clarify the responsibility."
+                    )
+                )
+            );
+        }
+        when(chat.call(any(Prompt.class))).thenReturn(
+            new ChatResponse(
+                List.of(new Generation(new AssistantMessage(JsonMapper.builder().build().writeValueAsString(result)))),
+                ChatResponseMetadata.builder().usage(new DefaultUsage(506, 128)).build()
+            )
+        );
+
+        ApiException failure = assertThrows(
+            ApiException.class,
+            () -> service(true).generate(
+                "CV_AI_SUPPORT",
+                Map.of("language", "en", "section", Map.of("current_text", "Built Java APIs."))
+            )
+        );
+        assertEquals(502, failure.status());
+        assertEquals("AI CV support returned an invalid proposal. Please try again.", failure.getMessage());
+        verify(chat, times(1)).call(any(Prompt.class));
+        verify(entitlement).complete(reservation, 634);
+        String detail = "missing_suggestions".equals(failureKind)
+            ? "CV support suggestions must contain at most three items"
+            : "CV support original_content must be a literal source excerpt";
+        verify(recorder).record(
+            argThat(
+                row -> ("AI model structured-output validation failed: " + detail).equals(row.get("error_message"))
+                    && Boolean.FALSE.equals(row.get("success"))
+            )
         );
     }
 

@@ -94,7 +94,7 @@ mvn verify
 docker compose --profile app --profile optional up -d --build app
 ```
 
-Lệnh chỉ định app và khởi động Redis phụ thuộc; app chờ Redis healthy. Redis nằm trong Compose profile `optional`. Lệnh chỉ target `app`, không khởi động Qdrant/RabbitMQ. PostgreSQL container thuộc profile `database`, không tự khởi động cùng app. Backend gọi Gemini qua mạng bằng `GEMINI_API_KEY` đã đặt trong `.env`.
+Lệnh chỉ định app và khởi động Redis phụ thuộc; app chờ Redis healthy. Redis nằm trong Compose profile `optional`. Lệnh chỉ target `app`, không khởi động Qdrant. PostgreSQL container thuộc profile `database`, không tự khởi động cùng app. Backend gọi Gemini qua mạng bằng `GEMINI_API_KEY` đã đặt trong `.env`.
 
 Sau khi sửa API, cập nhật backend Docker đang chạy bằng cách đóng gói JAR rồi dựng lại app:
 

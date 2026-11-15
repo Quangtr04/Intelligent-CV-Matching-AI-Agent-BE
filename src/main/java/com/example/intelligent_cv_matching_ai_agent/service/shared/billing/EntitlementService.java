@@ -31,7 +31,35 @@ public class EntitlementService {
         if (tokenBudget < 1 || tokenBudget > 200000)
             throw ApiException.badRequest("Invalid AI token budget");
 
-        db.getUsersByIdForUpdate(user);
+        var account = db.getUsersByIdForUpdate(user);
+        String role = (String) account.get("role");
+        // Read the persisted owner's role so background work follows the same policy.
+        if (!"ADMIN".equals(role) && !"MANAGER".equals(role) && !"CAREER_CONSULTANT".equals(role)) {
+            checkSubscriptionQuota(user, feature, tokenBudget);
+        }
+
+        return db.insertAiTokenReservations(
+            Map.of(
+                "user_id",
+                user,
+                "feature_code",
+                feature,
+                "reserved_tokens",
+                tokenBudget,
+                "consumed_tokens",
+                0,
+                "status",
+                "RESERVED",
+                "created_at",
+                OffsetDateTime.now()
+            )
+        );
+    }
+
+    private void checkSubscriptionQuota(
+        UUID user,
+        String feature,
+        int tokenBudget) {
         Map<String, Object> tier = effectiveTier(user);
         var global = db.findSubscriptionQuotasByTierId(tier.get("id"));
         if (global.isEmpty())
@@ -59,23 +87,6 @@ public class EntitlementService {
         // The user lock above makes call limits atomic with token reservations.
         checkCallQuota(user, tier.get("id"), "API_CALLS_TOTAL", null);
         checkCallQuota(user, tier.get("id"), "API_CALLS_" + feature, feature);
-
-        return db.insertAiTokenReservations(
-            Map.of(
-                "user_id",
-                user,
-                "feature_code",
-                feature,
-                "reserved_tokens",
-                tokenBudget,
-                "consumed_tokens",
-                0,
-                "status",
-                "RESERVED",
-                "created_at",
-                OffsetDateTime.now()
-            )
-        );
     }
 
     private void checkCallQuota(

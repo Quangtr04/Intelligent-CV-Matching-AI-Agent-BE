@@ -94,7 +94,7 @@ mvn verify
 docker compose --profile app --profile optional up -d --build app
 ```
 
-Service `app` chờ Redis healthy rồi khởi động và gọi Gemini qua API key trong `.env`. CV lưu trong volume `resume_uploads`. Lệnh không khởi động Qdrant/RabbitMQ. PostgreSQL trong Compose thuộc profile `database`, không tự khởi động cùng app. Để dùng PostgreSQL container cho backend chạy trên host, gọi `docker compose --profile database up -d --wait postgres` hoặc `run-local.ps1 -WithInfrastructure`. Compose profile `app` chọn service, còn Spring profile `docker` chọn cấu hình bên trong backend.
+Service `app` chờ Redis healthy rồi khởi động và gọi Gemini qua API key trong `.env`. CV lưu trong volume `resume_uploads`. Lệnh không khởi động Qdrant. PostgreSQL trong Compose thuộc profile `database`, không tự khởi động cùng app. Để dùng PostgreSQL container cho backend chạy trên host, gọi `docker compose --profile database up -d --wait postgres` hoặc `run-local.ps1 -WithInfrastructure`. Compose profile `app` chọn service, còn Spring profile `docker` chọn cấu hình bên trong backend.
 
 Compose gán rõ `SPRING_PROFILES_ACTIVE=docker`, `DATABASE_URL=jdbc:postgresql://host.docker.internal:5432/edunexus`, Redis `redis:6379` với username/password trống và upload `/app/uploads`. Provider chat/embedding là `gemini` (adapter giao thức `openai`); key và model lấy từ `.env`. Xem [hướng dẫn profile](docs/runtime-profiles.md) và [hướng dẫn Gemini](docs/gemini.md).
 
@@ -153,7 +153,9 @@ AI_REQUEST_TIMEOUT=PT2M
 
 Compose local chạy app và Redis theo lệnh bên trên; Compose production chỉ đóng gói app, kết nối database/Redis bên ngoài và gọi Gemini.
 
-Career Consultant được phân công có thể gọi AI đánh giá chất lượng CV và độ phù hợp CV–job ngay trong consultation đang mở. Kết quả được lưu vào lịch sử của candidate; usage/quota tính cho consultant thực hiện. Chức năng này dùng nội dung CV đã xác nhận và JD, không yêu cầu embedding. Xem [API và các bước đánh giá CV/ATS cho consultant](docs/consultant-ai-evaluation.md).
+Các vai trò `ADMIN`, `MANAGER` và `CAREER_CONSULTANT` được miễn quota token và số lượt gọi AI của gói, gồm quota tổng và theo tính năng. Backend kiểm tra vai trò hiện tại của chủ sở hữu tác vụ trong database, kể cả khi chạy nền, và vẫn lưu reservation/usage. `CANDIDATE` tiếp tục dùng quota của gói. Giới hạn kích thước mỗi request và giới hạn từ nhà cung cấp AI vẫn áp dụng.
+
+Career Consultant được phân công có thể gọi AI đánh giá chất lượng CV và độ phù hợp CV–job ngay trong consultation đang mở. Kết quả được lưu vào lịch sử của candidate; usage ghi nhận cho consultant thực hiện, được miễn quota của gói. Chức năng này dùng nội dung CV đã xác nhận và JD, không yêu cầu embedding. Xem [API và các bước đánh giá CV/ATS cho consultant](docs/consultant-ai-evaluation.md).
 
 Model embedding phải trả đúng **1024 chiều**, khớp schema database. Native Gemini request đặt `outputDimensionality=1024`; backend chuẩn hóa L2 kết quả. Vector từ provider cũ hoặc vector OpenAI 1536 chiều cũ không được dùng chung với vector mới: cần index lại CV, job và RAG theo provider/model hiện tại. Không cắt/pad vector cũ để tái sử dụng. Import/crawl job tự enqueue embedding; theo dõi bằng `GET /api/v1/admin/jobs/{id}/index`, dùng POST cùng path để index/retry thủ công.
 
@@ -202,8 +204,11 @@ tạo phân tích mới. Cache chỉ được ghi sau commit. Namespace mới kh
 `/actuator/health` UP không xác nhận Redis vì Redis health indicator đang tắt.
 Xem [các bước kiểm thử Redis/ATS trên Swagger](docs/swagger-testing.md#redis-ats).
 
-Qdrant, RabbitMQ và Redis nằm trong profile `optional`; luồng hiện tại lưu vector trong
+Qdrant và Redis nằm trong profile `optional`; luồng hiện tại lưu vector trong
 PostgreSQL và dùng SSE cho tư vấn. Redis là dịch vụ tùy chọn để cache kết quả CV, ATS và matching.
+
+Hàng chờ embedding dùng bảng `vector_indexing_jobs` trong PostgreSQL và worker `JobEmbeddingService`.
+Worker định kỳ nhận task bằng lease, xử lý và retry hữu hạn. Không cần message broker riêng cho luồng này.
 
 ### Thanh toán và tích hợp khác
 

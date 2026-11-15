@@ -27,8 +27,6 @@ management:
   health:
     redis:
       enabled: ${HEALTH_REDIS_ENABLED:false}
-    rabbit:
-      enabled: ${HEALTH_RABBIT_ENABLED:false}
     mail:
       enabled: ${HEALTH_MAIL_ENABLED:false}
 

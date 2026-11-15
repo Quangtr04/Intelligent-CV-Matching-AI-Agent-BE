@@ -7,6 +7,8 @@ import com.example.intelligent_cv_matching_ai_agent.service.shared.billing.Entit
 import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException;
 import com.example.intelligent_cv_matching_ai_agent.repository.shared.SqlStore;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -15,6 +17,35 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 class EntitlementServiceTest {
+
+    @ParameterizedTest
+    @ValueSource(strings = {"ADMIN", "MANAGER", "CAREER_CONSULTANT"})
+    void staffCanReserveWithoutSubscriptionQuotasAndUsageIsStillRecorded(
+        String role) {
+        SqlStore db = mock(SqlStore.class);
+        UUID user = UUID.randomUUID(), reservation = UUID.randomUUID();
+        when(db.one(contains("FOR NO KEY UPDATE"), eq(user))).thenReturn(Map.of("id", user, "role", role));
+        when(db.insert(eq("ai_token_reservations"), anyMap())).thenReturn(reservation);
+        var service = new EntitlementService(new EntitlementRepository(db));
+
+        assertEquals(reservation, service.reserve(user, "CV_ANALYZE", 20000));
+        verify(db).one(contains("SELECT id,role FROM users"), eq(user));
+        verify(db, never()).optional(anyString(), any(Object[].class));
+        verify(db, never()).scalar(anyString(), any(Object[].class));
+        verify(db).insert(
+            eq("ai_token_reservations"),
+            argThat(
+                row -> user.equals(row.get("user_id")) && "CV_ANALYZE".equals(row.get("feature_code"))
+                    && Integer.valueOf(20000).equals(row.get("reserved_tokens")) && "RESERVED".equals(row.get("status"))
+            )
+        );
+
+        when(db.one(anyString(), eq(reservation))).thenReturn(Map.of("status", "RESERVED", "reserved_tokens", 20000));
+        service.complete(reservation, 15000);
+        verify(db).update(contains("consumed_tokens=?,status='COMPLETED'"), eq(15000), eq(reservation));
+        service.cancel(reservation);
+        verify(db).update(contains("status='CANCELLED'"), eq(reservation));
+    }
 
     @Test
     void inFlightReservationsCountAgainstGlobalBudgetBeforeProviderCall() {

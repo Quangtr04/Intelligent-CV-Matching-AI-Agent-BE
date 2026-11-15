@@ -127,7 +127,7 @@ Authorization: Bearer <accessToken-consultant>
 
 Báo cáo mới xuất hiện trong `resume_analyses` hoặc `ats_analyses`. Candidate cũng đọc được báo cáo chất lượng qua `GET /api/v1/resumes/{resumeId}/analyses` bằng token của chính mình. Quyền đọc candidate-analyses vẫn dành cho owner/admin/assigned consultant như trước; ba endpoint mới có yêu cầu vai trò consultant riêng.
 
-Kết quả AI không tự trở thành tin nhắn, không sửa CV và không ứng tuyển. Consultant xem báo cáo rồi gửi nội dung tư vấn bằng `POST /consultations/{id}/messages` hiện có. Lần gọi model tính usage/quota cho consultant thực hiện; quyền sở hữu báo cáo thuộc candidate. Audit lưu actor, thread, candidate, CV và job khi có.
+Kết quả AI không tự trở thành tin nhắn, không sửa CV và không ứng tuyển. Consultant xem báo cáo rồi gửi nội dung tư vấn bằng `POST /consultations/{id}/messages` hiện có. Lần gọi model ghi nhận usage cho consultant thực hiện; vai trò `CAREER_CONSULTANT` được miễn quota token và số lượt gọi AI của gói. Quyền sở hữu báo cáo thuộc candidate. Audit lưu actor, thread, candidate, CV và job khi có.
 
 ## Lỗi và cách kiểm tra
 
@@ -138,7 +138,7 @@ Kết quả AI không tự trở thành tin nhắn, không sửa CV và không �
 | `403` | Người gọi không phải `CAREER_CONSULTANT` |
 | `404` | Thread ngoài phạm vi phân công; candidate đã xóa; CV không READY/sai owner; job không ACTIVE, hết hạn hoặc không còn nguồn hợp lệ |
 | `409` | Gọi POST analyze/ATS khi thread đã đóng |
-| `429` | Quota/token budget không đủ cho lần gọi AI |
+| `429` | Nhà cung cấp AI giới hạn tần suất hoặc quota; consultant được miễn quota của gói ứng dụng |
 | `502` | Provider thất bại hoặc output AI không hợp lệ |
 | `503` | Cần suy luận mới nhưng AI chưa bật/cấu hình chưa sẵn sàng |
 

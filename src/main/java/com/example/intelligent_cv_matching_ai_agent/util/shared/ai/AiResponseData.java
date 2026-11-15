@@ -86,6 +86,8 @@ public final class AiResponseData {
                 + "merely because they are common for a technology; include them only when explicitly supplied. "
                 + "Do not add placeholder numbers, fictional employers or missing credentials. If facts are "
                 + "insufficient, explain briefly what information is needed rather than fabricate a CV. "
+                + "Always return both answer (a string) and suggestions (an array, empty when no edit is needed). "
+                + "Each suggestion must contain string fields original_content, suggested_content and explanation. "
                 + "Return at most three specific suggestions; original_content must be one allowed literal source "
                 + "excerpt, or empty when proposing genuinely new wording from provided facts. Never paraphrase "
                 + "or translate original_content. Urgent means prioritize a shorter useful answer; it does not "
