@@ -40,6 +40,37 @@ import static org.mockito.Mockito.*;
 class AiServiceTests {
 
     @Test
+    void recommendationUsesTheActiveAdminTemplateAndKeepsTheEvidenceSchema() {
+        ChatModel chat = mock(ChatModel.class);
+        when(chats.getIfAvailable()).thenReturn(chat);
+        when(chats.getObject()).thenReturn(chat);
+        when(db.optional(contains("FROM ai_prompt_templates"), eq("JOB_MATCH_RERANK"))).thenReturn(
+            Optional.of(
+                Map.of(
+                    "system_prompt",
+                    "Admin recommendation guidance",
+                    "user_prompt_template",
+                    "Use the administrator's scoring scale."
+                )
+            )
+        );
+        when(chat.call(any(Prompt.class)))
+            .thenReturn(new ChatResponse(List.of(new Generation(new AssistantMessage("{\"results\":[]}")))));
+        UUID job = UUID.randomUUID();
+
+        service(true)
+            .generate("JOB_MATCH_RERANK", Map.of("recommendation_mode", true, "jobs", List.of(Map.of("id", job))));
+
+        verify(chat).call(org.mockito.ArgumentMatchers.<Prompt>argThat(prompt -> {
+            String system = prompt.getInstructions().getFirst().getText();
+            return system.contains("assessment_status") && system.contains("cv_quote") && system.contains("jd_quote")
+                && system.contains(job.toString()) && system.contains("Admin recommendation guidance")
+                && system.contains("Use the administrator's scoring scale.")
+                && !system.contains("displayed as score*100 percent");
+        }));
+    }
+
+    @Test
     void nativePromptCountReservesInputPlusBoundedOutputInsteadOfUtf8Bytes() {
         UUID actor = UUID.randomUUID(), reservation = UUID.randomUUID();
         ChatModel chat = mock(ChatModel.class);
@@ -874,14 +905,17 @@ class AiServiceTests {
     }
 
     @Test
-    void cvAnalysisRequiresTheWritingRubricAfterAdminGuidanceAndPreservesCandidateLineBreaks() {
+    void cvAnalysisUsesTheActiveAdminPromptAndPreservesTheOutputContractAndLineBreaks() {
         UUID actor = UUID.randomUUID(), reservation = UUID.randomUUID();
         ChatModel chat = mock(ChatModel.class);
         when(chats.getIfAvailable()).thenReturn(chat);
         when(chats.getObject()).thenReturn(chat);
         when(user.id()).thenReturn(actor);
-        when(db.optional(contains("FROM ai_prompt_templates"), eq("CV_ANALYZE")))
-            .thenReturn(Optional.of(Map.of("system_prompt", "Legacy guidance: return an overall_score only.")));
+        when(db.optional(contains("FROM ai_prompt_templates"), eq("CV_ANALYZE"))).thenReturn(
+            Optional.of(
+                Map.of("system_prompt", "Use neutral phrasing.", "user_prompt_template", "Focus on clear descriptions.")
+            )
+        );
         when(entitlement.reserve(eq(actor), eq("CV_ANALYZE"), anyInt())).thenReturn(reservation);
         List<Map<String, Object>> criteria = List
             .of(
@@ -934,9 +968,8 @@ class AiServiceTests {
         verify(chat).call(org.mockito.ArgumentMatchers.<Prompt>argThat(prompt -> {
             String system = prompt.getInstructions().getFirst().getText();
             String input = prompt.getInstructions().getLast().getText();
-            return system.indexOf("Required evaluation rules:") > system.indexOf("Legacy guidance:")
-                && system.contains("INSUFFICIENT_EVIDENCE") && system.contains("a final period is not mandatory")
-                && system.contains("JSON delimiters/property names") && system.contains("Respond in English.")
+            return system.contains("Use neutral phrasing.") && system.contains("Focus on clear descriptions.")
+                && !system.contains("a final period is not mandatory") && system.contains("Respond in English.")
                 && system.endsWith(
                     com.example.intelligent_cv_matching_ai_agent.util.shared.ai.CvAnalysisLanguage.instructions("en")
                 ) && prompt.getOptions() instanceof OpenAiChatOptions options
@@ -961,8 +994,8 @@ class AiServiceTests {
                 List.of(
                     new Generation(
                         new AssistantMessage(
-                            "{\"overall_score\":99,\"ats_score\":99,\"summary\":\"Good\","
-                                + "\"strengths\":[],\"issues\":[],\"suggestions\":[]}"
+                            ("{\"overall_score\":99,\"ats_score\":99,\"summary\":\"Good\","
+                                + "\"strengths\":[],\"issues\":[],\"suggestions\":[]}")
                         )
                     )
                 )
@@ -975,7 +1008,7 @@ class AiServiceTests {
         verify(recorder).record(
             argThat(
                 row -> Boolean.FALSE.equals(row.get("success"))
-                    && ("AI model structured-output validation failed: content_score must be a finite number")
+                    && ("AI model structured-output validation failed: content_score must be a " + "finite number")
                         .equals(row.get("error_message"))
             )
         );
@@ -1066,7 +1099,14 @@ class AiServiceTests {
 
         var result = service(true).generate(
             "ASSESSMENT_GENERATE",
-            Map.of("jd_text", "Maintain Docker containers", "jd_skills", List.of(Map.of("skill_name", "Docker")))
+            Map.of(
+                "jd_text",
+                "Maintain Docker containers",
+                "jd_skills",
+                List.of(Map.of("skill_name", "Docker")),
+                "question_count",
+                9
+            )
         );
         assertEquals("test-assessment", result.get("_model"));
         assertEquals(300, ((Map<?, ?>) result.get("_usage")).get("total_tokens"));
@@ -1088,7 +1128,8 @@ class AiServiceTests {
                 && prompt.getInstructions().getLast().getText().contains("jd_skills")
                 && prompt.getInstructions().getFirst().getText().contains("ONE selected job description")
                 && prompt.getInstructions().getFirst().getText().contains("Use established technical knowledge")
-                && prompt.getInstructions().getFirst().getText().contains("questions 6-10 have part=2");
+                && prompt.getInstructions().getFirst().getText().contains("first 4 with part=1, then 5 with part=2")
+                && prompt.getInstructions().getFirst().getText().contains("\"maxItems\":9");
         }));
     }
 
@@ -1197,8 +1238,9 @@ class AiServiceTests {
                 List.of(
                     new Generation(
                         new AssistantMessage(
-                            "{\"subject\":\"Backend application\",\"email\":\"Dear hiring team, Java experience.\","
-                                + "\"cover_letter\":\"I am applying for the supplied backend role.\"}"
+                            ("{\"subject\":\"Backend application\",\"email\":\"Dear hiring team, "
+                                + "Java experience.\",\"cover_letter\":\"I am applying for the supplied "
+                                + "backend role.\"}")
                         )
                     )
                 )
@@ -1258,9 +1300,9 @@ class AiServiceTests {
                 List.of(
                     new Generation(
                         new AssistantMessage(
-                            "{\"title\":\"Practice Docker\",\"summary\":\"Focus on the missing skill\","
-                                + "\"nodes\":[{\"skill_name\":\"Docker\",\"description\":\"Build an image\","
-                                + "\"estimated_hours\":3,\"prerequisites\":[]}]}"
+                            ("{\"title\":\"Practice Docker\",\"summary\":\"Focus on the missing "
+                                + "skill\",\"nodes\":[{\"skill_name\":\"Docker\",\"description\":\"Build "
+                                + "an image\",\"estimated_hours\":3,\"prerequisites\":[]}]}")
                         )
                     )
                 )

@@ -9,6 +9,6 @@ public record PaymentOrderRequest(
     UUID tierId,
     @Min(1)
     @Max(12)
-    int durationMonths
+    Integer durationMonths
 ) {
 }

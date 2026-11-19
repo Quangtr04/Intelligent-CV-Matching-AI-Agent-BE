@@ -26,9 +26,23 @@ public class BillingQueryRepository {
             ("SELECT st.*,COALESCE((SELECT " + "jsonb_agg(jsonb_build_object('featureCode',sq.feature_code,"
                 + "'quotaValue',sq.quota_value,'quotaPeriod',sq.quota_period)) FROM "
                 + "subscription_quotas sq WHERE sq.tier_id=st.id),'[]'::jsonb) AS quotas "
-                + "FROM subscription_tiers st WHERE st.is_active ORDER BY " + "st.price_monthly"),
+                + "FROM subscription_tiers st WHERE st.is_active AND st.tier_type='SUBSCRIPTION' ORDER BY "
+                + "st.price_monthly"),
             args
         );
+    }
+
+    public List<Map<String, Object>> listActiveTokenPacks() {
+        return db.list(
+            "SELECT id,tier_code,display_name,price_monthly AS price, currency,token_amount "
+                + "FROM subscription_tiers WHERE is_active AND tier_type='TOKEN_TOPUP' ORDER BY price_monthly,token_amount"
+        );
+    }
+
+    public long walletBalance(
+        UUID user) {
+        Object value = db.scalar("SELECT COALESCE((SELECT balance FROM user_token_wallets WHERE user_id=?),0)", user);
+        return ((Number) value).longValue();
     }
 
     public List<Map<String, Object>> listUserSubscriptionsByUserId(
@@ -58,8 +72,9 @@ public class BillingQueryRepository {
     public List<Map<String, Object>> listPaymentOrdersByUserId(
         Object... args) {
         return db.list(
-            "SELECT p.*,c.service_name FROM payment_orders p LEFT JOIN consultation_orders c "
-                + "ON c.id=p.consultation_order_id WHERE p.user_id=? ORDER BY p.created_at DESC LIMIT 100",
+            "SELECT p.*,c.service_name,t.display_name AS tier_display_name,t.token_amount FROM payment_orders p "
+                + "LEFT JOIN consultation_orders c ON c.id=p.consultation_order_id "
+                + "LEFT JOIN subscription_tiers t ON t.id=p.tier_id WHERE p.user_id=? ORDER BY p.created_at DESC LIMIT 100",
             args
         );
     }
@@ -67,8 +82,9 @@ public class BillingQueryRepository {
     public Map<String, Object> getPaymentOrdersById(
         Object... args) {
         return db.one(
-            "SELECT p.*,c.service_name FROM payment_orders p LEFT JOIN consultation_orders c "
-                + "ON c.id=p.consultation_order_id WHERE p.id=? AND p.user_id=?",
+            "SELECT p.*,c.service_name,t.display_name AS tier_display_name,t.token_amount FROM payment_orders p "
+                + "LEFT JOIN consultation_orders c ON c.id=p.consultation_order_id "
+                + "LEFT JOIN subscription_tiers t ON t.id=p.tier_id WHERE p.id=? AND p.user_id=?",
             args
         );
     }

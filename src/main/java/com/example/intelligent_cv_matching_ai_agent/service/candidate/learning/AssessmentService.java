@@ -7,7 +7,9 @@ import com.example.intelligent_cv_matching_ai_agent.repository.candidate.learnin
 import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException;
 
 import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiService;
+import com.example.intelligent_cv_matching_ai_agent.util.shared.ai.AssessmentQuestionCount;
 
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.*;
 import com.example.intelligent_cv_matching_ai_agent.util.candidate.learning.AssessmentValidator;
@@ -28,6 +30,8 @@ import static com.example.intelligent_cv_matching_ai_agent.util.shared.Values.*;
 
 @Service
 public class AssessmentService {
+
+    private static final int SECONDS_PER_QUESTION = 90;
 
     private final AssessmentRepository db;
 
@@ -59,6 +63,11 @@ public class AssessmentService {
         UUID id,
         UUID owner) {
         var session = db.getAssessmentSessionsById(id, owner);
+        Instant deadline = deadline(session);
+        if (deadline != null) {
+            session.put("time_limit_seconds", timeLimitSeconds(session));
+            session.put("expires_at", deadline.toString());
+        }
         // Never expose correct answers while an assessment is in progress.
         session.put("questions", db.listQuestionsForSession(id, "completed".equals(session.get("status"))));
         session.put("answers", db.listAssessmentAnswersBySessionId(id));
@@ -108,6 +117,18 @@ public class AssessmentService {
     public Prepared prepareForOwner(
         UUID owner,
         AssessmentRequest request) {
+        int count = ai.assessmentQuestionCount();
+        return prepareForOwner(
+            owner,
+            request,
+            count >= AssessmentQuestionCount.MINIMUM ? count : AssessmentQuestionCount.DEFAULT
+        );
+    }
+
+    private Prepared prepareForOwner(
+        UUID owner,
+        AssessmentRequest request,
+        int questionCount) {
         if (!request.isContextValid() || (request.targetJobTitle() != null && request.targetJobTitle().length() > 255)
             || (request.jdText() != null
                 && (request.jdText().strip().length() < 30 || request.jdText().length() > 50000))) {
@@ -278,6 +299,9 @@ public class AssessmentService {
             "profile",
             input.get("profile")
         );
+        input.put(AssessmentQuestionCount.INPUT_KEY, questionCount);
+        if (questionCount != AssessmentQuestionCount.DEFAULT)
+            snapshot.put(AssessmentQuestionCount.INPUT_KEY, questionCount);
         return new Prepared(
             owner,
             jobId,
@@ -304,8 +328,11 @@ public class AssessmentService {
         UUID job = LearningInputContext.optionalUuid(snapshot.get("job_id"));
         UUID resume = LearningInputContext.optionalUuid(snapshot.get("resume_id"));
         String pasted = job == null ? text(object(snapshot.get("job")).get("raw_content")) : null;
-        Prepared current =
-            prepareForOwner(owner, new AssessmentRequest(text(snapshot.get("target_job_title")), job, resume, pasted));
+        Prepared current = prepareForOwner(
+            owner,
+            new AssessmentRequest(text(snapshot.get("target_job_title")), job, resume, pasted),
+            AssessmentQuestionCount.from(snapshot)
+        );
         if (!expectedHash.equals(current.inputHash())) {
             throw ApiException.conflict("CV, JD or assessment inputs changed; generate a new assessment");
         }
@@ -400,7 +427,12 @@ public class AssessmentService {
         UUID jobId = prepared.jobId();
         List<Map<String, Object>> jobSkills = prepared.skills();
         List<?> questions = array(generated.get("questions"));
-        AssessmentValidator.validateQuestions(questions, jobSkills, prepared.sources());
+        AssessmentValidator.validateQuestions(
+            questions,
+            jobSkills,
+            prepared.sources(),
+            AssessmentQuestionCount.from(prepared.input())
+        );
         if (prepared.resumeId() != null) {
             AssessmentValidator.validateCandidateEvidence(
                 questions,
@@ -500,6 +532,30 @@ public class AssessmentService {
         AssessmentValidator.validateQuestions(questions);
     }
 
+    private static long timeLimitSeconds(
+        Map<String, Object> session) {
+        return SECONDS_PER_QUESTION
+            * ((long) number(session.get("part1_count"), 0) + (long) number(session.get("part2_count"), 0));
+    }
+
+    private static Instant deadline(
+        Map<String, Object> session) {
+        Instant started = switch (session.get("started_at")) {
+            case OffsetDateTime timestamp -> timestamp.toInstant();
+            case java.util.Date timestamp -> timestamp.toInstant();
+            case Instant timestamp -> timestamp;
+            case null, default -> null;
+        };
+        long seconds = timeLimitSeconds(session);
+        return started == null || seconds <= 0 ? null : started.plusSeconds(seconds);
+    }
+
+    private static boolean expired(
+        Map<String, Object> session) {
+        Instant deadline = deadline(session);
+        return deadline != null && !Instant.now().isBefore(deadline);
+    }
+
     @Transactional
     public Map<String, Object> answer(
         UUID sessionId,
@@ -508,6 +564,8 @@ public class AssessmentService {
         var session = db.getAssessmentSessionsByIdForUpdate(sessionId, user.id());
         if (!"in_progress".equals(session.get("status")))
             throw ApiException.conflict("Assessment already submitted");
+        if (expired(session))
+            throw ApiException.conflict("Assessment time has expired");
         if (!Set.of("A", "B", "C", "D").contains(selected))
             throw ApiException.badRequest("Answer must be A, B, C or D");
 
@@ -528,7 +586,7 @@ public class AssessmentService {
             throw ApiException.conflict("Assessment cannot be submitted");
 
         long missing = ((Number) db.countAssessmentQuestionsBySessionId(id)).longValue();
-        if (missing > 0)
+        if (missing > 0 && !expired(session))
             throw ApiException.badRequest("Answer all questions before submitting");
 
         db.updateAssessmentAnswersByQuestionId(id);

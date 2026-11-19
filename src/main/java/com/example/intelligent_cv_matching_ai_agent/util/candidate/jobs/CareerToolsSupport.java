@@ -15,6 +15,8 @@ public final class CareerToolsSupport {
         Map<String, Object> response = new LinkedHashMap<>(row);
         var metadata = object(response.get("improvement_suggestions_json"));
         response.put("improvement_suggestions_json", array(metadata.get("items")));
+        if (metadata.get("evidence_report") instanceof Map<?, ?> report)
+            response.put("evidence_report", report);
         response.put("cached", cached);
 
         return response;

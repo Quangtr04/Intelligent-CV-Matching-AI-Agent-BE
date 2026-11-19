@@ -1,5 +1,6 @@
 package com.example.intelligent_cv_matching_ai_agent.resume;
 
+import com.example.intelligent_cv_matching_ai_agent.util.shared.ai.AiFeatureCatalog;
 import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException;
 import com.example.intelligent_cv_matching_ai_agent.util.candidate.resume.ResumeContentQuality;
 import com.example.intelligent_cv_matching_ai_agent.util.candidate.resume.ResumeWritingQuality;
@@ -25,7 +26,7 @@ class ResumeContentQualityContractTests {
         assertEquals(6, criteria.get("minItems"));
         assertEquals(6, criteria.get("maxItems"));
         assertCriterionSlots(criteria, ResumeContentQuality.CODES, 1);
-        String rules = AiResponseData.taskInstructions("CV_ANALYZE");
+        String rules = AiFeatureCatalog.defaultPrompt("CV_ANALYZE").get("user_prompt_template").toString();
         assertTrue(rules.contains(ResumeContentQuality.RUBRIC_VERSION));
         ResumeContentQuality.CODES.forEach(code -> assertTrue(rules.contains(code), code));
         assertTrue(rules.contains("at least one exact short quote"));

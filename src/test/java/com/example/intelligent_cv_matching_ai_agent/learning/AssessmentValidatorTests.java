@@ -22,7 +22,8 @@ class AssessmentValidatorTests {
             () -> AssessmentValidator.validateQuestions(
                 quiz,
                 List.of(Map.of("skill_name", "Java")),
-                List.of("Build Java backend services and use SQL safely.")
+                List.of("Build Java backend services and use SQL safely."),
+                10
             )
         );
     }
@@ -82,7 +83,8 @@ class AssessmentValidatorTests {
             () -> AssessmentValidator.validateQuestions(
                 quiz,
                 List.of(Map.of("skill_name", "Java")),
-                List.of("Build Java backend services and use SQL safely.")
+                List.of("Build Java backend services and use SQL safely."),
+                10
             )
         );
         assertEquals(502, exception.status());
@@ -97,7 +99,8 @@ class AssessmentValidatorTests {
             () -> AssessmentValidator.validateQuestions(
                 quiz,
                 List.of(Map.of("skill_name", "C#")),
-                List.of("Build Java backend services and use SQL safely.")
+                List.of("Build Java backend services and use SQL safely."),
+                10
             )
         );
     }

@@ -159,7 +159,8 @@ class AssessmentGenerationIntegrationTests {
         assertEquals("FAILED", failed.get("status"));
         assertEquals("INPUT_UNAVAILABLE", failed.get("error_code"));
         assertNull(failed.get("assessment_id"));
-        verifyNoInteractions(ai);
+        verify(ai, never()).generate(anyString(), anyMap());
+        verify(ai, never()).generateForUser(any(), anyString(), anyMap());
     }
 
     @Test
@@ -168,7 +169,8 @@ class AssessmentGenerationIntegrationTests {
         UUID id = UUID.fromString(initial.get("id").toString());
         assertEquals("QUEUED", initial.get("status"));
         assertFalse(initial.containsKey("lease_token"));
-        verifyNoInteractions(ai);
+        verify(ai, never()).generate(anyString(), anyMap());
+        verify(ai, never()).generateForUser(any(), anyString(), anyMap());
         CountDownLatch running = new CountDownLatch(1);
         CountDownLatch release = new CountDownLatch(1);
         when(ai.generateForUser(eq(owner), eq("ASSESSMENT_GENERATE"), anyMap())).thenAnswer(call -> {
@@ -248,7 +250,8 @@ class AssessmentGenerationIntegrationTests {
         db.update("UPDATE assessment_generations SET lease_until=now()-interval '1 second' WHERE id=?", id);
         assertFalse(worker.processNext());
         assertEquals("INTERRUPTED", read(id, bearer).get("error_code"));
-        verifyNoInteractions(ai);
+        verify(ai, never()).generate(anyString(), anyMap());
+        verify(ai, never()).generateForUser(any(), anyString(), anyMap());
         Map<String, Object> retried = start(job, bearer, 202);
         assertNotEquals(id.toString(), retried.get("id"));
         mvc.perform(get(PATH).param("jobId", job.toString()).header("Authorization", bearer)).andExpect(status().isOk())
@@ -270,7 +273,8 @@ class AssessmentGenerationIntegrationTests {
         start(job(), bearer, 202);
         start(job(), bearer, 429);
         assertEquals(3L, queue.activeCount(owner));
-        verifyNoInteractions(ai);
+        verify(ai, never()).generate(anyString(), anyMap());
+        verify(ai, never()).generateForUser(any(), anyString(), anyMap());
     }
 
     @Test
@@ -279,7 +283,8 @@ class AssessmentGenerationIntegrationTests {
         db.update("UPDATE users SET status='SUSPENDED' WHERE id=?", owner);
         assertTrue(worker.processNext());
         assertEquals("ACCOUNT_UNAVAILABLE", queue.status(id, owner).get("error_code"));
-        verifyNoInteractions(ai);
+        verify(ai, never()).generate(anyString(), anyMap());
+        verify(ai, never()).generateForUser(any(), anyString(), anyMap());
         db.update("UPDATE users SET status='ACTIVE' WHERE id=?", owner);
         UUID invalid = UUID.fromString(start(job, bearer, 202).get("id").toString());
         when(ai.generateForUser(eq(owner), eq("ASSESSMENT_GENERATE"), anyMap()))

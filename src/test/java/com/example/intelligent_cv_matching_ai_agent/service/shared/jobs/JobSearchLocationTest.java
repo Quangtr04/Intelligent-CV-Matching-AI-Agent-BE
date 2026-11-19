@@ -3,6 +3,7 @@ package com.example.intelligent_cv_matching_ai_agent.service.shared.jobs;
 import com.example.intelligent_cv_matching_ai_agent.repository.shared.jobs.JobRepository;
 import com.example.intelligent_cv_matching_ai_agent.security.shared.CurrentUser;
 import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiService;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -38,7 +39,7 @@ class JobSearchLocationTest {
         List<Map<String, Object>> jobs = List.of(Map.of("location", location));
         when(db.listMarketJobPostsByStatus("%Java%", pattern, 25, 3)).thenReturn(jobs);
 
-        assertSame(jobs, service.jobs("Java", location, 25, 3));
+        assertEquals(jobs, service.jobs("Java", location, 25, 3));
 
         verify(db).listMarketJobPostsByStatus("%Java%", pattern, 25, 3);
     }
@@ -51,6 +52,17 @@ class JobSearchLocationTest {
         service.jobs("Java", location, 10, 0);
 
         verify(db).listMarketJobPostsByStatus("%Java%", "%%", 10, 0);
+    }
+
+    @Test
+    void exposesMonthlySalaryBoundsInVndForCatalogFilters() {
+        var row = Map.<String, Object>of("salary_text", "35 - 50 triệu");
+        when(db.listMarketJobPostsByStatus("%%", "%%", 20, 0)).thenReturn(List.of(row));
+
+        var result = service.jobs("", "", 20, 0).getFirst();
+        assertEquals(0, new BigDecimal("35000000").compareTo((BigDecimal) result.get("monthly_salary_min_vnd")));
+        assertEquals(0, new BigDecimal("50000000").compareTo((BigDecimal) result.get("monthly_salary_max_vnd")));
+        assertFalse(row.containsKey("monthly_salary_min_vnd"));
     }
 
     @Test

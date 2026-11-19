@@ -58,6 +58,18 @@ public class AdminJobController {
         return service.index(id);
     }
 
+    @PostMapping("/embeddings/backfill")
+    public Map<String, Object> backfill(
+        @RequestParam(defaultValue = "50")
+        int limit) {
+        return service.backfillEmbeddings(limit);
+    }
+
+    @GetMapping("/embeddings/status")
+    public Map<String, Object> embeddingCoverage() {
+        return service.embeddingCoverage();
+    }
+
     @PatchMapping("/{id}/status")
     public Map<String, Object> status(
         @PathVariable

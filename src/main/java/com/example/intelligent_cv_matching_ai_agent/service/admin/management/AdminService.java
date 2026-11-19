@@ -234,6 +234,7 @@ public class AdminService {
     public Map<String, Object> createTier(
         SubscriptionTierRequest body) {
         user.requireOperationsRole();
+        validateTierProduct(body);
         OffsetDateTime now = OffsetDateTime.now();
 
         UUID id = db.insertSubscriptionTiers(
@@ -248,6 +249,10 @@ public class AdminService {
                 body.currency(),
                 "is_active",
                 body.active(),
+                "tier_type",
+                body.effectiveTierType(),
+                "token_amount",
+                body.tokenAmount(),
                 "created_at",
                 now,
                 "updated_at",
@@ -267,10 +272,14 @@ public class AdminService {
         UUID id,
         SubscriptionTierRequest body) {
         user.requireOperationsRole();
+        validateTierProduct(body);
         Map<String, Object> before = db.getSubscriptionTiersById(id);
         if ("FREE".equals(before.get("tier_code"))
             && (!"FREE".equals(body.tierCode()) || !body.active() || body.priceMonthly().signum() != 0))
             throw ApiException.badRequest("The free tier must remain active and free");
+        if (!java.util.Objects.equals(before.get("tier_type"), body.effectiveTierType())
+            && db.countUserSubscriptionsByTierId(id) > 0)
+            throw ApiException.conflict("A tier with subscription history cannot change product type");
 
         db.updateSubscriptionTiersById(
             body.tierCode(),
@@ -278,6 +287,8 @@ public class AdminService {
             body.priceMonthly(),
             body.currency(),
             body.active(),
+            body.effectiveTierType(),
+            body.tokenAmount(),
             id
         );
 
@@ -288,9 +299,26 @@ public class AdminService {
         return after;
     }
 
+    private void validateTierProduct(
+        SubscriptionTierRequest body) {
+        String type = body.effectiveTierType();
+        if (!java.util.Set.of("SUBSCRIPTION", "TOKEN_TOPUP").contains(type))
+            throw ApiException.badRequest("Tier type must be SUBSCRIPTION or TOKEN_TOPUP");
+        if ("TOKEN_TOPUP".equals(type) && body.tokenAmount() <= 0)
+            throw ApiException.badRequest("A token top-up package must include a positive token amount");
+        if ("TOKEN_TOPUP".equals(type) && body.priceMonthly().signum() <= 0)
+            throw ApiException.badRequest("A token top-up package must have a positive price");
+        if ("SUBSCRIPTION".equals(type) && body.tokenAmount() != 0)
+            throw ApiException.badRequest("Subscription tiers cannot define one-time token amounts");
+        if ("FREE".equals(body.tierCode()) && !"SUBSCRIPTION".equals(type))
+            throw ApiException.badRequest("The FREE tier must remain a subscription tier");
+    }
+
     public List<Map<String, Object>> quotas(
         UUID id) {
         user.requireOperationsRole();
+        if ("TOKEN_TOPUP".equals(db.getSubscriptionTiersById(id).get("tier_type")))
+            throw ApiException.badRequest("Token top-up packages do not have subscription quotas");
         db.getSubscriptionTiersById2(id);
         return db.listSubscriptionQuotasByTierId2(id);
     }
@@ -301,6 +329,8 @@ public class AdminService {
         @Size(max = 100)
         List<SubscriptionQuotaRequest> body) {
         user.requireOperationsRole();
+        if ("TOKEN_TOPUP".equals(db.getSubscriptionTiersById(id).get("tier_type")))
+            throw ApiException.badRequest("Token top-up packages do not have subscription quotas");
         if (quotaPolicy != null) {
             quotaPolicy.validate(body);
         } else if (!user.isStrictAdmin()) {

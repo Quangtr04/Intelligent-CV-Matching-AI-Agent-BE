@@ -54,13 +54,26 @@ class ManagerQuotaPolicyTests {
         assertEquals(100000L, limits.get("maxApiQuota"));
         assertEquals("DEFAULT_POLICY", limits.get("source"));
         List<?> codes = (List<?>) limits.get("allowedFeatureCodes");
-        assertEquals(26, codes.size());
-        assertTrue(codes.containsAll(List.of("AI_TOTAL_TOKENS", "CV_ANALYZE", "API_CALLS_TOTAL", "API_CALLS_JOB_ATS")));
+        assertEquals(28, codes.size());
+        assertTrue(
+            codes.containsAll(
+                List.of(
+                    "AI_TOTAL_TOKENS",
+                    "CV_ANALYZE",
+                    "API_CALLS_TOTAL",
+                    "API_CALLS_JOB_ATS",
+                    "JOB_REQUIREMENT_EVIDENCE",
+                    "API_CALLS_JOB_REQUIREMENT_EVIDENCE"
+                )
+            )
+        );
         assertDoesNotThrow(
             () -> policy.validate(
                 List.of(
                     new SubscriptionQuotaRequest("CV_ANALYZE", 10000000, "MONTHLY"),
-                    new SubscriptionQuotaRequest("API_CALLS_JOB_ATS", 100000, "SUBSCRIPTION")
+                    new SubscriptionQuotaRequest("API_CALLS_JOB_ATS", 100000, "SUBSCRIPTION"),
+                    new SubscriptionQuotaRequest("JOB_REQUIREMENT_EVIDENCE", 10000000, "MONTHLY"),
+                    new SubscriptionQuotaRequest("API_CALLS_JOB_REQUIREMENT_EVIDENCE", 100000, "SUBSCRIPTION")
                 )
             )
         );

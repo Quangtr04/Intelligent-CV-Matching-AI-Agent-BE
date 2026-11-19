@@ -86,6 +86,36 @@ public class BillingRepository {
         );
     }
 
+    public int updatePaymentOrdersById3(
+        Object... args) {
+        return db.update("UPDATE payment_orders SET status='COMPLETED',completed_at=now() WHERE id=?", args);
+    }
+
+    public void creditTokenWallet(
+        Map<String, Object> order) {
+        db.update(
+            "INSERT INTO user_token_wallets(user_id,balance) VALUES(?,0) ON CONFLICT(user_id) DO NOTHING",
+            order.get("user_id")
+        );
+        int inserted = db.update(
+            "INSERT INTO token_wallet_ledger(user_id,payment_order_id,entry_type,amount,balance_after) "
+                + "SELECT ?,?, 'PURCHASE', st.token_amount, w.balance + st.token_amount "
+                + "FROM subscription_tiers st JOIN user_token_wallets w ON w.user_id=? "
+                + "WHERE st.id=? ON CONFLICT(payment_order_id) DO NOTHING",
+            order.get("user_id"),
+            order.get("id"),
+            order.get("user_id"),
+            order.get("tier_id")
+        );
+        if (inserted > 0) {
+            db.update(
+                "UPDATE user_token_wallets SET balance=balance+(SELECT token_amount FROM subscription_tiers WHERE id=?),updated_at=now() WHERE user_id=?",
+                order.get("tier_id"),
+                order.get("user_id")
+            );
+        }
+    }
+
     public UUID insertInvoices(
         Map<String, Object> fields) {
         return db.insert("invoices", fields);

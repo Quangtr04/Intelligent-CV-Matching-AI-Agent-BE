@@ -7,6 +7,7 @@ import com.example.intelligent_cv_matching_ai_agent.repository.shared.ai.AiRepos
 import com.example.intelligent_cv_matching_ai_agent.service.shared.billing.EntitlementService;
 import com.example.intelligent_cv_matching_ai_agent.service.guest.identity.GuestAccess;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.ai.AiResponseData;
+import com.example.intelligent_cv_matching_ai_agent.util.shared.ai.AssessmentQuestionCount;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.ai.CvAnalysisLanguage;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.ai.AiRuntimeSettings;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.ai.CvSupportResponseSchema;
@@ -74,6 +75,10 @@ public class AiService {
 
     private final String embeddingModel;
 
+    private final int embeddingDimensions;
+
+    private String embeddingProvider;
+
     private final String assessmentModel;
 
     private final int maxOutputTokens;
@@ -134,6 +139,8 @@ public class AiService {
         this.provider = provider.toLowerCase(Locale.ROOT);
         this.model = model;
         this.embeddingModel = embeddingModel;
+        this.embeddingDimensions = embeddingDimensions;
+        this.embeddingProvider = this.provider;
         this.assessmentModel = Objects.requireNonNullElse(assessmentModel, "").strip();
         this.entitlement = entitlement;
         this.guests = guests;
@@ -190,6 +197,21 @@ public class AiService {
         return embeddingModel;
     }
 
+    @Autowired
+    public void configureEmbeddingProvider(
+        @Value("${app.ai.embedding-provider:gemini}")
+        String provider) {
+        this.embeddingProvider = provider.strip().toLowerCase(Locale.ROOT);
+    }
+
+    public String embeddingProvider() {
+        return embeddingProvider;
+    }
+
+    public int embeddingDimensions() {
+        return embeddingDimensions;
+    }
+
     public Map<String, Object> runtimeConfiguration() {
         AiRuntimeSettings chat = chatSettings();
         AiRuntimeSettings assessment = assessmentSettings(chat);
@@ -228,9 +250,20 @@ public class AiService {
             "ASSESSMENT",
             provider,
             assessmentModel.isBlank() ? chat.modelName() : assessmentModel,
-            Map.of("temperature", 0.2, "numPredict", assessmentMaxOutputTokens),
+            Map.of(
+                "temperature",
+                0.2,
+                "numPredict",
+                assessmentMaxOutputTokens,
+                "questionCount",
+                AssessmentQuestionCount.DEFAULT
+            ),
             db.findAiAssessmentConfiguration(provider)
         );
+    }
+
+    public int assessmentQuestionCount() {
+        return ((Number) assessmentSettings(chatSettings()).configuration().get("questionCount")).intValue();
     }
 
     private record GenerationSettings(
@@ -254,8 +287,10 @@ public class AiService {
                 tokens = Math.max(tokens, 4000);
                 temperature = 0.0;
             }
-            case "JOB_MATCH_RERANK" -> {
+            case "JOB_MATCH_RERANK", "JOB_REQUIREMENT_EVIDENCE" -> {
                 temperature = 0.0;
+                if ("JOB_REQUIREMENT_EVIDENCE".equals(feature))
+                    tokens = Math.max(tokens, 4000);
             }
             case "CV_AI_SUPPORT" -> {
                 tokens = Math.max(tokens, 2000);
@@ -286,7 +321,6 @@ public class AiService {
             signature.put("output_format", AiResponseData.outputFormat(feature));
         }
         signature.put("schema", AiResponseData.schema(feature));
-        signature.put("instructions", AiResponseData.taskInstructions(feature));
         signature.put(
             "prompt",
             db.findAiPromptTemplatesByFeatureCode(feature).orElseGet(() -> AiFeatureCatalog.defaultPrompt(feature))
@@ -326,10 +360,15 @@ public class AiService {
         if (!enabled())
             throw new ApiException(
                 503,
-                "AI is disabled. Configure the AI API key and enable AI_ENABLED in the backend environment."
+                ("AI is disabled. Configure the AI API key and enable AI_ENABLED in the " + "backend environment.")
             );
 
-        String schema = AiResponseData.schema(feature);
+        boolean configuredAssessment =
+            "ASSESSMENT_GENERATE".equals(feature) && input.containsKey(AssessmentQuestionCount.INPUT_KEY);
+        String schema = configuredAssessment
+            || ("JOB_MATCH_RERANK".equals(feature) && Boolean.TRUE.equals(input.get("recommendation_mode")))
+                ? mapper.writeValueAsString(AiResponseData.outputFormat(feature, input))
+                : AiResponseData.schema(feature);
         GenerationSettings effective = generationSettings(feature);
         int outputTokenLimit = effective.outputTokens();
         String effectiveModel = effective.model();
@@ -352,14 +391,7 @@ public class AiService {
                     + "employment, certifications, employers, ")
                 + ("assessment results, verified course URLs, or source citations. Use " + "supplied facts only. ")
                 + "Express uncertainty explicitly. " + languageInstruction;
-            if ("JOB_MATCH_RERANK".equals(feature)) {
-                system += " Return exactly one result for every supplied job ID, without duplicates or other IDs."
-                    + " Score each job independently on the same absolute zero-to-one scale across requests;"
-                    + " never normalize scores within the current batch. Keep reasons brief and factual."
-                    + " Job descriptions may be excerpts: do not claim an unmentioned requirement is absent.";
-            }
-            // Admin prompts can refine the task but cannot replace JSON, factuality and
-            // data-boundary rules.
+            // Active templates own task guidance. The application adds the response and input contracts.
             Map<String, Object> custom =
                 db.findAiPromptTemplatesByFeatureCode(feature).orElseGet(() -> AiFeatureCatalog.defaultPrompt(feature));
 
@@ -369,9 +401,14 @@ public class AiService {
             if (custom.get("user_prompt_template") != null)
                 system += "\nTask output guidance: " + custom.get("user_prompt_template");
 
-            String requiredTaskInstructions = AiResponseData.taskInstructions(feature);
-            if (!requiredTaskInstructions.isEmpty())
-                system += "\nRequired evaluation rules: " + requiredTaskInstructions;
+            if (configuredAssessment) {
+                int count = AssessmentQuestionCount.from(input);
+                int foundation = AssessmentQuestionCount.foundation(count);
+                system += "\nAssessment configuration for this request takes precedence over any counts above. "
+                    + "Return exactly " + count + " questions, first " + foundation + " with part=1, then "
+                    + (count - foundation) + " with part=2.";
+            }
+
             system += "\nResponse language: " + languageInstruction;
             if ("CV_ANALYZE".equals(feature)) {
                 system += "\n" + CvAnalysisLanguage.instructions(language);
@@ -401,7 +438,7 @@ public class AiService {
 
             if ("CV_PROFILE_ALIGNMENT".equals(feature) && budget > 16384) {
                 throw ApiException.badRequest(
-                    "CV and career profile are too long for this comparison; shorten the content and try again"
+                    ("CV and career profile are too long for this comparison; shorten the " + "content and try again")
                 );
             }
 
@@ -485,7 +522,8 @@ public class AiService {
                     ? "AI model output reached its token limit before finishing"
                     : generationFailure(feature, phase, ex);
             LOG.warn(
-                "AI generation failed: feature={}, model={}, phase={}, reason={}, input_tokens={}, output_tokens={}",
+                ("AI generation failed: feature={}, model={}, phase={}, reason={}, "
+                    + "input_tokens={}, output_tokens={}"),
                 feature,
                 effectiveModel,
                 phase,
@@ -497,14 +535,15 @@ public class AiService {
             if (timedOut) {
                 throw new ApiException(
                     504,
-                    "The AI provider exceeded its generation time limit. The request was not automatically retried."
+                    ("The AI provider exceeded its generation time limit. The request was "
+                        + "not automatically retried.")
                 );
             }
             if (outputTruncated) {
                 throw new ApiException(
                     502,
-                    "The AI model reached its output token limit before completing the result. "
-                        + "Check the output-token settings. The request was not automatically retried."
+                    ("The AI model reached its output token limit before completing the "
+                        + "result. Check the output-token settings. The request was not " + "automatically retried.")
                 );
             }
             if ("CV_AI_SUPPORT".equals(feature) && phase == GenerationPhase.VALIDATION) {
@@ -606,22 +645,22 @@ public class AiService {
             return new ApiException(
                 502,
                 "The AI provider rejected the request (HTTP " + status + "). "
-                    + "Check AI model and request configuration. The request was not automatically retried."
+                    + ("Check AI model and request configuration. The request was not " + "automatically retried.")
             );
         }
         if (status == 429) {
             // Platform/provider limits must not be confused with the candidate's application quota (HTTP 429).
             return new ApiException(
                 503,
-                "The AI provider has reached its request or token limit. Please try again later. "
-                    + "The request was not automatically retried."
+                ("The AI provider has reached its request or token limit. Please try "
+                    + "again later. The request was not automatically retried.")
             );
         }
         if (status == 503) {
             return new ApiException(
                 503,
-                "The AI provider is temporarily unavailable (HTTP 503). Please try again later. "
-                    + "The request was not automatically retried."
+                ("The AI provider is temporarily unavailable (HTTP 503). Please try "
+                    + "again later. The request was not automatically retried.")
             );
         }
         if (status >= 500) {

@@ -218,7 +218,8 @@ class MissingSkillLearningIntegrationTests {
             post("/api/v1/roadmaps").header("Authorization", authorization).contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(fields("jobId", job, "resumeId", resume)))
         ).andExpect(status().isConflict());
-        verifyNoInteractions(ai);
+        verify(ai, never()).generate(anyString(), anyMap());
+        verify(ai, never()).embed(anyString());
         when(ai.generate(eq("ROADMAP_GENERATE"), anyMap())).thenReturn(generated("Docker"));
         assertEquals(1, array(create(fields("jobId", job)).get("nodes")).size());
     }
@@ -386,7 +387,8 @@ class MissingSkillLearningIntegrationTests {
         assertTrue(array(result.get("missing_skills")).isEmpty());
         assertTrue(array(result.get("nodes")).isEmpty());
         assertEquals(result.get("missing_skills"), read(result.get("id")).get("missing_skills"));
-        verifyNoInteractions(ai);
+        verify(ai, never()).generate(anyString(), anyMap());
+        verify(ai, never()).embed(anyString());
     }
 
     @Test
@@ -450,7 +452,8 @@ class MissingSkillLearningIntegrationTests {
             post("/api/v1/roadmaps").header("Authorization", authorization).contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(fields("jobId", expired)))
         ).andExpect(status().isNotFound());
-        verifyNoInteractions(ai);
+        verify(ai, never()).generate(anyString(), anyMap());
+        verify(ai, never()).embed(anyString());
     }
 
     @Test
@@ -468,7 +471,8 @@ class MissingSkillLearningIntegrationTests {
             post("/api/v1/roadmaps").header("Authorization", authorization).contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(fields("jobId", job, "resumeId", draft)))
         ).andExpect(status().isConflict());
-        verifyNoInteractions(ai);
+        verify(ai, never()).generate(anyString(), anyMap());
+        verify(ai, never()).embed(anyString());
     }
 
     @Test
@@ -480,7 +484,8 @@ class MissingSkillLearningIntegrationTests {
         var result = mapper.readValue(response.getContentAsString(), Map.class);
         assertTrue(array(result.get("resources")).isEmpty());
         assertTrue(array(result.get("roadmaps")).isEmpty());
-        verifyNoInteractions(ai);
+        verify(ai, never()).generate(anyString(), anyMap());
+        verify(ai, never()).embed(anyString());
     }
 
     private UUID user() {

@@ -34,8 +34,16 @@ public class EntitlementService {
         var account = db.getUsersByIdForUpdate(user);
         String role = (String) account.get("role");
         // Read the persisted owner's role so background work follows the same policy.
+        long subscriptionRemaining = -1;
+        long walletReserved = 0;
         if (!"ADMIN".equals(role) && !"MANAGER".equals(role) && !"CAREER_CONSULTANT".equals(role)) {
-            checkSubscriptionQuota(user, feature, tokenBudget);
+            subscriptionRemaining = checkSubscriptionQuota(user, feature, tokenBudget);
+            walletReserved = subscriptionRemaining < 0 ? 0 : Math.max(0, tokenBudget - subscriptionRemaining);
+            if (walletReserved > 0 && db.reserveWalletTokens(user, walletReserved) == 0)
+                throw new ApiException(
+                    429,
+                    "AI token quota exceeded; upgrade your subscription, top up tokens or wait for the next quota period"
+                );
         }
 
         return db.insertAiTokenReservations(
@@ -50,13 +58,17 @@ public class EntitlementService {
                 0,
                 "status",
                 "RESERVED",
+                "subscription_quota_remaining",
+                Math.max(0, subscriptionRemaining),
+                "wallet_reserved_tokens",
+                walletReserved,
                 "created_at",
                 OffsetDateTime.now()
             )
         );
     }
 
-    private void checkSubscriptionQuota(
+    private long checkSubscriptionQuota(
         UUID user,
         String feature,
         int tokenBudget) {
@@ -71,11 +83,7 @@ public class EntitlementService {
             throw ApiException.forbidden("Feature unavailable in this subscription");
 
         long used = usage(user, null, period(global.get().get("quota_period")));
-        if (quota >= 0 && used > quota - tokenBudget)
-            throw new ApiException(
-                429,
-                ("AI token quota exceeded; upgrade your subscription or wait for the " + "next quota period")
-            );
+        long remaining = quota < 0 ? Long.MAX_VALUE : Math.max(0, quota - used);
 
         if (specific.isPresent()) {
             long featureQuota = ((Number) specific.get().get("quota_value")).longValue();
@@ -87,6 +95,15 @@ public class EntitlementService {
         // The user lock above makes call limits atomic with token reservations.
         checkCallQuota(user, tier.get("id"), "API_CALLS_TOTAL", null);
         checkCallQuota(user, tier.get("id"), "API_CALLS_" + feature, feature);
+        if (quota < 0 || tokenBudget <= remaining)
+            return quota < 0 ? -1 : remaining;
+        long wallet = db.walletBalance(user);
+        if (wallet < tokenBudget - remaining)
+            throw new ApiException(
+                429,
+                "AI token quota exceeded; upgrade your subscription, top up tokens or wait for the next quota period"
+            );
+        return remaining;
     }
 
     private void checkCallQuota(
@@ -142,13 +159,25 @@ public class EntitlementService {
         if (actualTokens < 0 || actualTokens > ((Number) row.get("reserved_tokens")).intValue())
             throw ApiException.badRequest("Actual AI usage exceeds the reserved budget");
 
+        long walletReserved = ((Number) row.getOrDefault("wallet_reserved_tokens", 0)).longValue();
+        long subscriptionRemaining = ((Number) row.getOrDefault("subscription_quota_remaining", 0)).longValue();
+        long walletConsumed = Math.max(0, (long) actualTokens - subscriptionRemaining);
+        long walletRefund = Math.max(0, walletReserved - walletConsumed);
         db.updateAiTokenReservationsById(actualTokens, reservation);
+        db.refundWalletTokens((UUID) row.get("user_id"), walletRefund);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void cancel(
         UUID reservation) {
+        Map<String, Object> row = db.getAiTokenReservationsByIdForUpdate(reservation);
+        if (!"RESERVED".equals(row.get("status")))
+            return;
         db.updateAiTokenReservationsById2(reservation);
+        db.refundWalletTokens(
+            (UUID) row.get("user_id"),
+            ((Number) row.getOrDefault("wallet_reserved_tokens", 0)).longValue()
+        );
     }
 
     public Map<String, Object> summary(
@@ -162,6 +191,8 @@ public class EntitlementService {
             db.listSubscriptionQuotasByTierId(tier.get("id")),
             "tokensUsedThisMonth",
             usage(user, null, tier.containsKey("subscription_started_at") ? "subscription" : "month"),
+            "tokenWalletBalance",
+            db.walletBalance(user),
             "apiCallsThisMonth",
             db.requestsUsed(user, null, tier.containsKey("subscription_started_at") ? "subscription" : "month")
         );

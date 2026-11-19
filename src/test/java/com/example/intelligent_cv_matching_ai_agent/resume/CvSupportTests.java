@@ -1,5 +1,6 @@
 package com.example.intelligent_cv_matching_ai_agent.resume;
 
+import com.example.intelligent_cv_matching_ai_agent.util.shared.ai.AiFeatureCatalog;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.ai.AISupportRequest;
 import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException;
 import com.example.intelligent_cv_matching_ai_agent.repository.candidate.resume.ResumeRepository;
@@ -144,7 +145,10 @@ class CvSupportTests {
             IllegalArgumentException.class,
             () -> CvSupportResponseSchema.validate(proposal("Improved by [number]%."))
         );
-        assertTrue(AiResponseData.taskInstructions("CV_AI_SUPPORT").contains("never claim the stored CV was changed"));
+        assertTrue(
+            AiFeatureCatalog.defaultPrompt("CV_AI_SUPPORT").get("user_prompt_template").toString()
+                .contains("never claim the stored CV was changed")
+        );
     }
 
     private AISupportRequest request(

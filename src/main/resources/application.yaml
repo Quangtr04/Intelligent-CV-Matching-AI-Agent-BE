@@ -161,6 +161,9 @@ app:
       initial-delay-ms: ${JOB_EMBEDDING_INITIAL_DELAY_MS}
       lease-seconds: ${JOB_EMBEDDING_LEASE_SECONDS}
       retry-seconds: ${JOB_EMBEDDING_RETRY_SECONDS}
+  recommendation:
+    rerank-enabled: ${RECOMMENDATION_RERANK_ENABLED:true}
+    cache-seconds: ${RECOMMENDATION_CACHE_SECONDS:600}
   ai:
     enabled: ${AI_ENABLED}
     provider: ${AI_PROVIDER:gemini}

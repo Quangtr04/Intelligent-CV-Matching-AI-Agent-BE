@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -71,15 +72,58 @@ public class JobEmbeddingService {
             throw ApiException.forbidden("Job embeddings require an active administrator");
 
         Map<String, Object> job = db.findJobForUpdate(jobId).orElseThrow(() -> ApiException.notFound("Job not found"));
+        String inputHash = JobEmbeddingSupport.inputHash(job);
         String status = "QUEUED";
         String error = null;
         if (!JobEmbeddingSupport.usable(job, contentHash)) {
             status = "CANCELLED";
             error = "Job is inactive, expired or its content changed";
-        } else if (db.hasCurrentEmbedding(jobId, contentHash, ai.provider(), ai.embeddingModel()))
+        } else if (db.hasCurrentEmbedding(jobId, inputHash, embeddingProvider(), ai.embeddingModel())) {
+            db.refreshProvenance(jobId, inputHash, contentHash, embeddingProvider(), ai.embeddingModel());
             status = "COMPLETED";
+        }
 
-        return db.enqueue(jobId, contentHash, requestedBy, ai.provider(), ai.embeddingModel(), status, error);
+        return db.enqueue(jobId, inputHash, requestedBy, embeddingProvider(), ai.embeddingModel(), status, error);
+    }
+
+    @Transactional
+    public Map<String, Object> backfill(
+        UUID actor,
+        int limit) {
+        if (limit < 1 || limit > 500)
+            throw ApiException.badRequest("Backfill limit must be 1..500");
+        if (!db.isActiveAdministrator(actor))
+            throw ApiException.forbidden("Job embeddings require an active administrator");
+        var jobs = db.backfillCandidates(embeddingProvider(), ai.embeddingModel(), JobEmbeddingSupport.VERSION, limit);
+        List<UUID> tasks = new java.util.ArrayList<>();
+        for (var job : jobs)
+            tasks.add(enqueue((UUID) job.get("id"), Objects.toString(job.get("raw_content_hash"), ""), actor));
+        return Map.of(
+            "queued",
+            tasks.size(),
+            "task_ids",
+            tasks,
+            "worker_enabled",
+            enabled,
+            "provider",
+            embeddingProvider(),
+            "model",
+            ai.embeddingModel(),
+            "input_version",
+            JobEmbeddingSupport.VERSION
+        );
+    }
+
+    public Map<String, Object> coverage() {
+        var result = new java.util.LinkedHashMap<>(db.coverage(embeddingProvider(), ai.embeddingModel()));
+        result.put("provider", embeddingProvider());
+        result.put("model", ai.embeddingModel());
+        result.put("input_version", JobEmbeddingSupport.VERSION);
+        return result;
+    }
+
+    private String embeddingProvider() {
+        return Objects.requireNonNullElse(ai.embeddingProvider(), ai.provider());
     }
 
     @Scheduled(
@@ -92,8 +136,9 @@ public class JobEmbeddingService {
             return;
 
         for (int index = 0; index < batchSize; index++) {
-            Optional<Map<String, Object>> claimed = transactions
-                .execute(status -> db.claimNext(ai.provider(), ai.embeddingModel(), UUID.randomUUID(), leaseSeconds));
+            Optional<Map<String, Object>> claimed = transactions.execute(
+                status -> db.claimNext(embeddingProvider(), ai.embeddingModel(), UUID.randomUUID(), leaseSeconds)
+            );
             if (claimed == null || claimed.isEmpty())
                 return;
 
@@ -126,7 +171,7 @@ public class JobEmbeddingService {
             return enqueue(jobId, hash, requestedBy);
         });
         Optional<Map<String, Object>> claimed = transactions.execute(
-            status -> db.claimById(taskId, ai.provider(), ai.embeddingModel(), UUID.randomUUID(), leaseSeconds)
+            status -> db.claimById(taskId, embeddingProvider(), ai.embeddingModel(), UUID.randomUUID(), leaseSeconds)
         );
         if (claimed != null && claimed.isPresent())
             process(claimed.get());
@@ -151,17 +196,20 @@ public class JobEmbeddingService {
                 Map<String, Object> job = db.findJobForUpdate(work.jobId()).orElse(null);
                 if (db.findLeaseForUpdate(taskId, lease).isEmpty())
                     return;
-                if (job == null || !JobEmbeddingSupport.usable(job, work.hash())) {
+                if (job == null || !JobEmbeddingSupport.usable(job, Objects.toString(job.get("raw_content_hash"), ""))
+                    || !JobEmbeddingSupport.inputHash(job).equals(work.hash())) {
                     db.cancel(taskId, lease, "Job changed or expired during embedding");
                     return;
                 }
 
                 db.replaceCurrentEmbedding(
                     work.jobId(),
-                    ai.provider(),
+                    embeddingProvider(),
                     ai.embeddingModel(),
                     work.hash(),
-                    Arrays.toString(vector)
+                    Arrays.toString(vector),
+                    Objects.toString(job.get("raw_content_hash"), ""),
+                    JobEmbeddingSupport.VERSION
                 );
                 db.complete(taskId, lease);
             });
@@ -184,7 +232,8 @@ public class JobEmbeddingService {
             return null;
 
         String hash = Objects.toString(task.get("content_hash"), "");
-        if (job == null || !JobEmbeddingSupport.usable(job, hash)) {
+        if (job == null || !JobEmbeddingSupport.usable(job, Objects.toString(job.get("raw_content_hash"), ""))
+            || !hash.equals(job.get("raw_content_hash")) && !hash.equals(JobEmbeddingSupport.inputHash(job))) {
             db.cancel(taskId, lease, "Job is inactive, expired or its content changed");
             return null;
         }
@@ -194,12 +243,20 @@ public class JobEmbeddingService {
             db.cancel(taskId, lease, "The requesting administrator is no longer active");
             return null;
         }
-        if (db.hasCurrentEmbedding(jobId, hash, ai.provider(), ai.embeddingModel())) {
+        String inputHash = JobEmbeddingSupport.inputHash(job);
+        if (db.hasCurrentEmbedding(jobId, inputHash, embeddingProvider(), ai.embeddingModel())) {
+            db.refreshProvenance(
+                jobId,
+                inputHash,
+                Objects.toString(job.get("raw_content_hash"), ""),
+                embeddingProvider(),
+                ai.embeddingModel()
+            );
             db.complete(taskId, lease);
             return null;
         }
 
-        return new Work(jobId, actor, hash, job);
+        return new Work(jobId, actor, inputHash, job);
     }
 
     private record Work(

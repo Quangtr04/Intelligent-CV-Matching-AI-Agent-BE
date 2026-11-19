@@ -137,11 +137,17 @@ public class AdminRepository {
         return db.one("SELECT * FROM subscription_tiers WHERE id=?", args);
     }
 
+    public long countUserSubscriptionsByTierId(
+        Object... args) {
+        Object value = db.scalar("SELECT count(*) FROM user_subscriptions WHERE tier_id=?", args);
+        return ((Number) value).longValue();
+    }
+
     public int updateSubscriptionTiersById(
         Object... args) {
         return db.update(
             ("UPDATE subscription_tiers SET tier_code=?,display_name=?,"
-                + "price_monthly=?,currency=?,is_active=?,updated_at=now() WHERE id=?"),
+                + "price_monthly=?,currency=?,is_active=?,tier_type=?,token_amount=?,updated_at=now() WHERE id=?"),
             args
         );
     }

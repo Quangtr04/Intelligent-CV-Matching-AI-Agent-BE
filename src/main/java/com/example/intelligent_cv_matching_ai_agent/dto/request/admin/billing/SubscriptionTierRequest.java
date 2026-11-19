@@ -19,6 +19,25 @@ public record SubscriptionTierRequest(
     @NotBlank
     @Pattern(regexp = "[A-Z]{3}")
     String currency,
-    boolean active
+    boolean active,
+    String tierType,
+    @Min(0)
+    @Max(1000000000)
+    long tokenAmount
 ) {
+
+    public SubscriptionTierRequest(
+        String tierCode,
+        String displayName,
+        BigDecimal priceMonthly,
+        String currency,
+        boolean active) {
+        this(tierCode, displayName, priceMonthly, currency, active, "SUBSCRIPTION", 0);
+    }
+
+    public String effectiveTierType() {
+        return tierType == null || tierType.isBlank()
+            ? "SUBSCRIPTION"
+            : tierType.strip().toUpperCase(java.util.Locale.ROOT);
+    }
 }

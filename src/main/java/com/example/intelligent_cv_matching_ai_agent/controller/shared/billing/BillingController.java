@@ -27,6 +27,16 @@ public class BillingController {
         return service.tiers();
     }
 
+    @GetMapping("/token-packs")
+    public List<Map<String, Object>> tokenPacks() {
+        return service.tokenPacks();
+    }
+
+    @GetMapping("/token-wallet")
+    public Map<String, Object> tokenWallet() {
+        return service.tokenWallet();
+    }
+
     @GetMapping("/subscriptions/me")
     public Map<String, Object> subscription() {
         return service.subscription();
