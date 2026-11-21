@@ -405,7 +405,7 @@ class JobCrawlServiceTests {
             List.of("IMPORTED", "REJECTED"),
             items.getAllValues().stream().map(item -> item.get("item_status")).toList()
         );
-        verify(user).requireOperationsRole();
+        verify(user).requireStaffOrOperationsRole();
         verify(jobs, times(1)).importJob(any());
     }
 

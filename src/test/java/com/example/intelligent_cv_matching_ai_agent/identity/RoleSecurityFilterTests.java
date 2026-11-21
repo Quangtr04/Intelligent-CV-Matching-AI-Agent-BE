@@ -94,7 +94,7 @@ class RoleSecurityFilterTests {
 
     @Test
     void retiredAndUnknownAccountRolesCannotAuthenticate() throws Exception {
-        for (String role : new String[]{"MANAGEMENT", "STAFF", "UNKNOWN"}) {
+        for (String role : new String[]{"MANAGEMENT", "UNKNOWN"}) {
             mvc.perform(post("/api/v1/admin/jobs").header("Authorization", "Bearer " + role))
                 .andExpect(status().isUnauthorized());
             mvc.perform(get("/api/v1/me").header("Authorization", "Bearer " + role))
@@ -103,8 +103,26 @@ class RoleSecurityFilterTests {
     }
 
     @Test
+    void staffCanOperateAssignedEndpointsWithoutAccessingManagerOrAdminRoutes() throws Exception {
+        for (String path : new String[]{
+            "/api/v1/staff/dashboard",
+            "/api/v1/staff/rating-appeals",
+            "/api/v1/admin/jobs",
+            "/api/v1/admin/resume-templates"}) {
+            mvc.perform(get(path).header("Authorization", "Bearer STAFF")).andExpect(status().isOk());
+        }
+        for (String path : new String[]{
+            "/api/v1/manager/dashboard",
+            "/api/v1/admin/dashboard",
+            "/api/v1/admin/users",
+            "/api/v1/admin/ai/configurations"}) {
+            mvc.perform(get(path).header("Authorization", "Bearer STAFF")).andExpect(status().isForbidden());
+        }
+    }
+
+    @Test
     void retiredInternalWorkEndpointsRemainDeniedForEverySupportedRole() throws Exception {
-        for (String role : new String[]{"ADMIN", "MANAGER", "CANDIDATE", "CAREER_CONSULTANT"}) {
+        for (String role : new String[]{"ADMIN", "MANAGER", "STAFF", "CANDIDATE", "CAREER_CONSULTANT"}) {
             for (String path : new String[]{"/api/v1/management/tasks", "/api/v1/admin/management/overview"}) {
                 mvc.perform(get(path).header("Authorization", "Bearer " + role)).andExpect(status().isForbidden());
             }
