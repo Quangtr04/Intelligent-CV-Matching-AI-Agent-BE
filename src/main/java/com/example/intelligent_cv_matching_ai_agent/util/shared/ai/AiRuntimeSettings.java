@@ -67,6 +67,11 @@ public record AiRuntimeSettings(
         for (Map.Entry<String, Object> entry : values.entrySet()) {
             String key = switch (entry.getKey()) {
                 case "temperature" -> "temperature";
+                case "questionCount" -> {
+                    if (!"ASSESSMENT".equals(normalizedType))
+                        throw ApiException.badRequest("questionCount is only supported for ASSESSMENT");
+                    yield "questionCount";
+                }
                 case "numPredict", "num_predict", "maxOutputTokens", "maxTokens", "max_output_tokens" -> "numPredict";
                 default -> throw ApiException.badRequest("Unsupported AI parameter: " + entry.getKey());
             };
@@ -81,8 +86,8 @@ public record AiRuntimeSettings(
                 }
                 value = ((Number) value).doubleValue();
             } else {
-                int minimum = 256;
-                int maximum = 16000;
+                int minimum = "questionCount".equals(key) ? AssessmentQuestionCount.MINIMUM : 256;
+                int maximum = "questionCount".equals(key) ? AssessmentQuestionCount.MAXIMUM : 16000;
                 try {
                     if (!(value instanceof Number)) {
                         throw new ArithmeticException();

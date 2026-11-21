@@ -16,7 +16,9 @@ public class JobRepository {
 
     private static final String PUBLIC_JOB_SUMMARY_COLUMNS =
         ("j.id,j.job_title,j.company_name,j.location,j.salary_text,"
-            + "j.role_category,j.posted_at,j.valid_through,j.employment_type,"
+            + "j.role_category,j.posted_at,j.collected_at,j.valid_through,j.employment_type,j.parsed_seniority,"
+            + "j.parsed_description,COALESCE((SELECT jsonb_agg(jsonb_build_object('name',s.normalized_skill) "
+            + "ORDER BY s.normalized_skill) FROM market_job_skills s WHERE s.market_job_id=j.id),'[]'::jsonb) AS skills,"
             + "j.source_url AS original_source_url,j.source_site AS " + "original_source_site,")
             + JobSourceProjection.ACTIVE_URL + " AS source_url," + JobSourceProjection.ACTIVE_SITE + " AS source_site";
 

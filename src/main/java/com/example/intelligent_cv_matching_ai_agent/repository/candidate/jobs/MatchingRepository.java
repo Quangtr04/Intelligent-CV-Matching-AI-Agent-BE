@@ -69,7 +69,7 @@ public class MatchingRepository {
                 + JobSourceProjection.ACTIVE_SITE + " AS source_site,"
                 + ("j.raw_content_hash,j.original_content,j.raw_content,"
                     + "j.requirement_extraction,j.requirement_extraction_verified,"
-                    + "j.parsed_requirements,j.parsed_seniority,COALESCE((SELECT ")
+                    + "j.parsed_requirements,j.parsed_responsibilities,j.parsed_seniority," + "COALESCE((SELECT ")
                 + "jsonb_agg(jsonb_build_object('name',s.normalized_skill,'required',"
                 + "s.is_required) ORDER BY s.normalized_skill) FROM market_job_skills s "
                 + "WHERE s.market_job_id=j.id),'[]'::jsonb) AS skills FROM "
@@ -94,7 +94,7 @@ public class MatchingRepository {
                 + " AS source_url," + JobSourceProjection.ACTIVE_SITE
                 + " AS source_site,j.raw_content_hash,j.original_content,j.raw_content,"
                 + ("j.requirement_extraction,j.requirement_extraction_verified,"
-                    + "j.parsed_requirements,j.parsed_seniority,")
+                    + "j.parsed_requirements,j.parsed_responsibilities,j.parsed_seniority,")
                 + "COALESCE((SELECT "
                 + "jsonb_agg(jsonb_build_object('name',s.normalized_skill,'required',s.is_required) "
                 + ("ORDER BY s.normalized_skill) FROM market_job_skills s WHERE "
@@ -112,7 +112,8 @@ public class MatchingRepository {
             ("SELECT md5(COALESCE(string_agg(jsonb_build_array(j.id,"
                 + "j.raw_content_hash,j.job_title,j.company_name,j.location,"
                 + "j.salary_text,j.valid_through,j.source_url,j.requirement_extraction,"
-                + "j.requirement_extraction_verified,j.parsed_requirements," + "j.parsed_seniority,COALESCE((SELECT "
+                + "j.requirement_extraction_verified,j.parsed_requirements,"
+                + "j.parsed_responsibilities,j.parsed_seniority,COALESCE((SELECT "
                 + "jsonb_agg(jsonb_build_array(s.normalized_skill,s.is_required) ORDER "
                 + "BY s.normalized_skill,s.is_required) FROM market_job_skills s WHERE "
                 + "s.market_job_id=j.id),'[]'::jsonb),") + JobSourceProjection.ACTIVE_URL + ","
@@ -132,7 +133,8 @@ public class MatchingRepository {
                 + "JOIN market_job_posts j ON j.id=e.market_job_id WHERE "
                 + "j.status='ACTIVE' AND (j.valid_through IS NULL OR "
                 + "j.valid_through>now()) AND e.is_current AND e.embedding IS NOT NULL "
-                + "AND e.provider=? AND e.model=? AND e.content_hash=j.raw_content_hash"),
+                + "AND e.provider=? AND e.model=? AND COALESCE(e.source_content_hash,"
+                + "e.content_hash)=j.raw_content_hash"),
             args
         );
     }
@@ -142,6 +144,7 @@ public class MatchingRepository {
         return db.optional(
             ("SELECT id FROM job_matching_runs WHERE user_id=? AND "
                 + "status='COMPLETED' AND profile_snapshot->>'request_hash'=? AND "
+                + "COALESCE(profile_snapshot->>'evidence_status','')<>'DEFERRED' AND "
                 + "completed_at>now()-interval '1 hour' ORDER BY completed_at DESC LIMIT " + "1"),
             args
         );
@@ -167,7 +170,8 @@ public class MatchingRepository {
                 + "FROM market_job_embeddings e JOIN market_job_posts j ON "
                 + "j.id=e.market_job_id WHERE j.status='ACTIVE' "
                 + "AND (j.valid_through IS NULL OR j.valid_through>now()) AND e.is_current AND "
-                + ("e.provider=? AND e.model=? AND e.embedding IS NOT NULL AND " + "e.content_hash=j.raw_content_hash ")
+                + ("e.provider=? AND e.model=? AND e.embedding IS NOT NULL AND "
+                    + "COALESCE(e.source_content_hash,e.content_hash)=j.raw_content_hash ")
                 + "ORDER BY e.embedding <=> CAST(? AS vector) LIMIT ?",
             args
         );
@@ -181,11 +185,12 @@ public class MatchingRepository {
                 + "j.id=e.market_job_id WHERE j.status='ACTIVE' AND (j.valid_through IS "
                 + "NULL OR j.valid_through>now()) AND e.is_current AND e.provider=? AND "
                 + "e.model=? AND e.embedding IS NOT NULL AND "
-                + "e.content_hash=j.raw_content_hash AND j.id=ANY(CAST(? AS uuid[]))) "
-                + "SELECT j.id,j.job_title,j.company_name,j.location,j.salary_text,"
-                + "j.raw_content,1-(e.embedding <=> CAST(? AS vector)) AS vector_score "
-                + "FROM eligible_embeddings e JOIN market_job_posts j ON "
-                + "j.id=e.market_job_id ORDER BY e.embedding <=> CAST(? AS vector),j.id " + "LIMIT ?"),
+                + "COALESCE(e.source_content_hash,e.content_hash)=j.raw_content_hash AND "
+                + "j.id=ANY(CAST(? AS uuid[]))) SELECT j.id,j.job_title,j.company_name,"
+                + "j.location,j.salary_text,j.raw_content,1-(e.embedding <=> CAST(? AS "
+                + "vector)) AS vector_score FROM eligible_embeddings e JOIN "
+                + "market_job_posts j ON j.id=e.market_job_id ORDER BY e.embedding <=> "
+                + "CAST(? AS vector),j.id LIMIT ?"),
             args
         );
     }
@@ -198,6 +203,17 @@ public class MatchingRepository {
     public int updateJobMatchingRunsById(
         Object... args) {
         return db.update("UPDATE job_matching_runs SET status='COMPLETED',completed_at=now() WHERE id=?", args);
+    }
+
+    public void updateEvidenceStatus(
+        UUID runId,
+        boolean deferred) {
+        db.update(
+            ("UPDATE job_matching_runs SET " + "profile_snapshot=jsonb_set(profile_snapshot,'{evidence_status}',"
+                + "to_jsonb(CAST(? AS text)),true) WHERE id=?"),
+            deferred ? "DEFERRED" : "VERIFIED",
+            runId
+        );
     }
 
     public int updateJobMatchingRunsMode(

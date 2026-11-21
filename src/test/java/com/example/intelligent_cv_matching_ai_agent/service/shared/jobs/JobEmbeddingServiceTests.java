@@ -3,6 +3,7 @@ package com.example.intelligent_cv_matching_ai_agent.service.shared.jobs;
 import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException;
 import com.example.intelligent_cv_matching_ai_agent.repository.shared.jobs.JobEmbeddingRepository;
 import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiService;
+import com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobEmbeddingSupport;
 import java.time.OffsetDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -142,12 +143,28 @@ class JobEmbeddingServiceTests {
         doAnswer(invocation -> {
             assertTrue(transactionOpen.get(), "Vector publication must be atomic with queue completion");
             return null;
-        }).when(db).replaceCurrentEmbedding(eq(jobId), eq("openai"), eq("test-embedding"), eq(hash), anyString());
+        }).when(db).replaceCurrentEmbedding(
+            eq(jobId),
+            eq("openai"),
+            eq("test-embedding"),
+            eq(JobEmbeddingSupport.inputHash(job())),
+            anyString(),
+            eq(hash),
+            eq(JobEmbeddingSupport.VERSION)
+        );
 
         service(true, 1).processPending();
 
         verify(ai).embedForUser(eq(actor), contains("Java Developer"));
-        verify(db).replaceCurrentEmbedding(eq(jobId), eq("openai"), eq("test-embedding"), eq(hash), anyString());
+        verify(db).replaceCurrentEmbedding(
+            eq(jobId),
+            eq("openai"),
+            eq("test-embedding"),
+            eq(JobEmbeddingSupport.inputHash(job())),
+            anyString(),
+            eq(hash),
+            eq(JobEmbeddingSupport.VERSION)
+        );
         verify(db).complete(taskId, lease);
         verify(db, never()).retryOrFail(any(), any(), anyString(), anyInt());
         assertFalse(transactionOpen.get());
@@ -164,7 +181,15 @@ class JobEmbeddingServiceTests {
 
         verify(db).cancel(eq(taskId), eq(lease), contains("expired"));
         verify(ai, never()).embedForUser(any(), anyString());
-        verify(db, never()).replaceCurrentEmbedding(any(), anyString(), anyString(), anyString(), anyString());
+        verify(db, never()).replaceCurrentEmbedding(
+            any(),
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString()
+        );
     }
 
     @Test
@@ -183,13 +208,22 @@ class JobEmbeddingServiceTests {
         ready(1);
         Map<String, Object> changed = job();
         changed.put("raw_content_hash", "b".repeat(64));
+        changed.put("parsed_requirements", "Python experience required");
         when(db.findJobForUpdate(jobId)).thenReturn(Optional.of(job()), Optional.of(changed));
         when(ai.embedForUser(eq(actor), anyString())).thenReturn(new float[1024]);
 
         service(true, 1).processPending();
 
         verify(db).cancel(eq(taskId), eq(lease), contains("during embedding"));
-        verify(db, never()).replaceCurrentEmbedding(any(), anyString(), anyString(), anyString(), anyString());
+        verify(db, never()).replaceCurrentEmbedding(
+            any(),
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString()
+        );
         verify(db, never()).complete(any(), any());
     }
 
@@ -201,7 +235,15 @@ class JobEmbeddingServiceTests {
 
         service(true, 1).processPending();
 
-        verify(db, never()).replaceCurrentEmbedding(any(), anyString(), anyString(), anyString(), anyString());
+        verify(db, never()).replaceCurrentEmbedding(
+            any(),
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString()
+        );
         verify(db, never()).complete(any(), any());
         verify(db, never()).cancel(any(), any(), anyString());
     }
@@ -215,7 +257,15 @@ class JobEmbeddingServiceTests {
 
         verify(db).retryOrFail(taskId, lease, "Embedding unavailable", 60);
         verify(db, never()).complete(any(), any());
-        verify(db, never()).replaceCurrentEmbedding(any(), anyString(), anyString(), anyString(), anyString());
+        verify(db, never()).replaceCurrentEmbedding(
+            any(),
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString()
+        );
     }
 
     @Test
@@ -243,7 +293,8 @@ class JobEmbeddingServiceTests {
     @Test
     void cachedCurrentEmbeddingCompletesClaimWithoutPaidCall() {
         ready(1);
-        when(db.hasCurrentEmbedding(jobId, hash, "openai", "test-embedding")).thenReturn(true);
+        when(db.hasCurrentEmbedding(jobId, JobEmbeddingSupport.inputHash(job()), "openai", "test-embedding"))
+            .thenReturn(true);
 
         service(true, 1).processPending();
 
@@ -256,7 +307,8 @@ class JobEmbeddingServiceTests {
         ready(1);
         when(db.claimNext(eq("openai"), eq("test-embedding"), any(UUID.class), eq(300)))
             .thenReturn(Optional.of(task(1)));
-        when(db.hasCurrentEmbedding(jobId, hash, "openai", "test-embedding")).thenReturn(true);
+        when(db.hasCurrentEmbedding(jobId, JobEmbeddingSupport.inputHash(job()), "openai", "test-embedding"))
+            .thenReturn(true);
 
         service(true, 2).processPending();
 
@@ -267,8 +319,19 @@ class JobEmbeddingServiceTests {
     void enqueueDeduplicatesAnAlreadyIndexedFingerprintAndRequiresAnActiveAdmin() {
         when(db.isActiveAdministrator(actor)).thenReturn(true);
         when(db.findJobForUpdate(jobId)).thenReturn(Optional.of(job()));
-        when(db.hasCurrentEmbedding(jobId, hash, "openai", "test-embedding")).thenReturn(true);
-        when(db.enqueue(jobId, hash, actor, "openai", "test-embedding", "COMPLETED", null)).thenReturn(taskId);
+        when(db.hasCurrentEmbedding(jobId, JobEmbeddingSupport.inputHash(job()), "openai", "test-embedding"))
+            .thenReturn(true);
+        when(
+            db.enqueue(
+                jobId,
+                JobEmbeddingSupport.inputHash(job()),
+                actor,
+                "openai",
+                "test-embedding",
+                "COMPLETED",
+                null
+            )
+        ).thenReturn(taskId);
 
         assertEquals(taskId, service(true, 1).enqueue(jobId, hash, actor));
         verify(ai, never()).embedForUser(any(), anyString());
@@ -283,8 +346,19 @@ class JobEmbeddingServiceTests {
     void manualIndexUsesAScopedClaimAndReusesCurrentVector() {
         when(db.isActiveAdministrator(actor)).thenReturn(true);
         when(db.findJobForUpdate(jobId)).thenReturn(Optional.of(job()));
-        when(db.hasCurrentEmbedding(jobId, hash, "openai", "test-embedding")).thenReturn(true);
-        when(db.enqueue(jobId, hash, actor, "openai", "test-embedding", "COMPLETED", null)).thenReturn(taskId);
+        when(db.hasCurrentEmbedding(jobId, JobEmbeddingSupport.inputHash(job()), "openai", "test-embedding"))
+            .thenReturn(true);
+        when(
+            db.enqueue(
+                jobId,
+                JobEmbeddingSupport.inputHash(job()),
+                actor,
+                "openai",
+                "test-embedding",
+                "COMPLETED",
+                null
+            )
+        ).thenReturn(taskId);
         when(db.claimById(eq(taskId), eq("openai"), eq("test-embedding"), any(UUID.class), eq(300)))
             .thenReturn(Optional.empty());
         when(db.task(taskId)).thenReturn(Map.of("id", taskId, "status", "COMPLETED"));
@@ -292,5 +366,41 @@ class JobEmbeddingServiceTests {
         assertEquals("COMPLETED", service(true, 1).indexNow(jobId, actor).get("status"));
         verify(ai, never()).embedForUser(any(), anyString());
         verify(db, never()).claimNext(anyString(), anyString(), any(), anyInt());
+    }
+
+    @Test
+    void backfillUsesTheActualEmbeddingProviderAndOnlyQueuesWork() {
+        when(ai.embeddingProvider()).thenReturn("gemini");
+        when(db.isActiveAdministrator(actor)).thenReturn(true);
+        when(db.backfillCandidates("gemini", "test-embedding", JobEmbeddingSupport.VERSION, 50))
+            .thenReturn(java.util.List.of(Map.of("id", jobId, "raw_content_hash", hash)));
+        when(db.findJobForUpdate(jobId)).thenReturn(Optional.of(job()));
+        when(db.enqueue(jobId, JobEmbeddingSupport.inputHash(job()), actor, "gemini", "test-embedding", "QUEUED", null))
+            .thenReturn(taskId);
+
+        var response = service(false, 1).backfill(actor, 50);
+
+        assertEquals(1, response.get("queued"));
+        assertEquals(false, response.get("worker_enabled"));
+        verify(ai, never()).embedForUser(any(), anyString());
+        verify(ai, never()).embed(anyString());
+    }
+
+    @Test
+    void aSalaryOnlyChangeRefreshesSourceProvenanceWithoutPayingForTheSameInputAgain() {
+        var changed = job();
+        changed.put("raw_content_hash", "b".repeat(64));
+        changed.put("salary_text", "3000 USD");
+        when(db.isActiveAdministrator(actor)).thenReturn(true);
+        when(db.findJobForUpdate(jobId)).thenReturn(Optional.of(changed));
+        String inputHash = JobEmbeddingSupport.inputHash(job());
+        assertEquals(inputHash, JobEmbeddingSupport.inputHash(changed));
+        when(db.hasCurrentEmbedding(jobId, inputHash, "openai", "test-embedding")).thenReturn(true);
+
+        service(true, 1).enqueue(jobId, "b".repeat(64), actor);
+
+        verify(db).refreshProvenance(jobId, inputHash, "b".repeat(64), "openai", "test-embedding");
+        verify(db).enqueue(jobId, inputHash, actor, "openai", "test-embedding", "COMPLETED", null);
+        verify(ai, never()).embedForUser(any(), anyString());
     }
 }

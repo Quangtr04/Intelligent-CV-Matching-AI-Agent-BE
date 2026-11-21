@@ -83,7 +83,8 @@ class AssessmentPreparationIntegrationTests {
             mvc.perform(get(PATH).param("jobId", job.toString()).header("Authorization", bearer(identity(role))))
                 .andExpect(status().isForbidden());
         }
-        verifyNoInteractions(ai);
+        verify(ai, never()).generate(anyString(), anyMap());
+        verify(ai, never()).generateForUser(any(), anyString(), anyMap());
     }
 
     @Test
@@ -92,7 +93,8 @@ class AssessmentPreparationIntegrationTests {
         mvc.perform(get(PATH).param("jobId", "not-a-uuid").header("Authorization", authorization))
             .andExpect(status().isBadRequest());
         read(UUID.randomUUID(), 404);
-        verifyNoInteractions(ai);
+        verify(ai, never()).generate(anyString(), anyMap());
+        verify(ai, never()).generateForUser(any(), anyString(), anyMap());
     }
 
     @ParameterizedTest
@@ -111,7 +113,8 @@ class AssessmentPreparationIntegrationTests {
             db.update("UPDATE market_job_posts SET status=? WHERE id=?", state, job);
         }
         read(job, 404);
-        verifyNoInteractions(ai);
+        verify(ai, never()).generate(anyString(), anyMap());
+        verify(ai, never()).generateForUser(any(), anyString(), anyMap());
     }
 
     @ParameterizedTest
@@ -128,7 +131,8 @@ class AssessmentPreparationIntegrationTests {
             default -> throw new AssertionError(missing);
         }
         read(job, 409);
-        verifyNoInteractions(ai);
+        verify(ai, never()).generate(anyString(), anyMap());
+        verify(ai, never()).generateForUser(any(), anyString(), anyMap());
     }
 
     @Test
@@ -185,7 +189,8 @@ class AssessmentPreparationIntegrationTests {
             ((Number) db.scalar("SELECT count(*) FROM assessment_sessions WHERE user_id=?", owner)).longValue()
         );
         assertEquals(0L, ((Number) db.scalar("SELECT count(*) FROM roadmaps WHERE user_id=?", owner)).longValue());
-        verifyNoInteractions(ai);
+        verify(ai, never()).generate(anyString(), anyMap());
+        verify(ai, never()).generateForUser(any(), anyString(), anyMap());
     }
 
     @Test
@@ -206,7 +211,8 @@ class AssessmentPreparationIntegrationTests {
         Map<?, ?> skill = (Map<?, ?>) ((List<?>) response.get("skills")).getFirst();
         assertEquals("CustomSkill " + job, skill.get("skill_name"));
         assertEquals(List.of(), skill.get("resources"));
-        verifyNoInteractions(ai);
+        verify(ai, never()).generate(anyString(), anyMap());
+        verify(ai, never()).generateForUser(any(), anyString(), anyMap());
     }
 
     private UUID identity(

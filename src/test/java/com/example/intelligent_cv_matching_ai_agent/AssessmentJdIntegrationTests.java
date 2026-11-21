@@ -442,6 +442,46 @@ class AssessmentJdIntegrationTests {
         ).andExpect(status().isConflict());
     }
 
+    @Test
+    void assessmentUsesOneDeadlineAndGradesUnansweredQuestionsAsIncorrectAfterExpiry() throws Exception {
+        when(ai.assessmentQuestionCount()).thenReturn(9);
+        var generated = questions("Java");
+        generated.remove(4);
+        when(ai.generate(eq("ASSESSMENT_GENERATE"), anyMap())).thenAnswer(call -> {
+            Map<?, ?> input = call.getArgument(1);
+            assertEquals(9, input.get("question_count"));
+            return Map.of("questions", generated);
+        });
+        var session = create(Map.of("targetJobTitle", "Java Developer", "jdText", JAVA_JD), 200);
+        String id = session.get("id").toString();
+        assertEquals(810, session.get("time_limit_seconds"));
+        assertNotNull(session.get("expires_at"));
+        var question = (Map<?, ?>) ((List<?>) session.get("questions")).getFirst();
+        String answer = mapper.writeValueAsString(Map.of("questionId", question.get("id"), "selectedOption", "A"));
+        String base = "/api/v1/assessments/" + id;
+
+        mvc.perform(
+            put(base + "/answers").header("Authorization", authorization).contentType(MediaType.APPLICATION_JSON)
+                .content(answer)
+        ).andExpect(status().isOk());
+        db.update(
+            "UPDATE assessment_sessions SET started_at=now()-interval '16 minutes' WHERE id=?",
+            UUID.fromString(id)
+        );
+        mvc.perform(
+            put(base + "/answers").header("Authorization", authorization).contentType(MediaType.APPLICATION_JSON)
+                .content(answer)
+        ).andExpect(status().isConflict());
+        var completed = read(
+            mvc.perform(post(base + "/submit").header("Authorization", authorization)).andExpect(status().isOk())
+                .andReturn()
+        );
+        var score = (Map<?, ?>) ((List<?>) completed.get("skill_scores")).getFirst();
+        assertEquals("completed", completed.get("status"));
+        assertEquals(9, score.get("total"));
+        assertEquals(1, score.get("correct"));
+    }
+
     private List<Map<String, Object>> questions(
         String skill) {
         List<Map<String, Object>> result = new ArrayList<>();

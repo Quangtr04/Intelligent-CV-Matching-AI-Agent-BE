@@ -42,7 +42,8 @@ final class LearningResponseSchema {
                 fields.put("cv_evidence", textSchema(0, 250));
             }
             Map<String, Object> question = objectSchema(fields);
-            return objectSchema(Map.of("questions", arraySchema(question, 10, 10)));
+            int count = AssessmentQuestionCount.from(input);
+            return objectSchema(Map.of("questions", arraySchema(question, count, count)));
         }
         // A positional schema prevents duplicate/missing skills and self/forward dependencies before decoding.
         // Gap status and assessment evidence are authoritative server data, not model output.

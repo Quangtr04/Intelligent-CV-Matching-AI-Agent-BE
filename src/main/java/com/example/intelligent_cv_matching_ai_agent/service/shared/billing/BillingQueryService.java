@@ -48,6 +48,14 @@ public class BillingQueryService {
         return db.listSubscriptionQuotasByTierId();
     }
 
+    public List<Map<String, Object>> tokenPacks() {
+        return db.listActiveTokenPacks();
+    }
+
+    public Map<String, Object> tokenWallet() {
+        return Map.of("balance", db.walletBalance(user.id()));
+    }
+
     public Map<String, Object> subscription() {
         return entitlement.summary(user.id());
     }

@@ -9,6 +9,7 @@ import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiService;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.FlowSupport;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobNormalizer;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobEmbeddingSupport;
+import com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobSalaryParser;
 import java.time.OffsetDateTime;
 import java.util.*;
 import org.jsoup.Jsoup;
@@ -28,23 +29,27 @@ public class JobService {
 
     private final JobEmbeddingService embeddings;
 
+    private final SalaryExchangeRateService rates;
+
     @Autowired
     public JobService(
         JobRepository db,
         CurrentUser user,
         AiService ai,
-        JobEmbeddingService embeddings) {
+        JobEmbeddingService embeddings,
+        SalaryExchangeRateService rates) {
         this.db = db;
         this.user = user;
         this.ai = ai;
         this.embeddings = embeddings;
+        this.rates = rates;
     }
 
     public JobService(
         JobRepository db,
         CurrentUser user,
         AiService ai) {
-        this(db, user, ai, null);
+        this(db, user, ai, null, null);
     }
 
     public List<Map<String, Object>> skills() {
@@ -63,14 +68,35 @@ public class JobService {
         String normalizedLocation = JobNormalizer.fold(JobNormalizer.normalizeLocationFilter(requestedLocation));
         String locationPattern =
             "%" + normalizedLocation.replace("!", "!!").replace("%", "!%").replace("_", "!_") + "%";
-        if (user.hasOperationsRole())
-            return db.listMarketJobPostsWithCreatorByStatus(
-                "%" + query + "%",
-                locationPattern,
-                pageSize(limit),
-                offset(offset)
-            );
-        return db.listMarketJobPostsByStatus("%" + query + "%", locationPattern, pageSize(limit), offset(offset));
+        String titlePattern = "%" + query + "%";
+        int size = pageSize(limit);
+        int start = offset(offset);
+        var rows = user.hasOperationsRole()
+            ? db.listMarketJobPostsWithCreatorByStatus(titlePattern, locationPattern, size, start)
+            : db.listMarketJobPostsByStatus(titlePattern, locationPattern, size, start);
+        return rows.stream().map(this::withMonthlySalary).toList();
+    }
+
+    private Map<String, Object> withMonthlySalary(
+        Map<String, Object> job) {
+        var parsed = JobSalaryParser.parseMonthly(text(job.get("salary_text")));
+        if (parsed.isEmpty())
+            return job;
+        var salary = parsed.get();
+        var result = new LinkedHashMap<>(job);
+        if ("VND".equals(salary.currency())) {
+            result.put("monthly_salary_min_vnd", salary.minimum());
+            result.put("monthly_salary_max_vnd", salary.maximum());
+        } else if (rates != null) {
+            var exchange = rates.snapshot();
+            if (exchange.rate(salary.currency(), "VND").isPresent()) {
+                if (salary.minimum() != null)
+                    result.put("monthly_salary_min_vnd", exchange.convert(salary.minimum(), salary.currency(), "VND"));
+                if (salary.maximum() != null)
+                    result.put("monthly_salary_max_vnd", exchange.convert(salary.maximum(), salary.currency(), "VND"));
+            }
+        }
+        return result;
     }
 
     public List<Map<String, Object>> managedJobs(
@@ -369,6 +395,21 @@ public class JobService {
         user.requireOperationsRole();
         db.getMarketJobPostsById2(id);
         return Map.of("job_id", id, "indexing_jobs", db.indexingJobs(id));
+    }
+
+    public Map<String, Object> backfillEmbeddings(
+        int limit) {
+        user.requireOperationsRole();
+        if (embeddings == null)
+            throw new ApiException(503, "Job embedding worker is unavailable");
+        return embeddings.backfill(user.id(), limit);
+    }
+
+    public Map<String, Object> embeddingCoverage() {
+        user.requireOperationsRole();
+        if (embeddings == null)
+            throw new ApiException(503, "Job embedding worker is unavailable");
+        return embeddings.coverage();
     }
 
     @Transactional

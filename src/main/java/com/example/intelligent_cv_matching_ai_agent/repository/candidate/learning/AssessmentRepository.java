@@ -167,7 +167,7 @@ public class AssessmentRepository {
             ("SELECT COALESCE(NULLIF(q.related_skill_name,''),'General') AS skill,"
                 + "count(*) AS total,count(*) FILTER(WHERE a.is_correct) AS correct,"
                 + "round(100.0*count(*) FILTER(WHERE a.is_correct)/count(*),2) AS score "
-                + "FROM assessment_questions q JOIN assessment_answers a ON "
+                + "FROM assessment_questions q LEFT JOIN assessment_answers a ON "
                 + "a.question_id=q.id AND a.session_id=q.session_id WHERE q.session_id=? "
                 + "GROUP BY COALESCE(NULLIF(q.related_skill_name,''),'General') ORDER BY " + "skill"),
             args

@@ -1,6 +1,7 @@
 package com.example.intelligent_cv_matching_ai_agent.util.candidate.learning;
 
 import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException;
+import com.example.intelligent_cv_matching_ai_agent.util.shared.ai.AssessmentQuestionCount;
 import java.text.Normalizer;
 import java.util.*;
 import static com.example.intelligent_cv_matching_ai_agent.util.shared.Values.*;
@@ -12,8 +13,14 @@ public final class AssessmentValidator {
 
     public static void validateQuestions(
         List<?> questions) {
-        if (questions.size() != 10)
-            throw new ApiException(502, "AI must generate exactly 10 job-description assessment questions");
+        validateQuestions(questions, AssessmentQuestionCount.DEFAULT);
+    }
+
+    private static void validateQuestions(
+        List<?> questions,
+        int total) {
+        if (questions.size() != total)
+            throw new ApiException(502, "AI must generate exactly " + total + " job-description assessment questions");
 
         int foundation = 0, technical = 0;
         Set<String> questionTexts = new HashSet<>();
@@ -46,15 +53,21 @@ public final class AssessmentValidator {
                 throw new ApiException(502, "Assessment answer choices must be distinct");
         }
 
-        if (foundation != 5 || technical != 5)
-            throw new ApiException(502, "Assessment must contain 5 JD foundation and 5 JD technical questions");
+        int expectedFoundation = AssessmentQuestionCount.foundation(total);
+        if (foundation != expectedFoundation || technical != total - expectedFoundation)
+            throw new ApiException(
+                502,
+                "Assessment must contain " + expectedFoundation + " JD foundation and " + (total - expectedFoundation)
+                    + " JD technical questions"
+            );
     }
 
     public static void validateQuestions(
         List<?> questions,
         List<Map<String, Object>> jobSkills,
-        List<String> jdSources) {
-        validateQuestions(questions);
+        List<String> jdSources,
+        int total) {
+        validateQuestions(questions, total);
         Set<String> allowed = new HashSet<>();
         for (var skill : jobSkills)
             allowed.add(SkillNames.normalize(text(skill.get("skill_name"))));

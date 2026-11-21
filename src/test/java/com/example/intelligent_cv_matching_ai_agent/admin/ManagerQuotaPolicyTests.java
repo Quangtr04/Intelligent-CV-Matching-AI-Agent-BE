@@ -54,13 +54,26 @@ class ManagerQuotaPolicyTests {
         assertEquals(100000L, limits.get("maxApiQuota"));
         assertEquals("DEFAULT_POLICY", limits.get("source"));
         List<?> codes = (List<?>) limits.get("allowedFeatureCodes");
-        assertEquals(26, codes.size());
-        assertTrue(codes.containsAll(List.of("AI_TOTAL_TOKENS", "CV_ANALYZE", "API_CALLS_TOTAL", "API_CALLS_JOB_ATS")));
+        assertEquals(28, codes.size());
+        assertTrue(
+            codes.containsAll(
+                List.of(
+                    "AI_TOTAL_TOKENS",
+                    "CV_ANALYZE",
+                    "API_CALLS_TOTAL",
+                    "API_CALLS_JOB_ATS",
+                    "JOB_REQUIREMENT_EVIDENCE",
+                    "API_CALLS_JOB_REQUIREMENT_EVIDENCE"
+                )
+            )
+        );
         assertDoesNotThrow(
             () -> policy.validate(
                 List.of(
                     new SubscriptionQuotaRequest("CV_ANALYZE", 10000000, "MONTHLY"),
-                    new SubscriptionQuotaRequest("API_CALLS_JOB_ATS", 100000, "SUBSCRIPTION")
+                    new SubscriptionQuotaRequest("API_CALLS_JOB_ATS", 100000, "SUBSCRIPTION"),
+                    new SubscriptionQuotaRequest("JOB_REQUIREMENT_EVIDENCE", 10000000, "MONTHLY"),
+                    new SubscriptionQuotaRequest("API_CALLS_JOB_REQUIREMENT_EVIDENCE", 100000, "SUBSCRIPTION")
                 )
             )
         );
@@ -80,11 +93,10 @@ class ManagerQuotaPolicyTests {
         )) {
             AdminRepository subscriptions = mock(AdminRepository.class);
             AdminService service = new AdminService(subscriptions, current, audit, null, null, null, policy);
-            assertEquals(
-                403,
-                assertThrows(ApiException.class, () -> service.quotas(UUID.randomUUID(), List.of(invalid))).status()
-            );
-            verifyNoInteractions(subscriptions);
+            UUID tier = UUID.randomUUID();
+            assertEquals(403, assertThrows(ApiException.class, () -> service.quotas(tier, List.of(invalid))).status());
+            verify(subscriptions).getSubscriptionTiersById(tier);
+            verifyNoMoreInteractions(subscriptions);
         }
     }
 
@@ -120,10 +132,9 @@ class ManagerQuotaPolicyTests {
         login("MANAGER");
         AdminRepository subscriptions = mock(AdminRepository.class);
         AdminService service = new AdminService(subscriptions, current, audit, null, null);
-        assertEquals(
-            503,
-            assertThrows(ApiException.class, () -> service.quotas(UUID.randomUUID(), List.of())).status()
-        );
-        verifyNoInteractions(subscriptions);
+        UUID tier = UUID.randomUUID();
+        assertEquals(503, assertThrows(ApiException.class, () -> service.quotas(tier, List.of())).status());
+        verify(subscriptions).getSubscriptionTiersById(tier);
+        verifyNoMoreInteractions(subscriptions);
     }
 }

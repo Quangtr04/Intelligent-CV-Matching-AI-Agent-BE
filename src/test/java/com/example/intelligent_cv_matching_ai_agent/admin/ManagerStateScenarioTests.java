@@ -45,8 +45,10 @@ class ManagerStateScenarioTests {
     void paidPlanActivationChangesOnlyCatalogMetadataAndRecordsBeforeAndAfter(
         boolean active) {
         login(manager, "MANAGER");
-        Map<String, Object> before = Map.of("id", id, "tier_code", "PRO", "is_active", !active);
-        Map<String, Object> after = Map.of("id", id, "tier_code", "PRO", "is_active", active);
+        Map<String, Object> before =
+            Map.of("id", id, "tier_code", "PRO", "tier_type", "SUBSCRIPTION", "is_active", !active);
+        Map<String, Object> after =
+            Map.of("id", id, "tier_code", "PRO", "tier_type", "SUBSCRIPTION", "is_active", active);
         when(plans.getSubscriptionTiersById(id)).thenReturn(before, after);
         var request = new SubscriptionTierRequest("PRO", "Professional", new BigDecimal("199000"), "VND", active);
 
@@ -54,8 +56,16 @@ class ManagerStateScenarioTests {
 
         var order = inOrder(plans, audit);
         order.verify(plans).getSubscriptionTiersById(id);
-        order.verify(plans)
-            .updateSubscriptionTiersById("PRO", "Professional", new BigDecimal("199000"), "VND", active, id);
+        order.verify(plans).updateSubscriptionTiersById(
+            "PRO",
+            "Professional",
+            new BigDecimal("199000"),
+            "VND",
+            active,
+            "SUBSCRIPTION",
+            0L,
+            id
+        );
         order.verify(plans).getSubscriptionTiersById(id);
         order.verify(audit).record("UPDATE_TIER", "SUBSCRIPTION_TIER", id, before, after);
         verifyNoMoreInteractions(plans, audit);
@@ -73,7 +83,8 @@ class ManagerStateScenarioTests {
             assertEquals(400, assertThrows(ApiException.class, () -> catalog.editTier(id, invalid)).status());
         }
 
-        verify(plans, never()).updateSubscriptionTiersById(any(), any(), any(), any(), anyBoolean(), any());
+        verify(plans, never())
+            .updateSubscriptionTiersById(any(), any(), any(), any(), anyBoolean(), any(), anyLong(), any());
         verifyNoInteractions(audit);
     }
 

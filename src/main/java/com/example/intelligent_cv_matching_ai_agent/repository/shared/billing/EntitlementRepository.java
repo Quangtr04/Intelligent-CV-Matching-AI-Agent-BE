@@ -85,12 +85,38 @@ public class EntitlementRepository {
         return db.insert("ai_token_reservations", fields);
     }
 
+    public long walletBalance(
+        UUID user) {
+        Object value = db.scalar("SELECT COALESCE((SELECT balance FROM user_token_wallets WHERE user_id=?),0)", user);
+        return ((Number) value).longValue();
+    }
+
+    public int reserveWalletTokens(
+        UUID user,
+        long amount) {
+        if (amount <= 0)
+            return 1;
+        return db.update(
+            "UPDATE user_token_wallets SET balance=balance-?,updated_at=now() WHERE user_id=? AND balance>=?",
+            amount,
+            user,
+            amount
+        );
+    }
+
+    public void refundWalletTokens(
+        UUID user,
+        long amount) {
+        if (amount > 0)
+            db.update("UPDATE user_token_wallets SET balance=balance+?,updated_at=now() WHERE user_id=?", amount, user);
+    }
+
     public Optional<Map<String, Object>> findUserSubscriptionsByUserId(
         Object... args) {
         return db.optional(
             ("SELECT st.*,us.started_at AS subscription_started_at FROM user_subscriptions us "
                 + "JOIN subscription_tiers st ON " + "st.id=us.tier_id WHERE us.user_id=? AND us.status='ACTIVE' AND "
-                + "st.is_active=true AND (us.expires_at IS NULL OR us.expires_at>now()) "
+                + "st.is_active=true AND st.tier_type='SUBSCRIPTION' AND (us.expires_at IS NULL OR us.expires_at>now()) "
                 + "ORDER BY us.started_at DESC LIMIT 1"),
             args
         );

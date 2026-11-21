@@ -15,6 +15,7 @@ import com.example.intelligent_cv_matching_ai_agent.service.candidate.resume.Res
 import com.example.intelligent_cv_matching_ai_agent.util.candidate.jobs.SalaryExpectation;
 import com.example.intelligent_cv_matching_ai_agent.util.candidate.jobs.JobMatchRerank;
 import com.example.intelligent_cv_matching_ai_agent.util.candidate.jobs.QuickJobMatcher;
+import com.example.intelligent_cv_matching_ai_agent.util.candidate.jobs.RequirementEvidence;
 import com.example.intelligent_cv_matching_ai_agent.service.shared.jobs.MatchingSalaryPolicyService;
 import com.example.intelligent_cv_matching_ai_agent.service.shared.jobs.SalaryExchangeRateService;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobSalaryParser;
@@ -48,6 +49,8 @@ public class MatchingService {
 
     private final SalaryExchangeRateService exchangeRates;
 
+    private final RequirementEvidenceService evidenceMatching;
+
     public MatchingService(
         MatchingRepository db,
         CurrentUser user,
@@ -58,7 +61,6 @@ public class MatchingService {
         this(db, user, ai, resumes, redis, salaryPolicies, null);
     }
 
-    @Autowired
     public MatchingService(
         MatchingRepository db,
         CurrentUser user,
@@ -67,6 +69,19 @@ public class MatchingService {
         ObjectProvider<StringRedisTemplate> redis,
         MatchingSalaryPolicyService salaryPolicies,
         SalaryExchangeRateService exchangeRates) {
+        this(db, user, ai, resumes, redis, salaryPolicies, exchangeRates, null);
+    }
+
+    @Autowired
+    public MatchingService(
+        MatchingRepository db,
+        CurrentUser user,
+        AiService ai,
+        ResumeService resumes,
+        ObjectProvider<StringRedisTemplate> redis,
+        MatchingSalaryPolicyService salaryPolicies,
+        SalaryExchangeRateService exchangeRates,
+        RequirementEvidenceService evidenceMatching) {
         this.db = db;
         this.user = user;
         this.ai = ai;
@@ -74,6 +89,7 @@ public class MatchingService {
         this.responseCache = new AiResponseCache(redis);
         this.salaryPolicies = salaryPolicies;
         this.exchangeRates = exchangeRates;
+        this.evidenceMatching = evidenceMatching;
     }
 
     public Map<String, Object> result(
@@ -85,6 +101,14 @@ public class MatchingService {
             run.put("salary_filter", snapshot.get("salary_filter"));
 
         return run;
+    }
+
+    public Optional<Map<String, Object>> evidenceForCv(
+        Map<String, Object> cv,
+        Map<String, Object> job) {
+        if (evidenceMatching == null || !evidenceMatching.enabled())
+            return Optional.empty();
+        return Optional.of(evidenceMatching.assess(evidenceMatching.candidate(List.of(cv), Map.of(), List.of()), job));
     }
 
     @Transactional
@@ -101,6 +125,16 @@ public class MatchingService {
         List<UUID> selected,
         int limit,
         String requestedMode) {
+        return match(basis, selected, limit, requestedMode, null);
+    }
+
+    @Transactional
+    public Map<String, Object> match(
+        String basis,
+        List<UUID> selected,
+        int limit,
+        String requestedMode,
+        UUID targetJobId) {
         user.requireRole("CANDIDATE");
 
         pageSize(limit);
@@ -134,6 +168,7 @@ public class MatchingService {
 
         StringBuilder candidate = new StringBuilder();
         QuickJobMatcher.Evidence quickEvidence = null;
+        List<Map<String, Object>> profileSkills = new ArrayList<>();
         Optional<Map<String, Object>> storedProfile = db.findCandidateProfilesByUserId(user.id());
         Map<String, Object> profile = new LinkedHashMap<>(storedProfile.orElse(Map.of()));
         profile.remove("expected_salary_min");
@@ -146,7 +181,7 @@ public class MatchingService {
             if (salary.isEmpty())
                 throw ApiException
                     .badRequest("Set expectedSalary in your career profile before requesting job recommendations");
-            var profileSkills = db.listCandidateProfileSkillsByUserId(user.id());
+            profileSkills = db.listCandidateProfileSkillsByUserId(user.id());
             if (quick) {
                 quickEvidence = QuickJobMatcher.fromProfile(profile, profileSkills);
                 candidate.append(quickEvidence);
@@ -169,10 +204,15 @@ public class MatchingService {
             );
         }
 
-        List<Map<String, Object>> catalog =
-            salary.isPresent() ? db.listActiveJobSalaryMetadata() : db.listMarketJobSkillsByMarketJobId();
+        List<Map<String, Object>> catalog = targetJobId != null
+            ? db.listMarketJobSkillsByIds("{" + targetJobId + "}")
+            : salary.isPresent() ? db.listActiveJobSalaryMetadata() : db.listMarketJobSkillsByMarketJobId();
         if (catalog.isEmpty())
-            throw ApiException.conflict("No active jobs have been imported");
+            throw ApiException.conflict(
+                targetJobId == null
+                    ? "No active jobs have been imported"
+                    : "The selected job is inactive, expired or unavailable"
+            );
         if (salary.isPresent() && exchangeRates != null) {
             String expectedCurrency = salary.get().currency();
             boolean needsConversion =
@@ -183,8 +223,9 @@ public class MatchingService {
             }
         }
         Map<UUID, Map<String, Object>> salaryMatches = new HashMap<>();
-        List<Map<String, Object>> jobs =
-            salary.isPresent() ? salaryEligible(catalog, salary.get(), salaryMatches) : new ArrayList<>(catalog);
+        List<Map<String, Object>> jobs = salary.isPresent() && targetJobId == null
+            ? salaryEligible(catalog, salary.get(), salaryMatches)
+            : new ArrayList<>(catalog);
         Map<String, Object> salaryPolicy = salary.map(SalaryExpectation::policy).orElseGet(
             () -> fields(
                 "active",
@@ -200,6 +241,7 @@ public class MatchingService {
             )
         );
         salaryPolicy.put("examined_jobs", catalog.size());
+        salaryPolicy.put("filter_applied", salary.isPresent() && targetJobId == null);
         salaryPolicy.put("eligible_jobs", jobs.size());
         salaryPolicy.put(
             "verified_eligible_jobs",
@@ -210,15 +252,27 @@ public class MatchingService {
             salaryMatches.values().stream().filter(match -> Boolean.FALSE.equals(match.get("verified"))).count()
         );
         String eligibleIds = jobIds(jobs);
-        boolean useAi = !quick && ai.enabled();
-        if (salary.isPresent() && !useAi && !jobs.isEmpty())
+        boolean useEvidence = targetJobId != null && !quick && evidenceMatching != null && evidenceMatching.enabled();
+        boolean useAi = useEvidence || !quick && ai.enabled();
+        if (salary.isPresent() && targetJobId == null && !useAi && !jobs.isEmpty())
             jobs = salaryEligible(db.listMarketJobSkillsByIds(eligibleIds), salary.get(), salaryMatches);
 
-        String mode = quick ? "SKILL_OVERLAP_QUICK" : useAi ? "SEMANTIC_LLM" : "SKILL_OVERLAP";
-        String catalogFingerprint = text(db.readMarketJobPostsByStatus());
+        String mode = useEvidence
+            ? "REQUIREMENT_EVIDENCE"
+            : quick ? "SKILL_OVERLAP_QUICK" : useAi ? "SEMANTIC_LLM" : "SKILL_OVERLAP";
+        String catalogFingerprint = targetJobId == null
+            ? text(db.readMarketJobPostsByStatus())
+            : FlowSupport.hash(tools.jackson.databind.json.JsonMapper.builder().build().writeValueAsString(catalog));
         String vectorFingerprint =
-            useAi ? text(db.readMarketJobEmbeddingsByStatus(ai.provider(), ai.embeddingModel())) : "";
+            useAi && !useEvidence ? text(db.readMarketJobEmbeddingsByStatus(ai.provider(), ai.embeddingModel())) : "";
         List<String> resumeIds = cvs.stream().map(cv -> cv.get("id").toString()).sorted().toList();
+        String evidenceFingerprint = useEvidence
+            ? tools.jackson.databind.json.JsonMapper.builder().build().writeValueAsString(
+                basis.equals("CAREER_PROFILE")
+                    ? RequirementEvidence.profileChunks(profile, profileSkills)
+                    : RequirementEvidence.resumeChunks(cvs)
+            )
+            : "";
         String cacheHash = FlowSupport.hash(
             com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobRequirementExtractor.VERSION + "\n"
                 + com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.SkillCatalog.get().version() + "\n"
@@ -226,7 +280,11 @@ public class MatchingService {
                 + "\n" + mode + "\n" + (quick ? "RULE_BASED" : ai.provider()) + "\n"
                 + (quick ? QuickJobMatcher.VERSION : ai.model()) + "\n" + (quick ? "" : ai.embeddingModel()) + "\n"
                 + limit + "\n" + salaryPolicy + "\n" + salary.map(SalaryExpectation::exchangeRates) + "\n"
-                + (quick ? QuickJobMatcher.VERSION : text(ai.cacheFingerprint("JOB_MATCH_RERANK")))
+                + (useEvidence
+                    ? RequirementEvidence.VERSION + "\n" + evidenceFingerprint + "\n"
+                        + text(ai.cacheFingerprint(RequirementEvidence.FEATURE))
+                    : quick ? QuickJobMatcher.VERSION : text(ai.cacheFingerprint("JOB_MATCH_RERANK")))
+                + "\ntarget_job=" + targetJobId
         );
         String cacheKey = "edunexus:matching:response:v2:" + user.id() + ":" + cacheHash;
         Map<String, String> cacheIdentity = Map.of("user_id", user.id().toString(), "request_hash", cacheHash);
@@ -273,7 +331,9 @@ public class MatchingService {
                 "provider",
                 useAi ? ai.provider() : "RULE_BASED",
                 "model",
-                quick ? QuickJobMatcher.VERSION : useAi ? ai.model() : "skill-overlap-v1",
+                useEvidence
+                    ? RequirementEvidence.VERSION
+                    : quick ? QuickJobMatcher.VERSION : useAi ? ai.model() : "skill-overlap-v1",
                 "status",
                 "PROCESSING",
                 "started_at",
@@ -289,6 +349,20 @@ public class MatchingService {
 
         if (jobs.isEmpty()) {
             ranked = new ArrayList<>();
+        } else if (useEvidence) {
+            var prepared = evidenceMatching.candidate(cvs, profile, profileSkills);
+            ranked = new ArrayList<>(db.listMarketJobSkillsByIds(eligibleIds));
+            for (var job : ranked)
+                job.put("verification_priority", evidenceMatching.confirmedDeclarationCoverage(prepared, job));
+            ranked.sort(
+                Comparator.<Map<String, Object>>comparingDouble(job -> number(job.get("verification_priority"), 0))
+                    .reversed().thenComparing(job -> text(job.get("id")))
+            );
+            for (var job : ranked) {
+                var report = evidenceMatching.assess(prepared, job);
+                job.put("final_score", report.get("score"));
+                job.put("explanation", report);
+            }
         } else if (useAi) {
             if (vectorFingerprint.isBlank()) {
                 ranked = new ArrayList<>();
@@ -410,10 +484,24 @@ public class MatchingService {
 
         ranked
             .sort(
-                Comparator.<Map<String, Object>>comparingDouble(j -> number(j.get("final_score"), 0)).reversed()
+                Comparator
+                    .<Map<String, Object>>comparingInt(
+                        j -> useEvidence
+                            && !Boolean.TRUE.equals(object(j.get("explanation")).get("requirement_coverage_available"))
+                                ? 1
+                                : 0
+                    )
+                    .thenComparing(
+                        Comparator.<Map<String, Object>>comparingDouble(j -> number(j.get("final_score"), 0)).reversed()
+                    )
+                    .thenComparing(
+                        Comparator.<Map<String, Object>>comparingDouble(
+                            j -> useEvidence ? number(object(j.get("explanation")).get("preferred_coverage"), 0) : 0
+                        ).reversed()
+                    )
                     .thenComparing(
                         Comparator.<Map<String, Object>>comparingInt(
-                            j -> quick ? array(object(j.get("explanation")).get("strengths")).size() : 0
+                            j -> quick && !useEvidence ? array(object(j.get("explanation")).get("strengths")).size() : 0
                         ).reversed()
                     )
                     .thenComparingInt(
@@ -449,36 +537,38 @@ public class MatchingService {
                             "method",
                             mode,
                             "retrieval",
-                            job.get("vector_score") == null ? "SKILL" : "VECTOR",
+                            useEvidence ? "REQUIREMENT_CHUNKS" : job.get("vector_score") == null ? "SKILL" : "VECTOR",
                             "reason",
                             explanation.get("reason"),
                             "assessment",
-                            fields(
-                                "requirement_coverage_available",
-                                explanation.get("requirement_coverage_available"),
-                                "requirement_coverage",
-                                explanation.get("requirement_coverage"),
-                                "skill_coverage",
-                                explanation.get("skill_coverage"),
-                                "experience_status",
-                                explanation.get("experience_status"),
-                                "candidate_years",
-                                explanation.get("candidate_years"),
-                                "required_years",
-                                explanation.get("required_years"),
-                                "requirements",
-                                explanation.get("requirements"),
-                                "unverified_requirements",
-                                explanation.get("unverified_requirements"),
-                                "extraction_status",
-                                explanation.get("extraction_status"),
-                                "catalog_version",
-                                explanation.get("catalog_version"),
-                                "coverage_complete",
-                                explanation.get("coverage_complete"),
-                                "score_kind",
-                                explanation.get("score_kind")
-                            ),
+                            useEvidence
+                                ? explanation
+                                : fields(
+                                    "requirement_coverage_available",
+                                    explanation.get("requirement_coverage_available"),
+                                    "requirement_coverage",
+                                    explanation.get("requirement_coverage"),
+                                    "skill_coverage",
+                                    explanation.get("skill_coverage"),
+                                    "experience_status",
+                                    explanation.get("experience_status"),
+                                    "candidate_years",
+                                    explanation.get("candidate_years"),
+                                    "required_years",
+                                    explanation.get("required_years"),
+                                    "requirements",
+                                    explanation.get("requirements"),
+                                    "unverified_requirements",
+                                    explanation.get("unverified_requirements"),
+                                    "extraction_status",
+                                    explanation.get("extraction_status"),
+                                    "catalog_version",
+                                    explanation.get("catalog_version"),
+                                    "coverage_complete",
+                                    explanation.get("coverage_complete"),
+                                    "score_kind",
+                                    explanation.get("score_kind")
+                                ),
                             "salary_match",
                             salaryMatches.get(uuid(job.get("id")))
                         )
@@ -491,6 +581,12 @@ public class MatchingService {
             );
         }
 
+        if (useEvidence)
+            db.updateEvidenceStatus(
+                runId,
+                ranked.stream()
+                    .anyMatch(job -> "DEFERRED".equals(object(job.get("explanation")).get("verification_status")))
+            );
         db.updateJobMatchingRunsById(runId);
 
         var result = result(runId);
@@ -572,6 +668,8 @@ public class MatchingService {
 
     private static Duration cacheLifetime(
         Map<String, Object> result) {
+        if ("DEFERRED".equals(object(result.get("profile_snapshot")).get("evidence_status")))
+            return Duration.ZERO;
         Instant completed = instant(result.get("completed_at"));
         if (completed == null) {
             return Duration.ZERO;

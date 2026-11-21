@@ -19,6 +19,7 @@ import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiExceptio
 import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiService;
 
 import com.example.intelligent_cv_matching_ai_agent.service.candidate.resume.ResumeService;
+import com.example.intelligent_cv_matching_ai_agent.service.candidate.jobs.RequirementEvidenceService;
 import com.example.intelligent_cv_matching_ai_agent.service.shared.learning.LearningReferenceService;
 import java.time.OffsetDateTime;
 import java.util.*;
@@ -27,6 +28,7 @@ import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 import static com.example.intelligent_cv_matching_ai_agent.util.shared.Values.*;
 
 @Service
@@ -48,6 +50,8 @@ public class LearningService {
 
     private final TransactionTemplate modelCalls;
 
+    private final RequirementEvidenceService evidenceMatching;
+
     public LearningService(
         LearningRepository db,
         CurrentUser user,
@@ -56,6 +60,19 @@ public class LearningService {
         ResumeService resumes,
         LearningReferenceService references,
         PlatformTransactionManager transactionManager) {
+        this(db, user, ai, assessments, resumes, references, transactionManager, null);
+    }
+
+    @Autowired
+    public LearningService(
+        LearningRepository db,
+        CurrentUser user,
+        AiService ai,
+        AssessmentService assessments,
+        ResumeService resumes,
+        LearningReferenceService references,
+        PlatformTransactionManager transactionManager,
+        RequirementEvidenceService evidenceMatching) {
         this.db = db;
         this.user = user;
         this.ai = ai;
@@ -65,6 +82,7 @@ public class LearningService {
         this.transactions = new TransactionTemplate(transactionManager);
         this.modelCalls = new TransactionTemplate(transactionManager);
         this.modelCalls.setPropagationBehavior(TransactionDefinition.PROPAGATION_NOT_SUPPORTED);
+        this.evidenceMatching = evidenceMatching;
     }
 
     public Map<String, Object> assess(
@@ -240,7 +258,17 @@ public class LearningService {
         List<Map<String, Object>> requirements =
             assessedContext != null ? assessedContext.skills() : db.listMarketJobSkillsByMarketJobId(jobId);
         var resumeSkills = resumeId == null ? List.<Map<String, Object>>of() : db.listResumeSkillsByResumeId(resumeId);
-        var analysis = MissingSkillAnalysis.analyze(job, requirements, profileSkills, resumeSkills, assessment);
+        Map<String, Object> evidenceReport = Map.of();
+        if (evidenceMatching != null && evidenceMatching.enabled()) {
+            var matchingJob = new LinkedHashMap<>(job);
+            matchingJob.put("skills", requirements);
+            var matchingCvs = resumeId == null ? List.<Map<String, Object>>of() : List.of(resumes.owned(resumeId));
+            evidenceReport =
+                evidenceMatching.assess(evidenceMatching.candidate(matchingCvs, profile, profileSkills), matchingJob);
+        }
+        var analysis = evidenceReport.isEmpty()
+            ? MissingSkillAnalysis.analyze(job, requirements, profileSkills, resumeSkills, assessment)
+            : MissingSkillAnalysis.fromEvidence(evidenceReport, assessment);
         var missing = analysis.learning();
         var skillCatalog = com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.SkillCatalog.get();
         var catalogLearning = skillCatalog.learningContext(missing);
@@ -251,7 +279,18 @@ public class LearningService {
         var candidateSkillNames = new java.util.HashSet<String>();
         profileSkills.forEach(skill -> candidateSkillNames.add(text(skill.get("name"))));
         resumeSkills.forEach(skill -> candidateSkillNames.add(text(skill.get("name"))));
-        var unresolved = MissingSkillAnalysis.unverifiedRequirements(job, candidateSkillNames);
+        var unresolved =
+            evidenceReport.isEmpty()
+                ? MissingSkillAnalysis.unverifiedRequirements(job, candidateSkillNames)
+                : array(evidenceReport.get("requirements")).stream().map(value -> object(value))
+                    .filter(
+                        row -> "UNVERIFIED".equals(row.get("status"))
+                            || Set.of("UNSPECIFIED", "CONDITIONAL").contains(text(row.get("importance")))
+                            || !"MET".equals(row.get("status")) && ("OR".equals(row.get("relation"))
+                                || array(row.get("skills")).isEmpty()
+                                || com.example.intelligent_cv_matching_ai_agent.util.candidate.jobs.RequirementEvidence
+                                    .durationConstraint(text(row.get("text"))))
+                    ).toList();
         String contextKey = jobId != null ? "job:" + jobId : "paste:" + text(assessmentSnapshot.get("jd_identity"));
         Map<String, Object> sourceSnapshot = fields(
             "job_id",
@@ -291,12 +330,15 @@ public class LearningService {
         sourceSnapshot.put("catalog_version", skillCatalog.version());
         sourceSnapshot.put("catalog_learning_context", catalogLearning);
         sourceSnapshot.put("structured_requirements", requirementSnapshot);
-        sourceSnapshot.put("skill_gap_version", "jd-skills-v3");
+        String gapVersion = evidenceReport.isEmpty() ? "jd-skills-v3" : "requirement-evidence-v1";
+        sourceSnapshot.put("skill_gap_version", gapVersion);
         sourceSnapshot.put("skill_states", analysis.skills());
+        sourceSnapshot.put("evidence_report", evidenceReport);
         var recommendationSnapshot = includeReferences ? missingSkillReferences(missing) : fields();
         recommendationSnapshot.put("catalog_version", skillCatalog.version());
         recommendationSnapshot.put("skill_states", analysis.skills());
-        recommendationSnapshot.put("gap_analysis_version", "jd-skills-v3");
+        recommendationSnapshot.put("evidence_report", evidenceReport);
+        recommendationSnapshot.put("gap_analysis_version", gapVersion);
         recommendationSnapshot.put("unverified_requirements", unresolved);
         recommendationSnapshot.put("catalog_learning_context", catalogLearning);
         recommendationSnapshot.put(
@@ -326,7 +368,7 @@ public class LearningService {
             "profile",
             fields("years_experience", profile.get("years_experience")),
             "prerequisite_numbering",
-            "1-based sequence; prerequisites must precede their node. Resource URLs are attached by the server."
+            ("1-based sequence; prerequisites must precede their node. Resource " + "URLs are attached by the server.")
         );
         input.put("catalog_version", skillCatalog.version());
         input.put("catalog_learning_context", catalogLearning);

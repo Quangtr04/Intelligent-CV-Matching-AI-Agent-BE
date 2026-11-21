@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.List;
 
 /** Durable claims and fenced writes for job embedding work. */
 @Repository
@@ -19,14 +20,75 @@ public class JobEmbeddingRepository {
 
     public Optional<Map<String, Object>> findJobForUpdate(
         UUID id) {
-        return db.optional("SELECT * FROM market_job_posts WHERE id=? FOR UPDATE", id);
+        return db.optional(
+            ("SELECT j.*,COALESCE((SELECT jsonb_agg(jsonb_build_object('name',"
+                + "s.normalized_skill,'required',s.is_required) ORDER BY "
+                + "s.normalized_skill) FROM market_job_skills s WHERE "
+                + "s.market_job_id=j.id),'[]'::jsonb) AS skills FROM market_job_posts j "
+                + "WHERE j.id=? FOR UPDATE OF j"),
+            id
+        );
+    }
+
+    public List<Map<String, Object>> backfillCandidates(
+        String provider,
+        String model,
+        String version,
+        int limit) {
+        return db.list(
+            ("SELECT j.id,j.raw_content_hash FROM market_job_posts j WHERE "
+                + "j.status='ACTIVE' AND (j.valid_through IS NULL OR "
+                + "j.valid_through>now()) AND NOT EXISTS (SELECT 1 FROM "
+                + "market_job_embeddings e WHERE e.market_job_id=j.id AND e.provider=? "
+                + "AND e.model=? AND e.is_current AND e.embedding IS NOT NULL AND "
+                + "e.input_version=? AND e.source_content_hash=j.raw_content_hash) ORDER " + "BY j.id LIMIT ?"),
+            provider,
+            model,
+            version,
+            limit
+        );
+    }
+
+    public Map<String, Object> coverage(
+        String provider,
+        String model) {
+        return db.one(
+            ("SELECT count(*) AS active_jobs,count(*) FILTER(WHERE EXISTS(SELECT 1 "
+                + "FROM market_job_embeddings e WHERE e.market_job_id=j.id AND "
+                + "e.provider=? AND e.model=? AND e.is_current AND e.embedding IS NOT "
+                + "NULL AND COALESCE(e.source_content_hash,"
+                + "e.content_hash)=j.raw_content_hash)) AS compatible_vectors FROM "
+                + "market_job_posts j WHERE j.status='ACTIVE' AND (j.valid_through IS "
+                + "NULL OR j.valid_through>now())"),
+            provider,
+            model
+        );
+    }
+
+    public void refreshProvenance(
+        UUID job,
+        String hash,
+        String rawHash,
+        String provider,
+        String model) {
+        db.update(
+            ("UPDATE market_job_embeddings SET source_content_hash=?,"
+                + "input_version=? WHERE market_job_id=? AND content_hash=? AND "
+                + "provider=? AND model=? AND is_current"),
+            rawHash,
+            com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobEmbeddingSupport.VERSION,
+            job,
+            hash,
+            provider,
+            model
+        );
     }
 
     public boolean isActiveAdministrator(
         UUID actor) {
         return db.optional(
-            "SELECT id FROM users WHERE id=? AND role IN ('ADMIN','MANAGER') AND status='ACTIVE' "
-                + "AND deleted_at IS NULL",
+            ("SELECT id FROM users WHERE id=? AND role IN ('ADMIN','MANAGER') AND "
+                + "status='ACTIVE' AND deleted_at IS NULL"),
             actor
         ).isPresent();
     }
@@ -37,8 +99,8 @@ public class JobEmbeddingRepository {
         String provider,
         String model) {
         return db.optional(
-            ("SELECT id FROM market_job_embeddings WHERE market_job_id=? AND content_hash=? "
-                + "AND provider=? AND model=? AND is_current AND embedding IS NOT NULL"),
+            ("SELECT id FROM market_job_embeddings WHERE market_job_id=? AND "
+                + "content_hash=? AND provider=? AND model=? AND is_current AND " + "embedding IS NOT NULL"),
             job,
             hash,
             provider,
@@ -55,30 +117,33 @@ public class JobEmbeddingRepository {
         String status,
         String error) {
         return (UUID) db.scalar(
-            ("INSERT INTO vector_indexing_jobs(entity_type,entity_id,operation,provider,model,"
-                + "content_hash,requested_by,status,attempt_count,next_attempt_at,error_message,completed_at) "
-                + "VALUES('JOB',?,'INDEX',?,?,?,?,?,0,now(),?,"
-                + "CASE WHEN ? IN ('COMPLETED','CANCELLED') THEN now() ELSE NULL END) "
-                + "ON CONFLICT(entity_type,entity_id,operation,provider,model,content_hash) "
-                + "WHERE entity_type='JOB' AND operation='INDEX' AND content_hash IS NOT NULL DO UPDATE SET "
-                + "status=CASE WHEN vector_indexing_jobs.status IN ('QUEUED','PROCESSING') "
-                + "THEN vector_indexing_jobs.status ELSE EXCLUDED.status END,"
-                + "requested_by=CASE WHEN vector_indexing_jobs.status IN ('QUEUED','PROCESSING') "
-                + "THEN vector_indexing_jobs.requested_by ELSE EXCLUDED.requested_by END,"
-                + "attempt_count=CASE WHEN vector_indexing_jobs.status IN ('QUEUED','PROCESSING') "
-                + "THEN vector_indexing_jobs.attempt_count ELSE 0 END,"
-                + "next_attempt_at=CASE WHEN vector_indexing_jobs.status IN ('QUEUED','PROCESSING') "
-                + "THEN vector_indexing_jobs.next_attempt_at ELSE now() END,"
-                + "lease_token=CASE WHEN vector_indexing_jobs.status IN ('QUEUED','PROCESSING') "
-                + "THEN vector_indexing_jobs.lease_token ELSE NULL END,"
-                + "lease_until=CASE WHEN vector_indexing_jobs.status IN ('QUEUED','PROCESSING') "
-                + "THEN vector_indexing_jobs.lease_until ELSE NULL END,"
-                + "started_at=CASE WHEN vector_indexing_jobs.status IN ('QUEUED','PROCESSING') "
-                + "THEN vector_indexing_jobs.started_at ELSE NULL END,"
-                + "completed_at=CASE WHEN vector_indexing_jobs.status IN ('QUEUED','PROCESSING') "
-                + "THEN vector_indexing_jobs.completed_at ELSE EXCLUDED.completed_at END,"
-                + "error_message=CASE WHEN vector_indexing_jobs.status IN ('QUEUED','PROCESSING') "
-                + "THEN vector_indexing_jobs.error_message ELSE EXCLUDED.error_message END RETURNING id"),
+            ("INSERT INTO vector_indexing_jobs(entity_type,entity_id,operation,"
+                + "provider,model,content_hash,requested_by,status,attempt_count,"
+                + "next_attempt_at,error_message,completed_at) VALUES('JOB',?,'INDEX',?,"
+                + "?,?,?,?,0,now(),?,CASE WHEN ? IN ('COMPLETED','CANCELLED') THEN now() "
+                + "ELSE NULL END) ON CONFLICT(entity_type,entity_id,operation,provider,"
+                + "model,content_hash) WHERE entity_type='JOB' AND operation='INDEX' AND "
+                + "content_hash IS NOT NULL DO UPDATE SET status=CASE WHEN "
+                + "vector_indexing_jobs.status IN ('QUEUED','PROCESSING') THEN "
+                + "vector_indexing_jobs.status ELSE EXCLUDED.status END,"
+                + "requested_by=CASE WHEN vector_indexing_jobs.status IN ('QUEUED',"
+                + "'PROCESSING') THEN vector_indexing_jobs.requested_by ELSE "
+                + "EXCLUDED.requested_by END,attempt_count=CASE WHEN "
+                + "vector_indexing_jobs.status IN ('QUEUED','PROCESSING') THEN "
+                + "vector_indexing_jobs.attempt_count ELSE 0 END,next_attempt_at=CASE "
+                + "WHEN vector_indexing_jobs.status IN ('QUEUED','PROCESSING') THEN "
+                + "vector_indexing_jobs.next_attempt_at ELSE now() END,lease_token=CASE "
+                + "WHEN vector_indexing_jobs.status IN ('QUEUED','PROCESSING') THEN "
+                + "vector_indexing_jobs.lease_token ELSE NULL END,lease_until=CASE WHEN "
+                + "vector_indexing_jobs.status IN ('QUEUED','PROCESSING') THEN "
+                + "vector_indexing_jobs.lease_until ELSE NULL END,started_at=CASE WHEN "
+                + "vector_indexing_jobs.status IN ('QUEUED','PROCESSING') THEN "
+                + "vector_indexing_jobs.started_at ELSE NULL END,completed_at=CASE WHEN "
+                + "vector_indexing_jobs.status IN ('QUEUED','PROCESSING') THEN "
+                + "vector_indexing_jobs.completed_at ELSE EXCLUDED.completed_at END,"
+                + "error_message=CASE WHEN vector_indexing_jobs.status IN ('QUEUED',"
+                + "'PROCESSING') THEN vector_indexing_jobs.error_message ELSE "
+                + "EXCLUDED.error_message END RETURNING id"),
             job,
             provider,
             model,
@@ -114,19 +179,20 @@ public class JobEmbeddingRepository {
         UUID lease,
         int leaseSeconds) {
         String selection = id == null ? "" : " AND id=?";
-        String sql = ("WITH due AS (SELECT id FROM vector_indexing_jobs WHERE entity_type='JOB' "
-            + "AND operation='INDEX' AND provider=? AND model=? " + "AND ((status='QUEUED' AND next_attempt_at<=now()) "
-            + "OR (status='PROCESSING' AND lease_until<=now()))")
+        String sql = ("WITH due AS (SELECT id FROM vector_indexing_jobs WHERE "
+            + "entity_type='JOB' AND operation='INDEX' AND provider=? AND model=? "
+            + "AND ((status='QUEUED' AND next_attempt_at<=now()) OR " + "(status='PROCESSING' AND lease_until<=now()))")
             + selection
-            + (" ORDER BY next_attempt_at,created_at,id FOR UPDATE SKIP LOCKED LIMIT 1) "
-                + "UPDATE vector_indexing_jobs j SET "
-                + "status=CASE WHEN j.attempt_count>=3 THEN 'FAILED' ELSE 'PROCESSING' END,"
-                + "attempt_count=CASE WHEN j.attempt_count>=3 THEN j.attempt_count ELSE j.attempt_count+1 END,"
-                + "started_at=now(),completed_at=CASE WHEN j.attempt_count>=3 THEN now() ELSE NULL END,"
-                + "lease_token=CASE WHEN j.attempt_count>=3 THEN NULL ELSE ? END,"
-                + "lease_until=CASE WHEN j.attempt_count>=3 THEN NULL " + "ELSE now()+make_interval(secs=>?) END,"
-                + "error_message=CASE WHEN j.attempt_count>=3 THEN 'Embedding attempt limit reached' "
-                + "ELSE j.error_message END FROM due WHERE j.id=due.id RETURNING j.*");
+            + (" ORDER BY next_attempt_at,created_at,id FOR UPDATE SKIP LOCKED LIMIT "
+                + "1) UPDATE vector_indexing_jobs j SET status=CASE WHEN "
+                + "j.attempt_count>=3 THEN 'FAILED' ELSE 'PROCESSING' END,"
+                + "attempt_count=CASE WHEN j.attempt_count>=3 THEN j.attempt_count ELSE "
+                + "j.attempt_count+1 END,started_at=now(),completed_at=CASE WHEN "
+                + "j.attempt_count>=3 THEN now() ELSE NULL END,lease_token=CASE WHEN "
+                + "j.attempt_count>=3 THEN NULL ELSE ? END,lease_until=CASE WHEN "
+                + "j.attempt_count>=3 THEN NULL ELSE now()+make_interval(secs=>?) END,"
+                + "error_message=CASE WHEN j.attempt_count>=3 THEN 'Embedding attempt "
+                + "limit reached' ELSE j.error_message END FROM due WHERE j.id=due.id " + "RETURNING j.*");
 
         return id == null
             ? db.optional(sql, provider, model, lease, leaseSeconds)
@@ -137,8 +203,8 @@ public class JobEmbeddingRepository {
         UUID id,
         UUID lease) {
         return db.optional(
-            ("SELECT * FROM vector_indexing_jobs WHERE id=? AND lease_token=? AND status='PROCESSING' "
-                + "AND lease_until>now() FOR UPDATE"),
+            ("SELECT * FROM vector_indexing_jobs WHERE id=? AND lease_token=? AND "
+                + "status='PROCESSING' AND lease_until>now() FOR UPDATE"),
             id,
             lease
         );
@@ -147,8 +213,8 @@ public class JobEmbeddingRepository {
     public Map<String, Object> task(
         UUID id) {
         return db.one(
-            ("SELECT id,entity_id,provider,model,content_hash,status,attempt_count,error_message,"
-                + "next_attempt_at,lease_until FROM vector_indexing_jobs WHERE id=?"),
+            ("SELECT id,entity_id,provider,model,content_hash,status,attempt_count,"
+                + "error_message,next_attempt_at,lease_until FROM vector_indexing_jobs " + "WHERE id=?"),
             id
         );
     }
@@ -157,8 +223,9 @@ public class JobEmbeddingRepository {
         UUID id,
         UUID lease) {
         return db.update(
-            ("UPDATE vector_indexing_jobs SET status='COMPLETED',completed_at=now(),error_message=NULL,"
-                + "lease_token=NULL,lease_until=NULL WHERE id=? AND lease_token=? AND status='PROCESSING'"),
+            ("UPDATE vector_indexing_jobs SET status='COMPLETED',completed_at=now(),"
+                + "error_message=NULL,lease_token=NULL,lease_until=NULL WHERE id=? AND "
+                + "lease_token=? AND status='PROCESSING'"),
             id,
             lease
         );
@@ -169,8 +236,9 @@ public class JobEmbeddingRepository {
         UUID lease,
         String reason) {
         return db.update(
-            ("UPDATE vector_indexing_jobs SET status='CANCELLED',completed_at=now(),error_message=?,"
-                + "lease_token=NULL,lease_until=NULL WHERE id=? AND lease_token=? AND status='PROCESSING'"),
+            ("UPDATE vector_indexing_jobs SET status='CANCELLED',completed_at=now(),"
+                + "error_message=?,lease_token=NULL,lease_until=NULL WHERE id=? AND "
+                + "lease_token=? AND status='PROCESSING'"),
             reason,
             id,
             lease
@@ -183,10 +251,11 @@ public class JobEmbeddingRepository {
         String error,
         int delaySeconds) {
         return db.update(
-            ("UPDATE vector_indexing_jobs SET status=CASE WHEN attempt_count>=3 THEN 'FAILED' ELSE 'QUEUED' END,"
-                + "completed_at=CASE WHEN attempt_count>=3 THEN now() ELSE NULL END,error_message=?,"
-                + "next_attempt_at=now()+make_interval(secs=>?),lease_token=NULL,lease_until=NULL "
-                + "WHERE id=? AND lease_token=? AND status='PROCESSING'"),
+            ("UPDATE vector_indexing_jobs SET status=CASE WHEN attempt_count>=3 "
+                + "THEN 'FAILED' ELSE 'QUEUED' END,completed_at=CASE WHEN "
+                + "attempt_count>=3 THEN now() ELSE NULL END,error_message=?,"
+                + "next_attempt_at=now()+make_interval(secs=>?),lease_token=NULL,"
+                + "lease_until=NULL WHERE id=? AND lease_token=? AND status='PROCESSING'"),
             error,
             delaySeconds,
             id,
@@ -200,16 +269,32 @@ public class JobEmbeddingRepository {
         String model,
         String hash,
         String vector) {
+        replaceCurrentEmbedding(job, provider, model, hash, vector, hash, "legacy-full-v1");
+    }
+
+    public void replaceCurrentEmbedding(
+        UUID job,
+        String provider,
+        String model,
+        String hash,
+        String vector,
+        String sourceHash,
+        String inputVersion) {
         db.update("UPDATE market_job_embeddings SET is_current=false WHERE market_job_id=?", job);
         db.update(
-            ("INSERT INTO market_job_embeddings(market_job_id,provider,model,embedding,content_hash,is_current) "
-                + "VALUES(?,?,?,CAST(? AS vector),?,true) " + "ON CONFLICT(market_job_id,provider,model,content_hash) "
-                + "DO UPDATE SET embedding=EXCLUDED.embedding,is_current=true,created_at=now()"),
+            ("INSERT INTO market_job_embeddings(market_job_id,provider,model,"
+                + "embedding,content_hash,is_current,source_content_hash,input_version) "
+                + "VALUES(?,?,?,CAST(? AS vector),?,true,?,?) ON CONFLICT(market_job_id,"
+                + "provider,model,content_hash) DO UPDATE SET "
+                + "embedding=EXCLUDED.embedding,is_current=true,created_at=now(),"
+                + "source_content_hash=EXCLUDED.source_content_hash," + "input_version=EXCLUDED.input_version"),
             job,
             provider,
             model,
             vector,
-            hash
+            hash,
+            sourceHash,
+            inputVersion
         );
     }
 }

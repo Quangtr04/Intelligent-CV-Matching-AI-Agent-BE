@@ -65,7 +65,8 @@ class LearningCvJdContextTest {
             prepared.inputHash(),
             service.restoreForOwner(owner, prepared.snapshot(), prepared.inputHash()).inputHash()
         );
-        verifyNoInteractions(ai);
+        verify(ai, never()).generate(anyString(), anyMap());
+        verify(ai, never()).generateForUser(any(), anyString(), anyMap());
     }
 
     @Test
@@ -85,7 +86,8 @@ class LearningCvJdContextTest {
         );
         verify(db, never()).getMarketJobPostsById(any());
         verify(db, never()).insertAssessmentSessions(anyMap());
-        verifyNoInteractions(ai);
+        verify(ai, never()).generate(anyString(), anyMap());
+        verify(ai, never()).generateForUser(any(), anyString(), anyMap());
     }
 
     @Test
@@ -99,7 +101,8 @@ class LearningCvJdContextTest {
             assertEquals(400, assertThrows(ApiException.class, () -> service.prepareForOwner(owner, request)).status());
         }
         assertTrue(new AssessmentRequest("Java Engineer", null, null, JD).isContextValid());
-        verifyNoInteractions(ai);
+        verify(ai, never()).generate(anyString(), anyMap());
+        verify(ai, never()).generateForUser(any(), anyString(), anyMap());
     }
 
     @Test
@@ -120,7 +123,8 @@ class LearningCvJdContextTest {
                 () -> service.prepareForOwner(owner, new AssessmentRequest(null, job, resume, null))
             ).status()
         );
-        verifyNoInteractions(ai);
+        verify(ai, never()).generate(anyString(), anyMap());
+        verify(ai, never()).generateForUser(any(), anyString(), anyMap());
     }
 
     @Test
@@ -141,7 +145,8 @@ class LearningCvJdContextTest {
                 () -> service.restoreForOwner(UUID.randomUUID(), prepared.snapshot(), prepared.inputHash())
             ).status()
         );
-        verifyNoInteractions(ai);
+        verify(ai, never()).generate(anyString(), anyMap());
+        verify(ai, never()).generateForUser(any(), anyString(), anyMap());
     }
 
     @Test

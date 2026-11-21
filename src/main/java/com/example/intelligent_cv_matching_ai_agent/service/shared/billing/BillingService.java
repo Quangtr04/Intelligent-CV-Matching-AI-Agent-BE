@@ -30,7 +30,7 @@ public class BillingService {
     public Map<String, Object> order(
         UUID user,
         UUID tierId,
-        int months) {
+        Integer months) {
         return createOrder(user, tierId, months, provider);
     }
 
@@ -38,7 +38,7 @@ public class BillingService {
     public Map<String, Object> sepayOrder(
         UUID user,
         UUID tierId,
-        int months,
+        Integer months,
         String sepayProvider) {
         requireSePayProvider(sepayProvider);
         return createOrder(user, tierId, months, sepayProvider);
@@ -47,17 +47,20 @@ public class BillingService {
     private Map<String, Object> createOrder(
         UUID user,
         UUID tierId,
-        int months,
+        Integer months,
         String orderProvider) {
-        if (months < 1 || months > 12)
-            throw ApiException.badRequest("Duration must be between 1 and 12 months");
-
         Map<String, Object> tier = db.getSubscriptionTiersById(tierId);
+        String tierType = java.util.Objects.toString(tier.get("tier_type"), "SUBSCRIPTION");
+        boolean topup = "TOKEN_TOPUP".equals(tierType);
+        if (!topup && (months == null || months < 1 || months > 12))
+            throw ApiException.badRequest("Subscription duration must be between 1 and 12 months");
+        if (topup && months != null)
+            throw ApiException.badRequest("Token top-up orders do not have a subscription duration");
         BigDecimal price = new BigDecimal(tier.get("price_monthly").toString());
         if (price.signum() <= 0)
             throw ApiException.badRequest("The free tier does not require payment");
 
-        BigDecimal amount = price.multiply(BigDecimal.valueOf(months));
+        BigDecimal amount = topup ? price : price.multiply(BigDecimal.valueOf(months));
         if (amount.compareTo(new BigDecimal("99999999.99")) > 0)
             throw ApiException.badRequest("Payment total exceeds the supported amount; select a shorter duration");
         if (isSePayProvider(orderProvider)
@@ -67,7 +70,7 @@ public class BillingService {
         UUID id = UUID.randomUUID();
 
         db.insertPaymentOrders(
-            Map.of(
+            com.example.intelligent_cv_matching_ai_agent.util.shared.Values.fields(
                 "id",
                 id,
                 "user_id",
@@ -76,6 +79,8 @@ public class BillingService {
                 tierId,
                 "duration_months",
                 months,
+                "order_type",
+                topup ? "TOKEN_TOPUP" : "SUBSCRIPTION",
                 "amount",
                 amount,
                 "currency",
@@ -195,6 +200,32 @@ public class BillingService {
         if ("CONSULTATION".equals(order.get("order_type"))) {
             db.activateConsultation(order);
             invoice(order, OffsetDateTime.now());
+            return;
+        }
+        if ("TOKEN_TOPUP".equals(order.get("order_type"))) {
+            db.getUsersByIdForUpdate(order.get("user_id"));
+            db.creditTokenWallet(order);
+            db.updatePaymentOrdersById3(order.get("id"));
+            OffsetDateTime now = OffsetDateTime.now();
+            invoice(order, now);
+            db.insertNotifications(
+                Map.of(
+                    "user_id",
+                    order.get("user_id"),
+                    "type",
+                    "TOKEN_TOPUP_SUCCESS",
+                    "title",
+                    "Token top-up complete",
+                    "content",
+                    "Purchased AI tokens have been added to your wallet.",
+                    "reference_type",
+                    "PAYMENT_ORDER",
+                    "reference_id",
+                    order.get("id"),
+                    "created_at",
+                    now
+                )
+            );
             return;
         }
         UUID user = (UUID) order.get("user_id");

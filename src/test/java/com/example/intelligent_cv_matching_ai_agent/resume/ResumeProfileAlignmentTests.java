@@ -1,5 +1,6 @@
 package com.example.intelligent_cv_matching_ai_agent.resume;
 
+import com.example.intelligent_cv_matching_ai_agent.util.shared.ai.AiFeatureCatalog;
 import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException;
 import com.example.intelligent_cv_matching_ai_agent.util.candidate.resume.ResumeProfileAlignment;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.ai.AiResponseData;
@@ -185,7 +186,10 @@ class ResumeProfileAlignmentTests {
         assertEquals(7, criteria.get("minItems"));
         assertEquals(7, criteria.get("maxItems"));
         AiResponseData.validate("CV_PROFILE_ALIGNMENT", generated());
-        assertTrue(AiResponseData.taskInstructions("CV_PROFILE_ALIGNMENT").contains("do not estimate salary fit"));
+        assertTrue(
+            AiFeatureCatalog.defaultPrompt("CV_PROFILE_ALIGNMENT").get("user_prompt_template").toString()
+                .contains("do not estimate salary fit")
+        );
     }
 
     @Test

@@ -58,8 +58,8 @@ public final class MissingSkillAnalysis {
                         "reasoning",
                         weak
                             ? "The completed assessment for this JD scored below 70; practice this required skill."
-                            : "This JD requires the skill, but the selected profile/CV has no declared evidence; "
-                                + "this does not establish that the candidate lacks the skill."
+                            : ("This JD requires the skill, but the selected profile/CV has no "
+                                + "declared evidence; this does not establish that the candidate lacks " + "the skill.")
                     );
                     if (score != null) {
                         gap.put("assessment_score", score);
@@ -76,6 +76,120 @@ public final class MissingSkillAnalysis {
         List<Map<String, Object>> learning,
         List<Map<String, Object>> skills
     ) {
+    }
+
+    /** Reuses the matching ledger; same-context assessment remains authoritative for practice needs. */
+    public static Analysis fromEvidence(
+        Map<String, Object> report,
+        Map<String, Object> assessment) {
+        Map<String, Map<String, Object>> states = new LinkedHashMap<>();
+        for (Object raw : array(report.get("requirements"))) {
+            var row = object(raw);
+            if (!Set.of("MANDATORY", "PREFERRED").contains(text(row.get("importance"))))
+                continue;
+            boolean alternative = "OR".equals(row.get("relation")) && array(row.get("skills")).size() > 1;
+            if (alternative && !"MET".equals(row.get("status")))
+                continue;
+            Set<String> citedSkills = new HashSet<>();
+            for (Object citation : array(row.get("evidence")))
+                com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobRequirementExtractor
+                    .recognize(text(object(citation).get("quote")))
+                    .forEach(skill -> citedSkills.add(SkillNames.normalize(skill.name())));
+            for (Object skill : array(row.get("skills"))) {
+                String name = text(skill);
+                String key = SkillNames.normalize(name);
+                if (alternative && !citedSkills.contains(key))
+                    continue;
+                var state = states.computeIfAbsent(
+                    key,
+                    ignored -> fields(
+                        "skill_name",
+                        name,
+                        "is_required",
+                        false,
+                        "required_documented",
+                        true,
+                        "preferred_documented",
+                        true,
+                        "learnable_gap",
+                        false,
+                        "requirements",
+                        new ArrayList<>(),
+                        "evidence",
+                        new ArrayList<>()
+                    )
+                );
+                boolean required = "MANDATORY".equals(row.get("importance"));
+                state.put("is_required", required || Boolean.TRUE.equals(state.get("is_required")));
+                if (!"MET".equals(row.get("status")))
+                    state.put(required ? "required_documented" : "preferred_documented", false);
+                if (!"MET".equals(row.get("status")) && !"UNVERIFIED".equals(row.get("status"))
+                    && !com.example.intelligent_cv_matching_ai_agent.util.candidate.jobs.RequirementEvidence
+                        .durationConstraint(text(row.get("text"))))
+                    state.put("learnable_gap", true);
+                @SuppressWarnings("unchecked")
+                var clauses = (List<Object>) state.get("requirements");
+                clauses.add(row);
+                @SuppressWarnings("unchecked")
+                var citations = (List<Object>) state.get("evidence");
+                citations.addAll(array(row.get("evidence")));
+            }
+        }
+        Map<String, Double> scores = new HashMap<>();
+        for (Object raw : array(assessment.get("skill_scores"))) {
+            var row = object(raw);
+            double score = number(row.get("score"), -1);
+            if (row.get("score") instanceof Number && Double.isFinite(score) && score >= 0 && score <= 100)
+                scores.merge(SkillNames.normalize(text(row.get("skill"))), score, Math::min);
+        }
+        List<Map<String, Object>> learning = new ArrayList<>();
+        List<Map<String, Object>> ledger = new ArrayList<>();
+        for (var entry : states.entrySet()) {
+            var state = entry.getValue();
+            boolean required = Boolean.TRUE.equals(state.get("is_required"));
+            boolean documented =
+                Boolean.TRUE.equals(state.get(required ? "required_documented" : "preferred_documented"));
+            state.remove("required_documented");
+            state.remove("preferred_documented");
+            Double score = scores.get(entry.getKey());
+            boolean learnable = Boolean.TRUE.equals(state.remove("learnable_gap"));
+            String status = score != null
+                ? score >= 70 ? "SATISFIED" : "NEEDS_IMPROVEMENT"
+                : documented ? "DECLARED" : learnable ? "MISSING" : "UNVERIFIED";
+            state.putAll(
+                fields(
+                    "status",
+                    status,
+                    "assessment_score",
+                    score,
+                    "declared_evidence",
+                    documented,
+                    "importance",
+                    required ? "MANDATORY" : "PREFERRED",
+                    "priority",
+                    required ? "REQUIRED" : "OPTIONAL",
+                    "action",
+                    Set.of("SATISFIED", "DECLARED").contains(status)
+                        ? "NONE"
+                        : score != null || learnable ? "LEARN_OR_PRACTICE" : "REVIEW_REQUIREMENT",
+                    "reasoning",
+                    score != null
+                        ? "Same-context assessment: " + score
+                        : documented
+                            ? "CV/profile documents the corresponding JD requirement; proficiency is not verified."
+                            : ("The shared CV/JD matching report lacks full evidence; this does not "
+                                + "prove lack of ability.")
+                )
+            );
+            ledger.add(state);
+            if (status.equals("NEEDS_IMPROVEMENT") || status.equals("MISSING") && learnable) {
+                var gap = new LinkedHashMap<>(state);
+                gap.put("gap_status", status.equals("NEEDS_IMPROVEMENT") ? "NEEDS_PRACTICE" : "MISSING_EVIDENCE");
+                gap.put("evidence_status", status);
+                learning.add(gap);
+            }
+        }
+        return new Analysis(learning, ledger);
     }
 
     public static Analysis analyze(

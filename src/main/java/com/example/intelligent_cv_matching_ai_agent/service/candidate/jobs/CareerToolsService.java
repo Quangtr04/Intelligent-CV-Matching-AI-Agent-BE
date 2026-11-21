@@ -47,6 +47,14 @@ public class CareerToolsService {
 
     private final AiResponseCache responseCache;
 
+    private RecommendationService recommendations;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public void configureRecommendations(
+        RecommendationService recommendations) {
+        this.recommendations = recommendations;
+    }
+
     public CareerToolsService(
         CareerToolsRepository db,
         CurrentUser user,
@@ -64,7 +72,13 @@ public class CareerToolsService {
 
     public Map<String, Object> match(
         MatchRequest request) {
-        return matching.match(request.basis(), request.resumeIds(), request.limit(), request.mode());
+        if ("RECOMMENDATION".equals(request.mode())) {
+            if (request.jobId() != null)
+                throw ApiException
+                    .badRequest(("RECOMMENDATION searches the catalog; use DETAILED for one CV-JD " + "assessment"));
+            return recommendations.recommend(request.basis(), request.resumeIds(), request.limit());
+        }
+        return matching.match(request.basis(), request.resumeIds(), request.limit(), request.mode(), request.jobId());
     }
 
     public Map<String, Object> run(
@@ -104,6 +118,8 @@ public class CareerToolsService {
 
         var cv = confirmed(request.resumeId());
         var job = activeJob(jobId);
+        job = new LinkedHashMap<>(job);
+        job.put("skills", db.listMarketJobSkillsByMarketJobId(jobId));
         Map<String, Object> input = fields(
             "resume",
             cv.get("structured_data"),

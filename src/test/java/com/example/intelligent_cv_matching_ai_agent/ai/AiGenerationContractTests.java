@@ -1,5 +1,6 @@
 package com.example.intelligent_cv_matching_ai_agent.ai;
 
+import com.example.intelligent_cv_matching_ai_agent.util.shared.ai.AiFeatureCatalog;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.ai.AiResponseData;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +37,10 @@ class AiGenerationContractTests {
             () -> AiResponseData
                 .validate("ROADMAP_GENERATE", Map.of("title", "Practice missing skills", "nodes", List.of()))
         );
-        assertTrue(AiResponseData.taskInstructions("ROADMAP_GENERATE").contains("do not return skill_gaps"));
+        assertTrue(
+            AiFeatureCatalog.defaultPrompt("ROADMAP_GENERATE").get("user_prompt_template").toString()
+                .contains("do not return skill_gaps")
+        );
     }
 
     @Test
@@ -45,7 +49,10 @@ class AiGenerationContractTests {
         assertEquals(List.of("answer"), schema.get("required"));
         assertEquals(false, schema.get("additionalProperties"));
         assertEquals(List.of("answer"), ((Map<?, ?>) schema.get("properties")).keySet().stream().toList());
-        assertTrue(AiResponseData.taskInstructions("CAREER_CHAT").contains("finished requested document"));
+        assertTrue(
+            AiFeatureCatalog.defaultPrompt("CAREER_CHAT").get("user_prompt_template").toString()
+                .contains("finished requested document")
+        );
         assertDoesNotThrow(() -> AiResponseData.validate("CAREER_CHAT", Map.of("answer", "Dear hiring team")));
         assertThrows(
             IllegalArgumentException.class,

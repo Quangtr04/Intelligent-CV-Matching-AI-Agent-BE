@@ -49,7 +49,12 @@ class JobSearchRepositoryIntegrationTest {
                 id uuid PRIMARY KEY, job_title text, company_name text, location text,
                 salary_text text, role_category text, posted_at timestamptz, valid_through timestamptz,
                 employment_type text, source_url text, source_site text, status text,
-                collected_at timestamptz DEFAULT now()
+                collected_at timestamptz DEFAULT now(), parsed_seniority text, parsed_description text
+            )
+            """);
+        jdbc.execute("""
+            CREATE TABLE market_job_skills (
+                market_job_id uuid, normalized_skill text
             )
             """);
         jdbc.execute("""

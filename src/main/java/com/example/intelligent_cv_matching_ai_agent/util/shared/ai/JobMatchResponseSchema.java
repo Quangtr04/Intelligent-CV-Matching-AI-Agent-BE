@@ -31,6 +31,25 @@ final class JobMatchResponseSchema {
         fields.put("reason", textSchema(240));
         fields.put("strengths", stringList());
         fields.put("skill_gaps", stringList());
+        if (Boolean.TRUE.equals(input.get("recommendation_mode"))) {
+            fields.put(
+                "assessment_status",
+                Map.of("type", "string", "enum", List.of("SUFFICIENT_EVIDENCE", "INSUFFICIENT_EVIDENCE"))
+            );
+            fields.put("experience_gaps", stringList());
+            fields.put("improvement_suggestions", stringList());
+            fields.put(
+                "evidence",
+                Map.of(
+                    "type",
+                    "array",
+                    "maxItems",
+                    3,
+                    "items",
+                    objectSchema(Map.of("cv_quote", textSchema(400), "jd_quote", textSchema(400)))
+                )
+            );
+        }
         return objectSchema(
             Map.of(
                 "results",
