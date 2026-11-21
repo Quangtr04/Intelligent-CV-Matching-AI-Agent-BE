@@ -45,8 +45,10 @@ class ManagerStateScenarioTests {
     void paidPlanActivationChangesOnlyCatalogMetadataAndRecordsBeforeAndAfter(
         boolean active) {
         login(manager, "MANAGER");
-        Map<String, Object> before = Map.of("id", id, "tier_code", "PRO", "tier_type", "SUBSCRIPTION", "is_active", !active);
-        Map<String, Object> after = Map.of("id", id, "tier_code", "PRO", "tier_type", "SUBSCRIPTION", "is_active", active);
+        Map<String, Object> before =
+            Map.of("id", id, "tier_code", "PRO", "tier_type", "SUBSCRIPTION", "is_active", !active);
+        Map<String, Object> after =
+            Map.of("id", id, "tier_code", "PRO", "tier_type", "SUBSCRIPTION", "is_active", active);
         when(plans.getSubscriptionTiersById(id)).thenReturn(before, after);
         var request = new SubscriptionTierRequest("PRO", "Professional", new BigDecimal("199000"), "VND", active);
 

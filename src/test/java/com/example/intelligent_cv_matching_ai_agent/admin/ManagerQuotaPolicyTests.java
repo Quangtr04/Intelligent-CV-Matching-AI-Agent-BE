@@ -94,10 +94,7 @@ class ManagerQuotaPolicyTests {
             AdminRepository subscriptions = mock(AdminRepository.class);
             AdminService service = new AdminService(subscriptions, current, audit, null, null, null, policy);
             UUID tier = UUID.randomUUID();
-            assertEquals(
-                403,
-                assertThrows(ApiException.class, () -> service.quotas(tier, List.of(invalid))).status()
-            );
+            assertEquals(403, assertThrows(ApiException.class, () -> service.quotas(tier, List.of(invalid))).status());
             verify(subscriptions).getSubscriptionTiersById(tier);
             verifyNoMoreInteractions(subscriptions);
         }
@@ -136,10 +133,7 @@ class ManagerQuotaPolicyTests {
         AdminRepository subscriptions = mock(AdminRepository.class);
         AdminService service = new AdminService(subscriptions, current, audit, null, null);
         UUID tier = UUID.randomUUID();
-        assertEquals(
-            503,
-            assertThrows(ApiException.class, () -> service.quotas(tier, List.of())).status()
-        );
+        assertEquals(503, assertThrows(ApiException.class, () -> service.quotas(tier, List.of())).status());
         verify(subscriptions).getSubscriptionTiersById(tier);
         verifyNoMoreInteractions(subscriptions);
     }
