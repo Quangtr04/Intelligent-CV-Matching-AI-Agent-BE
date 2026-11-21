@@ -57,6 +57,7 @@ class EntitlementServiceTest {
             .thenReturn(Optional.of(Map.of("quota_value", 10000L, "quota_period", "MONTHLY")));
         when(db.optional(contains("feature_code=?"), eq(tier), eq("RESUME_BUILDER"))).thenReturn(Optional.empty());
         when(db.scalar(contains("status IN ('RESERVED','COMPLETED')"), eq(user))).thenReturn(9500L);
+        when(db.scalar(contains("FROM user_token_wallets"), eq(user))).thenReturn(0L);
         assertEquals(
             429,
             assertThrows(

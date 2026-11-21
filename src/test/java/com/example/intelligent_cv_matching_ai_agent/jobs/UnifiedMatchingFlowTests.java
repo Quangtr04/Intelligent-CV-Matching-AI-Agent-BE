@@ -186,7 +186,7 @@ class UnifiedMatchingFlowTests {
     }
 
     @Test
-    void selectedPairAnalysisUsesTheSameScoreAndEvidenceWithoutCallingJobAtsAgain() {
+    void selectedPairAnalysisPersistsTheJobAtsScoreAndSuggestions() {
         var careerDb = mock(CareerToolsRepository.class);
         when(careerDb.getMarketJobPostsById(jobId)).thenReturn(job);
         when(careerDb.json(any())).thenAnswer(call -> call.getArgument(0));
@@ -198,10 +198,15 @@ class UnifiedMatchingFlowTests {
             return id;
         });
         when(careerDb.getJobResumeAnalysesById(id)).thenAnswer(call -> new LinkedHashMap<>(saved));
+        var suggestions = List.of("Add a concrete Java project example.");
+        when(ai.generate(eq("JOB_ATS"), anyMap()))
+            .thenReturn(fields("ats_score", 72.0, "improvement_suggestions", suggestions));
         var tools = new CareerToolsService(careerDb, user, service, resumes, ai, redis);
         var response = tools.ats(jobId, new CvRequest(cvId));
-        assertEquals(50.0, response.get("ats_score"));
-        assertEquals(report, response.get("evidence_report"));
-        verify(ai, never()).generate(eq("JOB_ATS"), anyMap());
+        assertEquals(72.0, saved.get("ats_score"));
+        assertEquals(72.0, response.get("ats_score"));
+        assertEquals(suggestions, response.get("improvement_suggestions_json"));
+        assertEquals(false, response.get("cached"));
+        verify(ai).generate(eq("JOB_ATS"), anyMap());
     }
 }
