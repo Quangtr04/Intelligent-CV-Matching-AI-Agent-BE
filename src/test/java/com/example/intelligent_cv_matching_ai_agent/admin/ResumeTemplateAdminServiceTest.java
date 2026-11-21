@@ -35,7 +35,7 @@ class ResumeTemplateAdminServiceTest {
 
     @Test
     void administratorIsRequiredForEveryOperationBeforeReadingOrWriting() {
-        doThrow(ApiException.forbidden("Role required: ADMIN")).when(user).requireOperationsRole();
+        doThrow(ApiException.forbidden("Role required: ADMIN")).when(user).requireStaffOrOperationsRole();
         UUID id = UUID.randomUUID();
         List<Executable> calls = List.of(
             () -> service.list(50, 0),
@@ -65,7 +65,25 @@ class ResumeTemplateAdminServiceTest {
         assertEquals("", values.getValue().get("description"));
         assertFalse(values.getValue().containsKey("layout_config"));
         assertTrue(values.getValue().get("html_content").toString().contains("data-cv-field=\"fullName\""));
+        assertEquals(List.of("FREE", "BASIC", "PRO"), values.getValue().get("allowed_tier_codes"));
         verify(audit).record("CREATE_RESUME_TEMPLATE", "RESUME_TEMPLATE", id, null, saved);
+    }
+
+    @Test
+    void packageAvailabilityUpdatesAllowedSubscriptionTiersAndAudits() {
+        UUID id = UUID.randomUUID();
+        Map<String, Object> before = Map.of("id", id, "allowed_tier_codes", List.of("FREE", "BASIC", "PRO"));
+        Map<String, Object> after = Map.of("id", id, "allowed_tier_codes", List.of("BASIC", "PRO"));
+        when(db.subscriptionTierCodes()).thenReturn(List.of("FREE", "BASIC", "PRO"));
+        when(db.lock(id)).thenReturn(before);
+        when(db.get(id)).thenReturn(after);
+        var request =
+            new com.example.intelligent_cv_matching_ai_agent.dto.request.admin.resume.ResumeTemplatePackagesRequest(
+                List.of(" basic ", "PRO", "BASIC")
+            );
+        assertSame(after, service.packages(id, request));
+        verify(db).packages(id, List.of("BASIC", "PRO"));
+        verify(audit).record("UPDATE_RESUME_TEMPLATE_PACKAGES", "RESUME_TEMPLATE", id, before, after);
     }
 
     @Test

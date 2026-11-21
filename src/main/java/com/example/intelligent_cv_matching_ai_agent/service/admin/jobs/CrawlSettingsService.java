@@ -45,7 +45,7 @@ public class CrawlSettingsService {
     }
 
     public CrawlSettingsResponse get() {
-        current.requireOperationsRole();
+        current.requireStaffOrOperationsRole();
         return effective();
     }
 

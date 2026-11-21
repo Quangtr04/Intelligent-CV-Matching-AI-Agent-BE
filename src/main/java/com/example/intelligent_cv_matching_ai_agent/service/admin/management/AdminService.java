@@ -578,8 +578,13 @@ public class AdminService {
 
     public List<Map<String, Object>> monitor(
         String category) {
-        user.requireOperationsRole();
-        if (user.hasRole("MANAGER") && java.util.Set.of("logs", "audit").contains(category)) {
+        if (java.util.Set.of("crawl-runs", "feedback").contains(category)) {
+            user.requireStaffOrOperationsRole();
+        } else {
+            user.requireOperationsRole();
+        }
+        if ((user.hasRole("MANAGER") || user.hasRole("STAFF"))
+            && java.util.Set.of("logs", "audit").contains(category)) {
             throw ApiException.forbidden("System logs require an administrator");
         }
 

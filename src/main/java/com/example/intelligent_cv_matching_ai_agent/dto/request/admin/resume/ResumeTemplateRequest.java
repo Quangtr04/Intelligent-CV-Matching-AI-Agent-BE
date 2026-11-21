@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import tools.jackson.databind.annotation.JsonDeserialize;
+import java.util.List;
 
 public record ResumeTemplateRequest(
     @NotBlank
@@ -26,6 +27,19 @@ public record ResumeTemplateRequest(
     Boolean trialEnabled,
     @NotBlank
     @Size(max = 200000)
-    String htmlContent
+    String htmlContent,
+    @Size(max = 50)
+    List<String> allowedTierCodes
 ) {
+
+    public ResumeTemplateRequest(
+        String name,
+        String careerPath,
+        String language,
+        String description,
+        Boolean active,
+        Boolean trialEnabled,
+        String htmlContent) {
+        this(name, careerPath, language, description, active, trialEnabled, htmlContent, null);
+    }
 }

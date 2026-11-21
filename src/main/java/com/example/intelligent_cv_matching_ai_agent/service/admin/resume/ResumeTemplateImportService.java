@@ -29,7 +29,7 @@ public class ResumeTemplateImportService {
         MultipartFile file,
         String language) {
         // Authorize before reading or parsing any uploaded bytes.
-        user.requireOperationsRole();
+        user.requireStaffOrOperationsRole();
         if (!Set.of("vi", "en").contains(language == null ? "" : language)) {
             throw ApiException.badRequest("language must be vi or en");
         }

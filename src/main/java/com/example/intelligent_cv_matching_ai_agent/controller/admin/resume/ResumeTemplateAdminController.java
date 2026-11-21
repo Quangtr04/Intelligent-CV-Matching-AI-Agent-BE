@@ -1,5 +1,6 @@
 package com.example.intelligent_cv_matching_ai_agent.controller.admin.resume;
 
+import com.example.intelligent_cv_matching_ai_agent.dto.request.admin.resume.ResumeTemplatePackagesRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.admin.resume.ResumeTemplateRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.admin.resume.ResumeTemplateStatusRequest;
 import com.example.intelligent_cv_matching_ai_agent.service.admin.resume.ResumeTemplateAdminService;
@@ -22,7 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.http.MediaType;
 
 @RestController
-@RequestMapping("/api/v1/admin/resume-templates")
+@RequestMapping({"/api/v1/admin/resume-templates", "/api/v1/staff/resume-templates"})
 public class ResumeTemplateAdminController {
 
     private final ResumeTemplateAdminService service;
@@ -87,5 +88,15 @@ public class ResumeTemplateAdminController {
         @RequestBody
         ResumeTemplateStatusRequest request) {
         return service.status(id, request);
+    }
+
+    @PutMapping("/{id}/packages")
+    public Map<String, Object> packages(
+        @PathVariable
+        UUID id,
+        @Valid
+        @RequestBody
+        ResumeTemplatePackagesRequest request) {
+        return service.packages(id, request);
     }
 }

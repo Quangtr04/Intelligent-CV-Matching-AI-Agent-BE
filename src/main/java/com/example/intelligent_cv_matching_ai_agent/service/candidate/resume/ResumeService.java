@@ -221,7 +221,7 @@ public class ResumeService {
         UUID template = ResumeInput.optionalUuid(input.get("template_id"));
 
         if (template != null)
-            db.getResumeTemplatesById(template);
+            requireAllowedTemplate(template);
 
         Map<String, Object> structured;
 
@@ -259,7 +259,7 @@ public class ResumeService {
 
         UUID template = templateChanged ? ResumeInput.optionalUuid(input.get("template_id")) : null;
         if (template != null)
-            db.getResumeTemplatesById(template);
+            requireAllowedTemplate(template);
 
         boolean contentProvided = input.containsKey("title") || input.containsKey("language")
             || input.containsKey("raw_content") || input.containsKey("structured_data");
@@ -650,6 +650,26 @@ public class ResumeService {
                     row.get("years_experience"),
                     "REVIEWED"
                 );
+        }
+    }
+
+    private void requireAllowedTemplate(
+        UUID templateId) {
+        Map<String, Object> row = db.getResumeTemplatesById(templateId);
+        if (row == null) {
+            return;
+        }
+        Object allowedRaw = row.get("allowed_tier_codes");
+        if (allowedRaw instanceof Collection<?> allowed && !allowed.isEmpty()) {
+            String tierCode = db.findEffectiveSubscriptionTierCode(current.id())
+                .map(t -> Objects.toString(t.get("tier_code"), "FREE")).orElse("FREE");
+            boolean permitted =
+                allowed.stream().anyMatch(code -> tierCode.equalsIgnoreCase(Objects.toString(code, "").strip()));
+            if (!permitted) {
+                throw ApiException.forbidden(
+                    "This CV template is not available in your current subscription package (" + tierCode + ")"
+                );
+            }
         }
     }
 

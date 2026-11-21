@@ -60,7 +60,8 @@ public class SecurityConfig {
                     ).permitAll().requestMatchers("/api/v1/consultations/*/private-notes").hasRole("CAREER_CONSULTANT")
                     .requestMatchers(HttpMethod.PUT, "/api/v1/consultations/*/advice").hasRole("CAREER_CONSULTANT")
                     .requestMatchers(HttpMethod.GET, "/api/v1/consultations/*/advice")
-                    .hasAnyRole("CANDIDATE", "CAREER_CONSULTANT").requestMatchers("/api/v1/manager/**")
+                    .hasAnyRole("CANDIDATE", "CAREER_CONSULTANT").requestMatchers("/api/v1/staff/**")
+                    .hasAnyRole("ADMIN", "MANAGER", "STAFF").requestMatchers("/api/v1/manager/**")
                     .hasAnyRole("ADMIN", "MANAGER")
                     .requestMatchers("/api/v1/management/**", "/api/v1/admin/management/**").denyAll()
                     .requestMatchers(
@@ -73,25 +74,27 @@ public class SecurityConfig {
                         "/api/v1/resumes/templates"
                     ).permitAll()
                     .requestMatchers(
-                        "/api/v1/admin/dashboard",
-                        "/api/v1/admin/rag/**",
-                        "/api/v1/admin/subscription-tiers/**",
-                        "/api/v1/admin/consultation-services/**",
-                        "/api/v1/admin/payment-reports/**",
                         "/api/v1/admin/resume-templates/**",
                         "/api/v1/admin/jobs/**",
                         "/api/v1/admin/crawl-settings",
                         "/api/v1/admin/crawl-history",
                         "/api/admin/crawl-settings",
                         "/api/admin/crawl-history",
+                        "/api/v1/admin/monitoring/crawl-runs",
+                        "/api/v1/admin/monitoring/feedback"
+                    ).hasAnyRole("ADMIN", "MANAGER", "STAFF")
+                    .requestMatchers(
+                        "/api/v1/admin/dashboard",
+                        "/api/v1/admin/rag/**",
+                        "/api/v1/admin/subscription-tiers/**",
+                        "/api/v1/admin/consultation-services/**",
+                        "/api/v1/admin/payment-reports/**",
                         "/api/v1/admin/matching/salary-policy",
                         "/api/v1/admin/announcements/**",
                         "/api/v1/admin/monitoring/ai-usage",
                         "/api/v1/admin/monitoring/billing",
                         "/api/v1/admin/monitoring/vector-stores",
-                        "/api/v1/admin/monitoring/indexing-jobs",
-                        "/api/v1/admin/monitoring/crawl-runs",
-                        "/api/v1/admin/monitoring/feedback"
+                        "/api/v1/admin/monitoring/indexing-jobs"
                     ).hasAnyRole("ADMIN", "MANAGER").requestMatchers("/api/v1/admin/**", "/api/admin/**")
                     .hasRole("ADMIN").anyRequest().authenticated()
             ).exceptionHandling(

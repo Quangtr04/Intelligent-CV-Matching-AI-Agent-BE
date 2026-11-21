@@ -8,7 +8,7 @@ public record AccountUpdateRequest(
     @Size(max = 255)
     String fullName,
     @NotBlank
-    @Pattern(regexp = "CANDIDATE|CAREER_CONSULTANT|ADMIN|MANAGER")
+    @Pattern(regexp = "CANDIDATE|CAREER_CONSULTANT|STAFF|ADMIN|MANAGER")
     String role,
     @NotBlank
     @Pattern(regexp = "ACTIVE|SUSPENDED")

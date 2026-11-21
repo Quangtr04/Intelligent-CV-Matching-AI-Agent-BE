@@ -161,7 +161,7 @@ public class JobRepository {
     public void requireActiveAdmin(
         UUID actor) {
         if (db.optional(
-            ("SELECT id FROM users WHERE id=? AND role IN ('ADMIN','MANAGER') AND "
+            ("SELECT id FROM users WHERE id=? AND role IN ('ADMIN','MANAGER','STAFF') AND "
                 + "status='ACTIVE' AND deleted_at IS NULL"),
             actor
         ).isEmpty())
@@ -394,6 +394,53 @@ public class JobRepository {
     public Map<String, Object> getMarketJobPostsById3(
         Object... args) {
         return getMarketJobPostsWithCreatorById(args);
+    }
+
+    public int updateMarketJobDetailsById(
+        Object... args) {
+        return db.update(
+            ("UPDATE market_job_posts SET source_site=?,source_url=?,raw_content_hash=?,content_fingerprint=?,"
+                + "job_title=?,company_name=?,location=?,salary_text=?,role_category=?,employment_type=?,"
+                + "valid_through=?,raw_content=?,original_content=?,parsed_description=?,parsed_requirements=?,"
+                + "parsed_responsibilities=?,parsed_benefits=?,posted_at=?,requirement_extraction=?,"
+                + "reviewed_by_user_id=?,reviewed_at=now(),parsed_at=now() WHERE id=?"),
+            args
+        );
+    }
+
+    public int deleteMarketJobSkillsByMarketJobId(
+        UUID id) {
+        return db.update("DELETE FROM market_job_skills WHERE market_job_id=?", id);
+    }
+
+    public List<Map<String, Object>> listDuplicateJobGroups(
+        int limit,
+        int offset) {
+        return db.list(
+            ("SELECT j.content_fingerprint,count(*) AS duplicate_count,"
+                + "jsonb_agg(jsonb_build_object('id',j.id,'job_title',j.job_title,'company_name',j.company_name,"
+                + "'source_site',j.source_site,'source_url',j.source_url,'status',j.status,"
+                + "'collected_at',j.collected_at) ORDER BY j.collected_at DESC,j.id) AS jobs "
+                + "FROM market_job_posts j WHERE j.content_fingerprint IS NOT NULL "
+                + "GROUP BY j.content_fingerprint HAVING count(*)>1 "
+                + "ORDER BY count(*) DESC,max(j.collected_at) DESC LIMIT ? OFFSET ?"),
+            limit,
+            offset
+        );
+    }
+
+    public List<Map<String, Object>> listExpiredOrInvalidJobs(
+        int limit,
+        int offset) {
+        return db.list(
+            "SELECT " + PUBLIC_JOB_SUMMARY_COLUMNS + ",j.status,j.collected_at," + JOB_CREATOR_COLUMNS
+                + " FROM market_job_posts j" + JOB_CREATOR_JOINS
+                + "WHERE j.status IN ('EXPIRED','INVALID','REJECTED','REMOVED') "
+                + "OR (j.valid_through IS NOT NULL AND j.valid_through<=now()) "
+                + "ORDER BY j.collected_at DESC,j.id LIMIT ? OFFSET ?",
+            limit,
+            offset
+        );
     }
 
 }

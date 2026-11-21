@@ -41,8 +41,20 @@ public class CurrentUser {
         return hasRole("ADMIN") || hasRole("MANAGER");
     }
 
+    public boolean hasStaffOrOperationsRole() {
+        return hasOperationsRole() || hasRole("STAFF");
+    }
+
     public void requireOperationsRole() {
         if (hasRole("MANAGER")) {
+            id();
+        } else {
+            requireRole("ADMIN");
+        }
+    }
+
+    public void requireStaffOrOperationsRole() {
+        if (hasRole("MANAGER") || hasRole("STAFF")) {
             id();
         } else {
             requireRole("ADMIN");

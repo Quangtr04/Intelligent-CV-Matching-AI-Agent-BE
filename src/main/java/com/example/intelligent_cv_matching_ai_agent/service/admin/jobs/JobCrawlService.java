@@ -66,7 +66,7 @@ public class JobCrawlService {
 
     public Map<String, Object> crawl(
         CrawlRequest input) {
-        user.requireOperationsRole();
+        user.requireStaffOrOperationsRole();
         return collect(input, user.id(), false);
     }
 
@@ -386,13 +386,13 @@ public class JobCrawlService {
     public List<Map<String, Object>> runs(
         int limit,
         int offset) {
-        user.requireOperationsRole();
+        user.requireStaffOrOperationsRole();
         return db.listMarketCrawlRuns(pageSize(limit), offset(offset));
     }
 
     public Map<String, Object> run(
         UUID id) {
-        user.requireOperationsRole();
+        user.requireStaffOrOperationsRole();
         var result = db.getMarketCrawlRunsById(id);
         result.put("items", db.listMarketCrawlItemsByCrawlRunId(id));
         return result;
