@@ -217,7 +217,9 @@ public class RatingAppealService {
             throw ApiException.badRequest("Invalid appeal decision");
         Map<String, Object> appeal = db.one("SELECT * FROM consultation_rating_appeals WHERE id=? FOR UPDATE", id);
         String currentStatus = String.valueOf(appeal.get("status"));
-        if (!Set.of("PENDING", "STAFF_APPROVED").contains(currentStatus))
+        if ("PENDING".equals(currentStatus))
+            throw ApiException.conflict("Appeal must pass preliminary review before a final decision");
+        if (!"STAFF_APPROVED".equals(currentStatus))
             throw ApiException.conflict("Appeal has already been reviewed");
         if (user.id().equals(appeal.get("consultant_user_id")))
             throw ApiException.forbidden("Cannot review your own appeal");

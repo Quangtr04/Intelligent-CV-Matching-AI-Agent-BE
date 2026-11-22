@@ -87,8 +87,17 @@ class RatingAppealServiceTests {
         UUID id = UUID.randomUUID();
         when(user.id()).thenReturn(UUID.randomUUID());
         when(db.one("SELECT * FROM consultation_rating_appeals WHERE id=? FOR UPDATE", id))
-            .thenReturn(Map.of("status", "PENDING", "consultant_user_id", UUID.randomUUID()));
+            .thenReturn(Map.of("status", "STAFF_APPROVED", "consultant_user_id", UUID.randomUUID()));
         service.decide(id, "REJECTED", "Evidence does not support the appeal");
+        verify(db, never()).update(eq("UPDATE consultation_ratings SET is_removed=true WHERE id=?"), any());
+    }
+
+    @Test
+    void managerCannotDecideBeforeStaffApproval() {
+        UUID id = UUID.randomUUID();
+        when(db.one("SELECT * FROM consultation_rating_appeals WHERE id=? FOR UPDATE", id))
+            .thenReturn(Map.of("status", "PENDING"));
+        assertThrows(ApiException.class, () -> service.decide(id, "ACCEPTED", "Approval before staff review"));
         verify(db, never()).update(eq("UPDATE consultation_ratings SET is_removed=true WHERE id=?"), any());
     }
 
