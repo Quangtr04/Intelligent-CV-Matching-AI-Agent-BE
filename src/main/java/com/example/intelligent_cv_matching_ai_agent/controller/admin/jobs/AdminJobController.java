@@ -9,7 +9,7 @@ import java.util.UUID;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/admin/jobs")
+@RequestMapping({"/api/v1/admin/jobs", "/api/v1/staff/jobs"})
 public class AdminJobController {
 
     private final JobService service;
@@ -49,6 +49,34 @@ public class AdminJobController {
         @RequestBody
         ImportJobRequest input) {
         return service.importJob(input);
+    }
+
+    @PutMapping("/{id}")
+    public Map<String, Object> updateJob(
+        @PathVariable
+        UUID id,
+        @Valid
+        @RequestBody
+        ImportJobRequest input) {
+        return service.updateJob(id, input);
+    }
+
+    @GetMapping("/duplicates")
+    public List<Map<String, Object>> duplicates(
+        @RequestParam(defaultValue = "20")
+        int limit,
+        @RequestParam(defaultValue = "0")
+        int offset) {
+        return service.duplicateJobs(limit, offset);
+    }
+
+    @GetMapping("/expired-or-invalid")
+    public List<Map<String, Object>> expiredOrInvalid(
+        @RequestParam(defaultValue = "20")
+        int limit,
+        @RequestParam(defaultValue = "0")
+        int offset) {
+        return service.expiredOrInvalidJobs(limit, offset);
     }
 
     @PostMapping("/{id}/index")

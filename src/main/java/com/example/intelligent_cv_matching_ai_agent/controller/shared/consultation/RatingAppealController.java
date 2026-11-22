@@ -44,8 +44,24 @@ public class RatingAppealController {
     }
 
     @GetMapping("/manager/rating-appeals")
-    public Object list() {
-        return service.list();
+    public Object list(
+        @RequestParam(required = false)
+        String status) {
+        return service.listForManager(status);
+    }
+
+    @GetMapping("/manager/rating-appeals/{id}")
+    public Object managerDetail(
+        @PathVariable
+        UUID id) {
+        return service.detail(id);
+    }
+
+    @GetMapping("/manager/rating-appeals/{id}/history")
+    public Object managerHistory(
+        @PathVariable
+        UUID id) {
+        return service.history(id);
     }
 
     @PostMapping("/manager/rating-appeals/{id}/decision")
@@ -55,5 +71,35 @@ public class RatingAppealController {
         @RequestBody
         Decision body) {
         return service.decide(id, body.decision(), body.reason());
+    }
+
+    @GetMapping("/staff/rating-appeals")
+    public Object staffList(
+        @RequestParam(required = false)
+        String status) {
+        return service.list(status);
+    }
+
+    @GetMapping("/staff/rating-appeals/{id}")
+    public Object staffDetail(
+        @PathVariable
+        UUID id) {
+        return service.detail(id);
+    }
+
+    @GetMapping("/staff/rating-appeals/{id}/history")
+    public Object staffHistory(
+        @PathVariable
+        UUID id) {
+        return service.history(id);
+    }
+
+    @PostMapping("/staff/rating-appeals/{id}/preliminary-decision")
+    public Object preliminaryDecide(
+        @PathVariable
+        UUID id,
+        @RequestBody
+        Decision body) {
+        return service.preliminaryReview(id, body.decision(), body.reason());
     }
 }

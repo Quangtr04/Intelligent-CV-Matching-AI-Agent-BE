@@ -71,7 +71,7 @@ public class JobService {
         String titlePattern = "%" + query + "%";
         int size = pageSize(limit);
         int start = offset(offset);
-        var rows = user.hasOperationsRole()
+        var rows = user.hasStaffOrOperationsRole()
             ? db.listMarketJobPostsWithCreatorByStatus(titlePattern, locationPattern, size, start)
             : db.listMarketJobPostsByStatus(titlePattern, locationPattern, size, start);
         return rows.stream().map(this::withMonthlySalary).toList();
@@ -106,7 +106,7 @@ public class JobService {
         String ingestionMethod,
         int limit,
         int offset) {
-        user.requireOperationsRole();
+        user.requireStaffOrOperationsRole();
         String query = text(q);
         if (query.length() > 255)
             throw ApiException.badRequest("Search value too long");
@@ -131,7 +131,8 @@ public class JobService {
 
     public Map<String, Object> job(
         UUID id) {
-        var job = user.hasOperationsRole() ? db.getMarketJobPostsWithCreatorById(id) : db.getMarketJobPostsById(id);
+        var job =
+            user.hasStaffOrOperationsRole() ? db.getMarketJobPostsWithCreatorById(id) : db.getMarketJobPostsById(id);
         job.put("skills", db.listMarketJobSkillsByMarketJobId(id));
         job.put("sources", db.sources(id));
         return job;
@@ -148,7 +149,7 @@ public class JobService {
     @Transactional
     public Map<String, Object> importJob(
         ImportJobRequest input) {
-        user.requireOperationsRole();
+        user.requireStaffOrOperationsRole();
         return importPrepared(input, user.id(), "MANUAL");
     }
 
@@ -319,6 +320,109 @@ public class JobService {
         return result;
     }
 
+    @Transactional
+    public Map<String, Object> updateJob(
+        UUID id,
+        ImportJobRequest raw) {
+        user.requireStaffOrOperationsRole();
+        Map<String, Object> existing = db.getMarketJobPostsById3(id);
+        ImportJobRequest input = JobNormalizer.normalize(raw);
+        if (input.validThrough() != null && !input.validThrough().isAfter(OffsetDateTime.now()))
+            throw ApiException.badRequest("Cannot update a job with an expired deadline");
+        String normalized = Jsoup.parse(input.content()).text().strip();
+        if (normalized.length() < 30)
+            throw ApiException.badRequest("Job description must contain at least 30 characters");
+        String hash = JobNormalizer.contentHash(input);
+        String fingerprint = JobNormalizer.fingerprint(input);
+        if (fingerprint != null)
+            db.readDatabaseValue("FINGERPRINT:" + fingerprint);
+        db.readDatabaseValue(input.sourceUrl());
+        Optional<Map<String, Object>> hashCollision = db.findMarketJobPostsByRawContentHash(hash);
+        if (hashCollision.isPresent() && !id.equals(uuid(hashCollision.get().get("id"))))
+            throw ApiException.conflict("Updated job content duplicates another existing job posting");
+        var previousSource = db.source(input.sourceUrl());
+        lockSourceJobs(previousSource, id);
+        Object requirementExtraction = db.json(
+            com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobRequirementExtractor.extract(
+                "",
+                input.requirements(),
+                "<section>" + input.content() + "</section><h2>Responsibilities</h2>"
+                    + (input.responsibilities() == null ? "" : input.responsibilities())
+            )
+        );
+        db.updateMarketJobDetailsById(
+            input.sourceSite(),
+            input.sourceUrl(),
+            hash,
+            fingerprint,
+            input.jobTitle(),
+            input.companyName(),
+            input.location(),
+            input.salaryText(),
+            input.roleCategory(),
+            input.employmentType(),
+            input.validThrough(),
+            normalized,
+            input.content(),
+            JobNormalizer.lines(input.content()),
+            input.requirements(),
+            input.responsibilities(),
+            input.benefits(),
+            input.postedAt(),
+            requirementExtraction,
+            user.id(),
+            id
+        );
+        db.deleteMarketJobSkillsByMarketJobId(id);
+        for (JobSkillRequest skill : input.skills() == null ? List.<JobSkillRequest>of() : input.skills()) {
+            UUID skillId = skill.skillId();
+            if (skillId != null)
+                db.getSkillsById(skillId);
+            else
+                skillId = db.findSkillByName(skill.name()).map(row -> uuid(row.get("id"))).orElse(null);
+            db.updateMarketJobSkills(
+                id,
+                skillId,
+                skill.name(),
+                skill.name().toLowerCase(Locale.ROOT),
+                skill.required()
+            );
+        }
+        db.saveSource(id, input.sourceSite(), input.sourceUrl(), hash, input.validThrough());
+        retirePrevious(previousSource, id);
+        if ("ACTIVE".equals(existing.get("status"))) {
+            db.updateMarketJobEmbeddingsByMarketJobId2(id);
+            enqueue(id, hash, user.id());
+        }
+        db.insertAuditLogs(
+            fields(
+                "actor_user_id",
+                user.id(),
+                "action",
+                "JOB_UPDATE",
+                "entity_type",
+                "market_job_posts",
+                "entity_id",
+                id
+            )
+        );
+        return jobWithCreator(id);
+    }
+
+    public List<Map<String, Object>> duplicateJobs(
+        int limit,
+        int offset) {
+        user.requireStaffOrOperationsRole();
+        return db.listDuplicateJobGroups(pageSize(limit), offset(offset));
+    }
+
+    public List<Map<String, Object>> expiredOrInvalidJobs(
+        int limit,
+        int offset) {
+        user.requireStaffOrOperationsRole();
+        return db.listExpiredOrInvalidJobs(pageSize(limit), offset(offset));
+    }
+
     private void retirePrevious(
         Optional<Map<String, Object>> previous,
         UUID current) {
@@ -347,7 +451,7 @@ public class JobService {
 
     public Map<String, Object> index(
         UUID id) {
-        user.requireOperationsRole();
+        user.requireStaffOrOperationsRole();
         if (embeddings != null)
             return embeddings.indexNow(id, user.id());
         var job = job(id);
@@ -392,21 +496,21 @@ public class JobService {
 
     public Map<String, Object> indexStatus(
         UUID id) {
-        user.requireOperationsRole();
+        user.requireStaffOrOperationsRole();
         db.getMarketJobPostsById2(id);
         return Map.of("job_id", id, "indexing_jobs", db.indexingJobs(id));
     }
 
     public Map<String, Object> backfillEmbeddings(
         int limit) {
-        user.requireOperationsRole();
+        user.requireStaffOrOperationsRole();
         if (embeddings == null)
             throw new ApiException(503, "Job embedding worker is unavailable");
         return embeddings.backfill(user.id(), limit);
     }
 
     public Map<String, Object> embeddingCoverage() {
-        user.requireOperationsRole();
+        user.requireStaffOrOperationsRole();
         if (embeddings == null)
             throw new ApiException(503, "Job embedding worker is unavailable");
         return embeddings.coverage();
@@ -416,7 +520,7 @@ public class JobService {
     public Map<String, Object> status(
         UUID id,
         Map<String, Object> input) {
-        user.requireOperationsRole();
+        user.requireStaffOrOperationsRole();
         String status = required(input, "status", 20);
         if (!Set.of("PENDING", "ACTIVE", "REJECTED", "EXPIRED", "REMOVED", "INVALID").contains(status))
             throw ApiException.badRequest("Invalid job status");

@@ -161,7 +161,7 @@ class SupportedRoleMigrationIntegrationTests {
 
     @Test
     void onlySupportedRolesCanBeStoredAndRetiredAnnouncementsDoNotGainANewAudience() {
-        for (String role : List.of("STAFF", "MANAGEMENT")) {
+        for (String role : List.of("MANAGEMENT", "UNKNOWN")) {
             assertThrows(DataAccessException.class, () -> person(UUID.randomUUID(), role));
             assertThrows(
                 DataAccessException.class,
@@ -184,7 +184,7 @@ class SupportedRoleMigrationIntegrationTests {
                 announcement
             )
         );
-        for (String role : List.of("CANDIDATE", "CAREER_CONSULTANT", "MANAGER", "ADMIN")) {
+        for (String role : List.of("CANDIDATE", "CAREER_CONSULTANT", "STAFF", "MANAGER", "ADMIN")) {
             assertDoesNotThrow(() -> person(UUID.randomUUID(), role));
         }
     }

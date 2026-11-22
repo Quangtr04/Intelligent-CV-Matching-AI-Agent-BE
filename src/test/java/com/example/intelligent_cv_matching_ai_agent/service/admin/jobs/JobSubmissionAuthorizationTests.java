@@ -39,7 +39,7 @@ class JobSubmissionAuthorizationTests {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"ADMIN", "MANAGER"})
+    @ValueSource(strings = {"ADMIN", "MANAGER", "STAFF"})
     void operationsRolesImportActiveJobsWithCreatorAttribution(
         String role) {
         identity(role);

@@ -21,7 +21,8 @@ import java.util.Set;
 @Component
 public class BearerFilter extends OncePerRequestFilter {
 
-    private static final Set<String> SUPPORTED_ROLES = Set.of("CANDIDATE", "CAREER_CONSULTANT", "MANAGER", "ADMIN");
+    private static final Set<String> SUPPORTED_ROLES =
+        Set.of("CANDIDATE", "CAREER_CONSULTANT", "STAFF", "MANAGER", "ADMIN");
 
     private final TokenService tokens;
 

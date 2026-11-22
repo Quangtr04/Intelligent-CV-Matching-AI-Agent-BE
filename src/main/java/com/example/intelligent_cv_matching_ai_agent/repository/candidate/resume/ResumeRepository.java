@@ -89,7 +89,18 @@ public class ResumeRepository {
 
     public Map<String, Object> getResumeTemplatesById(
         Object... args) {
-        return db.one("SELECT id FROM resume_templates WHERE id=? AND is_active=true FOR SHARE", args);
+        return db
+            .one("SELECT id,allowed_tier_codes FROM resume_templates WHERE id=? AND is_active=true FOR SHARE", args);
+    }
+
+    public Optional<Map<String, Object>> findEffectiveSubscriptionTierCode(
+        UUID userId) {
+        return db.optional(
+            "SELECT t.tier_code FROM user_subscriptions s JOIN subscription_tiers t ON t.id=s.tier_id "
+                + "WHERE s.user_id=? AND s.status='ACTIVE' AND (s.expires_at IS NULL OR s.expires_at>now()) "
+                + "ORDER BY t.price_monthly DESC,s.started_at DESC LIMIT 1",
+            userId
+        );
     }
 
     public Optional<Map<String, Object>> findResumeTemplateById(

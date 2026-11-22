@@ -28,7 +28,7 @@ class AdminAccountTest {
     void accountAndAnnouncementRequestsAcceptOnlyTheFourSupportedRoles() {
         try (var factory = Validation.buildDefaultValidatorFactory()) {
             var validator = factory.getValidator();
-            for (String role : java.util.List.of("CANDIDATE", "CAREER_CONSULTANT", "MANAGER", "ADMIN")) {
+            for (String role : java.util.List.of("CANDIDATE", "CAREER_CONSULTANT", "STAFF", "MANAGER", "ADMIN")) {
                 assertTrue(
                     validator
                         .validate(new AccountCreateRequest("person@example.test", "Person", role, "test-password-123"))
@@ -37,7 +37,7 @@ class AdminAccountTest {
                 assertTrue(validator.validate(new AccountUpdateRequest("Person", role, "ACTIVE")).isEmpty());
                 assertTrue(validator.validate(new AnnouncementTargetRequest("ROLE", role, null)).isEmpty());
             }
-            for (String role : java.util.List.of("MANAGEMENT", "STAFF")) {
+            for (String role : java.util.List.of("MANAGEMENT", "UNKNOWN")) {
                 assertFalse(
                     validator
                         .validate(new AccountCreateRequest("person@example.test", "Person", role, "test-password-123"))

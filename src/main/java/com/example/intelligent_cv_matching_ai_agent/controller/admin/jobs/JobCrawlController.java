@@ -10,7 +10,7 @@ import java.util.UUID;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/admin/jobs/crawl")
+@RequestMapping({"/api/v1/admin/jobs/crawl", "/api/v1/staff/jobs/crawl"})
 public class JobCrawlController {
 
     private final JobCrawlService crawler;

@@ -110,6 +110,45 @@ class SecurityHttpIntegrationTests {
     }
 
     @Test
+    void staffCanUseAssignedOperationalScreensWithoutAccessingManagerOrAdminResources() throws Exception {
+        String staff = token("STAFF");
+        for (String path : List.of(
+            "/api/v1/staff/dashboard",
+            "/api/v1/staff/consultants",
+            "/api/v1/staff/consultant-ratings",
+            "/api/v1/staff/rating-appeals",
+            "/api/v1/staff/feedback",
+            "/api/v1/staff/crawl-reports",
+            "/api/v1/staff/jobs",
+            "/api/v1/staff/jobs/duplicates",
+            "/api/v1/staff/jobs/expired-or-invalid",
+            "/api/v1/staff/resume-templates",
+            TEMPLATES,
+            "/api/v1/admin/jobs",
+            "/api/v1/admin/crawl-settings",
+            "/api/v1/admin/monitoring/crawl-runs",
+            "/api/v1/admin/monitoring/feedback"
+        )) {
+            HttpResponse<String> response = send("GET", path, staff);
+            assertEquals(200, response.statusCode(), path + ": " + response.body());
+        }
+        for (String path : List.of(
+            "/api/v1/manager/dashboard",
+            "/api/v1/manager/rating-appeals",
+            "/api/v1/admin/dashboard",
+            "/api/v1/admin/subscription-tiers",
+            "/api/v1/admin/payment-reports",
+            "/api/v1/admin/users",
+            "/api/v1/admin/ai/configurations",
+            "/api/v1/admin/monitoring/billing",
+            "/api/v1/admin/monitoring/logs",
+            "/api/v1/admin/monitoring/audit"
+        )) {
+            assertEquals(403, send("GET", path, staff).statusCode(), path);
+        }
+    }
+
+    @Test
     void managerCanPersistTemplateChangesWithAnAuditTrail() throws Exception {
         String body = """
             {"name":"Manager Template","language":"vi","active":true,"trialEnabled":true,
