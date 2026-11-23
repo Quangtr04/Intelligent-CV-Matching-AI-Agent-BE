@@ -61,17 +61,6 @@ public class StaffOperationsService {
         return db.feedback(normalizedSource, pageSize(limit), offset(offset));
     }
 
-    public List<Map<String, Object>> crawlReports(
-        String source,
-        String status,
-        int limit,
-        int offset) {
-        user.requireStaffOrOperationsRole();
-        String site = state(source, Set.of("ITVIEC", "TOPCV"));
-        String result = state(status, Set.of("RUNNING", "COMPLETED", "PARTIAL", "FAILED", "CANCELLED"));
-        return db.crawlReports(site, result, pageSize(limit), offset(offset));
-    }
-
     private static String search(
         String value) {
         if (value != null && value.length() > 255) {

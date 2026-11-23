@@ -114,7 +114,6 @@ public class ProfileService {
             }
         }
 
-        db.updateCareerProfileEmbeddingsByUserId(owner);
         db.updateRoadmapsByUserId(owner);
         alignmentRefresh.profileUpdated(owner, previousProfile);
 

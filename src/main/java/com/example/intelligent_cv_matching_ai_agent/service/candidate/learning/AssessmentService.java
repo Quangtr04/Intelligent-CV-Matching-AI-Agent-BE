@@ -132,12 +132,17 @@ public class AssessmentService {
         if (!request.isContextValid() || (request.targetJobTitle() != null && request.targetJobTitle().length() > 255)
             || (request.jdText() != null
                 && (request.jdText().strip().length() < 30 || request.jdText().length() > 50000))) {
-            throw ApiException.badRequest("Select one stored JD or paste 30-50000 characters with a target title");
+            throw ApiException.badRequest("Select one stored JD or paste 30-50000 characters");
         }
         UUID jobId = request.jobId();
         String target = request.targetJobTitle();
         Map<String, Object> job = jobId == null
-            ? fields("job_title", target.strip(), "raw_content", request.jdText().strip())
+            ? fields(
+                "job_title",
+                target == null || target.isBlank() ? "Pasted JD" : target.strip(),
+                "raw_content",
+                request.jdText().strip()
+            )
             : db.getMarketJobPostsById(jobId);
         String jobTitle = text(job.get("job_title")).strip();
         if (jobTitle.isBlank())
@@ -169,7 +174,7 @@ public class AssessmentService {
         var extraction = JobRequirementExtractor.forJob(job);
         Set<String> allowedSkills = new HashSet<>();
         jobSkills.forEach(skill -> allowedSkills.add(SkillNames.normalize(text(skill.get("skill_name")))));
-        var bloomRequirements = extraction.requirements().stream().filter(row -> !row.skills().isEmpty())
+        var jdRequirements = extraction.requirements().stream().filter(row -> !row.skills().isEmpty())
             .map(
                 row -> fields(
                     "skills",
@@ -182,19 +187,7 @@ public class AssessmentService {
                     "relation",
                     row.relation(),
                     "status",
-                    row.status(),
-                    "bloom",
-                    row.bloom().stream()
-                        .map(
-                            bloom -> fields(
-                                "level",
-                                bloom.level(),
-                                "evidence",
-                                bloom.evidence(),
-                                "justification",
-                                bloom.justification()
-                            )
-                        ).toList()
+                    row.status()
                 )
             ).filter(row -> !((List<?>) row.get("skills")).isEmpty()).toList();
         Map<String, Object> profile = db.findCandidateProfilesByUserId2(owner).orElse(Map.of());
@@ -224,7 +217,11 @@ public class AssessmentService {
             5
         );
         Map<String, Object> resumeSnapshot = Map.of();
-        input.put("jd_bloom_requirements", bloomRequirements);
+        input.put("jd_requirements", jdRequirements);
+        input.put(
+            "jd_skill_proficiency",
+            com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.SkillRubric.currentAnalysis(job)
+        );
         input.put("requirement_extraction_version", extraction.version());
         input.put("skill_catalog_version", extraction.catalogVersion());
         if (request.resumeId() != null) {
@@ -269,9 +266,9 @@ public class AssessmentService {
         }
         Map<String, Object> snapshot = fields(
             "version",
-            "cv-jd-learning-bloom-v2",
-            "jd_bloom_requirements",
-            bloomRequirements,
+            "cv-jd-learning-proficiency-v3",
+            "jd_requirements",
+            jdRequirements,
             "requirement_extraction_version",
             extraction.version(),
             "skill_catalog_version",

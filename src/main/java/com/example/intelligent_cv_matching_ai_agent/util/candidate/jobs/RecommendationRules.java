@@ -32,7 +32,7 @@ public final class RecommendationRules {
         List<Map<String, Object>> unknown = new ArrayList<>();
         for (var requirement : extraction.requirements()) {
             if (!requirement.status().equals("RECOGNIZED"))
-                unknown.add(fields("text", requirement.text(), "status", "UNVERIFIED", "bloom", requirement.bloom()));
+                unknown.add(fields("text", requirement.text(), "status", "UNVERIFIED"));
             if (requirement.importance().equals("PREFERRED") && !requirement.skills().isEmpty()) {
                 preferred++;
                 var matches = requirement.skills().stream()
@@ -79,7 +79,7 @@ public final class RecommendationRules {
         assessment.put("experience_conditions", experience);
         assessment.put("preferred_coverage", preferred == 0 ? null : (double) preferredMet / preferred);
         assessment.put("unverified_requirement_details", unknown);
-        assessment.put("bloom_requirements", extraction.requirements());
+        assessment.put("jd_requirements", extraction.requirements());
         assessment.put("location_assessment", preference(candidate, job, "location", "location"));
         assessment.put("employment_assessment", preference(candidate, job, "employment_type", "employment_type"));
         String seniority = text(job.get("parsed_seniority"));

@@ -81,7 +81,7 @@ public class JobRepository {
             ("SELECT j.id,j.source_site,j.source_url,j.raw_content_hash,"
                 + "j.content_fingerprint,j.job_title,j.company_name,j.location,"
                 + "j.salary_text,j.role_category,j.employment_type,"
-                + "j.requirement_extraction,j.requirement_extraction_verified,"
+                + "j.requirement_extraction,j.requirement_extraction_verified,j.skill_proficiency_analysis,"
                 + "j.raw_content,j.original_content,j.original_content_format,"
                 + "j.original_content_quality,j.original_content_extracted_at,"
                 + "j.parsed_description,j.parsed_requirements,j.parsed_responsibilities,"
@@ -411,36 +411,6 @@ public class JobRepository {
     public int deleteMarketJobSkillsByMarketJobId(
         UUID id) {
         return db.update("DELETE FROM market_job_skills WHERE market_job_id=?", id);
-    }
-
-    public List<Map<String, Object>> listDuplicateJobGroups(
-        int limit,
-        int offset) {
-        return db.list(
-            ("SELECT j.content_fingerprint,count(*) AS duplicate_count,"
-                + "jsonb_agg(jsonb_build_object('id',j.id,'job_title',j.job_title,'company_name',j.company_name,"
-                + "'source_site',j.source_site,'source_url',j.source_url,'status',j.status,"
-                + "'collected_at',j.collected_at) ORDER BY j.collected_at DESC,j.id) AS jobs "
-                + "FROM market_job_posts j WHERE j.content_fingerprint IS NOT NULL "
-                + "GROUP BY j.content_fingerprint HAVING count(*)>1 "
-                + "ORDER BY count(*) DESC,max(j.collected_at) DESC LIMIT ? OFFSET ?"),
-            limit,
-            offset
-        );
-    }
-
-    public List<Map<String, Object>> listExpiredOrInvalidJobs(
-        int limit,
-        int offset) {
-        return db.list(
-            "SELECT " + PUBLIC_JOB_SUMMARY_COLUMNS + ",j.status,j.collected_at," + JOB_CREATOR_COLUMNS
-                + " FROM market_job_posts j" + JOB_CREATOR_JOINS
-                + "WHERE j.status IN ('EXPIRED','INVALID','REJECTED','REMOVED') "
-                + "OR (j.valid_through IS NOT NULL AND j.valid_through<=now()) "
-                + "ORDER BY j.collected_at DESC,j.id LIMIT ? OFFSET ?",
-            limit,
-            offset
-        );
     }
 
 }

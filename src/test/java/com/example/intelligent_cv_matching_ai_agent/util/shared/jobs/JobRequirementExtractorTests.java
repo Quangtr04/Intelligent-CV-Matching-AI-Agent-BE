@@ -121,15 +121,12 @@ class JobRequirementExtractorTests {
     }
 
     @Test
-    void extractionUsesBloomEngineWithSeparateActionEvidence() {
+    void extractionKeepsSkillEvidenceWithoutClassifyingBloom() {
         String text = "Phân tích nguyên nhân lỗi Java và thiết kế kiến trúc hệ thống";
         var extraction = JobRequirementExtractor.extract("", text, "");
-        assertEquals("requirements-v6", extraction.version());
+        assertEquals(JobRequirementExtractor.VERSION, extraction.version());
         assertEquals(1, extraction.requirements().size());
-        var bloom = extraction.requirements().getFirst().bloom();
-        assertEquals(List.of("Analyze", "Create"), bloom.stream().map(JobRequirementExtractor.Bloom::level).toList());
-        assertEquals("Phân tích nguyên nhân lỗi Java", bloom.getFirst().evidence());
-        assertEquals("thiết kế kiến trúc hệ thống", bloom.getLast().evidence());
+        assertTrue(extraction.requirements().getFirst().bloom().isEmpty());
         assertFalse(extraction.legacySkills().isEmpty());
     }
 

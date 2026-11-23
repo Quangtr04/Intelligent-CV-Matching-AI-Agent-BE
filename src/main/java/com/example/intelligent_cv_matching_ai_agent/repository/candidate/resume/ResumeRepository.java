@@ -200,62 +200,9 @@ public class ResumeRepository {
         return db.list("SELECT * FROM resume_analysis_suggestions WHERE analysis_id=?", args);
     }
 
-    public Optional<Map<String, Object>> findResumeEmbeddingsByResumeId(
-        Object... args) {
-        return db.optional(
-            ("SELECT id,resume_id,provider,model,content_hash,is_current,created_at "
-                + "FROM resume_embeddings WHERE resume_id=? AND provider=? AND model=? "
-                + "AND content_hash=? AND is_current=true AND embedding IS NOT NULL"),
-            args
-        );
-    }
-
-    public UUID insertVectorIndexingJobs(
-        Map<String, Object> fields) {
-        return db.insert("vector_indexing_jobs", fields);
-    }
-
     public Map<String, Object> getResumesByIdForUpdate(
         Object... args) {
         return db.one("SELECT * FROM resumes WHERE id=? FOR UPDATE", args);
-    }
-
-    public int updateVectorIndexingJobsById(
-        Object... args) {
-        return db.update(
-            ("UPDATE vector_indexing_jobs SET status='FAILED',error_message=?," + "completed_at=now() WHERE id=?"),
-            args
-        );
-    }
-
-    public int updateResumeEmbeddingsByResumeId(
-        Object... args) {
-        return db.update("UPDATE resume_embeddings SET is_current=false WHERE resume_id=?", args);
-    }
-
-    public Object readResumeEmbeddings(
-        Object... args) {
-        return db.scalar(
-            ("INSERT INTO resume_embeddings(resume_id,provider,model,embedding,"
-                + "content_hash,is_current) VALUES (?,?,?,?::vector,?,true) ON "
-                + "CONFLICT(resume_id,provider,model,content_hash) DO UPDATE SET "
-                + "embedding=EXCLUDED.embedding,is_current=true RETURNING id"),
-            args
-        );
-    }
-
-    public int updateVectorIndexingJobsById2(
-        Object... args) {
-        return db.update("UPDATE vector_indexing_jobs SET status='COMPLETED',completed_at=now() WHERE id=?", args);
-    }
-
-    public Map<String, Object> getResumeEmbeddingsById(
-        Object... args) {
-        return db.one(
-            ("SELECT id,resume_id,provider,model,content_hash,is_current,created_at "
-                + "FROM resume_embeddings WHERE id=?"),
-            args
-        );
     }
 
     public int deleteResumeSkillsByResumeId(

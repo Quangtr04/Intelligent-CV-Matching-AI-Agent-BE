@@ -1,6 +1,8 @@
 # Cơ sở dữ liệu EduNexus
 
-Schema hiện tại sau **V1–V20 có 84 bảng ứng dụng**, không tính bảng lịch sử `flyway_schema_history`.
+Schema sau **V1–V20 có 84 bảng ứng dụng**, không tính bảng lịch sử `flyway_schema_history`.
+
+Sau V45 có 98 bảng ứng dụng. V45 xóa `rag_query_logs`, `skill_prerequisites`, `career_profile_embeddings` và `resume_embeddings`.
 
 V20 bổ sung `assessment_generations` để lưu yêu cầu tạo câu hỏi độc lập với request HTTP. Bảng lưu owner,
 JD, trạng thái, assessment đã hoàn tất và lease của worker. Unique index chỉ cho phép một yêu cầu đang chờ/chạy

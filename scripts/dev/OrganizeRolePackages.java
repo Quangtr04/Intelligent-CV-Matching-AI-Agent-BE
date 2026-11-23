@@ -73,7 +73,7 @@ public class OrganizeRolePackages {
             return "candidate.resume";
         if (name.startsWith("Assessment") || name.startsWith("GapAnalysis") || name.startsWith("Roadmap"))
             return "candidate.learning";
-        if (member(name, "Skill SkillPrerequisite LearningResource"))
+        if (member(name, "Skill LearningResource"))
             return "shared.learning";
         if (name.startsWith("Consultation"))
             return "consultant.consultation";
@@ -81,7 +81,7 @@ public class OrganizeRolePackages {
             return "candidate.ai";
         if (member(name, "AiConfiguration AiPromptTemplate"))
             return "admin.ai";
-        if (member(name, "AiUsageLog AiTokenReservation RagQueryLog"))
+        if (member(name, "AiUsageLog AiTokenReservation"))
             return "shared.ai";
         if (member(name, "RagDocument RagChunk RagChunkEmbedding"))
             return "admin.rag";

@@ -46,8 +46,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "app.billing.maintenance-enabled=false",
         "app.mail.enabled=false",
         "app.ocr.enabled=false",
-        "app.recommendation.top-k=1",
-        "app.recommendation.rerank-limit=12"}
+        "app.recommendation.top-k=1",}
 )
 @AutoConfigureMockMvc
 @Testcontainers(disabledWithoutDocker = true)
@@ -111,12 +110,12 @@ class RecommendationIntegrationTests {
     }
 
     @Test
-    void theFullCatalogIsScoredWithCompatibleVectorsAndFallbackCandidates() throws Exception {
+    void onlyCurrentCompatibleVectorsAreRanked() throws Exception {
         UUID distant = job("Textual Java exact match", "Java");
         UUID nearest = job("Semantic neighbor", "Java");
         indexed(distant, "fixture-embedding", vector(1));
         indexed(nearest, "fixture-embedding", vector(0));
-        // An incompatible embedding is excluded, but the active job is still assessed.
+        // A job with an incompatible embedding is excluded.
         UUID wrongModel = job("Wrong model", "Java");
         indexed(wrongModel, "different-model", vector(0));
         UUID stale = job("Stale vector", "Java");
@@ -126,17 +125,42 @@ class RecommendationIntegrationTests {
         indexed(expired, "fixture-embedding", vector(0));
         db.update("UPDATE market_job_posts SET valid_through=now()-interval '1 day' WHERE id=?", expired);
 
-        stubScores(Map.of(nearest, 0.99, distant, 0.5, stale, 0.8, wrongModel, 0.75));
         var response = recommend();
-        assertEquals(4, array(response.get("results")).size());
-        var row = object(array(response.get("results")).getFirst());
-        assertEquals(nearest.toString(), row.get("market_job_id"));
+        assertEquals(2, array(response.get("results")).size());
+        var row = array(response.get("results")).stream().map(value -> object(value))
+            .filter(result -> nearest.toString().equals(result.get("market_job_id"))).findFirst().orElseThrow();
+        assertEquals(1.0, number(row.get("final_score"), 0), 0.00001);
+        assertNull(row.get("llm_rerank_score"));
+        verify(ai, never()).generate(anyString(), anyMap());
         assertEquals(1.0, number(row.get("vector_similarity_score"), 0), 0.00001);
         assertEquals("PGVECTOR_COSINE", object(row.get("match_reason_json")).get("retrieval"));
         assertEquals("PARTIAL_INDEX", object(response.get("recommendation")).get("semantic_status"));
         assertEquals(2, number(object(response.get("recommendation")).get("compatible_vectors"), 0));
         verify(retrieval).semanticCandidates(eq("gemini"), eq("fixture-embedding"), eq(1024), anyString(), isNull());
-        verify(retrieval).fallbackCandidates(isNull());
+    }
+
+    @Test
+    void salaryRangeAppliesOnlyToCareerProfileRecommendations() throws Exception {
+        db.update(
+            "INSERT INTO candidate_profiles(user_id,target_job_title,expected_salary,salary_currency) "
+                + "VALUES(?,'Java developer',20000000,'VND')",
+            owner
+        );
+        UUID within = job("Java developer", "Java");
+        UUID above = job("Senior Java developer", "Java");
+        UUID below = job("Junior Java developer", "Java");
+        db.update("UPDATE market_job_posts SET salary_text='21000000 VND' WHERE id=?", within);
+        db.update("UPDATE market_job_posts SET salary_text='30000000 VND' WHERE id=?", above);
+        db.update("UPDATE market_job_posts SET salary_text='15000000 VND' WHERE id=?", below);
+        indexed(within, "fixture-embedding", vector(0));
+        indexed(above, "fixture-embedding", vector(0));
+        indexed(below, "fixture-embedding", vector(0));
+
+        assertEquals(3, array(recommend().get("results")).size());
+        var profile = request(fields("basis", "CAREER_PROFILE", "limit", 50, "mode", "RECOMMENDATION"));
+        var results = array(profile.get("results"));
+        assertEquals(1, results.size());
+        assertEquals(within.toString(), object(results.getFirst()).get("market_job_id"));
     }
 
     @Test
@@ -159,7 +183,7 @@ class RecommendationIntegrationTests {
     }
 
     @Test
-    void embedding503KeepsExplicitFallbackAndDoesNotCacheTheOutage() throws Exception {
+    void embedding503ReturnsNoRecommendationsAndDoesNotCacheTheOutage() throws Exception {
         indexed(job("Java developer", "Java"), "fixture-embedding", vector(0));
         when(ai.embed(anyString())).thenThrow(new ApiException(503, "Provider unavailable"));
         var response = recommend();
@@ -183,133 +207,6 @@ class RecommendationIntegrationTests {
         verify(ai, never()).embed(anyString());
     }
 
-    @Test
-    void rerank503OmitsUnscoredJobsAndRetainsTheCandidateVectorCache() throws Exception {
-        indexed(job("Java developer", "Java"), "fixture-embedding", vector(0));
-        when(ai.enabled()).thenReturn(true);
-        when(ai.generate(eq("JOB_MATCH_RERANK"), anyMap())).thenThrow(new ApiException(503, "Provider busy"));
-        var response = recommend();
-        assertTrue(array(response.get("results")).isEmpty());
-        assertEquals("SKIPPED", object(object(response.get("recommendation")).get("rerank")).get("status"));
-        assertEquals(true, object(response.get("recommendation")).get("vector_used"));
-        assertEquals(
-            "AI_PROVIDER_ERROR",
-            object(object(response.get("recommendation")).get("rerank")).get("failure_code")
-        );
-        recommend();
-        verify(ai, times(1)).embed(anyString());
-        verify(ai, times(2)).generate(eq("JOB_MATCH_RERANK"), anyMap());
-    }
-
-    @Test
-    void llmScoresSetTheDisplayedPercentageAndOrderWhileInvalidScoresAreOmitted() throws Exception {
-        UUID highRules = job("Java backend", "Java required");
-        UUID lowRules = job("Python backend", "Python required");
-        UUID pending = job("Rust backend", "Rust required");
-        db.update("DELETE FROM market_job_skills WHERE market_job_id IN (?,?)", lowRules, pending);
-        indexed(highRules, "fixture-embedding", vector(0));
-        indexed(lowRules, "fixture-embedding", vector(0));
-        indexed(pending, "fixture-embedding", vector(1));
-        when(ai.enabled()).thenReturn(true);
-        when(ai.generate(eq("JOB_MATCH_RERANK"), anyMap())).thenAnswer(call -> {
-            var input = object(call.getArgument(1));
-            return fields("results", array(input.get("jobs")).stream().map(raw -> {
-                var row = object(raw);
-                return aiAssessment(
-                    uuid(row.get("id")),
-                    uuid(row.get("id")).equals(lowRules) ? 0.88 : 0.35,
-                    uuid(row.get("id")).equals(lowRules) ? "Python required" : "Java required"
-                );
-            }).toList());
-        });
-
-        var response = recommend();
-        var rows = array(response.get("results"));
-        var first = object(rows.getFirst());
-        assertEquals(lowRules.toString(), first.get("market_job_id"));
-        assertEquals(0.88, number(first.get("final_score"), 0), 0.00001);
-        assertEquals(0.88, number(first.get("llm_rerank_score"), 0), 0.00001);
-        var reason = object(first.get("match_reason_json"));
-        assertEquals("LLM", reason.get("score_source"));
-        assertEquals(0.0, number(object(reason.get("assessment")).get("rule_coverage_score"), -1));
-        assertEquals(0.35, number(object(rows.get(1)).get("final_score"), 0), 0.00001);
-        assertEquals(2, rows.size());
-        assertEquals(2, number(object(object(response.get("recommendation")).get("rerank")).get("assessed_jobs"), 0));
-        verify(ai, times(1)).generate(eq("JOB_MATCH_RERANK"), anyMap());
-    }
-
-    @Test
-    void anExperienceMismatchIsSentToTheLlmInsteadOfPreventingAnAssessment() throws Exception {
-        db.update(
-            "UPDATE resumes SET structured_data=? WHERE id=?",
-            db.json(
-                fields(
-                    "summary",
-                    "No work experience",
-                    "skills",
-                    List.of(fields("name", "Java", "years_experience", 0)),
-                    "projects",
-                    List.of(fields("description", "Built Java APIs"))
-                )
-            ),
-            cv
-        );
-        UUID job = job("Senior Java developer", "At least 10 years of Java experience required");
-        indexed(job, "fixture-embedding", vector(0));
-        when(ai.enabled()).thenReturn(true);
-        when(ai.generate(eq("JOB_MATCH_RERANK"), anyMap()))
-            .thenReturn(fields("results", List.of(aiAssessment(job, 0.12, "Java experience required"))));
-
-        var response = recommend();
-        var row = object(array(response.get("results")).getFirst());
-        assertEquals(0.12, number(row.get("final_score"), 0), 0.00001);
-        assertEquals(
-            "INSUFFICIENT",
-            object(object(row.get("match_reason_json")).get("assessment")).get("experience_status")
-        );
-        verify(ai).generate(eq("JOB_MATCH_RERANK"), anyMap());
-    }
-
-    @Test
-    void fabricatedAiEvidenceNeverBecomesAPercentageAndDoesNotCacheTheRejection() throws Exception {
-        UUID job = job("Java developer", "Java required");
-        indexed(job, "fixture-embedding", vector(0));
-        when(ai.enabled()).thenReturn(true);
-        var assessment = aiAssessment(job, 0.99, "Java required");
-        assessment.put("evidence", List.of(fields("cv_quote", "Invented AWS expertise", "jd_quote", "Java required")));
-        when(ai.generate(eq("JOB_MATCH_RERANK"), anyMap())).thenReturn(fields("results", List.of(assessment)));
-
-        var response = recommend();
-        assertTrue(array(response.get("results")).isEmpty());
-        assertEquals(false, object(response.get("recommendation")).get("cacheable"));
-    }
-
-    @Test
-    void localQuotaFailuresAreDistinguishedFromProviderErrorsAndRemainUncached() throws Exception {
-        indexed(job("Java developer", "Java required"), "fixture-embedding", vector(0));
-        when(ai.enabled()).thenReturn(true);
-        when(ai.generate(eq("JOB_MATCH_RERANK"), anyMap())).thenThrow(new ApiException(429, "AI token quota exceeded"));
-        var response = recommend();
-        var rerank = object(object(response.get("recommendation")).get("rerank"));
-        assertEquals("APPLICATION_QUOTA", rerank.get("failure_source"));
-        assertEquals("AI_QUOTA_EXCEEDED", rerank.get("failure_code"));
-        assertEquals("AI token quota exceeded", rerank.get("failure_message"));
-        assertTrue(array(response.get("results")).isEmpty());
-        assertEquals(false, object(response.get("recommendation")).get("cacheable"));
-    }
-
-    @Test
-    void invalidModelJobIdsHaveADiagnosticReasonInsteadOfBeingCalledAProviderOutage() throws Exception {
-        indexed(job("Java developer", "Java required"), "fixture-embedding", vector(0));
-        when(ai.enabled()).thenReturn(true);
-        when(ai.generate(eq("JOB_MATCH_RERANK"), anyMap()))
-            .thenReturn(fields("results", List.of(aiAssessment(UUID.randomUUID(), 0.5, "Java required"))));
-        var rerank = object(object(recommend().get("recommendation")).get("rerank"));
-        assertEquals("MODEL_OUTPUT", rerank.get("failure_source"));
-        assertEquals("AI_OUTPUT_INVALID", rerank.get("failure_code"));
-        assertTrue(text(rerank.get("failure_message")).contains("outside its batch"));
-    }
-
     @org.junit.jupiter.params.ParameterizedTest
     @org.junit.jupiter.params.provider.ValueSource(ints = {0, 6, 10, 15})
     void matchesEveryEligibleJobBeforeReturningAtMostTen(
@@ -318,11 +215,11 @@ class RecommendationIntegrationTests {
         Map<UUID, Double> scores = new LinkedHashMap<>();
         for (int index = 0; index < count; index++) {
             UUID id = job("Java position " + index, "Java required");
-            scores.put(id, index >= count - 2 ? 1.0 : (double) index / count);
+            indexed(id, "fixture-embedding", vector(0));
+            scores.put(id, 1.0);
         }
         UUID expired = job("Expired Java position", "Java required");
         db.update("UPDATE market_job_posts SET valid_through=now()-interval '1 day' WHERE id=?", expired);
-        stubScores(scores);
         var response = recommend();
         var actualIds =
             array(response.get("results")).stream().map(row -> text(object(row).get("market_job_id"))).toList();
@@ -331,49 +228,7 @@ class RecommendationIntegrationTests {
                 Map.Entry.<UUID, Double>comparingByValue().reversed().thenComparing(entry -> entry.getKey().toString())
             ).limit(10).map(entry -> entry.getKey().toString()).toList();
         assertEquals(expectedIds, actualIds);
-        assertEquals(
-            count,
-            number(object(object(response.get("recommendation")).get("rerank")).get("assessed_jobs"), 0)
-        );
-    }
-
-    private void stubScores(
-        Map<UUID, Double> scores) {
-        when(ai.enabled()).thenReturn(true);
-        when(ai.generate(eq("JOB_MATCH_RERANK"), anyMap())).thenAnswer(call -> {
-            var input = object(call.getArgument(1));
-            return fields("results", array(input.get("jobs")).stream().map(raw -> {
-                var row = object(raw);
-                var id = uuid(row.get("id"));
-                return aiAssessment(id, scores.get(id), "Java");
-            }).toList());
-        });
-    }
-
-    private Map<String, Object> aiAssessment(
-        UUID job,
-        double score,
-        String jdQuote) {
-        return fields(
-            "job_id",
-            job,
-            "score",
-            score,
-            "reason",
-            "Independent CV-JD assessment",
-            "assessment_status",
-            "SUFFICIENT_EVIDENCE",
-            "strengths",
-            List.of("API project"),
-            "skill_gaps",
-            List.of(),
-            "experience_gaps",
-            List.of(),
-            "improvement_suggestions",
-            List.of(),
-            "evidence",
-            List.of(fields("cv_quote", "Built Java APIs", "jd_quote", jdQuote))
-        );
+        assertEquals(count, number(object(response.get("recommendation")).get("ranked_jobs"), 0));
     }
 
     @Test

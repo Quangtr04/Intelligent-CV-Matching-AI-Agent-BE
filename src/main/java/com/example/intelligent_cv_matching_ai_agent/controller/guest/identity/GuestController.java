@@ -23,13 +23,6 @@ public class GuestController {
         return service.create(request.getRemoteAddr());
     }
 
-    @GetMapping("/sessions/me")
-    public Map<String, Object> me(
-        @RequestHeader("X-Guest-Session")
-        String key) {
-        return service.me(key);
-    }
-
     @GetMapping("/demo-resumes")
     public java.util.List<Map<String, Object>> demos(
         @RequestHeader("X-Guest-Session")

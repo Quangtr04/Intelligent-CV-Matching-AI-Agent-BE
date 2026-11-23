@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-/** A monthly preference with the snapshotted administrator floor and no upper ceiling. */
+/** A monthly salary preference with the snapshotted administrator tolerance. */
 public record SalaryExpectation(
     BigDecimal amount,
     String currency,
@@ -70,6 +70,19 @@ public record SalaryExpectation(
     }
 
     public Map<String, Object> policy() {
+        return policy(false);
+    }
+
+    public Map<String, Object> rangePolicy() {
+        return policy(true);
+    }
+
+    private BigDecimal maximum() {
+        return amount.add(amount.subtract(minimum()));
+    }
+
+    private Map<String, Object> policy(
+        boolean bounded) {
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("active", true);
         result.put("policy_version", POLICY_VERSION);
@@ -77,7 +90,9 @@ public record SalaryExpectation(
         result.put("currency", currency);
         result.put("period", "MONTH");
         result.put("minimum_acceptable", minimum());
-        result.put("comparison", "AT_LEAST_CONFIGURED_MINIMUM");
+        if (bounded)
+            result.put("maximum_acceptable", maximum());
+        result.put("comparison", bounded ? "OVERLAPS_CONFIGURED_RANGE" : "AT_LEAST_CONFIGURED_MINIMUM");
         result.put("tolerance_percent", settings.tolerancePercent());
         result.put("minimum_ratio", settings.minimumRatio());
         result.put("settings_version", settings.version());
@@ -91,14 +106,25 @@ public record SalaryExpectation(
 
     public Optional<Map<String, Object>> match(
         String salaryText) {
+        return match(salaryText, false);
+    }
+
+    public Optional<Map<String, Object>> matchRange(
+        String salaryText) {
+        return match(salaryText, true);
+    }
+
+    private Optional<Map<String, Object>> match(
+        String salaryText,
+        boolean bounded) {
         var parsed = JobSalaryParser.parseMonthly(salaryText);
         if (parsed.isEmpty()) {
-            return Optional.of(unverified("SALARY_UNDISCLOSED_OR_UNPARSABLE"));
+            return Optional.of(unverified("SALARY_UNDISCLOSED_OR_UNPARSABLE", bounded));
         }
         var salary = parsed.get();
         Optional<BigDecimal> conversion = exchangeRates.rate(salary.currency(), currency);
         if (conversion.isEmpty()) {
-            var result = unverified("EXCHANGE_RATE_UNAVAILABLE");
+            var result = unverified("EXCHANGE_RATE_UNAVAILABLE", bounded);
             result.put("job_currency", salary.currency());
             result.put("job_salary_min", salary.minimum());
             result.put("job_salary_max", salary.maximum());
@@ -113,11 +139,15 @@ public record SalaryExpectation(
             && exchangeRates.compare(salary.maximum(), salary.currency(), minimum(), currency) < 0) {
             return Optional.empty();
         }
+        if (bounded && salary.minimum() != null
+            && exchangeRates.compare(salary.minimum(), salary.currency(), maximum(), currency) > 0) {
+            return Optional.empty();
+        }
         BigDecimal closest = lower == null ? amount : amount.max(lower);
         closest = upper == null ? closest : closest.min(upper);
         BigDecimal difference =
             closest.subtract(amount).abs().multiply(new BigDecimal("100")).divide(amount, 6, RoundingMode.HALF_UP);
-        Map<String, Object> result = new LinkedHashMap<>(policy());
+        Map<String, Object> result = new LinkedHashMap<>(policy(bounded));
         result.put("status", "VERIFIED");
         result.put("verified", true);
         result.put("conversion_applied", !currency.equals(salary.currency()));
@@ -142,8 +172,9 @@ public record SalaryExpectation(
     }
 
     private Map<String, Object> unverified(
-        String reason) {
-        Map<String, Object> result = new LinkedHashMap<>(policy());
+        String reason,
+        boolean bounded) {
+        Map<String, Object> result = new LinkedHashMap<>(policy(bounded));
         result.put("status", "UNVERIFIED");
         result.put("verified", false);
         result.put("reason", reason);

@@ -70,7 +70,7 @@ class ResumeLifecycleTests {
     }
 
     @Test
-    void titleChangesInvalidateExistingVectorsAndDependentRoadmaps() {
+    void titleChangesInvalidateDependentRoadmaps() {
         Map<String, Object> resume = ready();
         List<Map<String, Object>> writes = new ArrayList<>();
         when(db.insert(eq("resumes"), anyMap())).thenAnswer(call -> {
@@ -94,40 +94,7 @@ class ResumeLifecycleTests {
             eq(true),
             eq(id)
         );
-        verify(db).update("UPDATE resume_embeddings SET is_current=false WHERE resume_id=?", id);
         verify(db).update(contains("UPDATE roadmaps SET is_outdated=true"), eq(id));
-    }
-
-    @Test
-    void failedEmbeddingLeavesAFailedJobWithoutPublishingAVector() {
-        ready();
-        when(ai.embeddingsEnabled()).thenReturn(true);
-        when(ai.provider()).thenReturn("openai");
-        when(ai.embeddingModel()).thenReturn("embedding-v1");
-        when(db.insert(eq("vector_indexing_jobs"), anyMap())).thenReturn(job);
-        when(ai.embed(anyString())).thenThrow(new ApiException(502, "Provider failed"));
-        assertThrows(ApiException.class, () -> service.embedding(id));
-        verify(db).update(
-            ("UPDATE vector_indexing_jobs SET status='FAILED',error_message=?," + "completed_at=now() WHERE id=?"),
-            "Provider failed",
-            job
-        );
-        verify(db, never()).scalar(anyString(), any(Object[].class));
-    }
-
-    @Test
-    void concurrentResumeEditPreventsStaleEmbeddingPublication() {
-        ready();
-        when(ai.embeddingsEnabled()).thenReturn(true);
-        when(ai.provider()).thenReturn("openai");
-        when(ai.embeddingModel()).thenReturn("embedding-v1");
-        when(db.insert(eq("vector_indexing_jobs"), anyMap())).thenReturn(job);
-        when(ai.embed(anyString())).thenReturn(new float[1024]);
-        when(db.one("SELECT * FROM resumes WHERE id=? FOR UPDATE", id))
-            .thenReturn(Map.of("status", "REVIEW_REQUIRED", "content_hash", "newer"));
-        assertThrows(ApiException.class, () -> service.embedding(id));
-        verify(db).update(startsWith("UPDATE vector_indexing_jobs SET status='FAILED'"), anyString(), eq(job));
-        verify(db, never()).update("UPDATE resume_embeddings SET is_current=false WHERE resume_id=?", id);
     }
 
     @Test

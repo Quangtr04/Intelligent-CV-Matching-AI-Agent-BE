@@ -9,40 +9,26 @@ import static org.junit.jupiter.api.Assertions.*;
 class RecommendationScoresTests {
 
     @Test
-    void llmSuitabilityOverridesRuleCoverageAndDeterminesThePrimaryOrder() {
-        var lowRules = job("a", 0.0, 0.9, true);
-        var highRules = job("b", 1.0, 0.4, true);
-        var jobs = new ArrayList<>(List.of(highRules, lowRules));
+    void vectorSimilarityDeterminesScoreAndOrder() {
+        var lower = fields("id", "a", "rule_score", 1.0, "vector_score", 0.4);
+        var higher = fields("id", "b", "rule_score", 0.1, "vector_score", 0.9);
+        var jobs = new ArrayList<>(List.of(lower, higher));
         jobs.forEach(RecommendationScores::apply);
         jobs.sort(RecommendationScores.ranking());
-        assertSame(lowRules, jobs.getFirst());
-        assertEquals(0.9, lowRules.get("final_score"));
-        var assessment = RecommendationScores.assessment(lowRules);
-        assertEquals(0.0, assessment.get("rule_coverage_score"));
-        assertEquals(0.9, assessment.get("score"));
-        assertEquals(RecommendationScores.KIND, assessment.get("score_kind"));
+        assertSame(higher, jobs.getFirst());
+        assertEquals(0.9, higher.get("final_score"));
+        assertEquals(RecommendationScores.KIND, RecommendationScores.assessment(higher).get("score_kind"));
     }
 
     @Test
-    void unassessedAndRejectedResponsesHaveNoPercentageEvenWithFullRuleCoverage() {
-        var pending = job("a", 1.0, 0.99, false);
-        RecommendationScores.apply(pending);
-        assertNull(pending.get("final_score"));
-        assertEquals(false, pending.get("score_available"));
-        assertEquals(1.0, RecommendationScores.assessment(pending).get("rule_coverage_score"));
-    }
-
-    @Test
-    void aValidZeroFromTheLlmIsDifferentFromAnUnassessedJob() {
-        var scored = job("a", 0.0, 0.0, true);
-        var pending = job("b", 1.0, 1.0, false);
-        var jobs = new ArrayList<>(List.of(pending, scored));
-        jobs.forEach(RecommendationScores::apply);
-        jobs.sort(RecommendationScores.ranking());
-        assertSame(scored, jobs.getFirst());
-        assertEquals(0.0, scored.get("final_score"));
-        assertEquals("SCORED", scored.get("ai_status"));
-        assertNull(pending.get("final_score"));
+    void negativeSimilarityDisplaysZeroAndMissingVectorsRemainUnscored() {
+        var negative = fields("vector_score", -0.25, "rule_score", 1.0);
+        var fallback = fields("rule_score", 0.6);
+        RecommendationScores.apply(negative);
+        RecommendationScores.apply(fallback);
+        assertEquals(0.0, negative.get("final_score"));
+        assertEquals(null, fallback.get("final_score"));
+        assertEquals("RECOMMENDATION_VECTOR_SIMILARITY", RecommendationScores.assessment(fallback).get("score_kind"));
     }
 
     @Test
@@ -109,24 +95,5 @@ class RecommendationScoresTests {
         assertTrue(text(batch.getFirst().get("jd_evidence")).contains("Java required"));
         assertEquals(0.5, object(batch.getFirst().get("rule_assessment")).get("requirement_coverage"));
         assertFalse(object(batch.getFirst().get("rule_assessment")).containsKey("bloom_requirements"));
-    }
-
-    private static Map<String, Object> job(
-        String id,
-        double coverage,
-        double score,
-        boolean usable) {
-        return fields(
-            "id",
-            id,
-            "rule_score",
-            coverage,
-            "final_score",
-            coverage,
-            "rule_assessment",
-            fields("score", coverage, "requirement_coverage", coverage),
-            "ai_assessment",
-            fields("score", score, "usable", usable)
-        );
     }
 }

@@ -112,7 +112,6 @@ class ResumeConfirmationPersistenceIntegrationTests {
             jdbc.execute(create.group());
         }
         // Only invalidation is exercised; this test does not emulate pgvector inference.
-        jdbc.execute("CREATE TABLE resume_embeddings(resume_id uuid,is_current boolean)");
         jdbc.execute("CREATE TABLE gap_analyses(id uuid,resume_id uuid)");
         jdbc.execute("CREATE TABLE roadmaps(gap_analysis_id uuid,is_outdated boolean,updated_at timestamptz)");
         jdbc.update(

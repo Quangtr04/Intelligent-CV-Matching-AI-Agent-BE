@@ -58,14 +58,6 @@ public class GuestSessionService {
         return Map.of("id", id, "sessionKey", raw, "tokenLimit", tokenLimit, "tokenUsed", 0, "expiresAt", expires);
     }
 
-    public Map<String, Object> me(
-        String key) {
-        Map<String, Object> session = new java.util.LinkedHashMap<>(guest.require(key));
-        session.remove("session_key");
-
-        return session;
-    }
-
     public java.util.List<Map<String, Object>> demos(
         String key) {
         guest.require(key);

@@ -77,14 +77,6 @@ class StaffOperationsServiceTests {
             400,
             assertThrows(ApiException.class, () -> service.consultantRatings(null, 6, false, 20, 0)).status()
         );
-        assertEquals(
-            400,
-            assertThrows(ApiException.class, () -> service.crawlReports("UNKNOWN", null, 20, 0)).status()
-        );
-        assertEquals(
-            400,
-            assertThrows(ApiException.class, () -> service.crawlReports("ITVIEC", "INVALID", 20, 0)).status()
-        );
         assertEquals(400, assertThrows(ApiException.class, () -> service.feedback("INVALID_SOURCE", 20, 0)).status());
         assertEquals(400, assertThrows(ApiException.class, () -> service.feedback("INVALID_SOURCE", 20, 0)).status());
         verifyNoInteractions(db);

@@ -61,24 +61,6 @@ public class AdminJobController {
         return service.updateJob(id, input);
     }
 
-    @GetMapping("/duplicates")
-    public List<Map<String, Object>> duplicates(
-        @RequestParam(defaultValue = "20")
-        int limit,
-        @RequestParam(defaultValue = "0")
-        int offset) {
-        return service.duplicateJobs(limit, offset);
-    }
-
-    @GetMapping("/expired-or-invalid")
-    public List<Map<String, Object>> expiredOrInvalid(
-        @RequestParam(defaultValue = "20")
-        int limit,
-        @RequestParam(defaultValue = "0")
-        int offset) {
-        return service.expiredOrInvalidJobs(limit, offset);
-    }
-
     @PostMapping("/{id}/index")
     public Map<String, Object> index(
         @PathVariable

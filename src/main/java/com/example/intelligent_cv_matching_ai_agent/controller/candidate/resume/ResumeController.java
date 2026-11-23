@@ -145,13 +145,6 @@ public class ResumeController {
         return service.analysis(analysisId, id);
     }
 
-    @PostMapping("/{id}/embedding")
-    public Object embed(
-        @PathVariable
-        UUID id) {
-        return service.embedding(id);
-    }
-
     @PostMapping("/{id}/export-pdf")
     public Object exportPdf(
         @PathVariable

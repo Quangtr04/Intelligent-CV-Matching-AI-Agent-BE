@@ -389,10 +389,7 @@ public class LearningService {
                         "importance",
                         row.importance(),
                         "relation",
-                        row.relation(),
-                        "bloom",
-                        row.bloom().stream().map(b -> fields("level", b.level(), "justification", b.justification()))
-                            .toList()
+                        row.relation()
                     )
                 ).toList()
         );

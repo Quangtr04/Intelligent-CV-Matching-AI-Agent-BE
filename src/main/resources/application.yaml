@@ -75,6 +75,8 @@ spring:
 server:
   port: ${SERVER_PORT}
 app:
+  rag:
+    serpapi-key: ${SERPAPI_API_KEY:}
   frontend-reset-url: ${APP_FRONTEND_RESET_URL}
   storage:
     provider: ${STORAGE_PROVIDER:local}
@@ -108,6 +110,11 @@ app:
     salary-exchange:
       enabled: ${SALARY_EXCHANGE_ENABLED:true}
       url: ${SALARY_EXCHANGE_URL:https://open.er-api.com/v6/latest/USD}
+    skill-proficiency:
+      enabled: ${JOB_SKILL_PROFICIENCY_ENABLED:true}
+      input-cost-per-million: ${JOB_SKILL_PROFICIENCY_INPUT_COST_PER_MILLION:-1}
+      output-cost-per-million: ${JOB_SKILL_PROFICIENCY_OUTPUT_COST_PER_MILLION:-1}
+      actor-id: ${JOB_SKILL_PROFICIENCY_ACTOR_ID:${JOB_COLLECTION_ACTOR_ID:}}
     collection:
       scheduler-enabled: ${JOB_COLLECTION_SCHEDULER_ENABLED:false}
       enabled: ${JOB_COLLECTION_ENABLED}
@@ -162,7 +169,6 @@ app:
       lease-seconds: ${JOB_EMBEDDING_LEASE_SECONDS}
       retry-seconds: ${JOB_EMBEDDING_RETRY_SECONDS}
   recommendation:
-    rerank-enabled: ${RECOMMENDATION_RERANK_ENABLED:true}
     cache-seconds: ${RECOMMENDATION_CACHE_SECONDS:600}
   ai:
     enabled: ${AI_ENABLED}

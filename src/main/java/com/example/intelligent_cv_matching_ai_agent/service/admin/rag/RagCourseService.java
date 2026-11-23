@@ -48,20 +48,32 @@ public class RagCourseService {
     }
 
     public List<Map<String, Object>> list() {
-        user.requireOperationsRole();
+        user.requireStaffOrOperationsRole();
         return db.list();
-    }
-
-    public Map<String, Object> get(
-        UUID id) {
-        user.requireOperationsRole();
-        return db.get(id);
     }
 
     @Transactional
     public Map<String, Object> create(
         CourseLinkRequest request) {
         user.requireOperationsRole();
+        UUID id = save(request).orElseThrow(() -> ApiException.conflict("This course link already exists"));
+        return db.get(id);
+    }
+
+    @Transactional
+    public int addDiscovered(
+        List<CourseLinkRequest> requests) {
+        user.requireStaffOrOperationsRole();
+        int added = 0;
+        for (CourseLinkRequest request : requests) {
+            if (save(request).isPresent())
+                added++;
+        }
+        return added;
+    }
+
+    private java.util.Optional<UUID> save(
+        CourseLinkRequest request) {
         CourseLink link = CourseLink.parse(request.url());
         String title = RagCourseSupport.text(request.title(), "title", 255);
         String description = RagCourseSupport.text(request.description(), "description", 12000);
@@ -78,9 +90,9 @@ public class RagCourseService {
         fields.put("language", language);
         fields.put("is_free", request.isFree());
         fields.put("created_by_user_id", user.id());
-        UUID id = db.create(fields).orElseThrow(() -> ApiException.conflict("This course link already exists"));
-        db.audit(user.id(), "CREATE_RAG_COURSE", id);
-        return db.get(id);
+        var id = db.create(fields);
+        id.ifPresent(value -> db.audit(user.id(), "CREATE_RAG_COURSE", value));
+        return id;
     }
 
     @Transactional

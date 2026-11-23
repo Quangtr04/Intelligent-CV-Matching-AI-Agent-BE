@@ -112,11 +112,6 @@ public class ProfileRepository {
         );
     }
 
-    public int updateCareerProfileEmbeddingsByUserId(
-        Object... args) {
-        return db.update("UPDATE career_profile_embeddings SET is_current=false WHERE user_id=?", args);
-    }
-
     public int updateRoadmapsByUserId(
         Object... args) {
         return db.update("UPDATE roadmaps SET is_outdated=true,updated_at=now() WHERE user_id=?", args);

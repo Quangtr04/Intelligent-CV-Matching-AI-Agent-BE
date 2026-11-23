@@ -1,0 +1,4010 @@
+{
+  "rubricVersion": "edunexus-fe-be-mobile-v1",
+  "catalogVersion": "edunexus-curated-1",
+  "description": "Skill-only rubrics for FE, BE and Mobile; groups are organizational categories, not assessed skills.",
+  "defaultRubric": {
+    "id": "universal",
+    "domain": "GENERAL",
+    "name": "Universal",
+    "levels": [
+      {
+        "level": 0,
+        "label": "No Experience",
+        "description": "Has explicitly never used the skill or is expected to start without it.",
+        "indicators": [
+          "No prior experience with the skill, explicitly stated"
+        ]
+      },
+      {
+        "level": 1,
+        "label": "Basic",
+        "description": "Understands fundamentals and performs simple tasks with guidance.",
+        "indicators": [
+          "Follow a documented procedure or complete a guided task"
+        ]
+      },
+      {
+        "level": 2,
+        "label": "Intermediate",
+        "description": "Handles routine work independently and resolves common problems.",
+        "indicators": [
+          "Own standard tasks and diagnose familiar issues independently"
+        ]
+      },
+      {
+        "level": 3,
+        "label": "Advanced",
+        "description": "Solves complex problems, optimizes solutions and coaches others.",
+        "indicators": [
+          "Resolve cross-component issues, optimize an existing solution or mentor peers"
+        ]
+      },
+      {
+        "level": 4,
+        "label": "Expert",
+        "description": "Resolves exceptional problems and sets professional direction and standards.",
+        "indicators": [
+          "Define organization-wide standards or lead strategy for unusually complex work"
+        ]
+      }
+    ]
+  },
+  "skillGroups": {
+    "FRONTEND": [
+      "html",
+      "css",
+      "javascript",
+      "typescript",
+      "react",
+      "angular",
+      "vuejs",
+      "next-js",
+      "nuxt-js",
+      "svelte",
+      "sveltekit",
+      "astro",
+      "tailwind-css",
+      "bootstrap",
+      "sass",
+      "redux",
+      "zustand",
+      "vite",
+      "webpack",
+      "babel",
+      "responsive-design",
+      "web-accessibility",
+      "web-performance",
+      "web-components",
+      "progressive-web-apps"
+    ],
+    "BACKEND": [
+      "java",
+      "spring",
+      "spring-boot",
+      "nodejs",
+      "express-js",
+      "nestjs",
+      "python",
+      "django",
+      "fastapi",
+      "flask",
+      "php",
+      "laravel",
+      "csharp",
+      "dotnet",
+      "asp-net",
+      "go",
+      "kotlin",
+      "ruby",
+      "ruby-on-rails",
+      "rest-api",
+      "api-design",
+      "graphql",
+      "grpc",
+      "jwt",
+      "oauth-2-0",
+      "sql",
+      "mysql",
+      "postgresql",
+      "mongodb",
+      "redis",
+      "database-design",
+      "database-indexing",
+      "query-optimization",
+      "microservices",
+      "docker",
+      "git",
+      "git-hub",
+      "gitlab"
+    ],
+    "MOBILE": [
+      "dart",
+      "flutter",
+      "kotlin",
+      "java",
+      "android",
+      "android-sdk",
+      "jetpack-compose",
+      "swift",
+      "ios",
+      "swiftui",
+      "react-native",
+      "expo",
+      "ionic",
+      "firebase",
+      "mobile-accessibility",
+      "xcode"
+    ]
+  },
+  "skillRubrics": {
+    "html": {
+      "skillId": "html",
+      "skillName": "HTML",
+      "catalogDomain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "No prior proficiency is explicitly required or demonstrated; do not use this level for missing JD evidence.",
+          "indicators": [
+            "Explicitly states no prior experience is required"
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Build basic semantic page structure with guidance.",
+          "indicators": [
+            "Build basic semantic page structure with guidance"
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Independently implement accessible semantic page structures and forms.",
+          "indicators": [
+            "Independently implement accessible semantic page structures and forms"
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Resolve complex semantic/accessibility issues across templates and establish reusable markup patterns.",
+          "indicators": [
+            "Resolve complex semantic/accessibility issues across templates and establish reusable markup patterns"
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Define organization-wide HTML semantics and accessibility standards across applications.",
+          "indicators": [
+            "Define organization-wide HTML semantics and accessibility standards across applications"
+          ]
+        }
+      ],
+      "rubricSpecificity": "SKILL_SPECIFIC",
+      "reviewStatus": "DRAFT"
+    },
+    "css": {
+      "skillId": "css",
+      "skillName": "CSS",
+      "catalogDomain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "No prior proficiency is explicitly required or demonstrated; do not use this level for missing JD evidence.",
+          "indicators": [
+            "Explicitly states no prior experience is required"
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Apply basic selectors and styling with guidance.",
+          "indicators": [
+            "Apply basic selectors and styling with guidance"
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Independently implement responsive layouts using Flexbox/Grid.",
+          "indicators": [
+            "Independently implement responsive layouts using Flexbox/Grid"
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Diagnose complex layout, specificity and rendering issues; optimize maintainable styles.",
+          "indicators": [
+            "Diagnose complex layout, specificity and rendering issues; optimize maintainable styles"
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Define scalable styling architecture, design tokens and cross-product CSS standards.",
+          "indicators": [
+            "Define scalable styling architecture, design tokens and cross-product CSS standards"
+          ]
+        }
+      ],
+      "rubricSpecificity": "SKILL_SPECIFIC",
+      "reviewStatus": "DRAFT"
+    },
+    "javascript": {
+      "skillId": "javascript",
+      "skillName": "JavaScript",
+      "catalogDomain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "No prior proficiency is explicitly required or demonstrated; do not use this level for missing JD evidence.",
+          "indicators": [
+            "Explicitly states no prior experience is required"
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Write simple functions and DOM interactions with guidance.",
+          "indicators": [
+            "Write simple functions and DOM interactions with guidance"
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Independently implement asynchronous UI/business logic and debug routine issues.",
+          "indicators": [
+            "Independently implement asynchronous UI/business logic and debug routine issues"
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Diagnose complex asynchronous behavior and performance bottlenecks; design maintainable modules.",
+          "indicators": [
+            "Diagnose complex asynchronous behavior and performance bottlenecks; design maintainable modules"
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Set JavaScript architecture, runtime performance and code quality standards across teams.",
+          "indicators": [
+            "Set JavaScript architecture, runtime performance and code quality standards across teams"
+          ]
+        }
+      ],
+      "rubricSpecificity": "SKILL_SPECIFIC",
+      "reviewStatus": "DRAFT"
+    },
+    "typescript": {
+      "skillId": "typescript",
+      "skillName": "TypeScript",
+      "catalogDomain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "No prior proficiency is explicitly required or demonstrated; do not use this level for missing JD evidence.",
+          "indicators": [
+            "Explicitly states no prior experience is required"
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Add basic type annotations and use interfaces with guidance.",
+          "indicators": [
+            "Add basic type annotations and use interfaces with guidance"
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Model application types, generics and safe API contracts independently.",
+          "indicators": [
+            "Model application types, generics and safe API contracts independently"
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Design complex type-safe abstractions and resolve difficult inference/integration issues.",
+          "indicators": [
+            "Design complex type-safe abstractions and resolve difficult inference/integration issues"
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Define organization-wide type architecture and migration standards for large codebases.",
+          "indicators": [
+            "Define organization-wide type architecture and migration standards for large codebases"
+          ]
+        }
+      ],
+      "rubricSpecificity": "SKILL_SPECIFIC",
+      "reviewStatus": "DRAFT"
+    },
+    "react": {
+      "skillId": "react",
+      "skillName": "React",
+      "catalogDomain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "No prior proficiency is explicitly required or demonstrated; do not use this level for missing JD evidence.",
+          "indicators": [
+            "Explicitly states no prior experience is required"
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Create simple components and pass props with guidance.",
+          "indicators": [
+            "Create simple components and pass props with guidance"
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Build features using hooks, state and component composition independently.",
+          "indicators": [
+            "Build features using hooks, state and component composition independently"
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Resolve complex rendering/state issues and optimize React application performance.",
+          "indicators": [
+            "Resolve complex rendering/state issues and optimize React application performance"
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Define large-scale React architecture, reusable patterns and engineering standards.",
+          "indicators": [
+            "Define large-scale React architecture, reusable patterns and engineering standards"
+          ]
+        }
+      ],
+      "rubricSpecificity": "SKILL_SPECIFIC",
+      "reviewStatus": "DRAFT"
+    },
+    "angular": {
+      "skillId": "angular",
+      "skillName": "Angular",
+      "catalogDomain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "No prior proficiency is explicitly required or demonstrated; do not use this level for missing JD evidence.",
+          "indicators": [
+            "Explicitly states no prior experience is required"
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Build simple components and templates with guidance.",
+          "indicators": [
+            "Build simple components and templates with guidance"
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Implement features with services, routing, forms and RxJS independently.",
+          "indicators": [
+            "Implement features with services, routing, forms and RxJS independently"
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Resolve complex change detection, state and performance issues.",
+          "indicators": [
+            "Resolve complex change detection, state and performance issues"
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Define enterprise Angular architecture and cross-team standards.",
+          "indicators": [
+            "Define enterprise Angular architecture and cross-team standards"
+          ]
+        }
+      ],
+      "rubricSpecificity": "SKILL_SPECIFIC",
+      "reviewStatus": "DRAFT"
+    },
+    "vuejs": {
+      "skillId": "vuejs",
+      "skillName": "Vue.js",
+      "catalogDomain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "No prior proficiency is explicitly required or demonstrated; do not use this level for missing JD evidence.",
+          "indicators": [
+            "Explicitly states no prior experience is required"
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Create basic components and bindings with guidance.",
+          "indicators": [
+            "Create basic components and bindings with guidance"
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Implement features using composition APIs, routing and state management.",
+          "indicators": [
+            "Implement features using composition APIs, routing and state management"
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Resolve complex reactivity and rendering issues; optimize large Vue applications.",
+          "indicators": [
+            "Resolve complex reactivity and rendering issues; optimize large Vue applications"
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Define Vue application architecture and cross-team engineering standards.",
+          "indicators": [
+            "Define Vue application architecture and cross-team engineering standards"
+          ]
+        }
+      ],
+      "rubricSpecificity": "SKILL_SPECIFIC",
+      "reviewStatus": "DRAFT"
+    },
+    "next-js": {
+      "skillId": "next-js",
+      "skillName": "Next.js",
+      "catalogDomain": "FRONTEND",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "No prior proficiency is explicitly required or demonstrated; do not use this level for missing JD evidence.",
+          "indicators": [
+            "Explicitly states no prior experience is required"
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Build basic routes and pages with guidance.",
+          "indicators": [
+            "Build basic routes and pages with guidance"
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Implement data fetching, routing and rendering features independently.",
+          "indicators": [
+            "Implement data fetching, routing and rendering features independently"
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Optimize caching, server/client boundaries and complex rendering behavior.",
+          "indicators": [
+            "Optimize caching, server/client boundaries and complex rendering behavior"
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Define Next.js architecture, deployment and performance standards across products.",
+          "indicators": [
+            "Define Next.js architecture, deployment and performance standards across products"
+          ]
+        }
+      ],
+      "rubricSpecificity": "SKILL_SPECIFIC",
+      "reviewStatus": "DRAFT"
+    },
+    "nuxt-js": {
+      "skillId": "nuxt-js",
+      "skillName": "Nuxt.js",
+      "catalogDomain": "FRONTEND",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with Nuxt.js is required.",
+          "indicators": [
+            "Explicitly no prior experience with Nuxt.js is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of Nuxt.js and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of Nuxt.js and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use Nuxt.js independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use Nuxt.js independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply Nuxt.js to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply Nuxt.js to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving Nuxt.js, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving Nuxt.js, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "svelte": {
+      "skillId": "svelte",
+      "skillName": "Svelte",
+      "catalogDomain": "FRONTEND",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with Svelte is required.",
+          "indicators": [
+            "Explicitly no prior experience with Svelte is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of Svelte and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of Svelte and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use Svelte independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use Svelte independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply Svelte to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply Svelte to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving Svelte, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving Svelte, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "sveltekit": {
+      "skillId": "sveltekit",
+      "skillName": "SvelteKit",
+      "catalogDomain": "FRONTEND",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with SvelteKit is required.",
+          "indicators": [
+            "Explicitly no prior experience with SvelteKit is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of SvelteKit and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of SvelteKit and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use SvelteKit independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use SvelteKit independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply SvelteKit to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply SvelteKit to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving SvelteKit, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving SvelteKit, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "astro": {
+      "skillId": "astro",
+      "skillName": "Astro",
+      "catalogDomain": "FRONTEND",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with Astro is required.",
+          "indicators": [
+            "Explicitly no prior experience with Astro is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of Astro and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of Astro and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use Astro independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use Astro independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply Astro to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply Astro to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving Astro, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving Astro, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "tailwind-css": {
+      "skillId": "tailwind-css",
+      "skillName": "Tailwind CSS",
+      "catalogDomain": "FRONTEND",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "No prior proficiency is explicitly required or demonstrated; do not use this level for missing JD evidence.",
+          "indicators": [
+            "Explicitly states no prior experience is required"
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Apply utility classes to simple components with guidance.",
+          "indicators": [
+            "Apply utility classes to simple components with guidance"
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Build consistent responsive interfaces and reusable component styles independently.",
+          "indicators": [
+            "Build consistent responsive interfaces and reusable component styles independently"
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Resolve complex utility composition and design-system consistency issues.",
+          "indicators": [
+            "Resolve complex utility composition and design-system consistency issues"
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Define scalable Tailwind design tokens, conventions and adoption standards.",
+          "indicators": [
+            "Define scalable Tailwind design tokens, conventions and adoption standards"
+          ]
+        }
+      ],
+      "rubricSpecificity": "SKILL_SPECIFIC",
+      "reviewStatus": "DRAFT"
+    },
+    "bootstrap": {
+      "skillId": "bootstrap",
+      "skillName": "Bootstrap",
+      "catalogDomain": "FRONTEND",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with Bootstrap is required.",
+          "indicators": [
+            "Explicitly no prior experience with Bootstrap is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of Bootstrap and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of Bootstrap and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use Bootstrap independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use Bootstrap independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply Bootstrap to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply Bootstrap to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving Bootstrap, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving Bootstrap, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "sass": {
+      "skillId": "sass",
+      "skillName": "Sass",
+      "catalogDomain": "FRONTEND",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with Sass is required.",
+          "indicators": [
+            "Explicitly no prior experience with Sass is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of Sass and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of Sass and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use Sass independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use Sass independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply Sass to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply Sass to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving Sass, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving Sass, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "redux": {
+      "skillId": "redux",
+      "skillName": "Redux",
+      "catalogDomain": "FRONTEND",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with Redux is required.",
+          "indicators": [
+            "Explicitly no prior experience with Redux is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of Redux and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of Redux and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use Redux independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use Redux independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply Redux to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply Redux to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving Redux, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving Redux, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "zustand": {
+      "skillId": "zustand",
+      "skillName": "Zustand",
+      "catalogDomain": "FRONTEND",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with Zustand is required.",
+          "indicators": [
+            "Explicitly no prior experience with Zustand is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of Zustand and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of Zustand and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use Zustand independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use Zustand independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply Zustand to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply Zustand to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving Zustand, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving Zustand, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "vite": {
+      "skillId": "vite",
+      "skillName": "Vite",
+      "catalogDomain": "FRONTEND",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with Vite is required.",
+          "indicators": [
+            "Explicitly no prior experience with Vite is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of Vite and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of Vite and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use Vite independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use Vite independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply Vite to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply Vite to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving Vite, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving Vite, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "webpack": {
+      "skillId": "webpack",
+      "skillName": "Webpack",
+      "catalogDomain": "FRONTEND",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with Webpack is required.",
+          "indicators": [
+            "Explicitly no prior experience with Webpack is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of Webpack and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of Webpack and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use Webpack independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use Webpack independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply Webpack to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply Webpack to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving Webpack, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving Webpack, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "babel": {
+      "skillId": "babel",
+      "skillName": "Babel",
+      "catalogDomain": "FRONTEND",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with Babel is required.",
+          "indicators": [
+            "Explicitly no prior experience with Babel is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of Babel and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of Babel and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use Babel independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use Babel independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply Babel to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply Babel to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving Babel, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving Babel, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "responsive-design": {
+      "skillId": "responsive-design",
+      "skillName": "Responsive design",
+      "catalogDomain": "FRONTEND",
+      "type": "COMPETENCY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with Responsive design is required.",
+          "indicators": [
+            "Explicitly no prior experience with Responsive design is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of Responsive design and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of Responsive design and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use Responsive design independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use Responsive design independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply Responsive design to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply Responsive design to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving Responsive design, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving Responsive design, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "web-accessibility": {
+      "skillId": "web-accessibility",
+      "skillName": "Web accessibility",
+      "catalogDomain": "FRONTEND",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with Web accessibility is required.",
+          "indicators": [
+            "Explicitly no prior experience with Web accessibility is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of Web accessibility and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of Web accessibility and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use Web accessibility independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use Web accessibility independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply Web accessibility to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply Web accessibility to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving Web accessibility, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving Web accessibility, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "web-performance": {
+      "skillId": "web-performance",
+      "skillName": "Web performance",
+      "catalogDomain": "FRONTEND",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with Web performance is required.",
+          "indicators": [
+            "Explicitly no prior experience with Web performance is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of Web performance and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of Web performance and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use Web performance independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use Web performance independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply Web performance to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply Web performance to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving Web performance, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving Web performance, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "web-components": {
+      "skillId": "web-components",
+      "skillName": "Web Components",
+      "catalogDomain": "FRONTEND",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with Web Components is required.",
+          "indicators": [
+            "Explicitly no prior experience with Web Components is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of Web Components and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of Web Components and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use Web Components independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use Web Components independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply Web Components to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply Web Components to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving Web Components, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving Web Components, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "progressive-web-apps": {
+      "skillId": "progressive-web-apps",
+      "skillName": "Progressive web apps",
+      "catalogDomain": "FRONTEND",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with Progressive web apps is required.",
+          "indicators": [
+            "Explicitly no prior experience with Progressive web apps is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of Progressive web apps and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of Progressive web apps and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use Progressive web apps independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use Progressive web apps independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply Progressive web apps to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply Progressive web apps to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving Progressive web apps, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving Progressive web apps, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "java": {
+      "skillId": "java",
+      "skillName": "Java",
+      "catalogDomain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "No prior proficiency is explicitly required or demonstrated; do not use this level for missing JD evidence.",
+          "indicators": [
+            "Explicitly states no prior experience is required"
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Write simple classes and methods with guidance.",
+          "indicators": [
+            "Write simple classes and methods with guidance"
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Implement object-oriented features, collections and exception handling independently.",
+          "indicators": [
+            "Implement object-oriented features, collections and exception handling independently"
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Diagnose concurrency, memory and performance problems; design maintainable Java modules.",
+          "indicators": [
+            "Diagnose concurrency, memory and performance problems; design maintainable Java modules"
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Define JVM architecture, performance and code quality standards for complex systems.",
+          "indicators": [
+            "Define JVM architecture, performance and code quality standards for complex systems"
+          ]
+        }
+      ],
+      "rubricSpecificity": "SKILL_SPECIFIC",
+      "reviewStatus": "DRAFT"
+    },
+    "spring": {
+      "skillId": "spring",
+      "skillName": "Spring",
+      "catalogDomain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "No prior proficiency is explicitly required or demonstrated; do not use this level for missing JD evidence.",
+          "indicators": [
+            "Explicitly states no prior experience is required"
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Configure simple dependency injection and components with guidance.",
+          "indicators": [
+            "Configure simple dependency injection and components with guidance"
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Build and maintain Spring services using configuration and dependency injection independently.",
+          "indicators": [
+            "Build and maintain Spring services using configuration and dependency injection independently"
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Resolve complex transaction, lifecycle and integration issues.",
+          "indicators": [
+            "Resolve complex transaction, lifecycle and integration issues"
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Define Spring-based application architecture and cross-team engineering standards.",
+          "indicators": [
+            "Define Spring-based application architecture and cross-team engineering standards"
+          ]
+        }
+      ],
+      "rubricSpecificity": "SKILL_SPECIFIC",
+      "reviewStatus": "DRAFT"
+    },
+    "spring-boot": {
+      "skillId": "spring-boot",
+      "skillName": "Spring Boot",
+      "catalogDomain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "No prior proficiency is explicitly required or demonstrated; do not use this level for missing JD evidence.",
+          "indicators": [
+            "Explicitly states no prior experience is required"
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Create a basic REST endpoint with guidance.",
+          "indicators": [
+            "Create a basic REST endpoint with guidance"
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Build and test production-ready REST services with validation, persistence and configuration.",
+          "indicators": [
+            "Build and test production-ready REST services with validation, persistence and configuration"
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Resolve complex transaction, security and performance issues in Spring Boot services.",
+          "indicators": [
+            "Resolve complex transaction, security and performance issues in Spring Boot services"
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Define scalable Spring Boot service architecture, operational standards and shared platforms.",
+          "indicators": [
+            "Define scalable Spring Boot service architecture, operational standards and shared platforms"
+          ]
+        }
+      ],
+      "rubricSpecificity": "SKILL_SPECIFIC",
+      "reviewStatus": "DRAFT"
+    },
+    "nodejs": {
+      "skillId": "nodejs",
+      "skillName": "Node.js",
+      "catalogDomain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "No prior proficiency is explicitly required or demonstrated; do not use this level for missing JD evidence.",
+          "indicators": [
+            "Explicitly states no prior experience is required"
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Create a simple HTTP service with guidance.",
+          "indicators": [
+            "Create a simple HTTP service with guidance"
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Build asynchronous backend services and handle common runtime errors independently.",
+          "indicators": [
+            "Build asynchronous backend services and handle common runtime errors independently"
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Diagnose event-loop, memory and throughput bottlenecks across services.",
+          "indicators": [
+            "Diagnose event-loop, memory and throughput bottlenecks across services"
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Define Node.js platform architecture, runtime reliability and engineering standards.",
+          "indicators": [
+            "Define Node.js platform architecture, runtime reliability and engineering standards"
+          ]
+        }
+      ],
+      "rubricSpecificity": "SKILL_SPECIFIC",
+      "reviewStatus": "DRAFT"
+    },
+    "express-js": {
+      "skillId": "express-js",
+      "skillName": "Express.js",
+      "catalogDomain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "No prior proficiency is explicitly required or demonstrated; do not use this level for missing JD evidence.",
+          "indicators": [
+            "Explicitly states no prior experience is required"
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Create simple routes and middleware with guidance.",
+          "indicators": [
+            "Create simple routes and middleware with guidance"
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Implement REST APIs with validation, errors and authentication independently.",
+          "indicators": [
+            "Implement REST APIs with validation, errors and authentication independently"
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Design complex middleware flows and resolve security/performance issues.",
+          "indicators": [
+            "Design complex middleware flows and resolve security/performance issues"
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Define Express service architecture, security and operational standards.",
+          "indicators": [
+            "Define Express service architecture, security and operational standards"
+          ]
+        }
+      ],
+      "rubricSpecificity": "SKILL_SPECIFIC",
+      "reviewStatus": "DRAFT"
+    },
+    "nestjs": {
+      "skillId": "nestjs",
+      "skillName": "NestJS",
+      "catalogDomain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "No prior proficiency is explicitly required or demonstrated; do not use this level for missing JD evidence.",
+          "indicators": [
+            "Explicitly states no prior experience is required"
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Create controllers and providers with guidance.",
+          "indicators": [
+            "Create controllers and providers with guidance"
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Implement modular APIs with DI, guards, validation and persistence independently.",
+          "indicators": [
+            "Implement modular APIs with DI, guards, validation and persistence independently"
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Design complex modules and resolve lifecycle, scaling and integration issues.",
+          "indicators": [
+            "Design complex modules and resolve lifecycle, scaling and integration issues"
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Define NestJS platform architecture and shared engineering standards.",
+          "indicators": [
+            "Define NestJS platform architecture and shared engineering standards"
+          ]
+        }
+      ],
+      "rubricSpecificity": "SKILL_SPECIFIC",
+      "reviewStatus": "DRAFT"
+    },
+    "python": {
+      "skillId": "python",
+      "skillName": "Python",
+      "catalogDomain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "No prior proficiency is explicitly required or demonstrated; do not use this level for missing JD evidence.",
+          "indicators": [
+            "Explicitly states no prior experience is required"
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Write simple scripts and functions with guidance.",
+          "indicators": [
+            "Write simple scripts and functions with guidance"
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Implement maintainable modules, data processing and tests independently.",
+          "indicators": [
+            "Implement maintainable modules, data processing and tests independently"
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Diagnose complex performance/concurrency issues and design robust Python services.",
+          "indicators": [
+            "Diagnose complex performance/concurrency issues and design robust Python services"
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Define Python platform architecture, quality and operational standards.",
+          "indicators": [
+            "Define Python platform architecture, quality and operational standards"
+          ]
+        }
+      ],
+      "rubricSpecificity": "SKILL_SPECIFIC",
+      "reviewStatus": "DRAFT"
+    },
+    "django": {
+      "skillId": "django",
+      "skillName": "Django",
+      "catalogDomain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "No prior proficiency is explicitly required or demonstrated; do not use this level for missing JD evidence.",
+          "indicators": [
+            "Explicitly states no prior experience is required"
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Build basic models and views with guidance.",
+          "indicators": [
+            "Build basic models and views with guidance"
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Implement secure CRUD features, ORM queries and tests independently.",
+          "indicators": [
+            "Implement secure CRUD features, ORM queries and tests independently"
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Optimize complex ORM queries and resolve scalability/security issues.",
+          "indicators": [
+            "Optimize complex ORM queries and resolve scalability/security issues"
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Define Django architecture and cross-team reliability and security standards.",
+          "indicators": [
+            "Define Django architecture and cross-team reliability and security standards"
+          ]
+        }
+      ],
+      "rubricSpecificity": "SKILL_SPECIFIC",
+      "reviewStatus": "DRAFT"
+    },
+    "fastapi": {
+      "skillId": "fastapi",
+      "skillName": "FastAPI",
+      "catalogDomain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with FastAPI is required.",
+          "indicators": [
+            "Explicitly no prior experience with FastAPI is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of FastAPI and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of FastAPI and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use FastAPI independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use FastAPI independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply FastAPI to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply FastAPI to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving FastAPI, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving FastAPI, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "flask": {
+      "skillId": "flask",
+      "skillName": "Flask",
+      "catalogDomain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with Flask is required.",
+          "indicators": [
+            "Explicitly no prior experience with Flask is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of Flask and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of Flask and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use Flask independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use Flask independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply Flask to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply Flask to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving Flask, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving Flask, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "php": {
+      "skillId": "php",
+      "skillName": "PHP",
+      "catalogDomain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "No prior proficiency is explicitly required or demonstrated; do not use this level for missing JD evidence.",
+          "indicators": [
+            "Explicitly states no prior experience is required"
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Write simple server-side functions with guidance.",
+          "indicators": [
+            "Write simple server-side functions with guidance"
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Implement request handling, database access and tests independently.",
+          "indicators": [
+            "Implement request handling, database access and tests independently"
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Resolve complex performance, security and maintainability issues.",
+          "indicators": [
+            "Resolve complex performance, security and maintainability issues"
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Define PHP application architecture and engineering standards.",
+          "indicators": [
+            "Define PHP application architecture and engineering standards"
+          ]
+        }
+      ],
+      "rubricSpecificity": "SKILL_SPECIFIC",
+      "reviewStatus": "DRAFT"
+    },
+    "laravel": {
+      "skillId": "laravel",
+      "skillName": "Laravel",
+      "catalogDomain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "No prior proficiency is explicitly required or demonstrated; do not use this level for missing JD evidence.",
+          "indicators": [
+            "Explicitly states no prior experience is required"
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Build simple routes and controllers with guidance.",
+          "indicators": [
+            "Build simple routes and controllers with guidance"
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Implement Eloquent models, validation, queues and tests independently.",
+          "indicators": [
+            "Implement Eloquent models, validation, queues and tests independently"
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Optimize complex database access and resolve queue/security/scaling issues.",
+          "indicators": [
+            "Optimize complex database access and resolve queue/security/scaling issues"
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Define Laravel service architecture and organization-wide practices.",
+          "indicators": [
+            "Define Laravel service architecture and organization-wide practices"
+          ]
+        }
+      ],
+      "rubricSpecificity": "SKILL_SPECIFIC",
+      "reviewStatus": "DRAFT"
+    },
+    "csharp": {
+      "skillId": "csharp",
+      "skillName": "C#",
+      "catalogDomain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with C# is required.",
+          "indicators": [
+            "Explicitly no prior experience with C# is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of C# and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of C# and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use C# independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use C# independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply C# to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply C# to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving C#, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving C#, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "dotnet": {
+      "skillId": "dotnet",
+      "skillName": ".NET",
+      "catalogDomain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with .NET is required.",
+          "indicators": [
+            "Explicitly no prior experience with .NET is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of .NET and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of .NET and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use .NET independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use .NET independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply .NET to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply .NET to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving .NET, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving .NET, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "asp-net": {
+      "skillId": "asp-net",
+      "skillName": "ASP.NET",
+      "catalogDomain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with ASP.NET is required.",
+          "indicators": [
+            "Explicitly no prior experience with ASP.NET is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of ASP.NET and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of ASP.NET and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use ASP.NET independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use ASP.NET independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply ASP.NET to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply ASP.NET to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving ASP.NET, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving ASP.NET, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "go": {
+      "skillId": "go",
+      "skillName": "Go",
+      "catalogDomain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with Go is required.",
+          "indicators": [
+            "Explicitly no prior experience with Go is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of Go and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of Go and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use Go independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use Go independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply Go to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply Go to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving Go, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving Go, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "kotlin": {
+      "skillId": "kotlin",
+      "skillName": "Kotlin",
+      "catalogDomain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with Kotlin is required.",
+          "indicators": [
+            "Explicitly no prior experience with Kotlin is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of Kotlin and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of Kotlin and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use Kotlin independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use Kotlin independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply Kotlin to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply Kotlin to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving Kotlin, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving Kotlin, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "ruby": {
+      "skillId": "ruby",
+      "skillName": "Ruby",
+      "catalogDomain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with Ruby is required.",
+          "indicators": [
+            "Explicitly no prior experience with Ruby is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of Ruby and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of Ruby and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use Ruby independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use Ruby independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply Ruby to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply Ruby to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving Ruby, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving Ruby, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "ruby-on-rails": {
+      "skillId": "ruby-on-rails",
+      "skillName": "Ruby on Rails",
+      "catalogDomain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with Ruby on Rails is required.",
+          "indicators": [
+            "Explicitly no prior experience with Ruby on Rails is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of Ruby on Rails and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of Ruby on Rails and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use Ruby on Rails independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use Ruby on Rails independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply Ruby on Rails to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply Ruby on Rails to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving Ruby on Rails, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving Ruby on Rails, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "rest-api": {
+      "skillId": "rest-api",
+      "skillName": "REST API",
+      "catalogDomain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with REST API is required.",
+          "indicators": [
+            "Explicitly no prior experience with REST API is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of REST API and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of REST API and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use REST API independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use REST API independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply REST API to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply REST API to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving REST API, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving REST API, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "api-design": {
+      "skillId": "api-design",
+      "skillName": "API design",
+      "catalogDomain": "BACKEND",
+      "type": "COMPETENCY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "No prior proficiency is explicitly required or demonstrated; do not use this level for missing JD evidence.",
+          "indicators": [
+            "Explicitly states no prior experience is required"
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Document a simple endpoint with guidance.",
+          "indicators": [
+            "Document a simple endpoint with guidance"
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Design consistent REST contracts, validation and error responses independently.",
+          "indicators": [
+            "Design consistent REST contracts, validation and error responses independently"
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Resolve complex versioning, compatibility and cross-service API tradeoffs.",
+          "indicators": [
+            "Resolve complex versioning, compatibility and cross-service API tradeoffs"
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Define organization-wide API governance, design and evolution standards.",
+          "indicators": [
+            "Define organization-wide API governance, design and evolution standards"
+          ]
+        }
+      ],
+      "rubricSpecificity": "SKILL_SPECIFIC",
+      "reviewStatus": "DRAFT"
+    },
+    "graphql": {
+      "skillId": "graphql",
+      "skillName": "GraphQL",
+      "catalogDomain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with GraphQL is required.",
+          "indicators": [
+            "Explicitly no prior experience with GraphQL is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of GraphQL and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of GraphQL and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use GraphQL independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use GraphQL independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply GraphQL to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply GraphQL to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving GraphQL, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving GraphQL, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "grpc": {
+      "skillId": "grpc",
+      "skillName": "gRPC",
+      "catalogDomain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with gRPC is required.",
+          "indicators": [
+            "Explicitly no prior experience with gRPC is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of gRPC and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of gRPC and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use gRPC independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use gRPC independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply gRPC to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply gRPC to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving gRPC, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving gRPC, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "jwt": {
+      "skillId": "jwt",
+      "skillName": "JWT",
+      "catalogDomain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with JWT is required.",
+          "indicators": [
+            "Explicitly no prior experience with JWT is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of JWT and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of JWT and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use JWT independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use JWT independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply JWT to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply JWT to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving JWT, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving JWT, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "oauth-2-0": {
+      "skillId": "oauth-2-0",
+      "skillName": "OAuth 2.0",
+      "catalogDomain": "BACKEND",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with OAuth 2.0 is required.",
+          "indicators": [
+            "Explicitly no prior experience with OAuth 2.0 is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of OAuth 2.0 and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of OAuth 2.0 and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use OAuth 2.0 independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use OAuth 2.0 independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply OAuth 2.0 to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply OAuth 2.0 to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving OAuth 2.0, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving OAuth 2.0, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "sql": {
+      "skillId": "sql",
+      "skillName": "SQL",
+      "catalogDomain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "No prior proficiency is explicitly required or demonstrated; do not use this level for missing JD evidence.",
+          "indicators": [
+            "Explicitly states no prior experience is required"
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Write basic SELECT and filtering queries with guidance.",
+          "indicators": [
+            "Write basic SELECT and filtering queries with guidance"
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Independently write joins, aggregations and standard data modifications.",
+          "indicators": [
+            "Independently write joins, aggregations and standard data modifications"
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Optimize complex queries using execution plans, indexing and transaction reasoning.",
+          "indicators": [
+            "Optimize complex queries using execution plans, indexing and transaction reasoning"
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Define database query standards and guide high-impact data architecture decisions.",
+          "indicators": [
+            "Define database query standards and guide high-impact data architecture decisions"
+          ]
+        }
+      ],
+      "rubricSpecificity": "SKILL_SPECIFIC",
+      "reviewStatus": "DRAFT"
+    },
+    "mysql": {
+      "skillId": "mysql",
+      "skillName": "MySQL",
+      "catalogDomain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "No prior proficiency is explicitly required or demonstrated; do not use this level for missing JD evidence.",
+          "indicators": [
+            "Explicitly states no prior experience is required"
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Create basic tables and queries with guidance.",
+          "indicators": [
+            "Create basic tables and queries with guidance"
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Maintain schemas, indexes and transactions for routine applications independently.",
+          "indicators": [
+            "Maintain schemas, indexes and transactions for routine applications independently"
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Diagnose complex query, locking and replication performance issues.",
+          "indicators": [
+            "Diagnose complex query, locking and replication performance issues"
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Define MySQL reliability, scaling and data architecture standards.",
+          "indicators": [
+            "Define MySQL reliability, scaling and data architecture standards"
+          ]
+        }
+      ],
+      "rubricSpecificity": "SKILL_SPECIFIC",
+      "reviewStatus": "DRAFT"
+    },
+    "postgresql": {
+      "skillId": "postgresql",
+      "skillName": "PostgreSQL",
+      "catalogDomain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "No prior proficiency is explicitly required or demonstrated; do not use this level for missing JD evidence.",
+          "indicators": [
+            "Explicitly states no prior experience is required"
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Create basic tables and queries with guidance.",
+          "indicators": [
+            "Create basic tables and queries with guidance"
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Implement schema changes, indexes and transactions independently.",
+          "indicators": [
+            "Implement schema changes, indexes and transactions independently"
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Diagnose complex query plans, locking and performance problems.",
+          "indicators": [
+            "Diagnose complex query plans, locking and performance problems"
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Define PostgreSQL architecture, reliability and scaling standards.",
+          "indicators": [
+            "Define PostgreSQL architecture, reliability and scaling standards"
+          ]
+        }
+      ],
+      "rubricSpecificity": "SKILL_SPECIFIC",
+      "reviewStatus": "DRAFT"
+    },
+    "mongodb": {
+      "skillId": "mongodb",
+      "skillName": "MongoDB",
+      "catalogDomain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with MongoDB is required.",
+          "indicators": [
+            "Explicitly no prior experience with MongoDB is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of MongoDB and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of MongoDB and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use MongoDB independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use MongoDB independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply MongoDB to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply MongoDB to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving MongoDB, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving MongoDB, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "redis": {
+      "skillId": "redis",
+      "skillName": "Redis",
+      "catalogDomain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with Redis is required.",
+          "indicators": [
+            "Explicitly no prior experience with Redis is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of Redis and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of Redis and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use Redis independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use Redis independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply Redis to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply Redis to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving Redis, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving Redis, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "database-design": {
+      "skillId": "database-design",
+      "skillName": "Database design",
+      "catalogDomain": "BACKEND",
+      "type": "KNOWLEDGE",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with Database design is required.",
+          "indicators": [
+            "Explicitly no prior experience with Database design is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of Database design and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of Database design and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use Database design independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use Database design independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply Database design to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply Database design to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving Database design, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving Database design, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "database-indexing": {
+      "skillId": "database-indexing",
+      "skillName": "Database indexing",
+      "catalogDomain": "BACKEND",
+      "type": "KNOWLEDGE",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with Database indexing is required.",
+          "indicators": [
+            "Explicitly no prior experience with Database indexing is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of Database indexing and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of Database indexing and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use Database indexing independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use Database indexing independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply Database indexing to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply Database indexing to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving Database indexing, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving Database indexing, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "query-optimization": {
+      "skillId": "query-optimization",
+      "skillName": "Query optimization",
+      "catalogDomain": "BACKEND",
+      "type": "COMPETENCY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with Query optimization is required.",
+          "indicators": [
+            "Explicitly no prior experience with Query optimization is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of Query optimization and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of Query optimization and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use Query optimization independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use Query optimization independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply Query optimization to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply Query optimization to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving Query optimization, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving Query optimization, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "microservices": {
+      "skillId": "microservices",
+      "skillName": "Microservices",
+      "catalogDomain": "BACKEND",
+      "type": "KNOWLEDGE",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with Microservices is required.",
+          "indicators": [
+            "Explicitly no prior experience with Microservices is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of Microservices and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of Microservices and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use Microservices independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use Microservices independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply Microservices to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply Microservices to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving Microservices, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving Microservices, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "docker": {
+      "skillId": "docker",
+      "skillName": "Docker",
+      "catalogDomain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "No prior proficiency is explicitly required or demonstrated; do not use this level for missing JD evidence.",
+          "indicators": [
+            "Explicitly states no prior experience is required"
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Build and run basic container images with guidance.",
+          "indicators": [
+            "Build and run basic container images with guidance"
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Write Dockerfiles, manage images and troubleshoot routine container issues independently.",
+          "indicators": [
+            "Write Dockerfiles, manage images and troubleshoot routine container issues independently"
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Optimize multi-stage builds, security and complex runtime/network issues.",
+          "indicators": [
+            "Optimize multi-stage builds, security and complex runtime/network issues"
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Define container platform security, image and delivery standards across teams.",
+          "indicators": [
+            "Define container platform security, image and delivery standards across teams"
+          ]
+        }
+      ],
+      "rubricSpecificity": "SKILL_SPECIFIC",
+      "reviewStatus": "DRAFT"
+    },
+    "git": {
+      "skillId": "git",
+      "skillName": "Git",
+      "catalogDomain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "No prior proficiency is explicitly required or demonstrated; do not use this level for missing JD evidence.",
+          "indicators": [
+            "Explicitly states no prior experience is required"
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Commit changes and create branches with guidance.",
+          "indicators": [
+            "Commit changes and create branches with guidance"
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Manage feature branches, pull requests and routine merge conflicts independently.",
+          "indicators": [
+            "Manage feature branches, pull requests and routine merge conflicts independently"
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Resolve complex history/rebase conflicts and design collaboration workflows.",
+          "indicators": [
+            "Resolve complex history/rebase conflicts and design collaboration workflows"
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Define repository governance, branching and release standards across teams.",
+          "indicators": [
+            "Define repository governance, branching and release standards across teams"
+          ]
+        }
+      ],
+      "rubricSpecificity": "SKILL_SPECIFIC",
+      "reviewStatus": "DRAFT"
+    },
+    "gitlab": {
+      "skillId": "gitlab",
+      "skillName": "GitLab",
+      "catalogDomain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "No prior proficiency is explicitly required or demonstrated; do not use this level for missing JD evidence.",
+          "indicators": [
+            "Explicitly states no prior experience is required"
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Commit changes and create branches with guidance.",
+          "indicators": [
+            "Commit changes and create branches with guidance"
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Manage feature branches, pull requests and routine merge conflicts independently.",
+          "indicators": [
+            "Manage feature branches, pull requests and routine merge conflicts independently"
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Resolve complex history/rebase conflicts and design collaboration workflows.",
+          "indicators": [
+            "Resolve complex history/rebase conflicts and design collaboration workflows"
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Define repository governance, branching and release standards across teams.",
+          "indicators": [
+            "Define repository governance, branching and release standards across teams"
+          ]
+        }
+      ],
+      "rubricSpecificity": "SKILL_SPECIFIC",
+      "reviewStatus": "DRAFT"
+    },
+    "git-hub": {
+      "skillId": "git-hub",
+      "skillName": "Git Hub",
+      "catalogDomain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "No prior proficiency is explicitly required or demonstrated; do not use this level for missing JD evidence.",
+          "indicators": [
+            "Explicitly states no prior experience is required"
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Commit changes and create branches with guidance.",
+          "indicators": [
+            "Commit changes and create branches with guidance"
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Manage feature branches, pull requests and routine merge conflicts independently.",
+          "indicators": [
+            "Manage feature branches, pull requests and routine merge conflicts independently"
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Resolve complex history/rebase conflicts and design collaboration workflows.",
+          "indicators": [
+            "Resolve complex history/rebase conflicts and design collaboration workflows"
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Define repository governance, branching and release standards across teams.",
+          "indicators": [
+            "Define repository governance, branching and release standards across teams"
+          ]
+        }
+      ],
+      "rubricSpecificity": "SKILL_SPECIFIC",
+      "reviewStatus": "DRAFT"
+    },
+    "dart": {
+      "skillId": "dart",
+      "skillName": "Dart",
+      "catalogDomain": "MOBILE",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with Dart is required.",
+          "indicators": [
+            "Explicitly no prior experience with Dart is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of Dart and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of Dart and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use Dart independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use Dart independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply Dart to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply Dart to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving Dart, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving Dart, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "flutter": {
+      "skillId": "flutter",
+      "skillName": "Flutter",
+      "catalogDomain": "MOBILE",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with Flutter is required.",
+          "indicators": [
+            "Explicitly no prior experience with Flutter is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of Flutter and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of Flutter and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use Flutter independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use Flutter independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply Flutter to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply Flutter to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving Flutter, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving Flutter, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "android": {
+      "skillId": "android",
+      "skillName": "Android",
+      "catalogDomain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with Android is required.",
+          "indicators": [
+            "Explicitly no prior experience with Android is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of Android and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of Android and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use Android independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use Android independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply Android to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply Android to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving Android, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving Android, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "android-sdk": {
+      "skillId": "android-sdk",
+      "skillName": "Android SDK",
+      "catalogDomain": "MOBILE",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with Android SDK is required.",
+          "indicators": [
+            "Explicitly no prior experience with Android SDK is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of Android SDK and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of Android SDK and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use Android SDK independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use Android SDK independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply Android SDK to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply Android SDK to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving Android SDK, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving Android SDK, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "jetpack-compose": {
+      "skillId": "jetpack-compose",
+      "skillName": "Jetpack Compose",
+      "catalogDomain": "MOBILE",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with Jetpack Compose is required.",
+          "indicators": [
+            "Explicitly no prior experience with Jetpack Compose is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of Jetpack Compose and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of Jetpack Compose and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use Jetpack Compose independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use Jetpack Compose independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply Jetpack Compose to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply Jetpack Compose to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving Jetpack Compose, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving Jetpack Compose, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "swift": {
+      "skillId": "swift",
+      "skillName": "Swift",
+      "catalogDomain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with Swift is required.",
+          "indicators": [
+            "Explicitly no prior experience with Swift is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of Swift and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of Swift and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use Swift independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use Swift independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply Swift to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply Swift to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving Swift, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving Swift, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "ios": {
+      "skillId": "ios",
+      "skillName": "iOS",
+      "catalogDomain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with iOS is required.",
+          "indicators": [
+            "Explicitly no prior experience with iOS is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of iOS and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of iOS and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use iOS independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use iOS independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply iOS to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply iOS to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving iOS, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving iOS, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "swiftui": {
+      "skillId": "swiftui",
+      "skillName": "SwiftUI",
+      "catalogDomain": "MOBILE",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with SwiftUI is required.",
+          "indicators": [
+            "Explicitly no prior experience with SwiftUI is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of SwiftUI and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of SwiftUI and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use SwiftUI independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use SwiftUI independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply SwiftUI to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply SwiftUI to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving SwiftUI, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving SwiftUI, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "react-native": {
+      "skillId": "react-native",
+      "skillName": "React Native",
+      "catalogDomain": "MOBILE",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with React Native is required.",
+          "indicators": [
+            "Explicitly no prior experience with React Native is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of React Native and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of React Native and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use React Native independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use React Native independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply React Native to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply React Native to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving React Native, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving React Native, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "expo": {
+      "skillId": "expo",
+      "skillName": "Expo",
+      "catalogDomain": "MOBILE",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with Expo is required.",
+          "indicators": [
+            "Explicitly no prior experience with Expo is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of Expo and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of Expo and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use Expo independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use Expo independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply Expo to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply Expo to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving Expo, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving Expo, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "ionic": {
+      "skillId": "ionic",
+      "skillName": "Ionic",
+      "catalogDomain": "MOBILE",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with Ionic is required.",
+          "indicators": [
+            "Explicitly no prior experience with Ionic is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of Ionic and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of Ionic and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use Ionic independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use Ionic independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply Ionic to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply Ionic to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving Ionic, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving Ionic, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "firebase": {
+      "skillId": "firebase",
+      "skillName": "Firebase",
+      "catalogDomain": "MOBILE",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with Firebase is required.",
+          "indicators": [
+            "Explicitly no prior experience with Firebase is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of Firebase and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of Firebase and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use Firebase independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use Firebase independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply Firebase to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply Firebase to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving Firebase, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving Firebase, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "mobile-accessibility": {
+      "skillId": "mobile-accessibility",
+      "skillName": "Mobile accessibility",
+      "catalogDomain": "MOBILE",
+      "type": "TECHNOLOGY",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with Mobile accessibility is required.",
+          "indicators": [
+            "Explicitly no prior experience with Mobile accessibility is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of Mobile accessibility and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of Mobile accessibility and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use Mobile accessibility independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use Mobile accessibility independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply Mobile accessibility to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply Mobile accessibility to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving Mobile accessibility, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving Mobile accessibility, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    },
+    "xcode": {
+      "skillId": "xcode",
+      "skillName": "Xcode",
+      "catalogDomain": "MOBILE",
+      "type": "TOOL",
+      "levels": [
+        {
+          "level": 0,
+          "label": "No Experience",
+          "description": "Explicitly no prior experience with Xcode is required.",
+          "indicators": [
+            "Explicitly no prior experience with Xcode is required."
+          ]
+        },
+        {
+          "level": 1,
+          "label": "Basic",
+          "description": "Understand fundamental concepts of Xcode and complete simple guided tasks.",
+          "indicators": [
+            "Understand fundamental concepts of Xcode and complete simple guided tasks."
+          ]
+        },
+        {
+          "level": 2,
+          "label": "Intermediate",
+          "description": "Use Xcode independently for standard production tasks and troubleshoot common issues.",
+          "indicators": [
+            "Use Xcode independently for standard production tasks and troubleshoot common issues."
+          ]
+        },
+        {
+          "level": 3,
+          "label": "Advanced",
+          "description": "Apply Xcode to complex scenarios, optimize outcomes, and resolve non-routine problems.",
+          "indicators": [
+            "Apply Xcode to complex scenarios, optimize outcomes, and resolve non-routine problems."
+          ]
+        },
+        {
+          "level": 4,
+          "label": "Expert",
+          "description": "Lead complex decisions involving Xcode, establish standards, and guide others.",
+          "indicators": [
+            "Lead complex decisions involving Xcode, establish standards, and guide others."
+          ]
+        }
+      ],
+      "rubricSpecificity": "GENERALIZED_SKILL_TEMPLATE",
+      "reviewStatus": "NEEDS_DOMAIN_EXPERT_REVIEW"
+    }
+  },
+  "assessmentRules": {
+    "lookupOrder": [
+      "skillRubrics[skill_id]",
+      "defaultRubric"
+    ],
+    "neverAssessGroupsAsSkills": true,
+    "requiredLevelRange": [
+      0,
+      4
+    ],
+    "insufficientEvidenceLevel": null,
+    "doNotInferFrom": [
+      "job title",
+      "years of experience",
+      "skill name alone"
+    ],
+    "skillIdMustExistInCatalog": true,
+    "rubricLevelIsNotBloomsLevel": true
+  }
+}

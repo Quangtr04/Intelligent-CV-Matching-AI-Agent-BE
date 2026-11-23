@@ -23,7 +23,10 @@ class ResumeSkillMatcherTests {
 
     @Test
     void usesTokenBoundariesInsteadOfInferringSkillsFromLongerNames() {
-        assertEquals(List.of("JavaScript"), ResumeSkillMatcher.find("JavaScript, GitHub, GitLab and MySQLConnector"));
+        assertEquals(
+            List.of("JavaScript", "GitHub", "GitLab"),
+            ResumeSkillMatcher.find("JavaScript, GitHub, GitLab and MySQLConnector")
+        );
     }
 
     @Test
