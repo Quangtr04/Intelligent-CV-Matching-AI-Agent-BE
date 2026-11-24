@@ -89,6 +89,32 @@ class EntitlementServiceTest {
     }
 
     @Test
+    void freeRoadmapRequiresPurchasedWalletTokens() {
+        var db = mock(EntitlementRepository.class);
+        UUID user = UUID.randomUUID();
+        UUID reservation = UUID.randomUUID();
+        when(db.getUsersByIdForUpdate(user)).thenReturn(Map.of("role", "CANDIDATE"));
+        when(db.findUserSubscriptionsByUserId(user)).thenReturn(Optional.empty());
+        when(db.findSubscriptionTiersByTierCode()).thenReturn(Optional.of(Map.of("tier_code", "FREE")));
+        var service = new EntitlementService(db);
+
+        assertEquals(402, assertThrows(ApiException.class, () -> service.requireRoadmapAccess(user)).status());
+        assertEquals(
+            402,
+            assertThrows(ApiException.class, () -> service.reserve(user, "ROADMAP_GENERATE", 1000)).status()
+        );
+        verify(db, never()).insertAiTokenReservations(anyMap());
+
+        when(db.walletBalance(user)).thenReturn(1000L);
+        when(db.reserveWalletTokens(user, 1000)).thenReturn(1);
+        when(db.insertAiTokenReservations(anyMap())).thenReturn(reservation);
+        assertDoesNotThrow(() -> service.requireRoadmapAccess(user));
+        assertEquals(reservation, service.reserve(user, "ROADMAP_GENERATE", 1000));
+        verify(db)
+            .insertAiTokenReservations(argThat(row -> Long.valueOf(1000).equals(row.get("wallet_reserved_tokens"))));
+    }
+
+    @Test
     void completionCannotChargeBeyondReservedBudget() {
         SqlStore db = mock(SqlStore.class);
         UUID reservation = UUID.randomUUID();

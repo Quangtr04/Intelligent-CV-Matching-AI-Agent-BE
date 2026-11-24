@@ -78,10 +78,10 @@ class CuratedCourseFlowIntegrationTests {
 
     @Test
     void approvedCourseReachesRoadmapAndHistoricalLinksSurviveCatalogChangesAndArchive() throws Exception {
-        String skill = "Course Skill " + UUID.randomUUID().toString().substring(0, 8);
+        String skill = "React";
         String video = UUID.randomUUID().toString().replace("-", "").substring(0, 11);
         String canonicalUrl = "https://www.youtube.com/watch?v=" + video;
-        var pending = post(COURSES, admin, course("https://youtu.be/" + video + "?si=tracking", skill));
+        var pending = post(COURSES, admin, course("https://youtu.be/" + video + "?si=tracking", "ReactJS"));
         String courseId = pending.get("id").toString();
         assertEquals("PENDING_REVIEW", pending.get("status"));
         assertFalse(json(recommendations(skill)).contains(canonicalUrl));
@@ -169,6 +169,13 @@ class CuratedCourseFlowIntegrationTests {
         assertEquals(json(roadmap.get("learning_recommendations")), json(history.get("learning_recommendations")));
         assertFalse(json(history).contains("catalog_changed"));
         assertTrue(json(history).contains(canonicalUrl));
+        String laterVideo = UUID.randomUUID().toString().replace("-", "").substring(0, 11);
+        String laterUrl = "https://www.youtube.com/watch?v=" + laterVideo;
+        var later = post(COURSES, admin, course(laterUrl, "React.JS"));
+        assertFalse(json(read("/api/v1/roadmaps/" + roadmapId, candidate).get("nodes")).contains(laterUrl));
+        post(COURSES + "/" + later.get("id") + "/approve", admin, Map.of());
+        assertTrue(json(read("/api/v1/roadmaps/" + roadmapId, candidate).get("nodes")).contains(laterUrl));
+
         mvc.perform(get("/api/v1/roadmaps/" + roadmapId).header("Authorization", "Bearer " + token("CANDIDATE")))
             .andExpect(status().isNotFound());
         mvc.perform(

@@ -91,15 +91,17 @@ class LearningCvJdContextTest {
     }
 
     @Test
-    void contextMustUseExactlyOneJdAndPastedTextRequiresATargetWithOptionalCv() {
+    void contextMustUseExactlyOneJdAndPastedTextAllowsAnOptionalTitleAndCv() {
         for (AssessmentRequest request : List.of(
             new AssessmentRequest(null, null, null, null),
-            new AssessmentRequest("Java Engineer", job, resume, JD),
-            new AssessmentRequest(" ", null, resume, JD)
+            new AssessmentRequest("Java Engineer", job, resume, JD)
         )) {
             assertFalse(request.isContextValid());
             assertEquals(400, assertThrows(ApiException.class, () -> service.prepareForOwner(owner, request)).status());
         }
+        var pasted = new AssessmentRequest(" ", null, resume, JD);
+        assertTrue(pasted.isContextValid());
+        assertEquals("Pasted JD", service.prepareForOwner(owner, pasted).target());
         assertTrue(new AssessmentRequest("Java Engineer", null, null, JD).isContextValid());
         verify(ai, never()).generate(anyString(), anyMap());
         verify(ai, never()).generateForUser(any(), anyString(), anyMap());

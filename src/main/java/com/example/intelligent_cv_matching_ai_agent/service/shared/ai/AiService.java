@@ -157,6 +157,10 @@ public class AiService {
         this.chatTemperature = Math.max(0, Math.min(chatTemperature, 2));
     }
 
+    public void requireRoadmapAccess() {
+        entitlement.requireRoadmapAccess(current.id());
+    }
+
     public boolean enabled() {
         return configured && chatModels.getIfAvailable() != null;
     }

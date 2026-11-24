@@ -1,6 +1,7 @@
 package com.example.intelligent_cv_matching_ai_agent.service.shared.learning;
 
 import com.example.intelligent_cv_matching_ai_agent.repository.candidate.learning.LearningRepository;
+import com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.SkillCatalog;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.learning.CourseLink;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.learning.LearningReferenceData;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.learning.RoadmapReferenceCatalog;
@@ -104,6 +105,14 @@ public class LearningReferenceService {
         return LearningReferenceData.trustedResources(resources, 8);
     }
 
+    public List<Map<String, Object>> approvedCoursesForSkill(
+        String skill) {
+        var slugs = skillSlugs(skill);
+        return slugs.isEmpty()
+            ? List.of()
+            : LearningReferenceData.trustedResources(db.listApprovedCourseResources(slugs, ""), 5);
+    }
+
     private Collection<String> skillSlugs(
         String skill) {
         Collection<String> slugs = new LinkedHashSet<>(catalog.skillSlugs(skill));
@@ -111,6 +120,10 @@ public class LearningReferenceService {
         if (!fallback.isBlank()) {
             slugs.add(fallback);
         }
+        SkillCatalog.get().resolve(skill).ifPresent(entry -> {
+            slugs.add(CourseLink.skillSlug(entry.name()));
+            entry.aliases().stream().map(CourseLink::skillSlug).filter(slug -> !slug.isBlank()).forEach(slugs::add);
+        });
         return slugs;
     }
 }

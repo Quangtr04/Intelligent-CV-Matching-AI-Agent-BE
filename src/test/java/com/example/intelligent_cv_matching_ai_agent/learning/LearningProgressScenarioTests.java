@@ -183,6 +183,8 @@ class LearningProgressScenarioTests {
             )
         );
         verify(db, never()).insertRoadmapNodes(anyMap());
-        verifyNoInteractions(ai, assessments, resumes, references);
+        verify(ai).requireRoadmapAccess();
+        verifyNoMoreInteractions(ai);
+        verifyNoInteractions(assessments, resumes, references);
     }
 }

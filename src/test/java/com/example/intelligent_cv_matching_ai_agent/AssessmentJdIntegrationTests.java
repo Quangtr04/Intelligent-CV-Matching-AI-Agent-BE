@@ -188,6 +188,12 @@ class AssessmentJdIntegrationTests {
         assertNotNull(gap.get("input_hash"));
         assertEquals(catalogCount, ((Number) db.scalar("SELECT count(*) FROM market_job_posts")).longValue());
 
+        mvc.perform(get("/api/v1/roadmaps").param("assessmentId", id).header("Authorization", authorization))
+            .andExpect(status().isOk()).andExpect(jsonPath("$[0].id").value(result.get("id")))
+            .andExpect(jsonPath("$[0].input_context.jd_source").value("PASTED"));
+        mvc.perform(get("/api/v1/roadmaps").param("assessmentId", id).header("Authorization", bearer(candidate())))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(0));
+
         db.update("UPDATE resumes SET raw_content='A different CV' WHERE id=?", resume);
         mvc.perform(
             post("/api/v1/roadmaps").header("Authorization", authorization).contentType(MediaType.APPLICATION_JSON)

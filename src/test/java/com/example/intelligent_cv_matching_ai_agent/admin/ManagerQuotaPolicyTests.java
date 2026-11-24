@@ -54,7 +54,7 @@ class ManagerQuotaPolicyTests {
         assertEquals(100000L, limits.get("maxApiQuota"));
         assertEquals("DEFAULT_POLICY", limits.get("source"));
         List<?> codes = (List<?>) limits.get("allowedFeatureCodes");
-        assertEquals(28, codes.size());
+        assertEquals(30, codes.size());
         assertTrue(
             codes.containsAll(
                 List.of(
@@ -63,7 +63,9 @@ class ManagerQuotaPolicyTests {
                     "API_CALLS_TOTAL",
                     "API_CALLS_JOB_ATS",
                     "JOB_REQUIREMENT_EVIDENCE",
-                    "API_CALLS_JOB_REQUIREMENT_EVIDENCE"
+                    "API_CALLS_JOB_REQUIREMENT_EVIDENCE",
+                    "JD_SKILL_PROFICIENCY",
+                    "API_CALLS_JD_SKILL_PROFICIENCY"
                 )
             )
         );
