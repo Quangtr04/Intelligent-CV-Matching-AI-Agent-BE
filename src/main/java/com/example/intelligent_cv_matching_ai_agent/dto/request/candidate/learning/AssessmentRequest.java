@@ -23,7 +23,7 @@ public record AssessmentRequest(
     @JsonIgnore
     public boolean isContextValid() {
         boolean pasted = jdText != null && !jdText.isBlank();
-        return (jobId != null) != pasted && (!pasted || (targetJobTitle != null && !targetJobTitle.isBlank()));
+        return (jobId != null) != pasted;
     }
 
     @Override

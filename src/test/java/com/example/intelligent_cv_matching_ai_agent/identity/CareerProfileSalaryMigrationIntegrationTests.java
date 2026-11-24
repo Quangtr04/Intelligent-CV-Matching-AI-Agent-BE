@@ -53,8 +53,8 @@ class CareerProfileSalaryMigrationIntegrationTests {
             "[1," + String.join(",", Collections.nCopies(1023, "0")) + "]"
         );
 
-        Flyway.configure().dataSource(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword()).load()
-            .migrate();
+        Flyway.configure().dataSource(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword())
+            .target("44").load().migrate();
 
         for (int index = 0; index < users.length; index++) {
             var row = jdbc.queryForMap("SELECT * FROM candidate_profiles WHERE user_id=?", users[index]);

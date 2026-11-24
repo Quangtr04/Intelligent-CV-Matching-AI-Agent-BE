@@ -138,6 +138,7 @@ public class LearningService {
     public Map<String, Object> createRoadmap(
         RoadmapRequest request) {
         user.requireRole("CANDIDATE");
+        ai.requireRoadmapAccess();
         PreparedRoadmap prepared = transactions.execute(status -> prepareRoadmap(request));
         Map<String, Object> generated = prepared.missing().isEmpty()
             ? fields(
@@ -389,10 +390,7 @@ public class LearningService {
                         "importance",
                         row.importance(),
                         "relation",
-                        row.relation(),
-                        "bloom",
-                        row.bloom().stream().map(b -> fields("level", b.level(), "justification", b.justification()))
-                            .toList()
+                        row.relation()
                     )
                 ).toList()
         );
@@ -633,8 +631,11 @@ public class LearningService {
         RoadmapValidator.validateGaps(gaps);
     }
 
-    public List<Map<String, Object>> roadmaps() {
-        List<Map<String, Object>> roadmaps = db.listRoadmapsByUserId(user.id());
+    public List<Map<String, Object>> roadmaps(
+        UUID assessmentId) {
+        List<Map<String, Object>> roadmaps = assessmentId == null
+            ? db.listRoadmapsByUserId(user.id())
+            : db.listRoadmapsByAssessment(user.id(), assessmentId);
         roadmaps.forEach(roadmap -> {
             var snapshot = object(roadmap.remove("learning_recommendations_snapshot"));
             if (snapshot.containsKey("input_context")) {
@@ -657,7 +658,17 @@ public class LearningService {
 
         for (var node : nodes) {
             node.put("prerequisites", db.listRoadmapNodePrerequisitesByNodeId(node.get("id")));
-            node.put("resources", db.listRoadmapNodeResourcesByRoadmapNodeId(node.get("id")));
+            var resources = new ArrayList<>(db.listRoadmapNodeResourcesByRoadmapNodeId(node.get("id")));
+            for (var course : references.approvedCoursesForSkill(text(node.get("skill_name")))) {
+                boolean alreadyAttached = resources.stream().anyMatch(
+                    resource -> Objects.equals(resource.get("id"), course.get("id"))
+                        || Objects.equals(resource.get("url"), course.get("url"))
+                );
+                if (!alreadyAttached) {
+                    resources.add(course);
+                }
+            }
+            node.put("resources", resources);
         }
 
         roadmap.put("nodes", nodes);

@@ -165,9 +165,7 @@ public final class JobMatchRerank {
                         "relation",
                         requirement.relation(),
                         "skills",
-                        requirement.skills().stream().map(skill -> skill.name()).distinct().limit(10).toList(),
-                        "bloom_levels",
-                        requirement.bloom().stream().map(level -> level.level()).distinct().toList()
+                        requirement.skills().stream().map(skill -> skill.name()).distinct().limit(10).toList()
                     )
                 );
             }

@@ -195,12 +195,12 @@ class RagCourseServiceTests {
     @Test
     void nonOperationsUserCannotSubmitOrReviewLinks() {
         doThrow(ApiException.forbidden("Role required: ADMIN")).when(user).requireOperationsRole();
+        doThrow(ApiException.forbidden("Role required: STAFF")).when(user).requireStaffOrOperationsRole();
         assertEquals(403, assertThrows(ApiException.class, () -> service.create(request())).status());
         assertEquals(403, assertThrows(ApiException.class, () -> service.approve(courseId)).status());
         assertEquals(403, assertThrows(ApiException.class, () -> service.archive(courseId)).status());
         assertEquals(403, assertThrows(ApiException.class, () -> service.index(courseId)).status());
         assertEquals(403, assertThrows(ApiException.class, () -> service.list()).status());
-        assertEquals(403, assertThrows(ApiException.class, () -> service.get(courseId)).status());
         verifyNoInteractions(db, rag);
     }
 

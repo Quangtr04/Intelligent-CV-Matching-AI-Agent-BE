@@ -7,7 +7,6 @@ import com.example.intelligent_cv_matching_ai_agent.dto.response.admin.jobs.Craw
 import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiExceptionHandler;
 import com.example.intelligent_cv_matching_ai_agent.security.shared.BearerFilter;
 import com.example.intelligent_cv_matching_ai_agent.service.admin.jobs.CrawlSettingsService;
-import com.example.intelligent_cv_matching_ai_agent.service.admin.jobs.JobCrawlService;
 import com.example.intelligent_cv_matching_ai_agent.service.shared.identity.TokenService;
 import java.time.Instant;
 import java.util.List;
@@ -54,8 +53,6 @@ class CrawlSettingsControllerTest {
 
     private CrawlSettingsService settings;
 
-    private JobCrawlService crawler;
-
     private UUID actor;
 
     @BeforeEach
@@ -66,7 +63,6 @@ class CrawlSettingsControllerTest {
         context.refresh();
         mvc = MockMvcBuilders.webAppContextSetup(context).apply(springSecurity()).build();
         settings = context.getBean(CrawlSettingsService.class);
-        crawler = context.getBean(JobCrawlService.class);
         actor = UUID.randomUUID();
         TokenService tokens = context.getBean(TokenService.class);
         when(tokens.authenticate("admin")).thenReturn(Map.of("id", actor, "role", "ADMIN"));
@@ -119,46 +115,19 @@ class CrawlSettingsControllerTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"/api/admin", "/api/v1/admin"})
-    void historyUsesTheExistingRunRecordsAndRequestedPagination(
-        String prefix)
-        throws Exception {
-        UUID run = UUID.randomUUID();
-        when(crawler.runs(7, 2)).thenReturn(List.of(Map.of("id", run, "status", "PARTIAL", "wrong_region_pages", 1)));
-
-        mvc.perform(
-            get(prefix + "/crawl-history").header("Authorization", "Bearer admin").param("limit", "7")
-                .param("offset", "2")
-        ).andExpect(status().isOk()).andExpect(jsonPath("$[0].id").value(run.toString()))
-            .andExpect(jsonPath("$[0].wrong_region_pages").value(1));
-
-        verify(crawler).runs(7, 2);
-        verifyNoInteractions(settings);
-    }
-
-    @Test
-    void historyDefaultsToTwentyRunsStartingAtZero() throws Exception {
-        mvc.perform(get("/api/admin/crawl-history").header("Authorization", "Bearer admin")).andExpect(status().isOk())
-            .andExpect(jsonPath("$").isArray());
-
-        verify(crawler).runs(20, 0);
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"/api/admin", "/api/v1/admin"})
-    void anonymousCallersCannotReadSaveOrReadHistory(
+    void anonymousCallersCannotReadOrSaveSettings(
         String prefix)
         throws Exception {
         mvc.perform(get(prefix + "/crawl-settings")).andExpect(status().isUnauthorized());
         mvc.perform(put(prefix + "/crawl-settings").contentType(MediaType.APPLICATION_JSON).content(VALID_REQUEST))
             .andExpect(status().isUnauthorized());
-        mvc.perform(get(prefix + "/crawl-history")).andExpect(status().isUnauthorized());
 
-        verifyNoInteractions(settings, crawler);
+        verifyNoInteractions(settings);
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"/api/admin", "/api/v1/admin"})
-    void authenticatedCandidatesCannotReadSaveOrReadHistory(
+    void authenticatedCandidatesCannotReadOrSaveSettings(
         String prefix)
         throws Exception {
         mvc.perform(get(prefix + "/crawl-settings").header("Authorization", "Bearer candidate"))
@@ -167,10 +136,8 @@ class CrawlSettingsControllerTest {
             put(prefix + "/crawl-settings").header("Authorization", "Bearer candidate")
                 .contentType(MediaType.APPLICATION_JSON).content(VALID_REQUEST)
         ).andExpect(status().isForbidden());
-        mvc.perform(get(prefix + "/crawl-history").header("Authorization", "Bearer candidate"))
-            .andExpect(status().isForbidden());
 
-        verifyNoInteractions(settings, crawler);
+        verifyNoInteractions(settings);
     }
 
     @ParameterizedTest
@@ -183,7 +150,7 @@ class CrawlSettingsControllerTest {
                 .contentType(MediaType.APPLICATION_JSON).content(request)
         ).andExpect(status().isBadRequest());
 
-        verifyNoInteractions(settings, crawler);
+        verifyNoInteractions(settings);
     }
 
     private static Stream<String> invalidRequests() {
@@ -227,9 +194,5 @@ class CrawlSettingsControllerTest {
             return mock(CrawlSettingsService.class);
         }
 
-        @Bean
-        JobCrawlService crawler() {
-            return mock(JobCrawlService.class);
-        }
     }
 }

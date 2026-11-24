@@ -1967,16 +1967,91 @@
       ]
     },
     {
+      "id": "git-hub",
+      "name": "GitHub",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "github",
+        "git hub"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [
+        "(?i)\\bgithub\\b(?!\\s*actions\\b)",
+        "(?i)\\bgit[\\s-]+hub\\b(?!\\s*actions\\b)"
+      ],
+      "relatedSkills": [
+        "git",
+        "gitlab",
+        "github-actions"
+      ],
+      "learningTopics": [
+        "github-repositories",
+        "pull-requests",
+        "branch-management",
+        "code-review"
+      ],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "gitlab",
+      "name": "GitLab",
+      "domain": "GENERAL",
+      "type": "TECHNOLOGY",
+      "aliases": [
+        "gitlab",
+        "git lab"
+      ],
+      "ambiguousAliases": [],
+      "contextPattern": "",
+      "recognitionPatterns": [
+        "(?i)\\bgitlab\\b(?!\\s*(?:ci(?:/cd)?|pipelines?)\\b)",
+        "(?i)\\bgit[\\s-]+lab\\b(?!\\s*(?:ci(?:/cd)?|pipelines?)\\b)"
+      ],
+      "relatedSkills": [
+        "git",
+        "git-hub",
+        "gitlab-ci"
+      ],
+      "learningTopics": [
+        "gitlab-repositories",
+        "merge-requests",
+        "branch-management",
+        "code-review"
+      ],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
       "id": "github-actions",
       "name": "GitHub Actions",
       "domain": "DEVOPS",
       "type": "TECHNOLOGY",
-      "aliases": [],
+      "aliases": [
+        "github actions",
+        "github action"
+      ],
       "ambiguousAliases": [],
       "contextPattern": "",
-      "recognitionPatterns": [],
-      "relatedSkills": [],
-      "learningTopics": [],
+      "recognitionPatterns": [
+        "(?i)\\bgithub\\s+actions?\\b",
+        "(?i)\\bgit[\\s-]+hub\\s+actions?\\b"
+      ],
+      "relatedSkills": [
+        "git-hub",
+        "git",
+        "ci-cd"
+      ],
+      "learningTopics": [
+        "github-actions-workflows",
+        "ci-cd-pipelines",
+        "workflow-automation",
+        "github-actions-runners"
+      ],
       "sourceReferences": [
         "edunexus-authored"
       ]
@@ -1986,12 +2061,30 @@
       "name": "GitLab CI",
       "domain": "DEVOPS",
       "type": "TECHNOLOGY",
-      "aliases": [],
+      "aliases": [
+        "gitlab ci",
+        "gitlab ci/cd",
+        "gitlab pipeline",
+        "gitlab pipelines"
+      ],
       "ambiguousAliases": [],
       "contextPattern": "",
-      "recognitionPatterns": [],
-      "relatedSkills": [],
-      "learningTopics": [],
+      "recognitionPatterns": [
+        "(?i)\\bgitlab\\s+ci(?:/cd)?\\b",
+        "(?i)\\bgitlab\\s+pipelines?\\b",
+        "(?i)\\bgit[\\s-]+lab\\s+ci(?:/cd)?\\b"
+      ],
+      "relatedSkills": [
+        "gitlab",
+        "git",
+        "ci-cd"
+      ],
+      "learningTopics": [
+        "gitlab-ci-cd-pipelines",
+        "gitlab-runners",
+        "pipeline-configuration",
+        "ci-cd-automation"
+      ],
       "sourceReferences": [
         "edunexus-authored"
       ]
@@ -5413,6 +5506,132 @@
     }
   ],
   "topics": [
+    {
+      "id": "github-repositories",
+      "title": "GitHub repositories",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "pull-requests",
+      "title": "Pull requests",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "branch-management",
+      "title": "Branch management",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "code-review",
+      "title": "Code review",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "gitlab-repositories",
+      "title": "GitLab repositories",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "merge-requests",
+      "title": "Merge requests",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "github-actions-workflows",
+      "title": "GitHub Actions workflows",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "ci-cd-pipelines",
+      "title": "CI/CD pipelines",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "workflow-automation",
+      "title": "Workflow automation",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "github-actions-runners",
+      "title": "GitHub Actions runners",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "gitlab-ci-cd-pipelines",
+      "title": "GitLab CI/CD pipelines",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "gitlab-runners",
+      "title": "GitLab runners",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "pipeline-configuration",
+      "title": "Pipeline configuration",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
+    {
+      "id": "ci-cd-automation",
+      "title": "CI/CD automation",
+      "type": "LEARNING_TOPIC",
+      "prerequisites": [],
+      "sourceReferences": [
+        "edunexus-authored"
+      ]
+    },
     {
       "id": "sql-practice",
       "title": "Filtering, joining and aggregating relational data",

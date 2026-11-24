@@ -28,7 +28,7 @@ import static com.example.intelligent_cv_matching_ai_agent.util.shared.Values.*;
 @Service
 public class RecommendationService {
 
-    public static final String VERSION = "recommendation-v4-top-ten";
+    public static final String VERSION = "recommendation-v6-vector-only";
 
     private static final int MAX_RESULTS = 10;
 
@@ -55,9 +55,6 @@ public class RecommendationService {
     private final SalaryExchangeRateService rates;
 
     private final AiResponseCache cache;
-
-    @Value("${app.recommendation.rerank-enabled:true}")
-    private boolean rerankEnabled = true;
 
     @Value("${app.recommendation.cache-seconds:600}")
     private int cacheSeconds = 600;
@@ -123,7 +120,8 @@ public class RecommendationService {
             throw ApiException.conflict("Configured embedding dimensions must match PostgreSQL vector(1024)");
         var catalog = jobs.vectorCatalog(provider, model, dimensions);
         var settings = policies.effective();
-        var salary = SalaryExpectation.fromProfile(profile, settings);
+        Optional<SalaryExpectation> salary =
+            basis.equals("CAREER_PROFILE") ? SalaryExpectation.fromProfile(profile, settings) : Optional.empty();
         if (salary.isPresent() && rates != null)
             salary = SalaryExpectation.fromProfile(profile, settings, rates.snapshot());
         Map<UUID, Map<String, Object>> salaryMatches = new HashMap<>();
@@ -131,7 +129,7 @@ public class RecommendationService {
         if (salary.isPresent()) {
             eligible = new LinkedHashSet<>();
             for (var job : matching.listActiveJobSalaryMetadata()) {
-                var assessment = salary.get().match(text(job.get("salary_text")));
+                var assessment = salary.get().matchRange(text(job.get("salary_text")));
                 if (assessment.isPresent()) {
                     UUID id = uuid(job.get("id"));
                     eligible.add(id);
@@ -139,19 +137,18 @@ public class RecommendationService {
                 }
             }
         }
-        var salaryPolicy = salary.map(SalaryExpectation::policy).orElse(fields("active", false));
+        var salaryPolicy = salary.map(SalaryExpectation::rangePolicy).orElse(fields("active", false));
         salaryPolicy.put("filter_applied", salary.isPresent());
         salaryPolicy.put("eligible_jobs", eligible == null ? catalog.get("active_jobs") : eligible.size());
         String hash = FlowSupport.hash(
-            VERSION + "\n" + RecommendationRules.VERSION + "\n" + CandidateSearchProfile.VERSION + "\n"
-                + SkillCatalog.get().version() + "\n" + JobEmbeddingSupport.VERSION + "\n" + basis + "\n"
+            VERSION + "\n" + CandidateSearchProfile.VERSION + "\n" + SkillCatalog.get().version() + "\n"
+                + JobEmbeddingSupport.VERSION + "\n" + basis + "\n"
                 + JSON.writeValueAsString(
                     documents.stream().map(doc -> fields("hash", doc.contentHash(), "resumes", doc.resumeIds()))
                         .toList()
-                ) + "\n" + provider + "\n" + model + "\n" + dimensions + "\n" + ai.model() + "\n"
-                + ai.cacheFingerprint("JOB_MATCH_RERANK") + "\n" + salaryPolicy + "\n"
+                ) + "\n" + provider + "\n" + model + "\n" + dimensions + "\n" + salaryPolicy + "\n"
                 + salary.map(SalaryExpectation::exchangeRates) + "\n" + matching.readMarketJobPostsByStatus() + "\n"
-                + catalog + "\n" + resultLimit + ":" + rerankEnabled + ":" + ai.enabled() + ":" + ai.embeddingsEnabled()
+                + catalog + "\n" + resultLimit + ":" + ai.embeddingsEnabled()
         );
         String cacheKey = "edunexus:recommendation:v3:" + user.id() + ":" + hash;
         var identity = Map.of("user_id", user.id().toString(), "request_hash", hash);
@@ -175,8 +172,8 @@ public class RecommendationService {
             fallbackReason = "No current vectors for the configured provider/model/dimensions; backfill required";
         } else {
             for (var document : documents) {
-                String vectorHash = FlowSupport
-                    .hash(CANDIDATE_VECTOR_CACHE_VERSION + "\n" + dimensions + "\n" + document.contentHash());
+                String vectorHash =
+                    FlowSupport.hash(CANDIDATE_VECTOR_CACHE_VERSION + "\n" + dimensions + "\n" + document.searchText());
                 var stored = vectors.vector(user.id(), provider, model, vectorHash);
                 try {
                     float[] vector;
@@ -231,57 +228,16 @@ public class RecommendationService {
             if (fallbackReason.isBlank())
                 fallbackReason = "No compatible vectors satisfy active-job and salary filters";
         }
-        if (!vectorUsed || retrieved.size() < number(salaryPolicy.get("eligible_jobs"), 0)) {
-            for (var source : jobs.fallbackCandidates(eligibleIds)) {
-                UUID id = uuid(source.get("id"));
-                retrieved.putIfAbsent(id, new LinkedHashMap<>(source));
-            }
-        }
         if (vectorUsed && number(catalog.get("compatible_vectors"), 0) < number(catalog.get("active_jobs"), 0)) {
             semanticStatus = "PARTIAL_INDEX";
         }
         timings.put("retrieval_ms", elapsed(stage));
-        stage = System.nanoTime();
-        List<Map<String, Object>> ranked = new ArrayList<>();
-        int invalidJobs = 0;
-        for (var job : retrieved.values()) {
-            try {
-                int index = (int) number(job.get("document_index"), 0);
-                var assessment = RecommendationRules.assess(documents.get(index), job);
-                if (job.get("vector_score") == null) {
-                    for (int i = 1; i < documents.size(); i++) {
-                        var alternative = RecommendationRules.assess(documents.get(i), job);
-                        if (number(alternative.get("score"), 0) > number(assessment.get("score"), 0)) {
-                            index = i;
-                            assessment = alternative;
-                        }
-                    }
-                }
-                // The legacy rule eligibility flag is not an instruction to skip LLM scoring.
-                assessment.remove("eligible_for_ai");
-                job.put("document_index", index);
-                job.put("source_resume_ids", documents.get(index).resumeIds());
-                job.put("rule_assessment", assessment);
-                job.put("rule_score", assessment.get("score"));
-                job.put("final_score", assessment.get("score"));
-                ranked.add(job);
-            } catch (IllegalArgumentException failure) {
-                invalidJobs++;
-                LOG.warn(
-                    "recommendation invalid_job={} failure_type={}",
-                    job.get("id"),
-                    failure.getClass().getSimpleName()
-                );
-            }
+        List<Map<String, Object>> ranked = new ArrayList<>(retrieved.values());
+        for (var job : ranked) {
+            int index = (int) number(job.get("document_index"), 0);
+            job.put("source_resume_ids", documents.get(index).resumeIds());
+            RecommendationScores.apply(job);
         }
-        ranked.sort(RecommendationRules.ranking());
-        timings.put("rules_ms", elapsed(stage));
-        stage = System.nanoTime();
-        var rerank = rerank(ranked, retrieved, documents);
-        timings.put("rerank_ms", elapsed(stage));
-        if (Boolean.TRUE.equals(rerank.get("failed")) || "INSUFFICIENT_EVIDENCE".equals(rerank.get("status")))
-            cacheable = false;
-        ranked.forEach(RecommendationScores::apply);
         ranked.removeIf(job -> !RecommendationScores.hasScore(job));
         ranked.sort(RecommendationScores.ranking());
         timings.put("total_ms", elapsed(started));
@@ -311,19 +267,17 @@ public class RecommendationService {
             "ranked_jobs",
             ranked.size(),
             "invalid_jobs",
-            invalidJobs,
+            retrieved.size() - ranked.size(),
             "candidate_documents",
             documents.size(),
             "embedding_calls",
             embeddingCalls,
-            "rerank",
-            rerank,
             "cacheable",
             cacheable,
             "timings_ms",
             timings,
             "ranking_policy",
-            "ai_score_desc,id",
+            "vector_similarity_desc,id",
             "score_kind",
             RecommendationScores.KIND
         );
@@ -347,7 +301,7 @@ public class RecommendationService {
                     )
                 ),
                 "provider",
-                vectorUsed ? provider : "RULE_BASED",
+                provider,
                 "model",
                 VERSION,
                 "status",
@@ -360,7 +314,6 @@ public class RecommendationService {
         for (int i = 0; i < Math.min(resultLimit, ranked.size()); i++) {
             var job = ranked.get(i);
             var assessment = RecommendationScores.assessment(job);
-            var aiAssessment = object(job.get("ai_assessment"));
             matching.insertJobMatchResults(
                 fields(
                     "matching_run_id",
@@ -370,7 +323,7 @@ public class RecommendationService {
                     "vector_similarity_score",
                     job.get("vector_score"),
                     "llm_rerank_score",
-                    job.get("advisory_score"),
+                    null,
                     "final_score",
                     job.get("final_score"),
                     "rank_position",
@@ -379,19 +332,15 @@ public class RecommendationService {
                     matching.json(
                         fields(
                             "method",
-                            "LLM_SUITABILITY_RECOMMENDATION",
+                            "SIMILARITY_RECOMMENDATION",
                             "score_source",
-                            "LLM",
+                            "PGVECTOR_COSINE",
                             "score_status",
-                            job.get("ai_status"),
+                            "SCORED",
                             "retrieval",
-                            job.get("vector_score") != null ? "PGVECTOR_COSINE" : "RULE_FALLBACK",
-                            "reason",
-                            aiAssessment.get("reason"),
+                            "PGVECTOR_COSINE",
                             "assessment",
                             assessment,
-                            "ai_assessment",
-                            job.get("ai_assessment"),
                             "source_resume_ids",
                             job.get("source_resume_ids"),
                             "salary_match",
@@ -399,9 +348,9 @@ public class RecommendationService {
                         )
                     ),
                     "strengths_json",
-                    matching.json(array(aiAssessment.get("strengths"))),
+                    matching.json(List.of()),
                     "skill_gaps_json",
-                    matching.json(array(aiAssessment.get("skill_gaps")))
+                    matching.json(List.of())
                 )
             );
         }
@@ -415,7 +364,7 @@ public class RecommendationService {
             );
         LOG.info(
             ("recommendation run={} semantic={} vector_used={} active={} "
-                + "compatible={} retrieved={} ranked={} rerank={} timings={}"),
+                + "compatible={} retrieved={} ranked={} timings={}"),
             runId,
             semanticStatus,
             vectorUsed,
@@ -423,118 +372,9 @@ public class RecommendationService {
             catalog.get("compatible_vectors"),
             retrieved.size(),
             ranked.size(),
-            rerank,
             timings
         );
         return result(runId, false);
-    }
-
-    private Map<String, Object> rerank(
-        List<Map<String, Object>> ranked,
-        Map<UUID, Map<String, Object>> candidates,
-        List<CandidateSearchProfile.Document> documents) {
-        if (!rerankEnabled || !ai.enabled()) {
-            ranked.forEach(job -> job.put("ai_status", "DISABLED"));
-            return fields("status", "SKIPPED", "reason", "DISABLED", "calls", 0, "assessed_jobs", 0);
-        }
-        Map<Integer, List<Map<String, Object>>> groups = new LinkedHashMap<>();
-        ranked.forEach(
-            job -> groups.computeIfAbsent((int) number(job.get("document_index"), 0), ignored -> new ArrayList<>())
-                .add(job)
-        );
-        int calls = 0, assessed = 0, inputTokens = 0, outputTokens = 0;
-        ApiException scoringFailure = null;
-        String failureSource = null;
-        String failureCode = null;
-        assessmentGroups : for (var group : groups.entrySet()) {
-            var document = documents.get(group.getKey());
-            String fullEvidence = CandidateSearchProfile.factualEvidence(document);
-            String evidence = excerpt(fullEvidence, 8000);
-            for (var batch : JobMatchRerank.recommendationBatches(group.getValue())) {
-                calls++;
-                boolean modelReturned = false;
-                try {
-                    var generated = ai.generate(
-                        "JOB_MATCH_RERANK",
-                        fields(
-                            "recommendation_mode",
-                            true,
-                            "candidate",
-                            fields(
-                                "desired_job_title",
-                                excerpt(text(document.profile().get("desired_job_title")), 255),
-                                "skills",
-                                document.evidence().skills().stream().limit(50).toList(),
-                                "years_experience",
-                                document.evidence().yearsExperience(),
-                                "preferences",
-                                document.profile().get("preferences")
-                            ),
-                            "candidate_evidence",
-                            evidence,
-                            "candidate_evidence_truncated",
-                            fullEvidence.length() > evidence.length(),
-                            "jobs",
-                            batch
-                        )
-                    );
-                    modelReturned = true;
-                    var usage = object(generated.get("_usage"));
-                    inputTokens += (int) number(usage.get("input_tokens"), 0);
-                    outputTokens += (int) number(usage.get("output_tokens"), 0);
-                    var validated = JobMatchRerank.validateRecommendations(batch, generated, evidence);
-                    for (var entry : validated.entrySet()) {
-                        var job = candidates.get(entry.getKey());
-                        var assessment = entry.getValue();
-                        job.put("ai_assessment", assessment);
-                        job.put("ai_status", assessment.get("validation_status"));
-                        if (Boolean.TRUE.equals(assessment.get("usable"))) {
-                            job.put("advisory_score", assessment.get("score"));
-                            assessed++;
-                        }
-                    }
-                } catch (ApiException failure) {
-                    if (!recoverable(failure))
-                        throw failure;
-                    scoringFailure = failure;
-                    if (modelReturned) {
-                        failureSource = "MODEL_OUTPUT";
-                        failureCode = "AI_OUTPUT_INVALID";
-                        continue;
-                    }
-                    failureSource = failure.status() == 429 ? "APPLICATION_QUOTA" : "PROVIDER";
-                    failureCode = failure.status() == 429 ? "AI_QUOTA_EXCEEDED" : "AI_PROVIDER_ERROR";
-                    break assessmentGroups;
-                }
-            }
-        }
-        var result = fields(
-            "status",
-            scoringFailure != null
-                ? (assessed == 0 ? "SKIPPED" : "PARTIAL")
-                : assessed == ranked.size() ? "COMPLETED" : "INSUFFICIENT_EVIDENCE",
-            "calls",
-            calls,
-            "assessed_jobs",
-            assessed,
-            "selected_jobs",
-            ranked.size(),
-            "input_tokens",
-            inputTokens,
-            "output_tokens",
-            outputTokens
-        );
-        if (scoringFailure != null) {
-            result.put("reason", "HTTP_" + scoringFailure.status());
-            result.put("failed", true);
-            result.put("failure_source", failureSource);
-            result.put("failure_code", failureCode);
-            result.put(
-                "failure_message",
-                excerpt(Objects.toString(scoringFailure.getMessage(), "AI assessment failed"), 240)
-            );
-        }
-        return result;
     }
 
     private Map<String, Object> result(
@@ -584,11 +424,5 @@ public class RecommendationService {
         int min,
         int max) {
         return Math.max(min, Math.min(value, max));
-    }
-
-    private static String excerpt(
-        String value,
-        int max) {
-        return value.substring(0, Math.min(value.length(), max));
     }
 }

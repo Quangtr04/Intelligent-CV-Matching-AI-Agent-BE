@@ -183,13 +183,6 @@ class ResumeTemplateSelectionIntegrationTests {
         Map<String, Object> before = db.one("SELECT * FROM resumes WHERE id=?", id);
         double[] vector = new double[1024];
         vector[0] = 1;
-        UUID embedding = (UUID) db.scalar(
-            "INSERT INTO resume_embeddings(resume_id,provider,model,embedding,content_hash,is_current) "
-                + "VALUES (?,'test','template-preservation',?::vector,?,true) RETURNING id",
-            id,
-            Arrays.toString(vector),
-            before.get("content_hash")
-        );
         UUID gap = db.insert(
             "gap_analyses",
             Map.of("user_id", candidateId, "resume_id", id, "input_source", "CV", "status", "COMPLETED")
@@ -213,13 +206,13 @@ class ResumeTemplateSelectionIntegrationTests {
         select(id.toString(), "{\"template_id\":\"" + second + "\"}").andExpect(status().isOk())
             .andExpect(jsonPath("$.template_id").value(second.toString()))
             .andExpect(jsonPath("$.template.name").value("Second layout"));
-        assertContentUnchanged(before, id, embedding, roadmap);
+        assertContentUnchanged(before, id, roadmap);
         assertEquals(analysisBefore, db.one("SELECT * FROM resume_analyses WHERE id=?", analysis));
         assertEquals(suggestionBefore, db.one("SELECT * FROM resume_analysis_suggestions WHERE id=?", suggestion));
         select(id.toString(), "{\"template_id\":null}").andExpect(status().isOk())
             .andExpect(jsonPath("$.template_id").value(org.hamcrest.Matchers.nullValue()))
             .andExpect(jsonPath("$.template").value(org.hamcrest.Matchers.nullValue()));
-        assertContentUnchanged(before, id, embedding, roadmap);
+        assertContentUnchanged(before, id, roadmap);
         assertEquals(analysisBefore, db.one("SELECT * FROM resume_analyses WHERE id=?", analysis));
         assertEquals(suggestionBefore, db.one("SELECT * FROM resume_analysis_suggestions WHERE id=?", suggestion));
         assertNull(db.scalar("SELECT template_id FROM resumes WHERE id=?", id));
@@ -229,7 +222,6 @@ class ResumeTemplateSelectionIntegrationTests {
             .andExpect(status().isOk()).andExpect(jsonPath("$.template_id").value(first.toString()))
             .andExpect(jsonPath("$.status").value("REVIEW_REQUIRED")).andExpect(jsonPath("$.is_primary").value(false));
         assertNotEquals(before.get("content_hash"), db.scalar("SELECT content_hash FROM resumes WHERE id=?", id));
-        assertEquals(false, db.scalar("SELECT is_current FROM resume_embeddings WHERE id=?", embedding));
         assertEquals(true, db.scalar("SELECT is_outdated FROM roadmaps WHERE id=?", roadmap));
     }
 
@@ -273,14 +265,12 @@ class ResumeTemplateSelectionIntegrationTests {
     private void assertContentUnchanged(
         Map<String, Object> before,
         UUID id,
-        UUID embedding,
         UUID roadmap) {
         Map<String, Object> after = db.one("SELECT * FROM resumes WHERE id=?", id);
         for (String field : List
             .of("content_hash", "structured_data", "raw_content", "title", "language", "status", "is_primary")) {
             assertEquals(before.get(field), after.get(field), field);
         }
-        assertEquals(true, db.scalar("SELECT is_current FROM resume_embeddings WHERE id=?", embedding));
         assertEquals(false, db.scalar("SELECT is_outdated FROM roadmaps WHERE id=?", roadmap));
     }
 

@@ -37,21 +37,6 @@ public class StaffOperationsController {
         return service.consultants(search, limit, offset);
     }
 
-    @GetMapping("/consultants/{id}/ratings")
-    public List<Map<String, Object>> consultantRatingsByConsultant(
-        @PathVariable
-        UUID id,
-        @RequestParam(required = false)
-        Integer rating,
-        @RequestParam(defaultValue = "false")
-        boolean includeRemoved,
-        @RequestParam(defaultValue = "20")
-        int limit,
-        @RequestParam(defaultValue = "0")
-        int offset) {
-        return service.consultantRatings(id, rating, includeRemoved, limit, offset);
-    }
-
     @GetMapping("/consultant-ratings")
     public List<Map<String, Object>> consultantRatings(
         @RequestParam(required = false)
@@ -78,16 +63,4 @@ public class StaffOperationsController {
         return service.feedback(source, limit, offset);
     }
 
-    @GetMapping("/crawl-reports")
-    public List<Map<String, Object>> crawlReports(
-        @RequestParam(required = false)
-        String source,
-        @RequestParam(required = false)
-        String status,
-        @RequestParam(defaultValue = "20")
-        int limit,
-        @RequestParam(defaultValue = "0")
-        int offset) {
-        return service.crawlReports(source, status, limit, offset);
-    }
 }

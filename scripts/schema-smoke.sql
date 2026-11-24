@@ -31,10 +31,15 @@ DECLARE
     roadmap_id uuid := gen_random_uuid();
     other_roadmap_id uuid := gen_random_uuid();
     other_node_id uuid := gen_random_uuid();
-    existing_skill uuid;
 BEGIN
+    IF to_regclass('public.rag_query_logs') IS NOT NULL
+        OR to_regclass('public.skill_prerequisites') IS NOT NULL
+        OR to_regclass('public.career_profile_embeddings') IS NOT NULL
+        OR to_regclass('public.resume_embeddings') IS NOT NULL THEN
+        RAISE EXCEPTION 'Unused application tables should have been removed by V45';
+    END IF;
+
     SELECT id INTO STRICT free_tier FROM subscription_tiers WHERE tier_code = 'FREE';
-    SELECT id INTO STRICT existing_skill FROM skills WHERE slug = 'java';
     INSERT INTO users (id, email, full_name, password_hash, status)
         VALUES (candidate_id, candidate_id::text || '@example.invalid', 'Schema smoke candidate', 'test-only-unusable-hash', 'ACTIVE');
     INSERT INTO guest_sessions (id, session_key, token_limit) VALUES (guest_id, guest_id::text, 100);
@@ -63,7 +68,6 @@ BEGIN
     PERFORM pg_temp.expect_constraint(format('UPDATE guest_sessions SET token_used = 101 WHERE id = %L', guest_id), '23514');
     PERFORM pg_temp.expect_constraint(format('INSERT INTO user_subscriptions (user_id, tier_id) VALUES (%L, %L)', candidate_id, free_tier), '23505');
     PERFORM pg_temp.expect_constraint(format('INSERT INTO job_match_results (matching_run_id, market_job_id, final_score) VALUES (%L, %L, 1.5)', run_id, job_id), '23514');
-    PERFORM pg_temp.expect_constraint(format('INSERT INTO skill_prerequisites (skill_id, prerequisite_id) VALUES (%L, %L)', existing_skill, existing_skill), '23514');
     PERFORM pg_temp.expect_constraint(format('INSERT INTO roadmap_node_prerequisites (node_id, prerequisite_node_id) VALUES (%L, %L)', node_id, node_id), '23514');
     PERFORM pg_temp.expect_constraint(format('INSERT INTO assessment_answers (session_id, question_id) VALUES (%L, %L)', session_two, question_id), '23503');
     PERFORM pg_temp.expect_constraint(format('INSERT INTO invoices (user_id, payment_order_id, invoice_number, subtotal, total_amount, status) VALUES (%L, %L, %L, 1, 2, ''ISSUED'')', candidate_id, order_id, order_id::text), '23514');

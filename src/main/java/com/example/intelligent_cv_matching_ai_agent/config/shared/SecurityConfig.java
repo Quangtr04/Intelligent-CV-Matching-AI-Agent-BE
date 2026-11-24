@@ -77,9 +77,7 @@ public class SecurityConfig {
                         "/api/v1/admin/resume-templates/**",
                         "/api/v1/admin/jobs/**",
                         "/api/v1/admin/crawl-settings",
-                        "/api/v1/admin/crawl-history",
                         "/api/admin/crawl-settings",
-                        "/api/admin/crawl-history",
                         "/api/v1/admin/monitoring/crawl-runs",
                         "/api/v1/admin/monitoring/feedback"
                     ).hasAnyRole("ADMIN", "MANAGER", "STAFF")

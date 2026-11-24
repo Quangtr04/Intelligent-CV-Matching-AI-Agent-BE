@@ -160,7 +160,30 @@ public final class JobRequirementExtractor {
         if (snapshot instanceof Map<?, ?> data
             && (VERSION.equals(data.get("version")) && CATALOG.version().equals(data.get("catalogVersion"))
                 || Boolean.TRUE.equals(job.get("requirement_extraction_verified")))) {
-            return tools.jackson.databind.json.JsonMapper.builder().build().convertValue(snapshot, Extraction.class);
+            var saved =
+                tools.jackson.databind.json.JsonMapper.builder().build().convertValue(snapshot, Extraction.class);
+            if (saved.requirements().stream().allMatch(row -> row.bloom() == null || row.bloom().isEmpty()))
+                return saved;
+            return new Extraction(
+                saved.version(),
+                saved.status(),
+                saved.requirements().stream()
+                    .map(
+                        row -> new Requirement(
+                            row.text(),
+                            row.section(),
+                            row.importance(),
+                            row.relation(),
+                            row.types(),
+                            row.skills(),
+                            row.status(),
+                            List.of()
+                        )
+                    ).toList(),
+                saved.recognized(),
+                saved.reviewRequired(),
+                saved.catalogVersion()
+            );
         }
         String original =
             com.example.intelligent_cv_matching_ai_agent.util.shared.Values.text(job.get("original_content"));
@@ -327,7 +350,7 @@ public final class JobRequirementExtractor {
                         types(original, skills),
                         skills,
                         status,
-                        bloom(original)
+                        List.of()
                     )
                 );
             }

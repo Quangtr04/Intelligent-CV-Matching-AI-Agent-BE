@@ -188,6 +188,12 @@ class AssessmentJdIntegrationTests {
         assertNotNull(gap.get("input_hash"));
         assertEquals(catalogCount, ((Number) db.scalar("SELECT count(*) FROM market_job_posts")).longValue());
 
+        mvc.perform(get("/api/v1/roadmaps").param("assessmentId", id).header("Authorization", authorization))
+            .andExpect(status().isOk()).andExpect(jsonPath("$[0].id").value(result.get("id")))
+            .andExpect(jsonPath("$[0].input_context.jd_source").value("PASTED"));
+        mvc.perform(get("/api/v1/roadmaps").param("assessmentId", id).header("Authorization", bearer(candidate())))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(0));
+
         db.update("UPDATE resumes SET raw_content='A different CV' WHERE id=?", resume);
         mvc.perform(
             post("/api/v1/roadmaps").header("Authorization", authorization).contentType(MediaType.APPLICATION_JSON)
@@ -196,30 +202,29 @@ class AssessmentJdIntegrationTests {
     }
 
     @Test
-    void pastedJdWithoutCvPassesEvidenceBasedBloomMappingToAi() throws Exception {
+    void pastedJdWithoutCvPassesRequirementEvidenceToAi() throws Exception {
         String description = "Requirements:\nUse Java to implement backend services.";
         when(ai.generate(eq("ASSESSMENT_GENERATE"), anyMap())).thenAnswer(call -> {
             Map<String, Object> input = call.getArgument(1);
             assertFalse(input.containsKey("resume"));
-            var mapping = (List<?>) input.get("jd_bloom_requirements");
+            var mapping = (List<?>) input.get("jd_requirements");
             assertFalse(mapping.isEmpty());
-            assertTrue(mapper.writeValueAsString(mapping).contains("Apply"));
             assertTrue(mapper.writeValueAsString(mapping).contains("Use Java to implement backend services"));
             var quiz = questions("Java");
             quiz.forEach(question -> question.put("jd_evidence", "Use Java to implement backend services"));
             return fields("questions", quiz);
         });
-        var session = create(fields("targetJobTitle", "Backend role", "jdText", description), 200);
+        var session = create(fields("jdText", description), 200);
         assertNull(session.get("resume_id"));
         var snapshot = db.one(
             "SELECT context_snapshot FROM assessment_sessions WHERE id=?",
             UUID.fromString(session.get("id").toString())
         );
-        assertTrue(mapper.writeValueAsString(snapshot).contains("jd_bloom_requirements"));
+        assertTrue(mapper.writeValueAsString(snapshot).contains("jd_requirements"));
     }
 
     @Test
-    void storedJobUsesReviewedBloomSnapshotInsteadOfReclassifyingRawText() throws Exception {
+    void storedJobUsesReviewedRequirementsInsteadOfReclassifyingRawText() throws Exception {
         UUID selected = job("Java", JAVA_JD);
         var extracted = com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobRequirementExtractor
             .extract("", "Evaluate Java solutions using evidence and criteria", "");
@@ -231,7 +236,7 @@ class AssessmentJdIntegrationTests {
         );
         when(ai.generate(eq("ASSESSMENT_GENERATE"), anyMap())).thenAnswer(call -> {
             Map<String, Object> input = call.getArgument(1);
-            String mapping = mapper.writeValueAsString(input.get("jd_bloom_requirements"));
+            String mapping = mapper.writeValueAsString(input.get("jd_requirements"));
             assertTrue(mapping.contains("Evaluate"));
             assertTrue(mapping.contains("Evaluate Java solutions using evidence and criteria"));
             return fields("questions", questions("Java"));

@@ -73,8 +73,8 @@ class EmbeddingMigrationIntegrationTests {
             );
         }
 
-        Flyway.configure().dataSource(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword()).load()
-            .migrate();
+        Flyway.configure().dataSource(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword())
+            .target("44").load().migrate();
 
         for (String table : tables) {
             assertEquals(legacy, jdbc.queryForObject("SELECT embedding_legacy_1536::text FROM " + table, String.class));

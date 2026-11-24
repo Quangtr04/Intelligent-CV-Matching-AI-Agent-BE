@@ -197,7 +197,9 @@ class LearningSourceFlowTest {
 
         verify(current).requireRole("CANDIDATE");
         verify(resumes).owned(resumeId);
-        verifyNoInteractions(references, ai);
+        verifyNoInteractions(references);
+        verify(ai).requireRoadmapAccess();
+        verifyNoMoreInteractions(ai);
         verify(db, never()).insertRoadmaps(anyMap());
     }
 
@@ -287,7 +289,8 @@ class LearningSourceFlowTest {
                 () -> service.createRoadmap(new RoadmapRequest(null, jobId, null, assessmentId))
             ).status()
         );
-        verifyNoInteractions(ai);
+        verify(ai).requireRoadmapAccess();
+        verifyNoMoreInteractions(ai);
         verify(db, never()).insertRoadmaps(anyMap());
     }
 

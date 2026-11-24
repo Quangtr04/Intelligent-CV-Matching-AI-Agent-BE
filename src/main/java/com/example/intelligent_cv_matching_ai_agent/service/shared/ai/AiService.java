@@ -51,6 +51,12 @@ public class AiService {
         PROVIDER, JSON, VALIDATION
     }
 
+    @Value("${app.jobs.skill-proficiency.input-cost-per-million:-1}")
+    private java.math.BigDecimal proficiencyInputCost = java.math.BigDecimal.valueOf(-1);
+
+    @Value("${app.jobs.skill-proficiency.output-cost-per-million:-1}")
+    private java.math.BigDecimal proficiencyOutputCost = java.math.BigDecimal.valueOf(-1);
+
     private final ObjectProvider<ChatModel> chatModels;
 
     private final ObjectProvider<EmbeddingModel> embeddingModels;
@@ -149,6 +155,10 @@ public class AiService {
         this.assessmentMaxOutputTokens = Math.max(256, Math.min(assessmentMaxOutputTokens, 16000));
         this.learningMaxOutputTokens = Math.max(256, Math.min(learningMaxOutputTokens, 16000));
         this.chatTemperature = Math.max(0, Math.min(chatTemperature, 2));
+    }
+
+    public void requireRoadmapAccess() {
+        entitlement.requireRoadmapAccess(current.id());
     }
 
     public boolean enabled() {
@@ -595,7 +605,7 @@ public class AiService {
         String feature) {
         return switch (feature) {
             case "ASSESSMENT_GENERATE" -> assessmentMaxOutputTokens;
-            case "ROADMAP_GENERATE" -> learningMaxOutputTokens;
+            case "ROADMAP_GENERATE", "JD_SKILL_PROFICIENCY" -> learningMaxOutputTokens;
             case "CV_PROFILE_ALIGNMENT" -> 4000;
             case "CV_ANALYZE" -> Math.max(4000, maxOutputTokens);
             default -> maxOutputTokens;
@@ -869,6 +879,14 @@ public class AiService {
         fields.put("success", success);
         fields.put("error_message", error);
 
+        if ("JD_SKILL_PROFICIENCY".equals(feature) && proficiencyInputCost != null && proficiencyOutputCost != null
+            && proficiencyInputCost.signum() >= 0 && proficiencyOutputCost.signum() >= 0) {
+            fields.put(
+                "estimated_cost",
+                proficiencyInputCost.multiply(java.math.BigDecimal.valueOf(in))
+                    .add(proficiencyOutputCost.multiply(java.math.BigDecimal.valueOf(out))).movePointLeft(6)
+            );
+        }
         usageRecorder.record(fields);
     }
 

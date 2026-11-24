@@ -121,23 +121,4 @@ public class StaffOperationsRepository {
         );
     }
 
-    public List<Map<String, Object>> crawlReports(
-        String source,
-        String status,
-        int limit,
-        int offset) {
-        return db.list(
-            "SELECT id,source_site,keyword,role_category,requested_location,requested_limit,status,"
-                + "fetched_urls,parsed_jobs,imported_jobs,imported_skills,skipped_duplicates,search_pages_checked,"
-                + "candidate_urls_discovered,detail_pages_checked,wrong_region_pages,rejected_pages,"
-                + "started_at,finished_at FROM market_crawl_runs WHERE (?::varchar IS NULL OR source_site=?) "
-                + "AND (?::varchar IS NULL OR status=?) ORDER BY started_at DESC,id LIMIT ? OFFSET ?",
-            source,
-            source,
-            status,
-            status,
-            limit,
-            offset
-        );
-    }
 }

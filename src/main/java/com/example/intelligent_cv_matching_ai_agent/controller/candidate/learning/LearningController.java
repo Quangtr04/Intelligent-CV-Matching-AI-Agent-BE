@@ -77,8 +77,10 @@ public class LearningController {
     }
 
     @GetMapping("/roadmaps")
-    public List<Map<String, Object>> roadmaps() {
-        return service.roadmaps();
+    public List<Map<String, Object>> roadmaps(
+        @RequestParam(required = false)
+        UUID assessmentId) {
+        return service.roadmaps(assessmentId);
     }
 
     @GetMapping("/roadmaps/{id}")

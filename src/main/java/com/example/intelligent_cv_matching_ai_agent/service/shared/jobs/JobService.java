@@ -10,6 +10,7 @@ import com.example.intelligent_cv_matching_ai_agent.util.shared.FlowSupport;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobNormalizer;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobEmbeddingSupport;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobSalaryParser;
+import com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.SkillRubric;
 import java.time.OffsetDateTime;
 import java.util.*;
 import org.jsoup.Jsoup;
@@ -133,6 +134,7 @@ public class JobService {
         UUID id) {
         var job =
             user.hasStaffOrOperationsRole() ? db.getMarketJobPostsWithCreatorById(id) : db.getMarketJobPostsById(id);
+        exposeSkillProficiency(job);
         job.put("skills", db.listMarketJobSkillsByMarketJobId(id));
         job.put("sources", db.sources(id));
         return job;
@@ -141,9 +143,19 @@ public class JobService {
     private Map<String, Object> jobWithCreator(
         UUID id) {
         var job = db.getMarketJobPostsWithCreatorById(id);
+        exposeSkillProficiency(job);
         job.put("skills", db.listMarketJobSkillsByMarketJobId(id));
         job.put("sources", db.sources(id));
         return job;
+    }
+
+    private static void exposeSkillProficiency(
+        Map<String, Object> job) {
+        job.put("skill_proficiency_analysis", SkillRubric.currentAnalysis(job));
+        job.remove("skill_proficiency_lease");
+        job.remove("skill_proficiency_input_key");
+        job.remove("skill_proficiency_retry_at");
+        job.remove("skill_proficiency_attempts");
     }
 
     @Transactional
@@ -407,20 +419,6 @@ public class JobService {
             )
         );
         return jobWithCreator(id);
-    }
-
-    public List<Map<String, Object>> duplicateJobs(
-        int limit,
-        int offset) {
-        user.requireStaffOrOperationsRole();
-        return db.listDuplicateJobGroups(pageSize(limit), offset(offset));
-    }
-
-    public List<Map<String, Object>> expiredOrInvalidJobs(
-        int limit,
-        int offset) {
-        user.requireStaffOrOperationsRole();
-        return db.listExpiredOrInvalidJobs(pageSize(limit), offset(offset));
     }
 
     private void retirePrevious(

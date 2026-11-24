@@ -50,7 +50,6 @@ class ResumeTemplateSelectionTests {
         assertEquals(template, result.get("template_id"));
         verify(db).getResumeTemplatesById(template);
         verify(db, never()).updateResumesById(any(Object[].class));
-        verify(db, never()).updateResumeEmbeddingsByResumeId(any(Object[].class));
         verify(db, never()).updateRoadmapsByGapAnalysisId(any(Object[].class));
         verifyNoInteractions(ai);
     }

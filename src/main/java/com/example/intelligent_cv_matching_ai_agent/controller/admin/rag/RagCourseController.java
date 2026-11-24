@@ -1,7 +1,9 @@
 package com.example.intelligent_cv_matching_ai_agent.controller.admin.rag;
 
 import com.example.intelligent_cv_matching_ai_agent.dto.request.admin.rag.CourseLinkRequest;
+import com.example.intelligent_cv_matching_ai_agent.dto.request.admin.rag.CourseSearchRequest;
 import com.example.intelligent_cv_matching_ai_agent.service.admin.rag.RagCourseService;
+import com.example.intelligent_cv_matching_ai_agent.service.admin.rag.SerpCourseDiscoveryService;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,14 +14,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/admin/rag/courses")
+@RequestMapping({"/api/v1/admin/rag/courses", "/api/v1/staff/rag/courses"})
 public class RagCourseController {
 
     private final RagCourseService service;
 
+    private final SerpCourseDiscoveryService discovery;
+
     public RagCourseController(
-        RagCourseService service) {
+        RagCourseService service,
+        SerpCourseDiscoveryService discovery) {
         this.service = service;
+        this.discovery = discovery;
     }
 
     @GetMapping
@@ -27,11 +33,17 @@ public class RagCourseController {
         return service.list();
     }
 
-    @GetMapping("/{id}")
-    public Object get(
-        @PathVariable
-        UUID id) {
-        return service.get(id);
+    @GetMapping("/search")
+    public Object discoveryStatus() {
+        return discovery.status();
+    }
+
+    @PostMapping("/search")
+    public Object discover(
+        @Valid
+        @RequestBody
+        CourseSearchRequest request) {
+        return discovery.discover(request);
     }
 
     @PostMapping

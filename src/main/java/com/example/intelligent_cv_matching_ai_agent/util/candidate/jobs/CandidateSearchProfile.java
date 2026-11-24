@@ -10,7 +10,7 @@ import static com.example.intelligent_cv_matching_ai_agent.util.shared.Values.*;
 /** Stable search intent and factual evidence. Each distinct CV remains an independent search document. */
 public final class CandidateSearchProfile {
 
-    public static final String VERSION = "candidate-search-v1";
+    public static final String VERSION = "candidate-search-v2";
 
     private static final JsonMapper JSON = JsonMapper.builder().build();
 
@@ -144,7 +144,9 @@ public final class CandidateSearchProfile {
         return new Document(
             ids,
             Collections.unmodifiableMap(profile),
-            text,
+            JSON.writeValueAsString(
+                fields("job_title", profile.get("desired_job_title"), "skills", profile.get("skills"))
+            ),
             FlowSupport.hash(VERSION + "\n" + text),
             evidence,
             sourceData

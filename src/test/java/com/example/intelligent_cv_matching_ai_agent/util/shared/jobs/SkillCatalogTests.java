@@ -65,7 +65,7 @@ class SkillCatalogTests {
             names("React Native / SQL Server / Spring Boot")
         );
         assertEquals(Set.of("Spring", "Spring Boot"), names("Spring Boot and Spring"));
-        assertEquals(Set.of("JavaScript"), names("JavaScript GitHub MySQLConnector"));
+        assertEquals(Set.of("JavaScript", "GitHub"), names("JavaScript GitHub MySQLConnector"));
     }
 
     @Test

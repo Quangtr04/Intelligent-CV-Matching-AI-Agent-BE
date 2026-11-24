@@ -14,7 +14,7 @@ import static com.example.intelligent_cv_matching_ai_agent.util.shared.Values.te
 
 public final class JobEmbeddingSupport {
 
-    public static final String VERSION = "job-search-v2";
+    public static final String VERSION = "job-search-v3";
 
     private JobEmbeddingSupport() {
     }
@@ -23,40 +23,19 @@ public final class JobEmbeddingSupport {
         Map<String, Object> job) {
         StringJoiner result = new StringJoiner("\n");
         result.add("Job title: " + clean(text(job.get("job_title"))));
-        result.add("Role: " + clean(text(job.get("role_category"))));
-        result.add("Seniority: " + clean(text(job.get("parsed_seniority"))));
-        result.add("Employment type: " + clean(text(job.get("employment_type"))));
-        String description = text(job.get("parsed_description"));
-        // Imported descriptions can include the benefits/company footer. Keep only the job-facing section.
-        description = description.split(
-            ("(?im)^\\s*(?:benefits|what we offer|about (?:us|the company)|quyền "
-                + "lợi|phúc lợi|về công ty)\\s*[:\\n]"),
-            2
-        )[0];
-        if (!description.isBlank())
-            result.add("Job description: " + clean(description));
-        var extraction = JobRequirementExtractor.forJob(job);
-        var seen = new TreeSet<String>();
-        for (var requirement : extraction.requirements()) {
-            String clause =
-                requirement.importance() + " [" + requirement.relation() + "]: " + clean(requirement.text());
-            if (seen.add(clause))
-                result.add(clause);
-        }
-        if (!text(job.get("parsed_responsibilities")).isBlank())
-            result.add("Responsibilities: " + clean(text(job.get("parsed_responsibilities"))));
         var skills = new TreeSet<String>();
+        JobRequirementExtractor.forJob(job).requirements().stream()
+            .filter(requirement -> !"RESPONSIBILITY".equals(requirement.importance()))
+            .flatMap(requirement -> requirement.skills().stream()).map(JobRequirementExtractor.Skill::name)
+            .map(JobEmbeddingSupport::clean).filter(name -> !name.isBlank()).forEach(skills::add);
         for (Object raw : array(job.get("skills"))) {
             var row = object(raw);
             String name = text(row.getOrDefault("name", row.get("skill_name")));
             if (!name.isBlank())
-                skills.add(
-                    (Boolean.FALSE.equals(row.getOrDefault("required", row.get("is_required")))
-                        ? "Preferred skill: "
-                        : "Required skill: ") + SkillCatalog.get().canonicalName(name)
-                );
+                skills.add(clean(SkillCatalog.get().canonicalName(name)));
         }
-        skills.forEach(result::add);
+        skills.remove("");
+        result.add("Skills: " + String.join(", ", skills));
         return result.toString();
     }
 

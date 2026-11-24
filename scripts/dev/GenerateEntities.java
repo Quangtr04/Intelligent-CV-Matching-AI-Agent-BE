@@ -7,8 +7,7 @@ public class GenerateEntities {
 
     static final String BASE = "com.example.intelligent_cv_matching_ai_agent";
 
-    static final Set<String> VECTOR_TABLES =
-        Set.of("career_profile_embeddings", "resume_embeddings", "market_job_embeddings", "rag_chunk_embeddings");
+    static final Set<String> VECTOR_TABLES = Set.of("market_job_embeddings", "rag_chunk_embeddings");
 
     static final Map<String, String> SPECIAL = Map.ofEntries(
         Map.entry("ai_token_reservations", "AiTokenReservation"),

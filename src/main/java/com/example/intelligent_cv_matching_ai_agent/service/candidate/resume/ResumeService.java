@@ -499,65 +499,6 @@ public class ResumeService {
         return result;
     }
 
-    @Transactional(noRollbackFor = ApiException.class)
-    public Map<String, Object> embedding(
-        UUID id) {
-        Map<String, Object> resume = owned(id);
-        if (!"READY".equals(resume.get("status").toString()))
-            throw ApiException.conflict("Confirm the CV before generating its embedding");
-        if (!ai.embeddingsEnabled())
-            throw new ApiException(503, "AI embedding provider is disabled");
-
-        Object hash = resume.get("content_hash");
-        Optional<Map<String, Object>> cached =
-            db.findResumeEmbeddingsByResumeId(id, ai.provider(), ai.embeddingModel(), hash);
-        if (cached.isPresent())
-            return cached.get();
-
-        UUID task = db.insertVectorIndexingJobs(
-            Map.of(
-                "entity_type",
-                "RESUME",
-                "entity_id",
-                id,
-                "operation",
-                "EMBED",
-                "provider",
-                ai.provider(),
-                "model",
-                ai.embeddingModel(),
-                "status",
-                "PROCESSING",
-                "attempt_count",
-                1,
-                "started_at",
-                java.time.Instant.now()
-            )
-        );
-
-        float[] vector;
-
-        try {
-            vector = ai.embed(canonicalText(resume));
-            Map<String, Object> latest = db.getResumesByIdForUpdate(id);
-            if (!"READY".equals(latest.get("status")) || !Objects.equals(hash, latest.get("content_hash")))
-                throw ApiException.conflict("CV changed during embedding; confirm the latest content and retry");
-        } catch (ApiException ex) {
-            db.updateVectorIndexingJobsById(ex.getMessage(), task);
-            throw ex;
-        }
-
-        String literal = Arrays.toString(vector);
-
-        db.updateResumeEmbeddingsByResumeId(id);
-
-        UUID embedding = (UUID) db.readResumeEmbeddings(id, ai.provider(), ai.embeddingModel(), literal, hash);
-
-        db.updateVectorIndexingJobsById2(task);
-
-        return db.getResumeEmbeddingsById(embedding);
-    }
-
     public String canonicalText(
         Map<String, Object> resume) {
         return ResumeContent.canonicalText(mapper, resume);
@@ -675,7 +616,6 @@ public class ResumeService {
 
     private void invalidate(
         UUID id) {
-        db.updateResumeEmbeddingsByResumeId(id);
         db.updateRoadmapsByGapAnalysisId(id);
     }
 

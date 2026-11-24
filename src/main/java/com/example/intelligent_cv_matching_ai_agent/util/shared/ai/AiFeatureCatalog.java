@@ -32,6 +32,11 @@ public final class AiFeatureCatalog {
             "Đối chiếu bằng chứng CV–JD",
             "Đối chiếu từng yêu cầu JD với thông tin có nguồn trong CV hoặc hồ sơ."
         ),
+        new Feature(
+            "JD_SKILL_PROFICIENCY",
+            "JD skill proficiency",
+            "Evaluate required skill proficiency from job evidence."
+        ),
         new Feature("JOB_ATS", "Đối chiếu CV với việc làm", "Phân tích kỹ năng phù hợp và còn thiếu so với công việc."),
         new Feature("ASSESSMENT_GENERATE", "Tạo bài đánh giá", "Tạo câu hỏi kiểm tra kỹ năng theo mô tả công việc."),
         new Feature("ROADMAP_GENERATE", "Lập lộ trình học", "Lập kế hoạch học các kỹ năng ứng viên còn thiếu."),

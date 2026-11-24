@@ -198,7 +198,6 @@ class ResumeCompletionScenarioTests {
         var order = inOrder(repository);
         order.verify(repository).getResumesById(resumeId);
         order.verify(repository).updateResumesById4(resumeId);
-        order.verify(repository).updateResumeEmbeddingsByResumeId(resumeId);
         order.verify(repository).updateRoadmapsByGapAnalysisId(resumeId);
         verify(repository, never()).updateResumesByUserId(any());
         verifyNoInteractions(ai);

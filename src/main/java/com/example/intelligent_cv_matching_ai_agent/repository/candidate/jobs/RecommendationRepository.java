@@ -1,6 +1,7 @@
 package com.example.intelligent_cv_matching_ai_agent.repository.candidate.jobs;
 
 import com.example.intelligent_cv_matching_ai_agent.repository.shared.SqlStore;
+import com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobEmbeddingSupport;
 import java.util.*;
 import org.springframework.stereotype.Repository;
 
@@ -31,15 +32,17 @@ public class RecommendationRepository {
         String model,
         int dimensions) {
         return db.one(
-            ("SELECT count(*) AS active_jobs,count(e.id) AS compatible_vectors,"
+            ("SELECT count(*) AS active_jobs,count(e.id) FILTER(WHERE e.input_version=?) AS compatible_vectors,"
                 + "count(e.id) FILTER(WHERE e.input_version='legacy-full-v1') AS " + "legacy_input_vectors,"
                 + "md5(COALESCE(string_agg(e.id::text||':'||e.content_hash||':'||e.input_"
-                + "version||':'||e.created_at::text,',' ORDER BY e.id),'')) AS "
+                + "version||':'||e.created_at::text,',' ORDER BY e.id) FILTER(WHERE e.input_version=?),'')) AS "
                 + "vector_fingerprint FROM market_job_posts j LEFT JOIN "
                 + "market_job_embeddings e ON e.market_job_id=j.id AND e.is_current AND "
                 + "e.embedding IS NOT NULL AND e.provider=? AND e.model=? AND "
                 + "vector_dims(e.embedding)=? AND COALESCE(e.source_content_hash,"
                 + "e.content_hash)=j.raw_content_hash WHERE ") + ACTIVE,
+            JobEmbeddingSupport.VERSION,
+            JobEmbeddingSupport.VERSION,
             provider,
             model,
             dimensions
@@ -53,7 +56,8 @@ public class RecommendationRepository {
         String vector,
         String eligibleIds) {
         String filter = eligibleIds == null ? "" : " AND j.id=ANY(CAST(? AS uuid[]))";
-        List<Object> parameters = new ArrayList<>(List.of(vector, provider, model, dimensions));
+        List<Object> parameters =
+            new ArrayList<>(List.of(vector, provider, model, dimensions, JobEmbeddingSupport.VERSION));
         if (eligibleIds != null)
             parameters.add(eligibleIds);
         return db.list(
@@ -61,17 +65,11 @@ public class RecommendationRepository {
                 + "e.input_version AS embedding_input_version FROM market_job_embeddings e "
                 + "JOIN market_job_posts j ON j.id=e.market_job_id WHERE " + ACTIVE
                 + " AND e.is_current AND e.embedding IS NOT NULL AND e.provider=? AND e.model=? "
-                + ("AND vector_dims(e.embedding)=? AND COALESCE(e.source_content_hash,"
+                + ("AND vector_dims(e.embedding)=? AND e.input_version=? " + "AND COALESCE(e.source_content_hash,"
                     + "e.content_hash)=j.raw_content_hash")
                 + filter,
             parameters.toArray()
         );
-    }
-
-    public List<Map<String, Object>> fallbackCandidates(
-        String eligibleIds) {
-        String sql = "SELECT " + COLUMNS + " FROM market_job_posts j WHERE " + ACTIVE;
-        return eligibleIds == null ? db.list(sql) : db.list(sql + " AND j.id=ANY(CAST(? AS uuid[]))", eligibleIds);
     }
 
     public Optional<Map<String, Object>> cachedRun(

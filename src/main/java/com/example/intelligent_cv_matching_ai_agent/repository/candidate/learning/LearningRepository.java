@@ -259,6 +259,17 @@ public class LearningRepository {
         return db.list("SELECT * FROM roadmaps WHERE user_id=? ORDER BY created_at DESC LIMIT 100", args);
     }
 
+    public List<Map<String, Object>> listRoadmapsByAssessment(
+        UUID userId,
+        UUID assessmentId) {
+        return db.list(
+            "SELECT r.* FROM roadmaps r JOIN gap_analyses g ON g.id=r.gap_analysis_id "
+                + "WHERE r.user_id=? AND g.assessment_session_id=? ORDER BY r.created_at DESC, r.id DESC LIMIT 1",
+            userId,
+            assessmentId
+        );
+    }
+
     public Map<String, Object> getRoadmapsById(
         Object... args) {
         return db.one("SELECT * FROM roadmaps WHERE id=? AND user_id=?", args);

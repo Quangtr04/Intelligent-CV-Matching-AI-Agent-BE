@@ -127,13 +127,13 @@ class RecommendationRulesTests {
     }
 
     @Test
-    void missingDatesAndBloomRemainUnverifiedAndDoNotInventYearsOrProficiency() {
+    void missingDatesRemainUnverifiedAndDoNotInventYearsOrProficiency() {
         var assessment = RecommendationRules.assess(
             normalize(cv("Java", "Backend")),
             job(("At least 3 years of Java experience required\nAnalyze distributed " + "system architecture"))
         );
         assertEquals("UNVERIFIED", assessment.get("experience_status"));
-        assertFalse(array(assessment.get("bloom_requirements")).isEmpty());
+        assertFalse(array(assessment.get("jd_requirements")).isEmpty());
         var condition = object(array(assessment.get("experience_conditions")).getFirst());
         assertNull(condition.get("candidate_years"));
     }
@@ -145,8 +145,10 @@ class RecommendationRulesTests {
         job.put("parsed_description", "<p>Build APIs</p>\nBenefits:\nFree lunch and gym");
         job.put("parsed_responsibilities", "<p>Deploy services</p>");
         String text = JobEmbeddingSupport.embeddingText(job), hash = JobEmbeddingSupport.inputHash(job);
-        assertTrue(text.contains("Build APIs"));
-        assertTrue(text.contains("Deploy services"));
+        assertFalse(text.contains("Build APIs"));
+        assertFalse(text.contains("Deploy services"));
+        assertTrue(text.contains("Job title: Backend"));
+        assertTrue(text.contains("Skills: Java"));
         assertFalse(text.contains("<p>"));
         assertFalse(text.contains("Free lunch"));
         job.put("salary_text", "3000 USD");

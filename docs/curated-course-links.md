@@ -24,7 +24,6 @@ Các endpoint yêu cầu access token có role `ADMIN`.
 | --- | --- | --- |
 | `POST` | `/api/v1/admin/rag/courses` | Thêm khóa chờ duyệt |
 | `GET` | `/api/v1/admin/rag/courses` | Danh sách 200 khóa gần nhất |
-| `GET` | `/api/v1/admin/rag/courses/{id}` | Chi tiết khóa, trạng thái và ID tài nguyên/RAG |
 | `POST` | `/api/v1/admin/rag/courses/{id}/approve` | Duyệt và đưa vào nguồn gợi ý |
 | `POST` | `/api/v1/admin/rag/courses/{id}/index` | Index RAG cho khóa đã duyệt |
 | `POST` | `/api/v1/admin/rag/courses/{id}/archive` | Ngừng đề xuất |

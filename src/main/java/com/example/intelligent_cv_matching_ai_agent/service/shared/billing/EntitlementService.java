@@ -37,13 +37,19 @@ public class EntitlementService {
         long subscriptionRemaining = -1;
         long walletReserved = 0;
         if (!"ADMIN".equals(role) && !"MANAGER".equals(role) && !"CAREER_CONSULTANT".equals(role)) {
-            subscriptionRemaining = checkSubscriptionQuota(user, feature, tokenBudget);
+            var tier = effectiveTier(user);
+            boolean walletOnly = "ROADMAP_GENERATE".equals(feature) && "FREE".equals(tier.get("tier_code"));
+            subscriptionRemaining = walletOnly ? 0 : checkSubscriptionQuota(user, feature, tokenBudget, tier);
             walletReserved = subscriptionRemaining < 0 ? 0 : Math.max(0, tokenBudget - subscriptionRemaining);
-            if (walletReserved > 0 && db.reserveWalletTokens(user, walletReserved) == 0)
+            if (walletReserved > 0 && db.reserveWalletTokens(user, walletReserved) == 0) {
+                if (walletOnly) {
+                    throw roadmapPaymentRequired();
+                }
                 throw new ApiException(
                     429,
                     "AI token quota exceeded; upgrade your subscription, top up tokens or wait for the next quota period"
                 );
+            }
         }
 
         return db.insertAiTokenReservations(
@@ -68,11 +74,22 @@ public class EntitlementService {
         );
     }
 
+    public void requireRoadmapAccess(
+        UUID user) {
+        if ("FREE".equals(effectiveTier(user).get("tier_code")) && db.walletBalance(user) <= 0) {
+            throw roadmapPaymentRequired();
+        }
+    }
+
+    private static ApiException roadmapPaymentRequired() {
+        return new ApiException(402, "A paid AI plan or sufficient purchased tokens are required to create a roadmap");
+    }
+
     private long checkSubscriptionQuota(
         UUID user,
         String feature,
-        int tokenBudget) {
-        Map<String, Object> tier = effectiveTier(user);
+        int tokenBudget,
+        Map<String, Object> tier) {
         var global = db.findSubscriptionQuotasByTierId(tier.get("id"));
         if (global.isEmpty())
             throw new ApiException(503, "AI quota is not configured for this subscription");

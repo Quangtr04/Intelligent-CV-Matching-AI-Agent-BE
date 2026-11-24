@@ -50,6 +50,8 @@ public final class AiResponseData {
             case "JOB_REQUIREMENT_EVIDENCE" -> ("{results:[{requirement_id:string,"
                 + "status:MET_or_PARTIAL_or_NOT_MET_or_MISSING_EVIDENCE_or_UNVERIFIED,"
                 + "reason:string,evidence:[{chunk_id:string,quote:string}]}]}");
+            case "JD_SKILL_PROFICIENCY" -> ("{results:[{skill_id:string,required_level:integer_0_to_4_or_null,"
+                + "evidence:string,reason:string,confidence:number_0_to_1}]}");
             case "JOB_ATS" -> ("{ats_score:number_0_to_100,strengths:[string],missing_skills:[string],"
                 + "improvement_suggestions:[string]}");
             case "ASSESSMENT_GENERATE" -> ("{questions:[{part:1_or_2,question_text:string,options:{A:string,"
@@ -128,7 +130,7 @@ public final class AiResponseData {
             }
             case "CV_AI_SUPPORT" -> CvSupportResponseSchema.validate(result);
             case "CV_PROFILE_ALIGNMENT" -> ResumeProfileAlignment.validateModelResponse(result);
-            case "JOB_MATCH_RERANK", "JOB_REQUIREMENT_EVIDENCE" -> array(result, "results");
+            case "JOB_MATCH_RERANK", "JOB_REQUIREMENT_EVIDENCE", "JD_SKILL_PROFICIENCY" -> array(result, "results");
             case "JOB_ATS" -> {
                 score(result, "ats_score", 100);
                 array(result, "strengths");
