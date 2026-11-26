@@ -5,7 +5,6 @@ import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiExceptio
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -31,8 +30,7 @@ public final class ResumeContentQuality {
     }
 
     public static Map<String, Object> normalize(
-        Map<String, Object> generated,
-        Map<String, Object> resume) {
+        Map<String, Object> generated) {
         try {
             Map<String, Object> incoming = object(generated.get("content_quality"));
 
@@ -45,22 +43,6 @@ public final class ResumeContentQuality {
             if (!(rawCriteria instanceof List<?> supplied) || supplied.size() != CODES.size()) {
                 throw invalid("Content quality must contain exactly six criteria");
             }
-
-            List<String> sourceText = new ArrayList<>();
-
-            Map<String, Object> data = object(resume.get("structured_data"));
-
-            boolean reviewed = !Objects.toString(data.get("summary"), "").isBlank()
-                || List.of("experience", "education", "projects", "certifications", "skills").stream()
-                    .anyMatch(key -> data.get(key) instanceof List<?> rows && !rows.isEmpty());
-
-            if (reviewed) {
-                collectText(data, sourceText);
-            } else {
-                sourceText.add(Objects.toString(resume.get("raw_content"), ""));
-            }
-
-            sourceText.replaceAll(ResumeContentQuality::searchText);
 
             List<Map<String, Object>> criteria = new ArrayList<>();
 
@@ -125,14 +107,6 @@ public final class ResumeContentQuality {
                         throw invalid("Invalid evidence text for " + code);
                     }
 
-                    String normalizedQuote = searchText(quote);
-
-                    boolean exists = sourceText.stream().anyMatch(text -> text.contains(normalizedQuote));
-
-                    if (!exists) {
-                        throw invalid("Content evidence is not a quote " + "from reviewed CV: " + code);
-                    }
-
                     verifiedEvidence.add(quote);
                 }
 
@@ -184,23 +158,6 @@ public final class ResumeContentQuality {
         }
 
         return result.setScale(2, RoundingMode.HALF_UP);
-    }
-
-    private static void collectText(
-        Object value,
-        List<String> target) {
-        if (value instanceof String text) {
-            target.add(text);
-        } else if (value instanceof Map<?, ?> map) {
-            map.values().forEach(item -> collectText(item, target));
-        } else if (value instanceof List<?> list) {
-            list.forEach(item -> collectText(item, target));
-        }
-    }
-
-    private static String searchText(
-        String text) {
-        return Normalizer.normalize(text, Normalizer.Form.NFC).replaceAll("\\s+", " ").strip();
     }
 
     private static IllegalArgumentException invalid(

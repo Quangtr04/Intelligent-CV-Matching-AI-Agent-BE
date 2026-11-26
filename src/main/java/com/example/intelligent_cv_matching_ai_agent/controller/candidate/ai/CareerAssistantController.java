@@ -1,6 +1,7 @@
 package com.example.intelligent_cv_matching_ai_agent.controller.candidate.ai;
 
 import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.ai.AssistantFeedbackRequest;
+import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.CandidateAiTaskGate;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.ai.CreateAssistantConversationRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.ai.UpdateAssistantConversationRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.shared.ai.AssistantMessageRequest;
@@ -18,9 +19,13 @@ public class CareerAssistantController {
 
     private final CareerAssistantService service;
 
+    private final CandidateAiTaskGate gate;
+
     public CareerAssistantController(
+        CandidateAiTaskGate gate,
         CareerAssistantService service) {
         this.service = service;
+        this.gate = gate;
     }
 
     @GetMapping("/conversations")
@@ -60,7 +65,7 @@ public class CareerAssistantController {
         @Valid
         @RequestBody
         AssistantMessageRequest body) {
-        return service.send(id, body.toInputMap());
+        return gate.run("CAREER_CHAT", () -> service.send(id, body.toInputMap()));
     }
 
     @DeleteMapping("/conversations/{id}")

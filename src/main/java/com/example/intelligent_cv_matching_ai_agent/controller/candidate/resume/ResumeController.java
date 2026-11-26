@@ -1,6 +1,7 @@
 package com.example.intelligent_cv_matching_ai_agent.controller.candidate.resume;
 
 import com.example.intelligent_cv_matching_ai_agent.service.candidate.resume.ResumePdfExportService;
+import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.CandidateAiTaskGate;
 import com.example.intelligent_cv_matching_ai_agent.service.candidate.resume.ResumeService;
 
 import org.springframework.http.*;
@@ -20,12 +21,16 @@ public class ResumeController {
 
     private final ResumeService service;
 
+    private final CandidateAiTaskGate gate;
+
     private final ResumePdfExportService pdf;
 
     public ResumeController(
+        CandidateAiTaskGate gate,
         ResumeService service,
         ResumePdfExportService pdf) {
         this.service = service;
+        this.gate = gate;
         this.pdf = pdf;
     }
 
@@ -126,7 +131,7 @@ public class ResumeController {
     public Object analyze(
         @PathVariable
         UUID id) {
-        return service.analyze(id);
+        return gate.run("CV_ANALYZE", () -> service.analyze(id));
     }
 
     @GetMapping("/{id}/analyses")
@@ -179,6 +184,6 @@ public class ResumeController {
         @Valid
         @RequestBody
         AISupportRequest body) {
-        return service.aiSupport(body);
+        return gate.run("CV_AI_SUPPORT", () -> service.aiSupport(body));
     }
 }

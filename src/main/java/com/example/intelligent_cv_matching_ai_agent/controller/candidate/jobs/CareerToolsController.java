@@ -1,6 +1,7 @@
 package com.example.intelligent_cv_matching_ai_agent.controller.candidate.jobs;
 
 import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.jobs.ApplicationDraftUpdateRequest;
+import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.CandidateAiTaskGate;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.jobs.CvRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.jobs.DraftRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.jobs.MatchRequest;
@@ -19,9 +20,13 @@ public class CareerToolsController {
 
     private final CareerToolsService service;
 
+    private final CandidateAiTaskGate gate;
+
     public CareerToolsController(
+        CandidateAiTaskGate gate,
         CareerToolsService service) {
         this.service = service;
+        this.gate = gate;
     }
 
     @PostMapping("/matching")
@@ -29,6 +34,11 @@ public class CareerToolsController {
         @Valid
         @RequestBody
         MatchRequest input) {
+        // Catalog and cached vector lookups may run while an AI task is active.
+        // AiService admits an embedding call separately if a new vector is required.
+        if ("DETAILED".equals(input.mode())) {
+            return gate.run("JOB_MATCH", () -> service.match(input));
+        }
         return service.match(input);
     }
 
@@ -72,7 +82,7 @@ public class CareerToolsController {
         @Valid
         @RequestBody
         CvRequest input) {
-        return service.ats(jobId, input);
+        return gate.run("JOB_ATS", () -> service.ats(jobId, input));
     }
 
     @PostMapping("/jobs/{jobId}/resume-draft")
@@ -81,7 +91,7 @@ public class CareerToolsController {
         UUID jobId,
         @RequestBody
         Map<String, Object> input) {
-        return service.targetedResume(jobId, input);
+        return gate.run("JOB_RESUME_DRAFT", () -> service.targetedResume(jobId, input));
     }
 
     @PostMapping("/jobs/{jobId}/application-drafts")
@@ -91,7 +101,7 @@ public class CareerToolsController {
         @Valid
         @RequestBody
         DraftRequest input) {
-        return service.createDraft(jobId, input);
+        return gate.run("APPLICATION_DRAFT", () -> service.createDraft(jobId, input));
     }
 
     @GetMapping("/application-drafts")
@@ -124,7 +134,7 @@ public class CareerToolsController {
     public Map<String, Object> salary(
         @PathVariable
         UUID id) {
-        return service.salary(id);
+        return gate.run("SALARY_ESTIMATION", () -> service.salary(id));
     }
 
     @PostMapping("/salary-estimations")
@@ -132,6 +142,6 @@ public class CareerToolsController {
         @Valid
         @RequestBody
         SalaryEstimateRequest input) {
-        return service.salaryForCareer(input);
+        return gate.run("SALARY_ESTIMATION", () -> service.salaryForCareer(input));
     }
 }

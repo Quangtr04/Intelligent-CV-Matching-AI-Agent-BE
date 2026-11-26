@@ -27,12 +27,19 @@ public class ResumeRepository {
 
     public List<Map<String, Object>> listResumesByUserId(
         Object... args) {
-        return db.list(
-            ("SELECT id,title,source,status,is_primary,language,file_name,file_url,"
-                + "created_at,updated_at FROM resumes WHERE user_id=? AND "
-                + "status<>'ARCHIVED' ORDER BY is_primary DESC,updated_at DESC"),
-            args
-        );
+        return db.list("""
+            SELECT r.id,r.title,r.source,r.status,r.is_primary,r.language,r.file_name,r.file_url,
+                   r.created_at,r.updated_at,latest.ats_score
+            FROM resumes r
+            LEFT JOIN LATERAL (
+                SELECT a.ats_score FROM resume_analyses a
+                WHERE a.resume_id=r.id AND a.ats_score IS NOT NULL
+                ORDER BY a.created_at DESC,a.id DESC
+                LIMIT 1
+            ) latest ON true
+            WHERE r.user_id=? AND r.status<>'ARCHIVED'
+            ORDER BY r.is_primary DESC,r.updated_at DESC
+            """, args);
     }
 
     public Map<String, Object> getResumesById(

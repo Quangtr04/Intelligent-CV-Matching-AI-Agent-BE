@@ -2,6 +2,7 @@ package com.example.intelligent_cv_matching_ai_agent.controller.candidate.learni
 
 import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.learning.JobSkillProficiencyRequest;
 import com.example.intelligent_cv_matching_ai_agent.security.shared.CurrentUser;
+import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.CandidateAiTaskGate;
 import com.example.intelligent_cv_matching_ai_agent.service.shared.jobs.JobSkillProficiencyService;
 import jakarta.validation.Valid;
 import java.util.Map;
@@ -16,12 +17,16 @@ public class JobSkillProficiencyController {
 
     private final CurrentUser user;
 
+    private final CandidateAiTaskGate gate;
+
     private final JobSkillProficiencyService service;
 
     public JobSkillProficiencyController(
         CurrentUser user,
+        CandidateAiTaskGate gate,
         JobSkillProficiencyService service) {
         this.user = user;
+        this.gate = gate;
         this.service = service;
     }
 
@@ -31,6 +36,6 @@ public class JobSkillProficiencyController {
         @RequestBody
         JobSkillProficiencyRequest input) {
         user.requireRole("CANDIDATE");
-        return service.preview(input.jdText(), user.id());
+        return gate.run("JD_SKILL_PROFICIENCY", () -> service.preview(input.jdText(), user.id()));
     }
 }

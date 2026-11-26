@@ -270,6 +270,23 @@ public class LearningRepository {
         );
     }
 
+    public Optional<UUID> findReusableRoadmap(
+        UUID owner,
+        String contextKey,
+        Map<String, Object> inputs) {
+        return db.optional(
+            "SELECT r.id FROM gap_analyses g JOIN roadmaps r ON r.gap_analysis_id=g.id "
+                + "WHERE g.user_id=? AND g.context_key=? AND r.user_id=g.user_id "
+                + "AND (g.context_snapshot - ARRAY['catalog_learning_context','skill_gap_version',"
+                + "'skill_states','evidence_report']) = ? "
+                + "AND NOT r.is_outdated AND r.status IN ('ready','in_progress','completed') "
+                + "ORDER BY r.created_at DESC,r.id DESC LIMIT 1",
+            owner,
+            contextKey,
+            db.json(inputs)
+        ).map(row -> (UUID) row.get("id"));
+    }
+
     public Map<String, Object> getRoadmapsById(
         Object... args) {
         return db.one("SELECT * FROM roadmaps WHERE id=? AND user_id=?", args);

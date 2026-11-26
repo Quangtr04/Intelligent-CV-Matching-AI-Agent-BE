@@ -61,7 +61,7 @@ class JobSkillProficiencyIntegrationTests {
         when(ai.enabled()).thenReturn(true);
         when(ai.generateForUser(eq(actor), eq("JD_SKILL_PROFICIENCY"), anyMap()))
             .thenReturn(fields("results", List.of(skill("java", evidence), skill("redux", evidence))));
-        var service = new JobSkillProficiencyService(db, ai, true, "");
+        var service = new JobSkillProficiencyService(db, ai, true, "", 0);
         service.processNext();
         service.processNext();
         verify(ai, times(1)).generateForUser(eq(actor), eq("JD_SKILL_PROFICIENCY"), anyMap());

@@ -112,6 +112,7 @@ app:
       url: ${SALARY_EXCHANGE_URL:https://open.er-api.com/v6/latest/USD}
     skill-proficiency:
       enabled: ${JOB_SKILL_PROFICIENCY_ENABLED:true}
+      fixed-delay-ms: ${JOB_SKILL_PROFICIENCY_FIXED_DELAY_MS:20000}
       input-cost-per-million: ${JOB_SKILL_PROFICIENCY_INPUT_COST_PER_MILLION:-1}
       output-cost-per-million: ${JOB_SKILL_PROFICIENCY_OUTPUT_COST_PER_MILLION:-1}
       actor-id: ${JOB_SKILL_PROFICIENCY_ACTOR_ID:${JOB_COLLECTION_ACTOR_ID:}}

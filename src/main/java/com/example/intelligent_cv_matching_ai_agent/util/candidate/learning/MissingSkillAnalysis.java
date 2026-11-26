@@ -85,10 +85,11 @@ public final class MissingSkillAnalysis {
         Map<String, Map<String, Object>> states = new LinkedHashMap<>();
         for (Object raw : array(report.get("requirements"))) {
             var row = object(raw);
-            if (!Set.of("MANDATORY", "PREFERRED").contains(text(row.get("importance"))))
-                continue;
+            boolean clearScope = Set.of("MANDATORY", "PREFERRED").contains(text(row.get("importance")));
             boolean alternative = "OR".equals(row.get("relation")) && array(row.get("skills")).size() > 1;
-            if (alternative && !"MET".equals(row.get("status")))
+            boolean met = "MET".equals(row.get("status"));
+            boolean optionalReview = !met && (alternative || !clearScope || "UNVERIFIED".equals(row.get("status")));
+            if (!clearScope && met)
                 continue;
             Set<String> citedSkills = new HashSet<>();
             for (Object citation : array(row.get("evidence")))
@@ -98,7 +99,7 @@ public final class MissingSkillAnalysis {
             for (Object skill : array(row.get("skills"))) {
                 String name = text(skill);
                 String key = SkillNames.normalize(name);
-                if (alternative && !citedSkills.contains(key))
+                if (alternative && met && !citedSkills.contains(key))
                     continue;
                 var state = states.computeIfAbsent(
                     key,
@@ -113,17 +114,21 @@ public final class MissingSkillAnalysis {
                         true,
                         "learnable_gap",
                         false,
+                        "optional_review",
+                        false,
                         "requirements",
                         new ArrayList<>(),
                         "evidence",
                         new ArrayList<>()
                     )
                 );
-                boolean required = "MANDATORY".equals(row.get("importance"));
+                boolean required = !optionalReview && "MANDATORY".equals(row.get("importance"));
                 state.put("is_required", required || Boolean.TRUE.equals(state.get("is_required")));
-                if (!"MET".equals(row.get("status")))
+                if (!met)
                     state.put(required ? "required_documented" : "preferred_documented", false);
-                if (!"MET".equals(row.get("status")) && !"UNVERIFIED".equals(row.get("status"))
+                if (optionalReview)
+                    state.put("optional_review", true);
+                if (!met && !optionalReview
                     && !com.example.intelligent_cv_matching_ai_agent.util.candidate.jobs.RequirementEvidence
                         .durationConstraint(text(row.get("text"))))
                     state.put("learnable_gap", true);
@@ -153,9 +158,11 @@ public final class MissingSkillAnalysis {
             state.remove("preferred_documented");
             Double score = scores.get(entry.getKey());
             boolean learnable = Boolean.TRUE.equals(state.remove("learnable_gap"));
+            boolean reviewable = Boolean.TRUE.equals(state.remove("optional_review"));
             String status = score != null
                 ? score >= 70 ? "SATISFIED" : "NEEDS_IMPROVEMENT"
                 : documented ? "DECLARED" : learnable ? "MISSING" : "UNVERIFIED";
+            boolean optional = status.equals("UNVERIFIED") && reviewable;
             state.putAll(
                 fields(
                     "status",
@@ -167,11 +174,13 @@ public final class MissingSkillAnalysis {
                     "importance",
                     required ? "MANDATORY" : "PREFERRED",
                     "priority",
-                    required ? "REQUIRED" : "OPTIONAL",
+                    required && !optional ? "REQUIRED" : "OPTIONAL",
                     "action",
                     Set.of("SATISFIED", "DECLARED").contains(status)
                         ? "NONE"
-                        : score != null || learnable ? "LEARN_OR_PRACTICE" : "REVIEW_REQUIREMENT",
+                        : optional
+                            ? "OPTIONAL_REVIEW"
+                            : score != null || learnable ? "LEARN_OR_PRACTICE" : "REVIEW_REQUIREMENT",
                     "reasoning",
                     score != null
                         ? "Same-context assessment: " + score
@@ -182,9 +191,14 @@ public final class MissingSkillAnalysis {
                 )
             );
             ledger.add(state);
-            if (status.equals("NEEDS_IMPROVEMENT") || status.equals("MISSING") && learnable) {
+            if (optional || status.equals("NEEDS_IMPROVEMENT") || status.equals("MISSING") && learnable) {
                 var gap = new LinkedHashMap<>(state);
-                gap.put("gap_status", status.equals("NEEDS_IMPROVEMENT") ? "NEEDS_PRACTICE" : "MISSING_EVIDENCE");
+                gap.put(
+                    "gap_status",
+                    optional
+                        ? "OPTIONAL_REVIEW"
+                        : status.equals("NEEDS_IMPROVEMENT") ? "NEEDS_PRACTICE" : "MISSING_EVIDENCE"
+                );
                 gap.put("evidence_status", status);
                 learning.add(gap);
             }
@@ -296,17 +310,32 @@ public final class MissingSkillAnalysis {
             String key = entry.getKey();
             boolean required = Boolean.TRUE.equals(state.get("is_required"));
             Double score = scores.get(key);
+            var clauses = array(state.get("requirements"));
+            boolean optionalReview = !required && score == null && !declared.contains(key) && !clauses.isEmpty()
+                && clauses.stream().map(raw -> object(raw)).noneMatch(
+                    row -> "AND".equals(row.get("relation"))
+                        && Set.of("MANDATORY", "PREFERRED").contains(text(row.get("importance")))
+                        && !com.example.intelligent_cv_matching_ai_agent.util.candidate.jobs.RequirementEvidence
+                            .durationConstraint(text(row.get("text")))
+                );
             String status = score != null
                 ? score >= 70 ? "SATISFIED" : "NEEDS_IMPROVEMENT"
-                : declared.contains(key) ? "DECLARED" : "MISSING";
+                : declared.contains(key) ? "DECLARED" : optionalReview ? "UNVERIFIED" : "MISSING";
             state.put("status", status);
             state.put("declared_evidence", declared.contains(key));
             state.put("assessment_score", score);
             state.put(
                 "priority",
-                required ? "REQUIRED" : "PREFERRED".equals(state.get("importance")) ? "OPTIONAL" : "JD_RELATED"
+                optionalReview
+                    ? "OPTIONAL"
+                    : required ? "REQUIRED" : "PREFERRED".equals(state.get("importance")) ? "OPTIONAL" : "JD_RELATED"
             );
-            state.put("action", status.equals("SATISFIED") || status.equals("DECLARED") ? "NONE" : "LEARN_OR_PRACTICE");
+            state.put(
+                "action",
+                status.equals("SATISFIED") || status.equals("DECLARED")
+                    ? "NONE"
+                    : optionalReview ? "OPTIONAL_REVIEW" : "LEARN_OR_PRACTICE"
+            );
             state.put(
                 "reasoning",
                 score != null
@@ -315,15 +344,22 @@ public final class MissingSkillAnalysis {
                         : "Same-context assessment met the threshold of 70."
                     : declared.contains(key)
                         ? "Declared in CV/profile; proficiency is not independently verified."
-                        : required
-                            ? "No documented evidence; this is not verified lack of ability."
-                            : "JD skill recommended for learning; optional or alternative scope is preserved."
+                        : optionalReview
+                            ? "The JD mentions this skill in an ambiguous or alternative requirement."
+                            : required
+                                ? "No documented evidence; this is not verified lack of ability."
+                                : "JD skill recommended for learning; optional or alternative scope is preserved."
             );
             ledger.add(state);
-            if (status.equals("MISSING") || status.equals("NEEDS_IMPROVEMENT")) {
+            if (optionalReview || status.equals("MISSING") || status.equals("NEEDS_IMPROVEMENT")) {
                 var gap = new LinkedHashMap<>(state);
                 gap.put("evidence_status", status);
-                gap.put("gap_status", status.equals("NEEDS_IMPROVEMENT") ? "NEEDS_PRACTICE" : "MISSING_EVIDENCE");
+                gap.put(
+                    "gap_status",
+                    optionalReview
+                        ? "OPTIONAL_REVIEW"
+                        : status.equals("NEEDS_IMPROVEMENT") ? "NEEDS_PRACTICE" : "MISSING_EVIDENCE"
+                );
                 learning.add(gap);
             }
         }

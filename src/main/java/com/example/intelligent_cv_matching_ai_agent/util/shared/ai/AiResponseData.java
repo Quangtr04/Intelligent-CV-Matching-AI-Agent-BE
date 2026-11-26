@@ -53,7 +53,8 @@ public final class AiResponseData {
             case "JD_SKILL_PROFICIENCY" -> ("{results:[{skill_id:string,required_level:integer_0_to_4_or_null,"
                 + "evidence:string,reason:string,confidence:number_0_to_1}]}");
             case "JOB_ATS" -> ("{ats_score:number_0_to_100,strengths:[string],missing_skills:[string],"
-                + "improvement_suggestions:[string]}");
+                + "improvement_suggestions:[string],dimension_scores:{skills:number_0_to_100_or_null,"
+                + "experience:number_0_to_100_or_null,education:number_0_to_100_or_null}}");
             case "ASSESSMENT_GENERATE" -> ("{questions:[{part:1_or_2,question_text:string,options:{A:string,"
                 + "B:string,C:string,D:string},correct_option:A_B_C_or_D,"
                 + "related_skill_name:string,jd_evidence:string,cv_evidence:string," + "explanation:string}]}");
@@ -169,6 +170,18 @@ public final class AiResponseData {
         String key) {
         if (!(result.get(key) instanceof String s) || s.isBlank())
             throw new IllegalArgumentException("Invalid " + key);
+    }
+
+    public static void validateAtsDimensions(
+        Map<String, Object> result) {
+        if (!(result.get("dimension_scores") instanceof Map<?, ?> scores))
+            throw new IllegalArgumentException("Missing ATS dimension scores");
+        for (String key : List.of("skills", "experience", "education")) {
+            Object value = scores.get(key);
+            if (!scores.containsKey(key) || value != null && (!(value instanceof Number n)
+                || !Double.isFinite(n.doubleValue()) || n.doubleValue() < 0 || n.doubleValue() > 100))
+                throw new IllegalArgumentException("Invalid ATS dimension score: " + key);
+        }
     }
 
     private static void score(

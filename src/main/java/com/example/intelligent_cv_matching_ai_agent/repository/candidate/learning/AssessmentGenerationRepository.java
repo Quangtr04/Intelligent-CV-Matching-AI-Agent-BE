@@ -148,6 +148,18 @@ public class AssessmentGenerationRepository {
         );
     }
 
+    public int cancel(
+        UUID owner,
+        UUID id) {
+        return db.update(
+            "UPDATE assessment_generations SET status='FAILED',lease_token=NULL,lease_until=NULL,"
+                + "completed_at=now(),error_code='CANCELLED',message='AI task was cancelled.' "
+                + "WHERE user_id=? AND id=? AND status IN ('QUEUED','RUNNING')",
+            owner,
+            id
+        );
+    }
+
     public int fail(
         UUID id,
         UUID token,

@@ -109,7 +109,7 @@ class ResumeContentQualityContractTests {
         Map<String, Object> report = ResumeWritingTestData.report();
         report.put("content_score", 1);
         report.put("content_quality", ResumeWritingTestData.content(90, "Reviewed Java experience"));
-        Map<String, Object> normalized = ResumeContentQuality.normalize(report, source());
+        Map<String, Object> normalized = ResumeContentQuality.normalize(report);
         assertEquals(new BigDecimal("90.00"), normalized.get("score"));
         assertEquals(1, normalized.get("assessed_criteria"));
         List<?> criteria = (List<?>) normalized.get("criteria");
@@ -118,18 +118,12 @@ class ResumeContentQualityContractTests {
     }
 
     @Test
-    void contentRubricRemainsMandatoryAndEvidenceCannotComeFromStaleRawText() {
+    void contentRubricRemainsMandatoryAndEvidenceDoesNotRequireSourceMatch() {
         Map<String, Object> report = ResumeWritingTestData.report();
         report.remove("content_quality");
-        assertEquals(
-            502,
-            assertThrows(ApiException.class, () -> ResumeContentQuality.normalize(report, source())).status()
-        );
+        assertEquals(502, assertThrows(ApiException.class, () -> ResumeContentQuality.normalize(report)).status());
         report.put("content_quality", ResumeWritingTestData.content(90, "Old unreviewed claim"));
-        assertEquals(
-            502,
-            assertThrows(ApiException.class, () -> ResumeContentQuality.normalize(report, source())).status()
-        );
+        assertEquals(new BigDecimal("90.00"), ResumeContentQuality.normalize(report).get("score"));
     }
 
     private static Map<String, Object> source() {
