@@ -71,6 +71,8 @@ Sau khi đổi cấu hình, khởi động lại backend; token đã phát hành
 
 Trong môi trường phát triển, `AUTH_EXPOSE_DEV_OTP=true` trả `developmentCode` khi đăng ký để thử bước xác minh email. Khi dùng SMTP, đặt `AUTH_EXPOSE_DEV_OTP=false`, `MAIL_ENABLED=true` và các biến `MAIL_*`. Google login nhận ID token từ frontend khi đã cấu hình `GOOGLE_CLIENT_ID`.
 
+Để gửi OTP đăng ký và email đặt lại mật khẩu đến hộp thư thật, cấu hình SMTP trong `.env` của backend hoặc biến môi trường triển khai. Mẫu `.env.example` dùng Gmail với `smtp.gmail.com:587`, xác thực SMTP và STARTTLS. Đặt `MAIL_USERNAME` và `MAIL_FROM` thành địa chỉ Gmail gửi thư, rồi đặt `MAIL_PASSWORD` thành mật khẩu ứng dụng. Nếu dùng nhà cung cấp khác, điền host, port STARTTLS, thông tin xác thực và địa chỉ gửi mà nhà cung cấp đã cho phép. Khởi động lại backend để áp dụng. [Cấu hình SMTP Gmail](https://support.google.com/mail/answer/7104828?hl=en) · [Mật khẩu ứng dụng Google](https://support.google.com/accounts/answer/185833?hl=en)
+
 ### Chọn môi trường chạy
 
 | Spring profile | Mục đích và mặc định |
