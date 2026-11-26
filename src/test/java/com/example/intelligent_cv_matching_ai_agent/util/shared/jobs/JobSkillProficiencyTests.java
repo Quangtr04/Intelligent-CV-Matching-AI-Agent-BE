@@ -59,6 +59,25 @@ class JobSkillProficiencyTests {
     }
 
     @Test
+    void keepsValidResultsAndMarksOmittedSkillsAsNotAssessed() {
+        var candidates = JobSkillProficiency
+            .candidates(fields("parsed_requirements", "Required: API design or Redux.\nPreferred: Ansible."));
+        var batch = List.of(candidates.get("api-design"), candidates.get("redux"));
+        var candidate = batch.getFirst();
+        var assessment = result(candidate, "api-design", 2, text(candidate.clauses().getFirst().get("text")));
+
+        var rows = JobSkillProficiency.validate(batch, fields("results", List.of(assessment)));
+        assertEquals(assessment, rows.getFirst());
+        var omitted = rows.getLast();
+        assertEquals("redux", omitted.get("skill_id"));
+        assertEquals("NOT_ASSESSED", omitted.get("status"));
+        assertNull(omitted.get("required_level"));
+        assertNull(omitted.get("level_label"));
+        assertEquals("", omitted.get("evidence"));
+        assertThrows(IllegalArgumentException.class, () -> JobSkillProficiency.validate(batch, Map.of()));
+    }
+
+    @Test
     void hidesOldRubricAndSourceVersions() {
         var analysis = fields(
             "rubric_version",

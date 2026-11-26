@@ -1379,6 +1379,32 @@ class AiServiceTests {
     }
 
     @Test
+    void roadmapRetriesAProvider503WithinTheSameQuotaReservation() {
+        UUID actor = UUID.randomUUID(), reservation = UUID.randomUUID();
+        ChatModel chat = mock(ChatModel.class);
+        OpenAIServiceException upstream = mock(OpenAIServiceException.class);
+        when(upstream.statusCode()).thenReturn(503);
+        when(chats.getIfAvailable()).thenReturn(chat);
+        when(chats.getObject()).thenReturn(chat);
+        when(user.id()).thenReturn(actor);
+        when(entitlement.reserve(eq(actor), eq("ROADMAP_GENERATE"), anyInt())).thenReturn(reservation);
+        when(chat.call(any(Prompt.class))).thenThrow(upstream).thenReturn(
+            new ChatResponse(List.of(new Generation(new AssistantMessage("{\"title\":\"Practice\",\"nodes\":[]}"))))
+        );
+
+        assertEquals(
+            "Practice",
+            service(true)
+                .generate("ROADMAP_GENERATE", Map.of("allowed_missing_skills", List.of(Map.of("skill_name", "Docker"))))
+                .get("title")
+        );
+        verify(chat, times(2)).call(any(Prompt.class));
+        verify(entitlement).reserve(eq(actor), eq("ROADMAP_GENERATE"), anyInt());
+        verify(entitlement).complete(eq(reservation), anyInt());
+        verify(entitlement, never()).cancel(reservation);
+    }
+
+    @Test
     void roadmapAtProviderTokenLimitIsRejectedEvenWhenThePartialJsonIsParseable() {
         ChatModel chat = mock(ChatModel.class);
         when(chats.getIfAvailable()).thenReturn(chat);

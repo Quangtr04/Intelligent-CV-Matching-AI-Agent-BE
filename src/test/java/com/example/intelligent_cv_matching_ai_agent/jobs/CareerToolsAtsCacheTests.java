@@ -24,6 +24,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import tools.jackson.databind.json.JsonMapper;
 import static org.junit.jupiter.api.Assertions.*;
+import static com.example.intelligent_cv_matching_ai_agent.util.shared.Values.fields;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -107,6 +108,30 @@ class CareerToolsAtsCacheTests {
             memory.put(call.getArgument(0), call.getArgument(1));
             return null;
         }).when(values).set(anyString(), anyString(), any(Duration.class));
+    }
+
+    @Test
+    void sendsTheFullJobDescriptionAndConfirmedCvInOneAtsRequest() {
+        String description = "Responsibilities: " + "Java services ".repeat(3000) + "\nRequirements: PostgreSQL.";
+        target.put("original_content", description);
+        target.put("raw_content", "Short summary");
+        var scored = new LinkedHashMap<>(generated());
+        scored.put("dimension_scores", fields("skills", 82, "experience", 67, "education", null));
+        when(ai.generate(eq("JOB_ATS"), anyMap())).thenReturn(scored);
+        var response = service.ats(job, new CvRequest(firstCv));
+        assertEquals(scored.get("dimension_scores"), response.get("dimension_scores"));
+        assertEquals(
+            response.get("dimension_scores"),
+            service.ats(job, new CvRequest(firstCv)).get("dimension_scores")
+        );
+
+        verify(ai).generate(
+            eq("JOB_ATS"),
+            argThat(
+                input -> description.equals(input.get("jd_text"))
+                    && "Reviewed Java developer CV".equals(input.get("resume_text"))
+            )
+        );
     }
 
     @Test

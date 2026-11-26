@@ -5,6 +5,7 @@ import com.example.intelligent_cv_matching_ai_agent.repository.candidate.learnin
 import com.example.intelligent_cv_matching_ai_agent.repository.shared.SqlStore;
 import com.example.intelligent_cv_matching_ai_agent.service.candidate.learning.AssessmentGenerationService;
 import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiService;
+import com.example.intelligent_cv_matching_ai_agent.service.candidate.learning.RoadmapGenerationService;
 import com.example.intelligent_cv_matching_ai_agent.service.shared.identity.TokenService;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,6 +55,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "app.billing.maintenance-enabled=false",
         "app.resumes.profile-alignment.refresh.enabled=false",
         "app.assessments.generation.initial-delay-ms=3600000",
+        "app.roadmaps.generation.initial-delay-ms=3600000",
         "app.mail.enabled=false",
         "app.ocr.enabled=false"}
 )
@@ -79,6 +81,9 @@ class AssessmentGenerationIntegrationTests {
 
     @Autowired
     private AssessmentGenerationService worker;
+
+    @Autowired
+    private RoadmapGenerationService roadmapWorker;
 
     @Autowired
     private AssessmentGenerationRepository queue;
@@ -111,6 +116,7 @@ class AssessmentGenerationIntegrationTests {
     void removeQueuedWork() {
         for (UUID actor : actors) {
             db.update("DELETE FROM assessment_generations WHERE user_id=?", actor);
+            db.update("DELETE FROM candidate_ai_requests WHERE user_id=?", actor);
         }
         actors.clear();
     }
@@ -261,7 +267,7 @@ class AssessmentGenerationIntegrationTests {
     }
 
     @Test
-    void invalidJdAndNonCandidateCannotEnqueueAndPerOwnerQueueIsBounded() throws Exception {
+    void invalidJdAndNonCandidateCannotEnqueueAndEachOwnerCanQueueOneTask() throws Exception {
         mvc.perform(post(PATH).header("Authorization", bearer).contentType(MediaType.APPLICATION_JSON).content("{}"))
             .andExpect(status().isBadRequest());
         start(job, token(actor("ADMIN")), 403);
@@ -269,12 +275,136 @@ class AssessmentGenerationIntegrationTests {
         db.update("DELETE FROM market_job_skills WHERE market_job_id=?", noSkills);
         start(noSkills, bearer, 409);
         start(job, bearer, 202);
-        start(job(), bearer, 202);
-        start(job(), bearer, 202);
-        start(job(), bearer, 429);
-        assertEquals(3L, queue.activeCount(owner));
+        start(job(), bearer, 409);
+        assertEquals(1L, queue.activeCount(owner));
         verify(ai, never()).generate(anyString(), anyMap());
         verify(ai, never()).generateForUser(any(), anyString(), anyMap());
+    }
+
+    @Test
+    void roadmapAndAssessmentShareAdmissionAndAFailedRoadmapReleasesIt() throws Exception {
+        String route = "/api/v1/ai-tasks/roadmaps";
+        String request = mapper.writeValueAsString(fields("jobId", UUID.randomUUID()));
+        start(job, bearer, 202);
+        mvc.perform(
+            post(route).header("Authorization", bearer).contentType(MediaType.APPLICATION_JSON).content(request)
+        ).andExpect(status().isConflict());
+
+        db.update("DELETE FROM assessment_generations WHERE user_id=?", owner);
+        mvc.perform(
+            post(route).header("Authorization", bearer).contentType(MediaType.APPLICATION_JSON).content(request)
+        ).andExpect(status().isAccepted());
+        start(job, bearer, 409);
+
+        mvc.perform(get("/api/v1/ai-tasks").header("Authorization", bearer))
+            .andExpect(jsonPath("$[0].kind").value("ROADMAP")).andExpect(jsonPath("$[0].status").value("QUEUED"));
+        roadmapWorker.processNext();
+        mvc.perform(get("/api/v1/ai-tasks").header("Authorization", bearer))
+            .andExpect(jsonPath("$[0].status").value("FAILED"));
+        start(job, bearer, 202);
+    }
+
+    @Test
+    void onlyTheOwnerCanCancelAndTheCancelledTaskReleasesAdmission() throws Exception {
+        var task = start(job, bearer, 202);
+        String route = "/api/v1/ai-tasks/" + task.get("id") + "/cancel";
+        mvc.perform(post(route).header("Authorization", token(actor("CANDIDATE")))).andExpect(status().isConflict());
+        mvc.perform(post(route).header("Authorization", bearer)).andExpect(status().isNoContent());
+        assertEquals(0L, queue.activeCount(owner));
+        mvc.perform(get("/api/v1/ai-tasks").header("Authorization", bearer))
+            .andExpect(jsonPath("$[0].status").value("CANCELLED"));
+
+        var request = mapper.writeValueAsString(fields("jobId", job));
+        var response = mvc.perform(
+            post("/api/v1/ai-tasks/roadmaps").header("Authorization", bearer).contentType(MediaType.APPLICATION_JSON)
+                .content(request)
+        ).andExpect(status().isAccepted()).andReturn().getResponse();
+        String roadmap = mapper.readTree(response.getContentAsString()).get("id").asText();
+        mvc.perform(post("/api/v1/ai-tasks/" + roadmap + "/cancel").header("Authorization", bearer))
+            .andExpect(status().isNoContent());
+        roadmapWorker.processNext();
+        mvc.perform(get("/api/v1/ai-tasks").header("Authorization", bearer))
+            .andExpect(jsonPath("$[0].status").value("CANCELLED"));
+        start(job, bearer, 202);
+        verify(ai, never()).generate(eq("ROADMAP_GENERATE"), anyMap());
+    }
+
+    @Test
+    void stopInterruptsTheRunningRoadmapAndDiscardsItsResult() throws Exception {
+        var request = mapper.writeValueAsString(fields("jobId", job));
+        var response = mvc.perform(
+            post("/api/v1/ai-tasks/roadmaps").header("Authorization", bearer).contentType(MediaType.APPLICATION_JSON)
+                .content(request)
+        ).andExpect(status().isAccepted()).andReturn().getResponse();
+        String id = mapper.readTree(response.getContentAsString()).get("id").asText();
+        var providerEntered = new CountDownLatch(1);
+        var providerInterrupted = new CountDownLatch(1);
+        when(ai.generate(eq("ROADMAP_GENERATE"), anyMap())).thenAnswer(call -> {
+            providerEntered.countDown();
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException failure) {
+                providerInterrupted.countDown();
+                throw ApiException.conflict("Provider call interrupted");
+            }
+            throw ApiException.conflict("Provider call was never interrupted");
+        });
+
+        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            var running = executor.submit(roadmapWorker::processNext);
+            assertTrue(providerEntered.await(5, TimeUnit.SECONDS));
+            mvc.perform(post("/api/v1/ai-tasks/" + id + "/cancel").header("Authorization", bearer))
+                .andExpect(status().isNoContent());
+            assertTrue(providerInterrupted.await(5, TimeUnit.SECONDS));
+            running.get(5, TimeUnit.SECONDS);
+        }
+        mvc.perform(get("/api/v1/ai-tasks").header("Authorization", bearer))
+            .andExpect(jsonPath("$[0].status").value("CANCELLED"));
+        assertEquals(0L, ((Number) db.scalar("SELECT count(*) FROM roadmaps WHERE user_id=?", owner)).longValue());
+    }
+
+    @Test
+    void savedRoadmapIsReusedWithItsProgressUntilTheJdChanges() throws Exception {
+        var request = mapper.writeValueAsString(fields("jobId", job));
+        when(ai.generate(eq("ROADMAP_GENERATE"), anyMap())).thenAnswer(call -> {
+            Map<String, Object> input = call.getArgument(1);
+            var gaps = (List<?>) input.get("allowed_missing_skills");
+            var nodes = gaps.stream().map(gap -> {
+                var name = ((Map<?, ?>) gap).get("skill_name");
+                return fields("skill_name", name, "estimated_hours", 3, "prerequisites", List.of());
+            }).toList();
+            return fields("title", "Java study plan", "skill_gaps", List.of(), "nodes", nodes);
+        });
+
+        queueRoadmap(request);
+        UUID original = latestRoadmapResult();
+        db.update("UPDATE roadmaps SET progress_percent=50 WHERE id=?", original);
+
+        queueRoadmap(request);
+        assertEquals(original, latestRoadmapResult());
+        assertEquals(50, ((Number) db.scalar("SELECT progress_percent FROM roadmaps WHERE id=?", original)).intValue());
+        verify(ai, times(1)).generate(eq("ROADMAP_GENERATE"), anyMap());
+
+        db.update("UPDATE market_job_posts SET raw_content=? WHERE id=?", JD + " Write unit tests.", job);
+        queueRoadmap(request);
+        assertNotEquals(original, latestRoadmapResult());
+        verify(ai, times(2)).generate(eq("ROADMAP_GENERATE"), anyMap());
+    }
+
+    private void queueRoadmap(
+        String request)
+        throws Exception {
+        mvc.perform(
+            post("/api/v1/ai-tasks/roadmaps").header("Authorization", bearer).contentType(MediaType.APPLICATION_JSON)
+                .content(request)
+        ).andExpect(status().isAccepted());
+        roadmapWorker.processNext();
+    }
+
+    private UUID latestRoadmapResult() throws Exception {
+        var response = mvc.perform(get("/api/v1/ai-tasks").header("Authorization", bearer))
+            .andExpect(jsonPath("$[0].status").value("SUCCEEDED")).andReturn().getResponse();
+        return UUID.fromString(mapper.readTree(response.getContentAsString()).get(0).get("result_id").asText());
     }
 
     @Test

@@ -76,10 +76,8 @@ public class ConsultantEvaluationService {
                     resumes.canonicalText(resume),
                     "language",
                     languageOf(resume),
-                    "evaluation_guidance",
-                    "Evaluate CV clarity, completeness, evidence of achievements and improvement opportunities. "
-                        + "This is a general CV quality review without a target job. Do not infer job suitability. "
-                        + "Base suggestions on reviewed CV facts; never invent candidate qualifications."
+                    "evaluation_type",
+                    "GENERAL_CV_QUALITY"
                 )
             ),
             resume
@@ -160,12 +158,8 @@ public class ConsultantEvaluationService {
                 skills,
                 "language",
                 languageOf(resume),
-                "evaluation_guidance",
-                "Assess how well this reviewed CV meets this job's explicit requirements. "
-                    + "Consider required and preferred skills separately, relevant experience, seniority and duties. "
-                    + "Use evidence from the CV and JD. Related technologies are not automatically equivalent. "
-                    + "Distinguish missing evidence from a confirmed lack of competence. Explain uncertainty in "
-                    + "missing_skills and improvement_suggestions. Return an advisory ATS score from 0 to 100."
+                "evaluation_type",
+                "CV_JOB_FIT"
             )
         );
         double score = FlowSupport.score(generated.get("ats_score"), 100, "ATS score");

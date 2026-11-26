@@ -110,6 +110,30 @@ class RecommendationIntegrationTests {
     }
 
     @Test
+    void ruleRecommendationsWorkWhileTheCandidateHasAnActiveAiTask() throws Exception {
+        UUID matchingJob = job("Java developer", "Java required");
+        indexed(matchingJob, "fixture-embedding", vector(0));
+        db.update(
+            "INSERT INTO candidate_ai_requests(user_id,kind,status,lease_until) "
+                + "VALUES(?,'ROADMAP','RUNNING',now()+interval '5 minutes')",
+            owner
+        );
+        clearInvocations(ai);
+
+        var response = request(
+            fields("basis", "SELECTED_CV", "resumeIds", List.of(cv), "limit", 10, "mode", "RECOMMENDATION_RULES")
+        );
+
+        var result = object(array(response.get("results")).getFirst());
+        assertEquals(matchingJob.toString(), text(result.get("market_job_id")));
+        assertEquals(
+            "RECOMMENDATION_RULE_COVERAGE",
+            object(object(result.get("match_reason_json")).get("assessment")).get("score_kind")
+        );
+        verifyNoInteractions(ai);
+    }
+
+    @Test
     void onlyCurrentCompatibleVectorsAreRanked() throws Exception {
         UUID distant = job("Textual Java exact match", "Java");
         UUID nearest = job("Semantic neighbor", "Java");

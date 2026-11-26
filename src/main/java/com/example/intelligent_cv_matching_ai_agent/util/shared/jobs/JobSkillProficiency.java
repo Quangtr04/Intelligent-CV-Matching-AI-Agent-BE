@@ -93,7 +93,9 @@ public final class JobSkillProficiency {
         Map<String, Candidate> remaining = new LinkedHashMap<>();
         batch.forEach(candidate -> remaining.put(candidate.skill().id(), candidate));
         List<Map<String, Object>> results = new ArrayList<>();
-        for (var raw : array(response.get("results"))) {
+        if (!(response.get("results") instanceof List<?> rows))
+            throw new IllegalArgumentException("Expected a skill results list");
+        for (var raw : rows) {
             var row = object(raw);
             String id = text(row.get("skill_id"));
             Candidate candidate = remaining.remove(id);
@@ -144,8 +146,30 @@ public final class JobSkillProficiency {
                 )
             );
         }
-        if (!remaining.isEmpty())
-            throw new IllegalArgumentException("Missing skill results");
+        for (var candidate : remaining.values()) {
+            results.add(
+                fields(
+                    "skill_id",
+                    candidate.skill().id(),
+                    "skill_name",
+                    candidate.skill().name(),
+                    "required_level",
+                    null,
+                    "level_label",
+                    null,
+                    "status",
+                    "NOT_ASSESSED",
+                    "evidence",
+                    "",
+                    "reason",
+                    "The AI did not return an assessment for this skill.",
+                    "confidence",
+                    0,
+                    "rubric_id",
+                    candidate.rubric().id()
+                )
+            );
+        }
         return results;
     }
 

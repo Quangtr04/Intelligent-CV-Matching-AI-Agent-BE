@@ -41,6 +41,7 @@ public final class AiFeatureCatalog {
         new Feature("ASSESSMENT_GENERATE", "Tạo bài đánh giá", "Tạo câu hỏi kiểm tra kỹ năng theo mô tả công việc."),
         new Feature("ROADMAP_GENERATE", "Lập lộ trình học", "Lập kế hoạch học các kỹ năng ứng viên còn thiếu."),
         new Feature("APPLICATION_EMAIL", "Soạn thư ứng tuyển", "Soạn email và thư ứng tuyển từ dữ liệu thực tế."),
+        new Feature("APPLICATION_REVIEW", "Application email review", "Review an application email draft."),
         new Feature("CAREER_CHAT", "Trợ lý nghề nghiệp", "Trả lời câu hỏi và hỗ trợ định hướng nghề nghiệp."),
         new Feature("SALARY_ESTIMATE", "Ước lượng lương", "Ước lượng khoảng lương từ thông tin được cung cấp.")
     );
@@ -67,6 +68,8 @@ public final class AiFeatureCatalog {
     public static Map<String, Object> defaultPrompt(
         String code) {
         String supported = requireSupported(code);
+        if ("APPLICATION_REVIEW".equals(supported))
+            return Map.of("system_prompt", "", "user_prompt_template", "");
         Feature feature = FEATURES.stream().filter(item -> item.code().equals(supported)).findFirst().orElseThrow();
         return Map.of(
             "system_prompt",
@@ -96,7 +99,10 @@ public final class AiFeatureCatalog {
         result.put("description", feature.description());
         result.put("defaultSystemPrompt", defaults.get("system_prompt"));
         result.put("defaultUserPromptTemplate", defaults.get("user_prompt_template"));
-        result.put("responseSchema", AiResponseData.schema(feature.code()));
+        result.put(
+            "responseSchema",
+            AiResponseData.schema("APPLICATION_REVIEW".equals(feature.code()) ? "CAREER_CHAT" : feature.code())
+        );
         result.put("modelConfigType", "ASSESSMENT_GENERATE".equals(feature.code()) ? "ASSESSMENT" : "CHAT");
         result.put("minContext", minimumContext(feature.code()));
         result.put("minOutputTokens", minimumOutputTokens(feature.code()));

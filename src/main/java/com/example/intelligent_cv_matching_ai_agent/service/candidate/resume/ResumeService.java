@@ -35,7 +35,6 @@ import com.example.intelligent_cv_matching_ai_agent.util.candidate.resume.Resume
 import com.example.intelligent_cv_matching_ai_agent.util.candidate.resume.ResumeInput;
 import com.example.intelligent_cv_matching_ai_agent.util.candidate.resume.ResumeWritingQuality;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.FlowSupport;
-import com.example.intelligent_cv_matching_ai_agent.util.shared.ai.CvAnalysisLanguage;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.ai.CvSupportResponseSchema;
 import static com.example.intelligent_cv_matching_ai_agent.util.shared.Values.object;
 
@@ -392,7 +391,7 @@ public class ResumeService {
                     mode,
                     useAi ? Objects.toString(ai.provider(), "") : "rules",
                     useAi ? Objects.toString(ai.model(), "") : "rules-v1",
-                    useAi ? Objects.toString(ai.cacheFingerprint("CV_ANALYZE"), "") : "",
+                    useAi ? "gemini-output-v1:" + Objects.toString(ai.cacheFingerprint("CV_ANALYZE"), "") : "",
                     ResumeWritingQuality.RUBRIC_VERSION,
                     ResumeContentQuality.RUBRIC_VERSION,
                     input
@@ -410,34 +409,21 @@ public class ResumeService {
             return response;
         }
 
-        Map<String, Object> result;
-        if (useAi) {
-            Map<String, Object> generated = ai.generate("CV_ANALYZE", input);
-            Map<String, Object> contentResult = ResumeContentQuality.normalize(generated, resume);
-
-            Map<String, Object> merged = new LinkedHashMap<>(generated);
-
-            merged.put("content_score", contentResult.get("score"));
-
-            result = ResumeWritingQuality.normalize(merged, resume);
-
-            result.put("content_quality", contentResult);
-
-        } else {
-            result = ResumeContent.baseline(resume);
-        }
+        Map<String, Object> result = useAi ? ai.generateResumeAts(input) : ResumeContent.baseline(resume);
         Map<String, Object> fields = new LinkedHashMap<>();
         fields.put("resume_id", id);
         fields.put("analysis_type", mode);
-        fields.put("overall_score", result.get("overall_score"));
+        fields.put("overall_score", result.getOrDefault("overall_score", result.get("content_score")));
         fields.put("ats_score", result.get("ats_score"));
         fields.put("summary", result.get("summary"));
         fields.put("strengths_json", db.json(result.getOrDefault("strengths", List.of())));
         fields.put("issues_json", db.json(result.getOrDefault("issues", List.of())));
         if (useAi) {
-            fields.put("writing_quality_json", db.json(result.get("writing_quality")));
+            Map<String, Object> writingQuality = new LinkedHashMap<>(object(result.get("writing_quality")));
+            writingQuality.put("content_score", result.get("content_score"));
+            fields.put("writing_quality_json", db.json(writingQuality));
             fields.put("content_quality_json", db.json(result.get("content_quality")));
-        } ;
+        }
         fields.put("model_name", useAi ? result.get("_model") : "rules-v1");
 
         UUID analysis = db.insertResumeAnalyses(fields);
@@ -469,8 +455,7 @@ public class ResumeService {
         UUID resumeId,
         String mode) {
         if (!resumeId.toString().equals(Objects.toString(response.get("resume_id"), ""))
-            || !mode.equals(response.get("analysis_type")) || !(response.get("suggestions") instanceof List<?>)
-            || !(response.get("overall_score") instanceof Number) || !CvAnalysisLanguage.isValid(response))
+            || !mode.equals(response.get("analysis_type")) || !(response.get("suggestions") instanceof List<?>))
             return false;
         try {
             UUID.fromString(Objects.toString(response.get("id"), ""));
@@ -494,7 +479,6 @@ public class ResumeService {
         Map<String, Object> result = ResumeWritingQuality.expose(db.getResumeAnalysesById(analysisId, resumeId));
         result.put("suggestions", db.listResumeAnalysisSuggestionsByAnalysisId(analysisId));
         result.put("response_language", Objects.toString(resume.get("language"), "vi"));
-        result.put("language_valid", CvAnalysisLanguage.isValid(result));
 
         return result;
     }

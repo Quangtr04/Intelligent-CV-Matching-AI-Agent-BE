@@ -11,6 +11,46 @@ import static com.example.intelligent_cv_matching_ai_agent.util.shared.Values.*;
 class MissingSkillAnalysisTest {
 
     @Test
+    void unverifiedAlternativesProduceOptionalReviewAndKeepVerifiedGapsDistinct() {
+        var report = fields(
+            "requirements",
+            List.of(
+                fields(
+                    "importance",
+                    "MANDATORY",
+                    "relation",
+                    "OR",
+                    "status",
+                    "UNVERIFIED",
+                    "skills",
+                    List.of("Cypress", "Playwright")
+                ),
+                fields(
+                    "importance",
+                    "MANDATORY",
+                    "relation",
+                    "AND",
+                    "status",
+                    "MISSING_EVIDENCE",
+                    "skills",
+                    List.of("Docker")
+                )
+            )
+        );
+        var analysis = MissingSkillAnalysis.fromEvidence(report, Map.of());
+        assertEquals(
+            List.of("Cypress", "Playwright", "Docker"),
+            analysis.learning().stream().map(row -> row.get("skill_name")).toList()
+        );
+        assertEquals(
+            List.of("OPTIONAL_REVIEW", "OPTIONAL_REVIEW", "MISSING_EVIDENCE"),
+            analysis.learning().stream().map(row -> row.get("gap_status")).toList()
+        );
+        assertEquals("UNVERIFIED", analysis.skills().getFirst().get("status"));
+        assertEquals("OPTIONAL", analysis.skills().getFirst().get("priority"));
+    }
+
+    @Test
     void richAlternativeEvidenceOverridesLossyLegacyMandatoryBooleansWithoutLosingSkills() {
         var extracted = com.example.intelligent_cv_matching_ai_agent.util.shared.jobs.JobRequirementExtractor
             .extract("", "Thành thạo một trong các cơ sở dữ liệu: PostgreSQL, MongoDB", "");
@@ -24,7 +64,8 @@ class MissingSkillAnalysisTest {
         );
         assertEquals(2, result.learning().size());
         assertEquals(2, result.skills().size());
-        assertTrue(result.skills().stream().allMatch(row -> row.get("status").equals("MISSING")));
+        assertTrue(result.skills().stream().allMatch(row -> row.get("status").equals("UNVERIFIED")));
+        assertTrue(result.learning().stream().allMatch(row -> row.get("gap_status").equals("OPTIONAL_REVIEW")));
     }
 
     @Test

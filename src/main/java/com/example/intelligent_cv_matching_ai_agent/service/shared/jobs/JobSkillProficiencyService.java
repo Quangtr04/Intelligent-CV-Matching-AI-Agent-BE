@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,20 +36,25 @@ public class JobSkillProficiencyService {
 
     private final UUID fallbackActor;
 
+    private final long requestDelayMs;
+
     public JobSkillProficiencyService(
         JobSkillProficiencyRepository db,
         AiService ai,
         @Value("${app.jobs.skill-proficiency.enabled:true}")
         boolean enabled,
         @Value("${app.jobs.skill-proficiency.actor-id:${app.jobs.collection.actor-id:}}")
-        String fallbackActor) {
+        String fallbackActor,
+        @Value("${app.jobs.skill-proficiency.fixed-delay-ms:20000}")
+        long requestDelayMs) {
         this.db = db;
         this.ai = ai;
         this.enabled = enabled;
         this.fallbackActor = fallbackActor.isBlank() ? null : UUID.fromString(fallbackActor);
+        this.requestDelayMs = requestDelayMs;
     }
 
-    @Scheduled(fixedDelayString = "${app.jobs.skill-proficiency.fixed-delay-ms:15000}", initialDelay = 20000)
+    @Scheduled(fixedDelayString = "${app.jobs.skill-proficiency.fixed-delay-ms:20000}", initialDelay = 20000)
     public void processNext() {
         if (!enabled || !ai.enabled())
             return;
@@ -79,7 +85,7 @@ public class JobSkillProficiencyService {
                     "catalog_version",
                     SkillCatalog.get().version(),
                     "results",
-                    analyze(job, uuid(job.get("actor")))
+                    analyze(job, uuid(job.get("actor")), requestDelayMs)
                 )
             );
         } catch (RuntimeException failure) {
@@ -98,21 +104,35 @@ public class JobSkillProficiencyService {
             "rubric_version",
             SkillRubric.get().rubricVersion(),
             "results",
-            analyze(fields("raw_content", jd), actor)
+            analyze(fields("raw_content", jd), actor, 0)
         );
     }
 
     private List<Map<String, Object>> analyze(
         Map<String, Object> job,
-        UUID actor) {
+        UUID actor,
+        long batchDelayMs) {
         var candidates = new ArrayList<>(JobSkillProficiency.candidates(job).values());
         var results = new ArrayList<Map<String, Object>>();
         for (int start = 0; start < candidates.size(); start += SKILLS_PER_REQUEST) {
+            if (start > 0 && batchDelayMs > 0) {
+                try {
+                    TimeUnit.MILLISECONDS.sleep(batchDelayMs);
+                } catch (InterruptedException failure) {
+                    Thread.currentThread().interrupt();
+                    throw new ApiException(503, "Job skill analysis interrupted");
+                }
+            }
             var batch = candidates.subList(start, Math.min(candidates.size(), start + SKILLS_PER_REQUEST));
             var response = ai.generateForUser(actor, FEATURE, JobSkillProficiency.input(job, batch));
             try {
                 results.addAll(JobSkillProficiency.validate(batch, response));
             } catch (IllegalArgumentException failure) {
+                LOG.warn(
+                    "JD proficiency response validation failed for job {}: {}",
+                    job.get("id"),
+                    failure.getMessage()
+                );
                 throw new ApiException(502, "AI returned invalid skill proficiency evidence");
             }
         }

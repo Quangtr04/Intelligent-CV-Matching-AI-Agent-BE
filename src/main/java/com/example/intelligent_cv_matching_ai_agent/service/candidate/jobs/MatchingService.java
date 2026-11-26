@@ -142,9 +142,16 @@ public class MatchingService {
             throw ApiException.badRequest("Invalid matching basis");
         if (requestedMode == null)
             requestedMode = "DETAILED";
-        if (!Set.of("QUICK", "DETAILED").contains(requestedMode))
+        if (!Set.of("QUICK", "DETAILED", "RECOMMENDATION_RULES").contains(requestedMode))
             throw ApiException.badRequest("Invalid matching mode");
-        boolean quick = "QUICK".equals(requestedMode);
+        boolean ruleRecommendation = "RECOMMENDATION_RULES".equals(requestedMode);
+        if (ruleRecommendation && targetJobId != null) {
+            throw ApiException.badRequest("Rule-based recommendations search the job catalog");
+        }
+        if (ruleRecommendation) {
+            limit = Math.min(limit, 10);
+        }
+        boolean quick = ruleRecommendation || "QUICK".equals(requestedMode);
 
         MatchingSalaryPolicy settings = salaryPolicies.effective();
         List<Map<String, Object>> cvs = new ArrayList<>();
@@ -173,12 +180,14 @@ public class MatchingService {
         Map<String, Object> profile = new LinkedHashMap<>(storedProfile.orElse(Map.of()));
         profile.remove("expected_salary_min");
         profile.remove("expected_salary_max");
-        Optional<SalaryExpectation> salary = SalaryExpectation.fromProfile(profile, settings);
+        Optional<SalaryExpectation> salary = ruleRecommendation && !basis.equals("CAREER_PROFILE")
+            ? Optional.empty()
+            : SalaryExpectation.fromProfile(profile, settings);
 
         if (basis.equals("CAREER_PROFILE")) {
             if (storedProfile.isEmpty())
                 throw ApiException.badRequest("Complete your career profile first");
-            if (salary.isEmpty())
+            if (!ruleRecommendation && salary.isEmpty())
                 throw ApiException
                     .badRequest("Set expectedSalary in your career profile before requesting job recommendations");
             profileSkills = db.listCandidateProfileSkillsByUserId(user.id());
@@ -259,7 +268,9 @@ public class MatchingService {
 
         String mode = useEvidence
             ? "REQUIREMENT_EVIDENCE"
-            : quick ? "SKILL_OVERLAP_QUICK" : useAi ? "SEMANTIC_LLM" : "SKILL_OVERLAP";
+            : ruleRecommendation
+                ? "RECOMMENDATION_RULES"
+                : quick ? "SKILL_OVERLAP_QUICK" : useAi ? "SEMANTIC_LLM" : "SKILL_OVERLAP";
         String catalogFingerprint = targetJobId == null
             ? text(db.readMarketJobPostsByStatus())
             : FlowSupport.hash(tools.jackson.databind.json.JsonMapper.builder().build().writeValueAsString(catalog));
@@ -473,6 +484,9 @@ public class MatchingService {
             if (quick) {
                 for (var job : ranked) {
                     var assessment = QuickJobMatcher.assess(quickEvidence, job);
+                    if (ruleRecommendation) {
+                        assessment.put("score_kind", "RECOMMENDATION_RULE_COVERAGE");
+                    }
                     job.put("final_score", assessment.get("score"));
                     job.put("explanation", assessment);
                 }

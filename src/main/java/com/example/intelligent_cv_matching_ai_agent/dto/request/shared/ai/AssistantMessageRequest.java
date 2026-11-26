@@ -20,6 +20,14 @@ public final class AssistantMessageRequest {
 
     private String language;
 
+    private boolean applicationReview;
+
+    @JsonSetter("applicationReview")
+    public void setApplicationReview(
+        boolean value) {
+        applicationReview = value;
+    }
+
     @JsonSetter("message")
     public void setMessage(
         String value) {
@@ -68,6 +76,8 @@ public final class AssistantMessageRequest {
             input.put("retrieve", retrieve);
         if (language != null)
             input.put("language", language);
+        if (applicationReview)
+            input.put("application_review", true);
         return input;
     }
 }

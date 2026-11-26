@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -198,8 +199,7 @@ class LearningSourceFlowTest {
         verify(current).requireRole("CANDIDATE");
         verify(resumes).owned(resumeId);
         verifyNoInteractions(references);
-        verify(ai).requireRoadmapAccess();
-        verifyNoMoreInteractions(ai);
+        verifyNoInteractions(ai);
         verify(db, never()).insertRoadmaps(anyMap());
     }
 
@@ -277,8 +277,8 @@ class LearningSourceFlowTest {
         );
         verify(ai).generate(eq("ROADMAP_GENERATE"), argThat(input -> {
             var gaps = (List<?>) input.get("allowed_missing_skills");
-            return gaps.size() == 2
-                && gaps.stream().allMatch(raw -> "MISSING_EVIDENCE".equals(((Map<?, ?>) raw).get("gap_status")));
+            return gaps.size() == 2 && gaps.stream().map(raw -> ((Map<?, ?>) raw).get("gap_status"))
+                .collect(java.util.stream.Collectors.toSet()).equals(Set.of("MISSING_EVIDENCE", "OPTIONAL_REVIEW"));
         }));
 
         clearInvocations(ai);
@@ -289,8 +289,7 @@ class LearningSourceFlowTest {
                 () -> service.createRoadmap(new RoadmapRequest(null, jobId, null, assessmentId))
             ).status()
         );
-        verify(ai).requireRoadmapAccess();
-        verifyNoMoreInteractions(ai);
+        verifyNoInteractions(ai);
         verify(db, never()).insertRoadmaps(anyMap());
     }
 
@@ -342,6 +341,28 @@ class LearningSourceFlowTest {
         assertEquals(404, failure.status());
         verify(ai, times(1)).generate(eq("ROADMAP_GENERATE"), anyMap());
         verify(db, never()).insertGapAnalyses(anyMap());
+        verify(db, never()).insertRoadmaps(anyMap());
+    }
+
+    @Test
+    void identicalInputsReuseTheSavedRoadmapAndProgressWithoutAi() {
+        UUID jobId = UUID.randomUUID();
+        UUID roadmapId = UUID.randomUUID();
+        when(db.getMarketJobPostsById(jobId)).thenReturn(Map.of("job_title", "Java Backend"));
+        when(db.listMarketJobSkillsByMarketJobId(jobId))
+            .thenReturn(List.of(Map.of("skill_name", "Spring Boot", "is_required", true)));
+        when(db.findReusableRoadmap(eq(actor), eq("job:" + jobId), anyMap()))
+            .thenReturn(java.util.Optional.of(roadmapId));
+        when(db.getRoadmapsById(roadmapId, actor))
+            .thenReturn(new HashMap<>(Map.of("id", roadmapId, "progress_percent", 50)));
+
+        var published = new java.util.ArrayList<Map<String, Object>>();
+        var result = service.createRoadmap(new RoadmapRequest(null, jobId, null, null), published::add);
+
+        assertEquals(roadmapId, result.get("id"));
+        assertEquals(50, result.get("progress_percent"));
+        assertEquals(List.of(result), published);
+        verifyNoInteractions(ai);
         verify(db, never()).insertRoadmaps(anyMap());
     }
 

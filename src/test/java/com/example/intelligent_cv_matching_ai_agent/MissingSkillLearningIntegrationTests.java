@@ -2,13 +2,17 @@ package com.example.intelligent_cv_matching_ai_agent;
 
 import com.example.intelligent_cv_matching_ai_agent.repository.shared.SqlStore;
 import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiService;
+import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.CandidateAiTaskGate;
 import com.example.intelligent_cv_matching_ai_agent.service.shared.identity.TokenService;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.learning.AssessmentRequest;
 import com.example.intelligent_cv_matching_ai_agent.service.candidate.learning.AssessmentService;
 import java.time.OffsetDateTime;
 import java.util.*;
+import java.util.function.Supplier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -66,6 +70,9 @@ class MissingSkillLearningIntegrationTests {
     @MockitoBean
     private AiService ai;
 
+    @MockitoBean
+    private CandidateAiTaskGate candidateAiTasks;
+
     private UUID owner;
 
     private String authorization;
@@ -73,6 +80,9 @@ class MissingSkillLearningIntegrationTests {
     @BeforeEach
     void fixture() {
         reset(ai);
+        // Fixture users are uncommitted, so the separate task-gate transaction cannot see them.
+        when(candidateAiTasks.run(eq("ROADMAP_GENERATE"), any()))
+            .thenAnswer(call -> call.<Supplier<?>>getArgument(1).get());
         owner = user();
         authorization = "Bearer " + tokens.issue(owner).get("accessToken");
         db.update(
@@ -82,8 +92,11 @@ class MissingSkillLearningIntegrationTests {
         );
     }
 
-    @Test
-    void twentyJdSkillsWithTwoDeclaredKeepAllEighteenLearningNodesAcrossProviderBatches() throws Exception {
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void twentyJdSkillsKeepAllEighteenLearningNodesAndOnlySplitTruncatedResponses(
+        boolean truncateFirstCall)
+        throws Exception {
         String[] names = {
             "Python",
             "FastAPI",
@@ -113,6 +126,8 @@ class MissingSkillLearningIntegrationTests {
             Map<String, Object> input = call.getArgument(1);
             var batch = array(input.get("allowed_missing_skills")).stream()
                 .map(raw -> text(object(raw).get("skill_name"))).toList();
+            if (truncateFirstCall && batch.size() == 18)
+                throw new AiService.OutputTruncated();
             sent.addAll(batch);
             return fields(
                 "title",
@@ -130,7 +145,7 @@ class MissingSkillLearningIntegrationTests {
                             "estimated_hours",
                             2,
                             "prerequisites",
-                            List.of()
+                            List.of(0, 99, 99)
                         )
                     ).toList()
             );
@@ -144,7 +159,10 @@ class MissingSkillLearningIntegrationTests {
         var saved = read(roadmap.get("id"));
         assertEquals(20, array(saved.get("skill_states")).size());
         assertEquals(18, array(saved.get("nodes")).size());
-        verify(ai, times(2)).generate(eq("ROADMAP_GENERATE"), anyMap());
+        assertTrue(
+            array(saved.get("nodes")).stream().allMatch(raw -> array(object(raw).get("prerequisites")).isEmpty())
+        );
+        verify(ai, times(truncateFirstCall ? 3 : 1)).generate(eq("ROADMAP_GENERATE"), anyMap());
     }
 
     @Test
@@ -191,8 +209,12 @@ class MissingSkillLearningIntegrationTests {
         var result = create(fields("jobId", selected));
         assertEquals(10, array(result.get("nodes")).size());
         assertEquals(10, array(result.get("missing_skills")).size());
+        var optionalSkills = array(result.get("missing_skills")).stream().map(raw -> object(raw))
+            .filter(row -> "OPTIONAL_REVIEW".equals(row.get("gap_status"))).map(row -> row.get("skill_name")).toList();
         assertTrue(
-            array(result.get("skill_states")).stream().noneMatch(raw -> "UNVERIFIED".equals(object(raw).get("status")))
+            array(result.get("skill_states")).stream().map(raw -> object(raw))
+                .filter(row -> "UNVERIFIED".equals(row.get("status")))
+                .allMatch(row -> optionalSkills.contains(row.get("skill_name")))
         );
     }
 
@@ -225,21 +247,33 @@ class MissingSkillLearningIntegrationTests {
     }
 
     @Test
-    void missingSkillsInAnyProviderBatchCannotPublishAPartialRoadmap() throws Exception {
+    void provider503PublishesBasicRoadmapWithSelectedSkills() throws Exception {
+        UUID selected = job("Docker");
+        when(ai.generate(eq("ROADMAP_GENERATE"), anyMap())).thenThrow(new AiService.ProviderUnavailable());
+
+        var roadmap = create(fields("jobId", selected));
+        assertEquals("CATALOG_FALLBACK", roadmap.get("generation_source"));
+        var node = object(array(roadmap.get("nodes")).getFirst());
+        assertEquals("Docker", node.get("skill_name"));
+        assertTrue(array(node.get("prerequisites")).isEmpty());
+        assertEquals("CATALOG_FALLBACK", read(roadmap.get("id")).get("generation_source"));
+    }
+
+    @Test
+    void missingSkillsInTheProviderResponseCannotPublishAPartialRoadmap() throws Exception {
         String[] names =
             java.util.stream.IntStream.range(0, 20).mapToObj(index -> "Skill " + index).toArray(String[]::new);
         UUID selected = job(names);
         when(ai.generate(eq("ROADMAP_GENERATE"), anyMap())).thenAnswer(call -> {
             Map<String, Object> input = call.getArgument(1);
             var batch = array(input.get("allowed_missing_skills"));
-            int offset = ((Number) object(input.get("generation_batch")).get("offset")).intValue();
             return fields(
                 "title",
                 "Incomplete",
                 "summary",
                 "Partial output",
                 "nodes",
-                batch.stream().limit(offset == 0 ? batch.size() : 6)
+                batch.stream().limit(6)
                     .map(
                         raw -> fields(
                             "skill_name",

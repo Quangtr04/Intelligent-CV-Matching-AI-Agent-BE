@@ -6,6 +6,7 @@ import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiExceptio
 import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiExceptionHandler;
 import com.example.intelligent_cv_matching_ai_agent.service.candidate.resume.ResumePdfExportService;
 import com.example.intelligent_cv_matching_ai_agent.service.candidate.resume.ResumeService;
+import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.CandidateAiTaskGate;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +42,7 @@ class ResumePdfFlowTests {
 
     @BeforeEach
     void setup() {
-        mvc = MockMvcBuilders.standaloneSetup(new ResumeController(resumes, pdf))
+        mvc = MockMvcBuilders.standaloneSetup(new ResumeController(mock(CandidateAiTaskGate.class), resumes, pdf))
             .setControllerAdvice(new ApiExceptionHandler()).build();
     }
 

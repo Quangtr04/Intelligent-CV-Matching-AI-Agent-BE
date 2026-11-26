@@ -1,6 +1,7 @@
 package com.example.intelligent_cv_matching_ai_agent.controller.candidate.learning;
 
 import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.learning.AssessmentAnswerRequest;
+import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.CandidateAiTaskGate;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.learning.AssessmentRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.learning.RoadmapNodeStatusRequest;
 import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.learning.RoadmapRequest;
@@ -17,9 +18,13 @@ public class LearningController {
 
     private final LearningService service;
 
+    private final CandidateAiTaskGate gate;
+
     public LearningController(
+        CandidateAiTaskGate gate,
         LearningService service) {
         this.service = service;
+        this.gate = gate;
     }
 
     @PostMapping("/assessments")
@@ -27,7 +32,7 @@ public class LearningController {
         @Valid
         @RequestBody
         AssessmentRequest input) {
-        return service.assess(input);
+        return gate.run("ASSESSMENT_GENERATE", () -> service.assess(input));
     }
 
     @GetMapping("/assessments")
@@ -64,7 +69,7 @@ public class LearningController {
         @Valid
         @RequestBody
         RoadmapRequest input) {
-        return service.createRoadmap(input);
+        return gate.run("ROADMAP_GENERATE", () -> service.createRoadmap(input));
     }
 
     @GetMapping("/roadmaps/recommendations")

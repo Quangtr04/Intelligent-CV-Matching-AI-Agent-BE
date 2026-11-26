@@ -17,6 +17,8 @@ public final class CareerToolsSupport {
         response.put("improvement_suggestions_json", array(metadata.get("items")));
         if (metadata.get("evidence_report") instanceof Map<?, ?> report)
             response.put("evidence_report", report);
+        if (metadata.get("dimension_scores") instanceof Map<?, ?> scores)
+            response.put("dimension_scores", scores);
         response.put("cached", cached);
 
         return response;

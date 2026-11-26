@@ -12,7 +12,7 @@ public record MatchRequest(
     @Min(1)
     @Max(100)
     int limit,
-    @Pattern(regexp = "QUICK|DETAILED|RECOMMENDATION")
+    @Pattern(regexp = "QUICK|DETAILED|RECOMMENDATION|RECOMMENDATION_RULES")
     String mode,
     UUID jobId
 ) {

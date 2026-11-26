@@ -4,6 +4,7 @@ import com.example.intelligent_cv_matching_ai_agent.dto.request.candidate.learni
 import com.example.intelligent_cv_matching_ai_agent.exception.shared.ApiException;
 import com.example.intelligent_cv_matching_ai_agent.repository.candidate.learning.AssessmentGenerationRepository;
 import com.example.intelligent_cv_matching_ai_agent.security.shared.CurrentUser;
+import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.CandidateAiTaskGate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -26,6 +27,8 @@ public class AssessmentGenerationService {
 
     private final CurrentUser current;
 
+    private final CandidateAiTaskGate gate;
+
     private final TransactionTemplate transactions;
 
     private final boolean enabled;
@@ -36,6 +39,7 @@ public class AssessmentGenerationService {
         AssessmentGenerationRepository db,
         AssessmentService assessments,
         CurrentUser current,
+        CandidateAiTaskGate gate,
         PlatformTransactionManager manager,
         @Value("${app.assessments.generation.enabled:true}")
         boolean enabled,
@@ -44,6 +48,7 @@ public class AssessmentGenerationService {
         this.db = db;
         this.assessments = assessments;
         this.current = current;
+        this.gate = gate;
         this.transactions = new TransactionTemplate(manager);
         this.enabled = enabled;
         this.leaseSeconds = Math.max(600, Math.min(leaseSeconds, 3600));
@@ -60,12 +65,16 @@ public class AssessmentGenerationService {
             db.lockQueue();
             db.expireInterrupted();
             requireActive(owner);
+            gate.requireNoOtherTask(owner);
             AssessmentService.Prepared prepared = assessments.prepareForOwner(owner, input);
             Optional<Map<String, Object>> existing = db.active(owner, prepared.inputHash());
             if (existing.isPresent()) {
                 return existing.get();
             }
-            if (db.activeCount(owner) >= 3 || db.activeCount(null) >= 50) {
+            if (db.activeCount(owner) > 0) {
+                throw ApiException.conflict("An AI task is already running. Wait for it to finish.");
+            }
+            if (db.activeCount(null) >= 50) {
                 throw new ApiException(429, "Question generation is busy. Wait for an existing request to finish.");
             }
             return db.enqueue(
@@ -129,7 +138,7 @@ public class AssessmentGenerationService {
                 return assessments.restoreForOwner(owner, snapshot, (String) request.get("input_hash"));
             });
             // No JDBC transaction/connection is held while the AI provider runs.
-            Map<String, Object> generated = assessments.generate(prepared);
+            Map<String, Object> generated = gate.runReserved(owner, id, () -> assessments.generate(prepared));
             transactions.executeWithoutResult(status -> {
                 if (!db.ownsClaim(id, owner, token)) {
                     throw ApiException.conflict("Question generation was interrupted before publication.");

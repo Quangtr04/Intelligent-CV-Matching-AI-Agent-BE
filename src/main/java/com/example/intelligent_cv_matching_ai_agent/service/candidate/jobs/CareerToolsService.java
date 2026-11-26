@@ -120,18 +120,23 @@ public class CareerToolsService {
         var job = activeJob(jobId);
         job = new LinkedHashMap<>(job);
         job.put("skills", db.listMarketJobSkillsByMarketJobId(jobId));
+        String jdText = text(job.get("original_content"));
+        if (jdText.isBlank())
+            jdText = text(job.get("raw_content"));
         Map<String, Object> input = fields(
             "resume",
             cv.get("structured_data"),
             "resume_text",
             resumes.canonicalText(cv),
+            "jd_text",
+            jdText,
             "job",
             job,
             "language",
             CareerToolsSupport.languageOf(cv.get("language"))
         );
         String inputHash = FlowSupport.hash(
-            "job-ats-response-v1\n" + CACHE_JSON.writeValueAsString(input) + "\n" + ai.provider() + "\n" + ai.model()
+            "job-ats-response-v3\n" + CACHE_JSON.writeValueAsString(input) + "\n" + ai.provider() + "\n" + ai.model()
                 + "\n" + text(ai.cacheFingerprint("JOB_ATS"))
         );
         String cacheKey =
@@ -177,7 +182,16 @@ public class CareerToolsService {
                 "missing_skills_json",
                 db.json(array(generated.get("missing_skills"))),
                 "improvement_suggestions_json",
-                db.json(fields("input_hash", inputHash, "items", array(generated.get("improvement_suggestions")))),
+                db.json(
+                    fields(
+                        "input_hash",
+                        inputHash,
+                        "items",
+                        array(generated.get("improvement_suggestions")),
+                        "dimension_scores",
+                        generated.get("dimension_scores")
+                    )
+                ),
                 "model_name",
                 ai.model()
             )

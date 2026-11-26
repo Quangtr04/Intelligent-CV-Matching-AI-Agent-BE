@@ -9,9 +9,19 @@ public class AssessmentGenerationConfiguration {
 
     @Bean("assessmentGenerationScheduler")
     public ThreadPoolTaskScheduler assessmentGenerationScheduler() {
+        return generationScheduler("assessment-generation-");
+    }
+
+    @Bean("roadmapGenerationScheduler")
+    public ThreadPoolTaskScheduler roadmapGenerationScheduler() {
+        return generationScheduler("roadmap-generation-");
+    }
+
+    private ThreadPoolTaskScheduler generationScheduler(
+        String threadPrefix) {
         ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
         scheduler.setPoolSize(1);
-        scheduler.setThreadNamePrefix("assessment-generation-");
+        scheduler.setThreadNamePrefix(threadPrefix);
         scheduler.setWaitForTasksToCompleteOnShutdown(false);
         return scheduler;
     }
