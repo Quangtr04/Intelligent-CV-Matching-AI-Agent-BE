@@ -148,6 +148,14 @@ class CareerAssistantControllerTest {
     static class MvcConfiguration {
 
         @Bean
+        com.example.intelligent_cv_matching_ai_agent.service.shared.ai.CandidateAiTaskGate taskGate() {
+            var gate = mock(com.example.intelligent_cv_matching_ai_agent.service.shared.ai.CandidateAiTaskGate.class);
+            when(gate.run(anyString(), any()))
+                .thenAnswer(call -> call.<java.util.function.Supplier<?>>getArgument(1).get());
+            return gate;
+        }
+
+        @Bean
         TokenService tokens() {
             return mock(TokenService.class);
         }

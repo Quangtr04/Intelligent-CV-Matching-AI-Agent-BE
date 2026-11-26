@@ -54,7 +54,11 @@ class ManagerQuotaPolicyTests {
         assertEquals(100000L, limits.get("maxApiQuota"));
         assertEquals("DEFAULT_POLICY", limits.get("source"));
         List<?> codes = (List<?>) limits.get("allowedFeatureCodes");
-        assertEquals(30, codes.size());
+        assertEquals(
+            2 + 2 * com.example.intelligent_cv_matching_ai_agent.util.shared.ai.AiFeatureCatalog.descriptors().size(),
+            codes.size()
+        );
+        assertTrue(codes.containsAll(List.of("APPLICATION_REVIEW", "API_CALLS_APPLICATION_REVIEW")));
         assertTrue(
             codes.containsAll(
                 List.of(

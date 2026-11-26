@@ -19,6 +19,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
+import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.CandidateAiTaskGate;
+import java.util.function.Supplier;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import tools.jackson.databind.json.JsonMapper;
 import static org.junit.jupiter.api.Assertions.*;
@@ -65,6 +67,9 @@ class ResumeWritingQualityIntegrationTests {
     @MockitoBean
     private AiService ai;
 
+    @MockitoBean
+    private CandidateAiTaskGate taskGate;
+
     private UUID owner;
 
     private String candidate;
@@ -74,18 +79,19 @@ class ResumeWritingQualityIntegrationTests {
     @BeforeEach
     void identities() {
         reset(ai);
+        when(taskGate.run(anyString(), any())).thenAnswer(call -> call.<Supplier<?>>getArgument(1).get());
         owner = user();
         candidate = token(owner);
         other = token(user());
     }
 
     @Test
-    void persistsDerivedWritingScoresAndRereadsTheSameBreakdownWithoutAnotherAiCall() throws Exception {
+    void persistsGeminiScoresAndRereadsTheSameBreakdownWithoutAnotherAiCall() throws Exception {
         UUID resume = resume("READY");
         Map<String, Object> generated = ResumeWritingTestData.report();
         generated.put("content_score", 1);
         generated.put("content_quality", ResumeWritingTestData.content(90, "Reviewed Java experience"));
-        generated.put("overall_score", 1);
+        generated.put("overall_score", 72);
         generated.put(
             "suggestions",
             List.of(
@@ -109,13 +115,13 @@ class ResumeWritingQualityIntegrationTests {
         for (int index = 0; index < scores.length; index++)
             criteria(generated).get(index).put("score", scores[index]);
         criteria(generated).getFirst().put("evidence", List.of("- Built REST APIs."));
-        writing(generated).put("_internal", "PRIVATE_MODEL_TRACE");
+        writing(generated).put("score", 70);
         enabled(generated);
         Map<String, Object> created = response(
             mvc.perform(post(path(resume)).header("Authorization", candidate)).andExpect(status().isOk())
-                .andExpect(jsonPath("$.overall_score").value(86)).andExpect(jsonPath("$.content_score").value(90))
+                .andExpect(jsonPath("$.overall_score").value(72)).andExpect(jsonPath("$.content_score").value(1))
                 .andExpect(jsonPath("$.writing_quality.score").value(70))
-                .andExpect(jsonPath("$.writing_quality.assessed_criteria").value(5))
+
                 .andExpect(jsonPath("$.writing_quality.criteria[0].code").value("BULLET_STRUCTURE")).andReturn()
         );
         String analysisId = created.get("id").toString();
@@ -124,15 +130,14 @@ class ResumeWritingQualityIntegrationTests {
         assertEquals("cv-writing-v1", ((Map<?, ?>) persisted.get("writing_quality_json")).get("rubric_version"));
         Map<?, ?> content = (Map<?, ?>) persisted.get("content_quality_json");
         assertEquals("cv-content-v1", content.get("rubric_version"));
-        assertEquals(90.0, ((Number) content.get("score")).doubleValue());
-        assertEquals(1, ((Number) content.get("assessed_criteria")).intValue());
+        assertEquals(generated.get("content_quality"), content);
         mvc.perform(get(path(resume) + "/" + analysisId).header("Authorization", candidate)).andExpect(status().isOk())
             .andExpect(jsonPath("$.writing_quality.score").value(70))
-            .andExpect(jsonPath("$.content_quality_json.score").value(90))
+            .andExpect(jsonPath("$.content_quality_json.criteria[5].score").value(90))
             .andExpect(jsonPath("$.suggestions[0].original_content").value("- Built REST APIs."));
         mvc.perform(get(path(resume)).header("Authorization", candidate)).andExpect(status().isOk())
             .andExpect(jsonPath("$[0].writing_quality.score").value(70));
-        verify(ai, times(1)).generate(eq("CV_ANALYZE"), argThat(input -> {
+        verify(ai, times(1)).generateResumeAts(argThat(input -> {
             Map<?, ?> source = (Map<?, ?>) input.get("resume");
             Map<?, ?> structured = (Map<?, ?>) source.get("structured_data");
             Map<?, ?> experience = (Map<?, ?>) ((List<?>) structured.get("experience")).getFirst();
@@ -154,7 +159,7 @@ class ResumeWritingQualityIntegrationTests {
         );
         mvc.perform(get(path(ready) + "/" + created.get("id")).header("Authorization", other))
             .andExpect(status().isNotFound());
-        verify(ai, times(1)).generate(eq("CV_ANALYZE"), anyMap());
+        verify(ai, times(1)).generateResumeAts(anyMap());
     }
 
     @Test
@@ -194,7 +199,7 @@ class ResumeWritingQualityIntegrationTests {
     }
 
     @Test
-    void historicalChineseSuggestionsAreMarkedForRefreshWithoutChangingSourceText() throws Exception {
+    void historicalChineseSuggestionsRemainReadableWithoutChangingSourceText() throws Exception {
         UUID resume = resume("READY");
         UUID analysis = db.insert(
             "resume_analyses",
@@ -225,25 +230,26 @@ class ResumeWritingQualityIntegrationTests {
             )
         );
         mvc.perform(get(path(resume) + "/" + analysis).header("Authorization", candidate)).andExpect(status().isOk())
-            .andExpect(jsonPath("$.language_valid").value(false)).andExpect(jsonPath("$.response_language").value("vi"))
+            .andExpect(jsonPath("$.language_valid").doesNotHaveJsonPath())
+            .andExpect(jsonPath("$.response_language").value("vi"))
             .andExpect(jsonPath("$.suggestions[0].original_content").value("Dự án quản lý hiến máu"));
         verifyNoInteractions(ai);
     }
 
     @Test
-    void invalidRubricOrInventedEvidenceDoesNotPersistPartialAnalysesOrSuggestions() throws Exception {
+    void candidateAtsPersistsModelRubricAndEvidenceWithoutValidation() throws Exception {
         UUID resume = resume("READY");
         Map<String, Object> generated = ResumeWritingTestData.report();
         criteria(generated).getFirst().put("code", "PROFESSIONAL_WORDING");
         enabled(generated);
-        mvc.perform(post(path(resume)).header("Authorization", candidate)).andExpect(status().isBadGateway());
+        mvc.perform(post(path(resume)).header("Authorization", candidate)).andExpect(status().isOk());
         criteria(generated).getFirst().put("code", "BULLET_STRUCTURE");
         criteria(generated).getFirst().put("evidence", List.of("Invented 50% performance improvement"));
-        mvc.perform(post(path(resume)).header("Authorization", candidate)).andExpect(status().isBadGateway());
+        mvc.perform(post(path(resume)).header("Authorization", candidate)).andExpect(status().isOk());
         criteria(generated).getFirst().put("evidence", List.of());
         generated.put("suggestions", List.of(Map.of("original_content", "Old unreviewed claim")));
-        mvc.perform(post(path(resume)).header("Authorization", candidate)).andExpect(status().isBadGateway());
-        assertEquals(0L, db.scalar("SELECT count(*) FROM resume_analyses WHERE resume_id=?", resume));
+        mvc.perform(post(path(resume)).header("Authorization", candidate)).andExpect(status().isOk());
+        assertEquals(3L, db.scalar("SELECT count(*) FROM resume_analyses WHERE resume_id=?", resume));
     }
 
     @Test
@@ -257,23 +263,21 @@ class ResumeWritingQualityIntegrationTests {
         enabled(generated);
         mvc.perform(post(path(resume)).header("Authorization", candidate)).andExpect(status().isOk())
             .andExpect(jsonPath("$.overall_score").value(85))
-            .andExpect(jsonPath("$.writing_quality.score").value(org.hamcrest.Matchers.nullValue()))
-            .andExpect(jsonPath("$.writing_quality.assessed_criteria").value(0))
-            .andExpect(jsonPath("$.writing_quality.content_weight").value(1))
-            .andExpect(jsonPath("$.writing_quality.writing_weight").value(0))
+            .andExpect(jsonPath("$.writing_quality.score").doesNotHaveJsonPath())
+
             .andExpect(jsonPath("$.writing_quality.criteria[0].score").value(org.hamcrest.Matchers.nullValue()));
     }
 
     @Test
-    void contentEvidenceMustQuoteTheReviewedCvBeforeAnAnalysisCanBePersisted() throws Exception {
+    void candidateAtsPersistsModelEvidenceWithoutRequiringSourceQuotes() throws Exception {
         UUID resume = resume("READY");
         for (String unsupported : List.of("Old unreviewed claim", "company_name", "Invented 50% improvement")) {
             Map<String, Object> generated = ResumeWritingTestData.report();
             generated.put("content_quality", ResumeWritingTestData.content(90, unsupported));
             enabled(generated);
-            mvc.perform(post(path(resume)).header("Authorization", candidate)).andExpect(status().isBadGateway());
+            mvc.perform(post(path(resume)).header("Authorization", candidate)).andExpect(status().isOk());
         }
-        assertEquals(0L, db.scalar("SELECT count(*) FROM resume_analyses WHERE resume_id=?", resume));
+        assertEquals(3L, db.scalar("SELECT count(*) FROM resume_analyses WHERE resume_id=?", resume));
         assertEquals(
             0L,
             db.scalar(
@@ -294,13 +298,13 @@ class ResumeWritingQualityIntegrationTests {
                 .contentType(MediaType.APPLICATION_JSON).content("{\"title\":\"Corrected CV title\"}")
         ).andExpect(status().isOk()).andExpect(jsonPath("$.status").value("REVIEW_REQUIRED"));
         mvc.perform(post(path(resume)).header("Authorization", candidate)).andExpect(status().isConflict());
-        verify(ai, times(1)).generate(eq("CV_ANALYZE"), anyMap());
+        verify(ai, times(1)).generateResumeAts(anyMap());
     }
 
     private void enabled(
         Map<String, Object> report) {
         when(ai.enabled()).thenReturn(true);
-        when(ai.generate(eq("CV_ANALYZE"), anyMap())).thenReturn(report);
+        when(ai.generateResumeAts(anyMap())).thenReturn(report);
     }
 
     private UUID resume(

@@ -26,6 +26,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
+import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.CandidateAiTaskGate;
+import java.util.function.Supplier;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import tools.jackson.databind.json.JsonMapper;
 import static org.junit.jupiter.api.Assertions.*;
@@ -71,6 +73,9 @@ class MatchingSalaryIntegrationTests {
     private AiService ai;
 
     @MockitoBean
+    private CandidateAiTaskGate taskGate;
+
+    @MockitoBean
     private SalaryExchangeRateService exchangeRates;
 
     private UUID owner;
@@ -80,17 +85,7 @@ class MatchingSalaryIntegrationTests {
     @BeforeEach
     void fixture() {
         reset(ai, exchangeRates);
-        when(exchangeRates.snapshot()).thenReturn(
-            new SalaryExchangeRates(
-                Map.of("USD", BigDecimal.ONE, "VND", new BigDecimal("25000"), "EUR", new BigDecimal("0.9")),
-                Instant.parse("2026-10-24T00:00:00Z"),
-                "https://rates.example.test"
-            )
-        );
-        when(ai.provider()).thenReturn("openai");
-        when(ai.model()).thenReturn("gpt-4.1-mini");
-        when(ai.embeddingModel()).thenReturn("text-embedding-3-small");
-        db.update("UPDATE market_job_posts SET status='REMOVED' WHERE status='ACTIVE'");
+        when(taskGate.run(anyString(), any())).thenAnswer(call -> call.<Supplier<?>>getArgument(1).get());
         owner = db.insert(
             "users",
             Map.of(
@@ -106,6 +101,17 @@ class MatchingSalaryIntegrationTests {
                 "CANDIDATE"
             )
         );
+        when(exchangeRates.snapshot()).thenReturn(
+            new SalaryExchangeRates(
+                Map.of("USD", BigDecimal.ONE, "VND", new BigDecimal("25000"), "EUR", new BigDecimal("0.9")),
+                Instant.parse("2026-10-24T00:00:00Z"),
+                "https://rates.example.test"
+            )
+        );
+        when(ai.provider()).thenReturn("openai");
+        when(ai.model()).thenReturn("gpt-4.1-mini");
+        when(ai.embeddingModel()).thenReturn("text-embedding-3-small");
+        db.update("UPDATE market_job_posts SET status='REMOVED' WHERE status='ACTIVE'");
         authorization = "Bearer " + tokens.issue(owner).get("accessToken");
         db.update(
             "INSERT INTO candidate_profiles(user_id,target_job_title,profile_summary,expected_salary,salary_currency) "

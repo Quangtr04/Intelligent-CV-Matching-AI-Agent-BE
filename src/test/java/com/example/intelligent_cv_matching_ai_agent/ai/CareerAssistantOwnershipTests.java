@@ -82,7 +82,7 @@ class CareerAssistantOwnershipTests {
     }
 
     @Test
-    void applicationWritingForwardsTheRequestedLanguageAndKeepsTheChatAnswerContract() {
+    void applicationWritingForwardsTheRequestedLanguageWithoutAddingPromptText() {
         when(db.one("SELECT * FROM career_assistant_conversations WHERE id=?", conversation)).thenReturn(
             Map.of("id", conversation, "user_id", actor, "status", "ACTIVE", "context_type", "application")
         );
@@ -97,7 +97,7 @@ class CareerAssistantOwnershipTests {
             eq("CAREER_CHAT"),
             argThat(
                 input -> "en".equals(input.get("language"))
-                    && input.get("writing_rule").toString().contains("CAREER_CHAT answer string")
+                    && "Write my application letter".equals(input.get("message")) && !input.containsKey("writing_rule")
             )
         );
         verify(db, never()).insert(anyString(), anyMap());

@@ -22,6 +22,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
+import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.CandidateAiTaskGate;
+import java.util.function.Supplier;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import tools.jackson.databind.json.JsonMapper;
 import static org.junit.jupiter.api.Assertions.*;
@@ -69,6 +71,9 @@ class AssessmentJdIntegrationTests {
     @MockitoBean
     private AiService ai;
 
+    @MockitoBean
+    private CandidateAiTaskGate taskGate;
+
     private UUID owner;
 
     private String authorization;
@@ -76,6 +81,7 @@ class AssessmentJdIntegrationTests {
     @BeforeEach
     void fixture() {
         reset(ai);
+        when(taskGate.run(anyString(), any())).thenAnswer(call -> call.<Supplier<?>>getArgument(1).get());
         owner = candidate();
         authorization = bearer(owner);
         when(ai.generate(eq("ASSESSMENT_GENERATE"), anyMap())).thenReturn(Map.of("questions", questions("Java")));
