@@ -7,6 +7,7 @@ import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiUsageRec
 import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.AiService;
 import com.example.intelligent_cv_matching_ai_agent.service.shared.ai.GeminiTokenCounter;
 import com.example.intelligent_cv_matching_ai_agent.util.shared.ai.CvSupportResponseSchema;
+import com.example.intelligent_cv_matching_ai_agent.util.shared.ai.AiFeatureCatalog;
 
 import com.example.intelligent_cv_matching_ai_agent.security.shared.CurrentUser;
 
@@ -19,6 +20,7 @@ import com.example.intelligent_cv_matching_ai_agent.service.shared.billing.Entit
 import com.example.intelligent_cv_matching_ai_agent.service.guest.identity.GuestAccess;
 import com.openai.errors.OpenAIServiceException;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -38,6 +40,12 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 class AiServiceTests {
+
+    @BeforeEach
+    void configureActiveAdminPrompts() {
+        when(db.optional(contains("FROM ai_prompt_templates"), anyString()))
+            .thenAnswer(call -> Optional.of(AiFeatureCatalog.defaultPrompt(call.getArgument(1))));
+    }
 
     @Test
     void recommendationUsesTheActiveAdminTemplateAndKeepsTheEvidenceSchema() {
@@ -63,10 +71,10 @@ class AiServiceTests {
 
         verify(chat).call(org.mockito.ArgumentMatchers.<Prompt>argThat(prompt -> {
             String system = prompt.getInstructions().getFirst().getText();
-            return system.contains("assessment_status") && system.contains("cv_quote") && system.contains("jd_quote")
-                && system.contains(job.toString()) && system.contains("Admin recommendation guidance")
-                && system.contains("Use the administrator's scoring scale.")
-                && !system.contains("displayed as score*100 percent");
+            String input = prompt.getInstructions().getLast().getText();
+            return input.contains("assessment_status") && input.contains("cv_quote") && input.contains("jd_quote")
+                && input.contains(job.toString())
+                && system.equals("Admin recommendation guidance\n\nUse the administrator's scoring scale.");
         }));
     }
 
@@ -693,8 +701,7 @@ class AiServiceTests {
                             )
                         && prompt.getInstructions().getFirst().getText()
                             .contains("Use concise CV instructions from administration.")
-                        && prompt.getInstructions().getFirst().getText()
-                            .contains("Response language: Respond in English.");
+                        && "en".equals(promptPayload(prompt).get("response_language"));
                 }
             )
         );
@@ -764,6 +771,11 @@ class AiServiceTests {
         return service(enabled, "test-assessment");
     }
 
+    private static Map<?, ?> promptPayload(
+        Prompt prompt) {
+        return JsonMapper.builder().build().readValue(prompt.getInstructions().getLast().getText(), Map.class);
+    }
+
     private AiService service(
         boolean enabled,
         String assessmentModel) {
@@ -817,7 +829,6 @@ class AiServiceTests {
         ChatModel chat = mock(ChatModel.class);
         when(chats.getIfAvailable()).thenReturn(chat);
         when(chats.getObject()).thenReturn(chat);
-        when(db.optional(anyString(), any())).thenReturn(Optional.empty());
         when(user.id()).thenReturn(actor);
         when(entitlement.reserve(eq(actor), eq("CAREER_CHAT"), anyInt())).thenReturn(reservation);
         when(chat.call(any(Prompt.class)))
@@ -968,15 +979,13 @@ class AiServiceTests {
         verify(chat).call(org.mockito.ArgumentMatchers.<Prompt>argThat(prompt -> {
             String system = prompt.getInstructions().getFirst().getText();
             String input = prompt.getInstructions().getLast().getText();
-            return system.contains("Use neutral phrasing.") && system.contains("Focus on clear descriptions.")
-                && !system.contains("a final period is not mandatory") && system.contains("Respond in English.")
-                && system.endsWith(
-                    com.example.intelligent_cv_matching_ai_agent.util.shared.ai.CvAnalysisLanguage.instructions("en")
-                ) && prompt.getOptions() instanceof OpenAiChatOptions options
+            return system.equals("Use neutral phrasing.\n\nFocus on clear descriptions.")
+                && "en".equals(promptPayload(prompt).get("response_language"))
+                && prompt.getOptions() instanceof OpenAiChatOptions options
                 && Integer.valueOf(4000).equals(options.getMaxTokens())
                 && Double.valueOf(0.0).equals(options.getTemperature())
                 && options.getResponseFormat().getType() == OpenAiChatModel.ResponseFormat.Type.JSON_OBJECT
-                && system.contains("writing_quality") && input.contains("- Built a Java API\\n- Wrote API tests");
+                && input.contains("writing_quality") && input.contains("- Built a Java API\\n- Wrote API tests");
         }));
         verify(entitlement).complete(eq(reservation), intThat(n -> n > 0));
     }
@@ -1128,8 +1137,8 @@ class AiServiceTests {
                 && prompt.getInstructions().getLast().getText().contains("jd_skills")
                 && prompt.getInstructions().getFirst().getText().contains("ONE selected job description")
                 && prompt.getInstructions().getFirst().getText().contains("Use established technical knowledge")
-                && prompt.getInstructions().getFirst().getText().contains("first 4 with part=1, then 5 with part=2")
-                && prompt.getInstructions().getFirst().getText().contains("\"maxItems\":9");
+                && Integer.valueOf(4).equals(promptPayload(prompt).get("foundation_question_count"))
+                && promptPayload(prompt).get("response_schema").toString().contains("\"maxItems\":9");
         }));
     }
 
@@ -1257,10 +1266,12 @@ class AiServiceTests {
             if (!(prompt.getOptions() instanceof OpenAiChatOptions options))
                 return false;
             String system = prompt.getInstructions().getFirst().getText();
+            String schema = promptPayload(prompt).get("response_schema").toString();
             return options.getResponseFormat().getType() == OpenAiChatModel.ResponseFormat.Type.JSON_OBJECT
-                && system.contains("subject") && system.contains("email") && system.contains("cover_letter")
+                && schema.contains("subject") && schema.contains("email") && schema.contains("cover_letter")
                 && system.contains("email of at most 120 words") && system.contains("at most 200 words")
-                && system.contains("Do not invent a recipient name") && system.contains("Respond in English.");
+                && system.contains("Do not invent a recipient name")
+                && "en".equals(promptPayload(prompt).get("response_language"));
         }));
 
         when(chat.call(any(Prompt.class))).thenReturn(

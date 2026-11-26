@@ -298,13 +298,21 @@ class RequirementEvidenceTests {
                 )
             )
         );
-        assertTrue(MissingSkillAnalysis.fromEvidence(report, Map.of()).learning().isEmpty());
+        assertTrue(
+            MissingSkillAnalysis.fromEvidence(report, Map.of()).learning().stream()
+                .allMatch(row -> "OPTIONAL_REVIEW".equals(row.get("gap_status")))
+        );
         assertEquals(
-            "REVIEW_REQUIREMENT",
+            "OPTIONAL_REVIEW",
             MissingSkillAnalysis.fromEvidence(report, Map.of()).skills().getFirst().get("action")
         );
         var weak = fields("skill_scores", List.of(fields("skill", "Java", "score", 40)));
-        assertEquals(1, MissingSkillAnalysis.fromEvidence(report, weak).learning().size());
+        assertEquals(
+            1,
+            MissingSkillAnalysis.fromEvidence(report, weak).learning().stream()
+                .filter(row -> "Java".equals(row.get("skill_name")) && "NEEDS_PRACTICE".equals(row.get("gap_status")))
+                .count()
+        );
     }
 
     @Test
@@ -321,7 +329,10 @@ class RequirementEvidenceTests {
         var report = RequirementEvidence
             .report(List.of(req("Java", "MANDATORY", "Java")), Map.of("r0", verdict("UNVERIFIED")), "PARSED");
         assertTrue(array(report.get("skill_gaps")).isEmpty());
-        assertTrue(MissingSkillAnalysis.fromEvidence(report, Map.of()).learning().isEmpty());
+        assertTrue(
+            MissingSkillAnalysis.fromEvidence(report, Map.of()).learning().stream()
+                .allMatch(row -> "OPTIONAL_REVIEW".equals(row.get("gap_status")))
+        );
     }
 
     private static Requirement req(

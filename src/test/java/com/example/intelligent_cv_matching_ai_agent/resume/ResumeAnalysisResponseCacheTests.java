@@ -79,7 +79,7 @@ class ResumeAnalysisResponseCacheTests {
         when(ai.provider()).thenReturn("openai");
         when(ai.model()).thenReturn("gpt-test");
         when(ai.cacheFingerprint("CV_ANALYZE")).thenReturn("prompt-v1");
-        when(ai.generate(eq("CV_ANALYZE"), anyMap())).thenAnswer(call -> ResumeWritingTestData.report());
+        when(ai.generateResumeAts(anyMap())).thenAnswer(call -> ResumeWritingTestData.report());
         when(db.json(any())).thenAnswer(call -> call.getArgument(0));
         when(db.insertResumeAnalyses(anyMap())).thenAnswer(call -> {
             Map<String, Object> row = new LinkedHashMap<>(call.getArgument(0));
@@ -124,7 +124,7 @@ class ResumeAnalysisResponseCacheTests {
         verify(db, never()).findResumeAnalysisByInput(any(), any(), any(), any());
         verify(db, never()).listResumeAnalysisSuggestionsByAnalysisId(any());
         verify(db, never()).insertResumeAnalyses(anyMap());
-        verify(ai, never()).generate(anyString(), anyMap());
+        verify(ai, never()).generateResumeAts(anyMap());
         verify(values).set(
             anyString(),
             anyString(),
@@ -163,7 +163,7 @@ class ResumeAnalysisResponseCacheTests {
         assertTrue(cachedValues.containsKey(firstKey));
         assertTrue(cachedValues.keySet().stream().anyMatch(key -> !firstKey.equals(key)));
         verify(db, times(2)).insertResumeAnalyses(anyMap());
-        verify(ai, times("mode".equals(change) ? 1 : 2)).generate(eq("CV_ANALYZE"), anyMap());
+        verify(ai, times("mode".equals(change) ? 1 : 2)).generateResumeAts(anyMap());
     }
 
     @Test
@@ -176,7 +176,7 @@ class ResumeAnalysisResponseCacheTests {
 
         verify(values, never()).get(anyString());
         verify(db, never()).findResumeAnalysisByInput(any(), any(), any(), any());
-        verify(ai, never()).generate(anyString(), anyMap());
+        verify(ai, never()).generateResumeAts(anyMap());
         resume.put("status", "READY");
         doThrow(ApiException.forbidden("CV belongs to another user")).when(user).owns(resume, "user_id");
         assertThrows(ApiException.class, () -> service.analyze(resumeId));
@@ -195,7 +195,7 @@ class ResumeAnalysisResponseCacheTests {
 
         assertEquals(false, response.get("cached"));
         assertNotNull(response.get("id"));
-        verify(ai).generate(eq("CV_ANALYZE"), anyMap());
+        verify(ai).generateResumeAts(anyMap());
         verify(db).insertResumeAnalyses(anyMap());
     }
 
@@ -212,7 +212,7 @@ class ResumeAnalysisResponseCacheTests {
 
         assertNotEquals(first.get("id"), second.get("id"));
         assertEquals(false, second.get("cached"));
-        verify(ai, times(2)).generate(eq("CV_ANALYZE"), anyMap());
+        verify(ai, times(2)).generateResumeAts(anyMap());
         verify(db, times(2)).insertResumeAnalyses(anyMap());
         verify(db, never()).findResumeAnalysisByInput(any(), any(), any(), any());
     }
@@ -248,7 +248,7 @@ class ResumeAnalysisResponseCacheTests {
         verify(db).getResumeAnalysesById(second.get("id"), resumeId);
         verify(db).listResumeAnalysisSuggestionsByAnalysisId(second.get("id"));
         verify(db).insertResumeAnalyses(anyMap());
-        verify(ai).generate(eq("CV_ANALYZE"), anyMap());
+        verify(ai).generateResumeAts(anyMap());
         if ("expired".equals(redisState)) {
             assertEquals(1, cachedValues.size());
             verify(values).set(
@@ -277,7 +277,7 @@ class ResumeAnalysisResponseCacheTests {
 
         assertNotEquals(first.get("id"), second.get("id"));
         assertEquals(false, second.get("cached"));
-        verify(ai, times(2)).generate(eq("CV_ANALYZE"), anyMap());
+        verify(ai, times(2)).generateResumeAts(anyMap());
     }
 
     @Test
@@ -286,7 +286,7 @@ class ResumeAnalysisResponseCacheTests {
         String key = cachedValues.keySet().iterator().next();
         Map<String, Object> envelope = mapper.readValue(cachedValues.get(key), Map.class);
         Map<String, Object> response = new LinkedHashMap<>((Map<String, Object>) envelope.get("response"));
-        response.put("overall_score", "invalid");
+        response.put("id", "invalid");
         envelope.put("response", response);
         cachedValues.put(key, mapper.writeValueAsString(envelope));
 
@@ -294,7 +294,7 @@ class ResumeAnalysisResponseCacheTests {
 
         assertNotEquals(first.get("id"), second.get("id"));
         assertEquals(false, second.get("cached"));
-        verify(ai, times(2)).generate(eq("CV_ANALYZE"), anyMap());
+        verify(ai, times(2)).generateResumeAts(anyMap());
     }
 
     @Test
@@ -307,6 +307,6 @@ class ResumeAnalysisResponseCacheTests {
         assertNotEquals(first.get("id"), second.get("id"));
         assertEquals(false, second.get("cached"));
         assertEquals(2, cachedValues.size());
-        verify(ai, times(2)).generate(eq("CV_ANALYZE"), anyMap());
+        verify(ai, times(2)).generateResumeAts(anyMap());
     }
 }
